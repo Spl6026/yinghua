@@ -56,7 +56,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 | 程式檢查 | PHP 語法、PHPStan、格式 dry-run、適用的 PHPat／Rector 檢查 | 有實際結果；工具缺少或失敗不當成通過 |
 | 功能驗證 | 執行相應的真實 MariaDB／HTTP／JS 測試 | 註冊、session、越權、root 保護、token 重用及交易錯誤等可被驗證 |
 | 安全與介面審查 | security-audit 審查相關變更；UI 以 web-design-guidelines 審查；browser 實際操作 | 明確問題已修正；必要的手機、鍵盤與錯誤流程有觀察 |
-| 交付 | 更新 OpenAPI、需求與驗收紀錄，依 AGENTS.md 管理提交 | 計畫／已實作／已驗證狀態一致；自己的失誤併回對應提交 |
+| 交付 | 在該階段分支更新 OpenAPI、需求與驗收紀錄；按完成的功能提交，階段驗收後合併 main | 計畫／已實作／已驗證狀態一致；自己的失誤併回對應功能提交 |
 
 索引與效能審查以本案 MariaDB 12.3 為準，不能讓 skill 的 11.8 預設覆蓋既有設定。管理員少量分頁可按畫面需求使用 page／offset；大量深頁查詢再評估 cursor，不為 skill 改掉已確認的 API 契約。是否啟用觀測配置依實際診斷需要決定，不自動重啟正式資料庫。
 
@@ -73,3 +73,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 | web-design-guidelines | vercel-labs/agent-skills：skills/web-design-guidelines | 063bee94c3f4df8453406c830b0a7df0f2860278 |
 
 php-modernization 是使用者已有的安裝，原本 skills-lock.json 保留不覆蓋。該檔由原安裝工具管理，目前只記錄 php-modernization；這次 helper 安裝的三個 skills 以本節的來源 commit 記錄，不假造原工具的 computedHash。它們是專案開發資源，不打包成網站公開資產。
+
+## 7. 階段分支與功能提交
+
+依使用者指定，每階段一個分支、每個完成的功能一筆提交。實作前從最新 main 建立該階段分支；共用前置項目、各功能與跨模組驗收分開，單一功能的前後端／契約／相應測試一起提交。驗收完成後以非 fast-forward merge 保留階段界線；不預先把未開始的階段列為完成。詳細命名、提交範例與歷史保存見 [GIT-WORKFLOW.md](GIT-WORKFLOW.md)。
