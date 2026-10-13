@@ -27,10 +27,8 @@ readonly class AdminWriteInput
         $input->only($creating
             ? ['account', 'displayName', 'email', 'roleId', 'status', 'password']
             : ['account', 'displayName', 'email', 'roleId', 'status', 'version']);
-        $account = mb_strtolower($input->text('account', 3, 60));
-        if (!preg_match('/^[a-z][a-z0-9._-]{2,59}$/D', $account)) {
-            throw ApplicationError::invalid('account', '帳號須以英文字母開頭，使用英數、點、底線或連字號。');
-        }
+        // [U-12／原型] 一般登入帳號僅要求非空；不擅加英文字首及三字限制。
+        $account = mb_strtolower($input->text('account', 1, 60));
         $status = $input->text('status');
         if (!in_array($status, ['active', 'disabled'], true)) {
             throw ApplicationError::invalid('status', '不支援的帳號狀態。');
@@ -42,7 +40,7 @@ readonly class AdminWriteInput
             $input->email(),
             $input->text('roleId', 1, 40),
             $status,
-            $creating ? $input->text('password', 15, 128, false) : null,
+            $creating ? $input->password() : null,
             $creating ? null : $input->positiveInt('version'),
         );
     }

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>管理員管理｜映畫竹塹後台</title>
+<meta name="theme-color" content="#f5f0e6">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/phase2.css">
+</head>
+<body data-module="admins" data-action="view" data-page="admins">
+<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
+<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">SYSTEM / ADMINISTRATORS</p><h1>管理員管理</h1><p>固定 admin 為系統保護帳號，不提供編輯或刪除。</p></div><a id="add-admin" class="button button-dark" href="/admin/admin-add.html" hidden>新增管理員 ↗</a></div><section class="admin-panel"><div class="admin-panel-heading"><h3>管理員帳號</h3></div>
+<form id="search-form" class="admin-toolbar">
+<div class="admin-field">
+<label for="q">搜尋帳號、名稱或 Email</label>
+<input id="q" name="q" type="search" maxlength="100">
+</div>
+<div class="admin-field">
+<label for="status">狀態</label>
+<select id="status" name="status">
+<option value="">全部</option>
+<option value="active">啟用</option>
+<option value="disabled">停用</option>
+</select>
+</div>
+<button class="button" type="submit">搜尋</button>
+
+</form>
+<p id="page-status" role="status" tabindex="-1">
+</p>
+<div class="table-scroll">
+<table class="admin-table">
+<caption class="sr-only">管理員列表</caption>
+<thead>
+<tr>
+<th scope="col">管理員名稱</th>
+<th scope="col">登入帳號</th>
+<th scope="col">電子郵件</th>
+<th scope="col">權限範本</th>
+<th scope="col">帳號狀態</th>
+<th scope="col">操作</th>
+</tr>
+</thead>
+<tbody id="admin-rows">
+</tbody>
+</table>
+</div>
+<nav id="pagination" class="pagination" aria-label="列表分頁">
+</nav>
+</section><div class="admin-panel admin-note-panel"><h3>固定系統管理員保護</h3><p><strong>admin</strong> 是保留的系統管理員帳號，擁有全部權限，不能由管理員清單修改或移除。其他帳號的操作權限可至「權限設定」調整。</p></div></div>
+</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+<script type="module" src="/assets/js/admin.js"></script></body>
+</html>

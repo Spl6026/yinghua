@@ -44,15 +44,15 @@ class AccountRepository
             'INSERT INTO admin_users (id,account,email,display_name,password_hash,role_id,status,is_root,must_change_password) VALUES (:id,:account,:email,:name,:hash,:role,:status,:root,:change)',
             ['id' => $id, 'account' => $input->account, 'email' => $input->email,
                 'name' => $input->displayName, 'hash' => $hash, 'role' => $input->roleId,
-                'status' => $input->status, 'root' => $root, 'change' => !$root],
+                'status' => $input->status, 'root' => $root, 'change' => false],
         );
     }
 
     public function updateAdmin(string $id, AdminWriteInput $input): void
     {
         $this->writeAccount(
-            'UPDATE admin_users SET display_name=:name,email=:email,role_id=:role,status=:status,version=version+1 WHERE id=:id',
-            ['id' => $id, 'name' => $input->displayName, 'email' => $input->email, 'role' => $input->roleId, 'status' => $input->status],
+            'UPDATE admin_users SET account=:account,display_name=:name,email=:email,role_id=:role,status=:status,version=version+1 WHERE id=:id',
+            ['id' => $id, 'account' => $input->account, 'name' => $input->displayName, 'email' => $input->email, 'role' => $input->roleId, 'status' => $input->status],
         );
     }
 
@@ -150,7 +150,7 @@ class AccountRepository
             $row->string('status'),
             $admin && $row->integer('is_root') === 1,
             $admin ? $row->string('role_id') : null,
-            $admin && $row->integer('must_change_password') === 1,
+            false, // [U-13] 舊回應欄位保留相容，已取消首登強制改密碼。
             $admin ? $row->integer('version') : 1,
             $admin ? $row->integer('permissions_version') : 1,
             $row->nullableString('deleted_at'),

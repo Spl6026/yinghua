@@ -41,14 +41,13 @@ class PermissionPolicyTest extends TestCase
     public function testRootCannotBeWrittenByAnotherRoot(): void
     {
         $this->expectException(ApplicationError::class);
-        (new PermissionPolicy())->writableTarget($this->account('one', true), $this->account('root', true));
+        (new PermissionPolicy())->writableTarget($this->account('root', true));
     }
 
-    public function testAdministratorCannotRemoveSelf(): void
+    public function testOrdinaryAdministratorIsNotProtectedLikeRoot(): void
     {
-        $this->expectException(ApplicationError::class);
-        $actor = $this->account('one');
-        (new PermissionPolicy())->writableTarget($actor, $actor, true);
+        (new PermissionPolicy())->writableTarget($this->account('one'));
+        self::assertTrue(true);
     }
 
     public function testCannotGrantRightsBeyondOwnMatrix(): void

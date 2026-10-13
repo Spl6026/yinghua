@@ -13,7 +13,7 @@ class PermissionPolicy
     /** @param list<array{module:string,action:string,allowed:bool}> $permissions */
     public function require(Account $actor, array $permissions, string $module, string $action): void
     {
-        if (!$actor->isActive() || $actor->kind !== IdentityKind::Admin || $actor->mustChangePassword) {
+        if (!$actor->isActive() || $actor->kind !== IdentityKind::Admin) {
             throw ApplicationError::forbidden();
         }
         foreach ($permissions as $permission) {
@@ -24,10 +24,10 @@ class PermissionPolicy
         throw ApplicationError::forbidden();
     }
 
-    public function writableTarget(Account $actor, Account $target, bool $removing = false): void
+    public function writableTarget(Account $target): void
     {
         // [S-026] UI 隱藏按鈕之外，業務規則也拒絕所有 root CRUD。
-        if ($target->isRoot || ($removing && $actor->id === $target->id)) {
+        if ($target->isRoot) {
             throw ApplicationError::forbidden();
         }
     }

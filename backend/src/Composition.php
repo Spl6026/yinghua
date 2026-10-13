@@ -8,7 +8,9 @@ use Closure;
 use Yinghua\Adapters\PdoTransactions;
 use Yinghua\Adapters\PhpMailerAdapter;
 use Yinghua\Adapters\SystemClock;
+use Yinghua\Controllers\AdminController;
 use Yinghua\Controllers\AuthController;
+use Yinghua\Controllers\PermissionController;
 use Yinghua\Http\Csrf;
 use Yinghua\Http\Kernel;
 use Yinghua\Http\Router;
@@ -22,6 +24,8 @@ use Yinghua\Repositories\PermissionRepository;
 use Yinghua\Repositories\RateLimitRepository;
 use Yinghua\Repositories\ResetRepository;
 use Yinghua\Repositories\SessionRepository;
+use Yinghua\Services\AdminManagement;
+use Yinghua\Services\RoleTemplates;
 use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
@@ -56,10 +60,13 @@ readonly class Composition
         $passwordReset = new PasswordReset($accounts, $resets, $sessions, $passwords, $limiter, $events, $transactions, $clock, $this->config, $mailer);
         $csrf = new Csrf($this->config, $clock, $secrets);
         $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config);
+        $roles = new RoleTemplates($permissions, $authorization);
+        $permissionController = new PermissionController($roles);
+        $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));
         $router = new Router();
-        /** @var Closure(Router,AuthController):void $routes */
+        /** @var Closure(Router,AuthController,AdminController,PermissionController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes($router, $authController);
+        $routes($router, $authController, $adminController, $permissionController);
 
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }

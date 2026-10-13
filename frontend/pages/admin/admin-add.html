@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>新增管理員｜映畫竹塹後台</title>
+<meta name="theme-color" content="#f5f0e6">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/phase2.css">
+</head>
+<body data-module="admins" data-action="create" data-page="admin-add">
+<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
+<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">SYSTEM / ADMINISTRATORS</p><h1>新增管理員</h1><p>固定 admin 為系統保護帳號，不提供編輯或刪除。</p></div></div><section class="admin-panel"><form id="admin-form"><div class="admin-form-grid"><div class="admin-field">
+<label for="account">登入帳號 *</label>
+<input id="account" name="account" type="text" required autocomplete="off" placeholder="例如：editor01">
+</div><div class="admin-field">
+<label for="displayName">管理員名稱 *</label>
+<input id="displayName" name="displayName" type="text" required maxlength="80" placeholder="姓名或工作稱呼">
+</div><div class="admin-field">
+<label for="email">電子郵件 *</label>
+<input id="email" name="email" type="email" required maxlength="254" placeholder="name@example.com">
+</div><div class="admin-field">
+<label for="roleId">權限範本</label>
+<select id="roleId" name="roleId" required>
+</select>
+</div><div class="admin-field">
+<label for="status">狀態</label>
+<select id="status" name="status">
+<option value="active">啟用</option>
+<option value="disabled">停用</option>
+</select>
+</div><div class="admin-field">
+<label for="password">密碼（8–128 字元）</label>
+<input id="password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password">
+</div></div>
+<div class="admin-form-actions"><a id="admin-cancel" class="button button-outline" href="/admin/admins.html">取消</a><a id="admin-another" class="button button-outline" href="/admin/admin-add.html" hidden>再新增管理員 ↗</a>
+<button id="reload-admin" class="button button-outline" type="button" hidden>重新載入</button>
+<button class="button button-dark" type="submit">新增管理員 ↗</button></div>
+<p class="helper-text">新管理員可直接依指派權限使用；權限可至「權限設定」調整。</p><p class="form-error form-status" role="status" aria-live="polite" tabindex="-1"></p></form></section></div>
+</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+<script type="module" src="/assets/js/admin.js"></script></body>
+</html>
