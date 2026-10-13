@@ -1,10 +1,10 @@
 # API 與前端分離的架構設計
 
-設計日期：2026-10-13。狀態：後續實作依據，尚未改寫應用程式。
+設計日期：2026-10-13；階段二實作更新：2026-10-14。
 
 使用者指定 PHP 對網站只提供 API，前端使用原生 JavaScript／jQuery。採 MVC 的責任分工，另外拆出 Service 與 Repository，使業務流程和 SQL 能重用。這是本專案的工程選擇，Excel 並未指定 MVC、框架或 design pattern。
 
-目前只有原始 website、Docker／工具環境與規劃文件；沒有網站應用、API、業務表或應用測試。以下架構於開始實作時從零建立，不存在後端遷移工作。原始 website/ 始終保留。
+階段二已依以下分工從零建立 PHP API 與前端，不存在後端遷移。原始 website/ 始終保留。網站互動使用原生 JavaScript；jQuery 仍是可選工具，本階段沒有需要而未引入。
 
 ## 1. 責任怎麼分
 
@@ -15,7 +15,7 @@
 | Service | 完成一件事情的流程 | 登入、註冊、建立管理員、保存權限、交易、稽核 | 不依賴 DOM、HTTP Cookie 或 HTML；回傳結果供 Controller 使用 |
 | Model／Policy | 這個網站的規則 | 帳號狀態、root 保護、有效權限、發布條件 | 不依賴 HTTP 或 PDO；簡單規則不硬拆成大量類別 |
 | Repository | 資料庫窗口 | 用 PDO 查帳號、寫入 session、保存矩陣、取得安全資料 | 不寄信、不做 HTTP 回應；不自行提交 Service 的交易 |
-| Middleware | 每個 API 共用的檢查 | requestId、錯誤轉換、登入身分、CSRF、限速、module/action | 通過後才進 Controller；業務內的重要不變條件仍由 Service／Policy 保護 |
+| HTTP 共用管線（Kernel） | 每個 API 共用的檢查 | requestId、錯誤轉換、登入身分、CSRF、限速、module/action | 通過後才進 Controller；業務內的重要不變條件仍由 Service／Policy 保護 |
 | Adapter | 隔離外部套件 | PHPMailer SMTP；後續媒體儲存、Maps HTTP | Service 依賴明確介面，套件細節集中在實作 |
 
 MVC 的 Model 在此包含資料與業務規則，並非單指一張資料表。API 用 JSON 傳結果；網頁 View 在 PHP 外。
@@ -23,7 +23,7 @@ MVC 的 Model 在此包含資料與業務規則，並非單指一張資料表。
 ```mermaid
 flowchart LR
     V[前端 HTML／JS] -->|同網域 API 請求| N[Nginx]
-    N -->|/api/v1| M[Router／Middleware]
+    N -->|/api/v1| M[Router／Kernel]
     M --> C[Controller]
     C --> S[Service]
     S --> P[Model／Policy]
@@ -64,7 +64,7 @@ project/
 │  │  ├─ Repositories/             PDO 查詢與資料映射
 │  │  ├─ Contracts/                有替換／隔離需要的介面
 │  │  ├─ Adapters/                 PHPMailer 等實作
-│  │  └─ Http/                     Request、Response、Middleware、錯誤轉換
+│  │  └─ Http/                     Request、Response、Kernel、CSRF、錯誤轉換
 │  ├─ database/migrations/         可追溯的資料結構升級
 │  ├─ bin/                         migration、初始化、排程等 CLI
 │  └─ tests/                       業務、API、資料庫與架構驗證
@@ -74,45 +74,45 @@ project/
 
 每頁仍保有獨立 HTML 網址，不改成 SPA。新增／編輯管理員的頁面各自存在，共用 admin-form.js，透過明確的 create／edit 模式使用同一表單元件。頁面只載入需要的模組，避免新的單一巨大 app.js。
 
-dist/ 為產物，後續實作時加入忽略規則並以 Docker 建置產生；來源與建置腳本須可重現。Node 若採用，只用於前端建置／公開內容產生，網站互動仍是原生 JS／jQuery，不因此引入 React 或 Vue。
+frontend/dist/ 為忽略的產物，由 Docker Node 24 建置；HTML 來源、共用模板及建置腳本納入 Git。Node 只用於前端建置，網站互動仍是原生 JS／jQuery，不因此引入 React 或 Vue。
 
 ## 3. 採用哪些成熟做法，解決什麼問題
 
 | 做法 | 本案範例 | 重用的原因 | 參考 |
 | --- | --- | --- | --- |
-| Service Layer | RegisterMemberService、UpdateAdminService | Controller 與 CLI 可使用同一業務流程；交易集中管理 | [Fowler：Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html) |
-| Repository | MemberRepository、AdminRepository、SessionRepository | SQL 集中，Email 查詢與安全資料映射不在各端點重複 | [Fowler：Repository](https://martinfowler.com/eaaCatalog/repository.html) |
-| DTO | RegisterInput、AdminSummary、PermissionMatrixInput | 明確列出資料欄位；避免把 password_hash 等內部欄位直接序列化 | [Fowler：DTO](https://martinfowler.com/eaaCatalog/dataTransferObject.html) |
+| Service Layer | Authentication、AdminManagement | Controller 與 CLI 可使用同一業務流程；交易集中管理 | [Fowler：Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html) |
+| Repository | AccountRepository、SessionRepository | SQL 集中，Email 查詢與安全資料映射不在各端點重複 | [Fowler：Repository](https://martinfowler.com/eaaCatalog/repository.html) |
+| DTO | RegisterInput、Account.summary()、PermissionMatrixInput | 明確列出資料欄位；避免把 password_hash 等內部欄位直接序列化 | [Fowler：DTO](https://martinfowler.com/eaaCatalog/dataTransferObject.html) |
 | 建構子依賴注入 | 把 Repository、PasswordHasher、Mailer 傳給 Service | 看建構子就知道依賴；可替換寄信與時間來源來測試 | [PHP-FIG：PSR-11 的使用建議](https://www.php-fig.org/psr/psr-11/#13-recommended-usage) |
 | Adapter | Mailer 介面與 PhpMailerAdapter | 業務不綁死 SMTP 套件；本機與正式環境使用同一寄信契約 | [PHPMailer 官方專案](https://github.com/PHPMailer/PHPMailer)；介面切分是本案提案 |
-| Middleware 管線 | AuthenticateAdmin、VerifyCsrf、RequirePermission | 共用 HTTP 檢查集中；各 API 不複製整段認證碼 | [PHP-FIG：PSR-15](https://www.php-fig.org/psr/psr-15/)、[Slim 4 的實際用法](https://www.slimframework.com/docs/v4/concepts/middleware.html) |
+| Middleware 管線 | Kernel、Csrf、Authentication、Authorization | 共用 HTTP 檢查集中；各 API 不複製整段認證碼 | [PHP-FIG：PSR-15](https://www.php-fig.org/psr/psr-15/)、[Slim 4 的實際用法](https://www.slimframework.com/docs/v4/concepts/middleware.html) |
 
 上述是參考後的本案取捨，不表示來源要求我們採用所有層，也不表示已安裝 Slim。Repository 初期直接包裝 PDO，簡單查詢按需要建立方法，不引入 ORM 或通用查詢語言。DI 先在單一組裝位置明確 new，業務類別不接整個容器；有必要採 DI 容器時才選套件。
 
-Composer 使用 [PSR-4](https://www.php-fig.org/psr/psr-4/) 自動載入；PER-CS 用於格式。HTTP 管線參考 PSR-15 的分工，階段二開始前再確定採用的 PSR-7／PSR-15 套件與介面；目前沒有 Request／Response 或 HTTP 管線實作，不能宣稱相容。
+Composer 使用 [PSR-4](https://www.php-fig.org/psr/psr-4/) 自動載入；PER-CS 用於格式。HTTP 管線參考 PSR-15 的分工，本階段使用小型自製 Request／Response／Kernel，沒有引入 PSR-7／PSR-15 套件，也不宣稱實作這兩項介面。共同步驟集中在 Kernel；業務規則再次於 Service／Policy 檢查。
 
 不預設每個類別都需要 interface、每件事都需要繼承 BaseService。共用程式以具體重複與規則為依據：PasswordHasher、PermissionPolicy、Pagination、ApiClient、FormErrors 可以共用；景點發布和會員註冊各自保有清楚流程。Singleton、微服務、CQRS、事件匯流排與萬用 CRUD 基底目前沒有必要。
 
 ## 4. 一個流程如何讀
 
-以「新增一般管理員」為例；這是閱讀順序與設計示意，尚未寫成實際程式。
+以「新增一般管理員」為例；實際檔案與資料流見 [管理員閱讀指南](modules/admin-permissions.md)。
 
 | 次序 | 檔案／物件示例 | 白話解釋 |
 | --- | --- | --- |
 | 1 | frontend/pages/admin/admin-add.html | 顯示表單 |
-| 2 | pages/admin-add.js → components/admin-form.js | 收集資料、顯示送出中狀態 |
+| 2 | admin.js → pages/admin-form.js | 收集資料、顯示送出中狀態 |
 | 3 | api/admin-api.js → core/api-client.js | POST /api/v1/admin/admins；共用 Cookie、CSRF 與錯誤處理 |
-| 4 | config/routes.php → AuthenticateAdmin／RequirePermission | 查真實 session，要求 admins.create |
-| 5 | Controllers/Admins/AdminController::create | 檢查 JSON 欄位與格式，建立 CreateAdminInput |
-| 6 | Services/Admins/CreateAdminService::create | 驗證可授予權限、禁止建立 root、雜湊密碼，協調 transaction |
-| 7 | AdminRepository／PermissionRepository／AuditRepository | 同一 PDO transaction 寫入帳號、完整初始矩陣與安全稽核 |
-| 8 | AdminSummary → JSON 201 | 只回安全欄位；前端成功後顯示通知與導向列表 |
+| 4 | config/routes.php → Http/Kernel → Authentication／Authorization | 查真實 session，要求 admins.create |
+| 5 | Controllers/AdminController::create | 檢查 JSON 欄位與格式，建立 AdminWriteInput |
+| 6 | Services/AdminManagement::create | 驗證可授予權限、禁止建立 root、雜湊密碼，協調 transaction |
+| 7 | AccountRepository／PermissionRepository／EventRepository | 同一 PDO transaction 寫入帳號、完整初始矩陣與安全稽核 |
+| 8 | Account.summary() → JSON 201 | 只回安全欄位；前端成功後顯示通知與導向列表 |
 
 Controller 的示意只有三件事：
 
 ```text
-input = 把已驗證的請求轉成 CreateAdminInput
-result = createAdminService.create(input, 當前管理員身分)
+input = 把已驗證的請求轉成 AdminWriteInput
+result = adminManagement.create(當前管理員身分, input, clientContext)
 return JSON(result 的安全摘要, HTTP 201)
 ```
 
@@ -140,7 +140,7 @@ Service 的示意則表達業務次序：
 4. `[E-07] 首次登入改密碼` 等工程補充不能標成規格原文。來源 ID 定義見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。
 5. 每個完成模組在 docs/modules/ 增加簡短閱讀指南：功能 → 頁面 → API → Controller → Service → Repository → 資料表，列出主要錯誤與一次操作例子。只列實際存在的檔案。
 6. 前端同樣按用途拆分：頁面入口、API 封裝、共用元件。資料顯示預設 textContent／jQuery .text()；需 HTML 的內容走既定清理策略。
-7. 分層規則由 PHPat 檢查：Service 不依賴 Controller／Http；Repository 不依賴 Controller／Service；Model／Policy 不依賴 PDO／Http；Controller 不直接依賴 PDO／Repository。組裝位置是明確例外。規則尚未實作。
+7. 分層規則由 PHPat 檢查：Service 不依賴 Controller／Http；Repository 不依賴 Controller／Service；Model／Policy 不依賴 PDO／Http；Controller 不直接依賴 PDO／Repository。組裝位置是明確例外。四條規則已在 backend/tests/ArchitectureTest.php 與 phpstan.neon 建立並驗證。
 8. 測試驗證真實行為：root 保護、越權、交易回滾、唯一性競爭、session 撤銷；不只寫與實作逐行對應的測試。
 
 ## 6. API-only 的路由與後台

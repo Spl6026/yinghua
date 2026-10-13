@@ -1,33 +1,33 @@
 # 映畫竹塹網站完整實作計畫
 
-整理日期：2026-10-13。目前完成需求／架構規劃與環境工具準備，尚未開始應用程式實作。所有 PHP API、前端正式模組與業務資料表均為計畫。環境操作見 README.md 與 ENVIRONMENT-SETUP.md。
+整理日期：2026-10-13；更新：2026-10-14。需求／架構與環境準備及階段二已實作，包含認證、管理員與權限；階段三至八仍為計畫。啟動見 README.md，階段二驗收見 PHASE-2-ACCEPTANCE.md。
 
 依據：專案根目錄的「映畫竹塹_後台工程串接功能規格.xlsx」七個工作表、website 既有程式，以及工程交接與 SEO 說明。以本次實際讀取的 Excel 為準；既有 inspect.ndjson 並非同一份完整結構，不當成規格來源。
 
 目標：將現有展示原型完成為可部署、可管理內容、可真正登入、可保存會員資料的網站。Excel 的 P0／P1／P2 是開發優先順序，完整交付包含三者，不在 P0 完成後停止。
 
-後續架構依使用者最新指定更新為 PHP API-only，責任與成熟設計依據見 [ARCHITECTURE.md](ARCHITECTURE.md)，來源區分見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。目前沒有應用程式可沿用或遷移，後續依此設計從零建立。
+後續架構依使用者最新指定更新為 PHP API-only，責任與成熟設計依據見 [ARCHITECTURE.md](ARCHITECTURE.md)，來源區分見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。階段二已從零建立應用程式；不存在既有後端遷移。
 
 ## 1. 現況與確定架構
 
 已核對文件與使用者回覆：客戶目前未指定部署主機或技術版本。Excel 七個工作表未限定 PHP 版本、資料庫產品／版本、PHP 框架或 Apache／Nginx；「SEO規格」E17 提到「PHP/伺服器模板輸出」，是 SEO 輸出方向，並非限定整個後端只能使用 PHP。「串接總覽」A2 明示標記「建議」的內容為需依團隊技術架構確認的提案。使用者已指定採用新版本 PHP＋MariaDB、Docker 啟動，前端 JavaScript 允許使用 jQuery。以下架構依此定案。
 
-- 目前有 57 個獨立 HTML 頁面、共用 CSS，以及約 92 KB 的 js/app.js；已有前台、內容詳情、後台列表與新增／編輯畫面。
+- 原始 website 有 57 個獨立 HTML 頁面、共用 CSS，以及約 92 KB 的 js/app.js；已有前台、內容詳情、後台列表與新增／編輯畫面。
 - 現有前端使用 jQuery 3.7.1；正式版可保留 jQuery 的操作方式並升級至 4.x，拆分 JavaScript 模組與共用 API 工具，沿用現有版型、RWD 與網址結構。
 - 本次提供的網站內沒有 PHP、資料庫建置檔或正式 API。PHP 是本案預定技術，不能據此認定客戶已有 PHP 後端。
-- 登入目前僅檢查表單格式與密碼長度；後台可切換模擬管理員，預設使用 root。內容、收藏、行程、設定都在 localStorage，不具正式認證或跨裝置同步。
+- 原始 website 的模擬登入僅檢查表單格式與密碼長度；後台可切換模擬管理員，預設使用 root。內容、收藏、行程、設定都在 localStorage，不具正式認證或跨裝置同步。
 - 部分詳情與編輯操作使用陣列位置作識別，正式資料需改用穩定 ID／slug，避免刪除、排序、分頁後指向錯誤內容。
-- 本機 Docker Engine／Compose 已驗證，PHP 與資料庫由容器提供，不要求主機額外安裝。Nginx 僅提供原始 website 靜態預覽；PHP-FPM 為備妥的執行環境，尚無 API。MariaDB yinghua 為空資料庫。預覽入口為 http://localhost:8080/。
+- 本機 Docker Engine／Compose 已驗證，PHP 與資料庫由容器提供，不要求主機額外安裝。Nginx 提供 frontend/dist 與 PHP API 的 FastCGI 路由；階段二認證、管理員與權限已實作，MariaDB yinghua 已建立業務表。開發入口為 http://localhost:8080/；website 仍保留原始交付。
 
-後端採 PHP 8.5、PDO 與 MariaDB 12.3 LTS，使用清楚分層的路由、控制器、服務與資料存取層。前端採 JavaScript＋jQuery 4.0.0，不引入大型前端框架。MariaDB 12.3 是目前最新的長期支援系列；13.0 為較新的 rolling 系列，本案選用 LTS 作為持續維護基礎。實作時再次核對安全修補版本，將可用容器映像鎖定至明確修補版本／digest，不使用浮動 latest。
+後端採 PHP 8.5、PDO 與 MariaDB 12.3 LTS，使用清楚分層的路由、控制器、服務與資料存取層。前端採原生 JavaScript，不引入大型前端框架；jQuery 是使用者允許的可選工具，本階段沒有需要而未引入。MariaDB 12.3 是目前最新的長期支援系列；13.0 為較新的 rolling 系列，本案選用 LTS 作為持續維護基礎。實作時再次核對安全修補版本，將可用容器映像鎖定至明確修補版本／digest，不使用浮動 latest。
 
-版本依據：[PHP 官方支援週期](https://www.php.net/supported-versions.php)、[MariaDB 官方版本清單](https://mariadb.org/)、[MariaDB 維護週期](https://mariadb.org/about/)、[jQuery 官方下載](https://jquery.com/download/)。jQuery 4 有不相容變更，升級時檢查現有 DOM、事件、動畫及表單流程；套件隨網站本機提供，避免頁面啟動依賴外部 CDN。
+版本依據：[PHP 官方支援週期](https://www.php.net/supported-versions.php)、[MariaDB 官方版本清單](https://mariadb.org/)、[MariaDB 維護週期](https://mariadb.org/about/)、[jQuery 官方下載](https://jquery.com/download/)。後續若使用 jQuery 4，再確認 DOM／事件／動畫相容性；目前沒有載入原型 jQuery 或外部 script CDN。
 
 前台與 API 以同網域部署，API 統一 /api/v1。會員與管理員採分開的認證流程與授權邊界。PHP 只提供 API，由 Controller／Service／Repository 處理請求、流程與資料；HTML／CSS／JavaScript View 在 frontend/。公開 SEO 內容由前端建置／預先產生 HTML 保留，不能只在瀏覽器修改 head；此建置方案是工程補充 E-12；API 由共用 fetch 工具統一處理 CSRF、錯誤與登入逾時。
 
-使用者指定的資料庫登入帳號為 spl，資料庫名稱仍為 yinghua。此設定用於資料庫登入；網站顯示名稱不變，Docker 專案名稱為 yinghua，PHP 命名空間 Yinghua 是待建立程式的設計。
+使用者指定的資料庫登入帳號為 spl，資料庫名稱仍為 yinghua。此設定用於資料庫登入；網站顯示名稱不變，Docker 專案名稱為 yinghua，PHP 命名空間 Yinghua 已用於本階段程式，並非技術使用者名稱。
 
-目錄原則：website/ 保留原始交付網站及原有文件，不寫入新增工程文件或程式。新增計畫、需求對照與驗收文件放在 project/docs/；後端放 project/backend/，前端來源放 project/frontend/。backend/ 與 frontend/ 尚未建立；已安裝的 PHP 套件環境獨立放 tools/php/，不算網站程式。
+目錄原則：website/ 保留原始交付網站及原有文件，不寫入新增工程文件或程式。新增計畫、需求對照與驗收文件放在 project/docs/；後端放 project/backend/，前端來源放 project/frontend/。backend/ 與 frontend/ 於階段二首次建立；PHP 品質工具套件仍獨立放 tools/php/，與應用 manifest 分開。
 
 公開網址保留 .html 形式：例如 /films/{slug}.html 由前端內容產生工具自動建立，再由 Nginx 提供。新內容直接有可開啟網址，不需要每筆手工複製 HTML。既有 film-detail.html?id=... 等入口建立穩定資料對照與轉址；不能把舊陣列索引直接當新資料庫 ID。
 
@@ -35,7 +35,7 @@
 
 | 服務 | 配置與責任 |
 | --- | --- |
-| web | Nginx 官方穩定映像；目前只提供原始 website 靜態預覽；正式前端與 API FastCGI 路由待實作 |
+| web | Nginx 官方穩定映像；提供 frontend/dist 靜態 HTML／資產及 PHP API FastCGI 路由，別名網址轉至 APP_URL |
 | app | 自建 PHP 8.5 FPM 映像，安裝 pdo_mysql、mbstring、intl、gd 及所需 HTTP／媒體支援；目標只執行 HTTP API，另提供必要 CLI |
 | db | MariaDB 12.3 LTS；utf8mb4、專用應用帳號、健康檢查、持久化資料 volume |
 | 開發郵件服務 | 以可選 Compose profile 提供郵件測試；正式環境使用客戶 SMTP |
@@ -64,7 +64,7 @@
 
 ### 階段執行清單
 
-需求／架構與環境準備已完成；應用程式階段 2–8 尚未開始。每階段先完成實作與相關測試，再交付可操作的成果；功能完成和外部服務已驗證分別記錄。目前只有原始交付、Docker、tools/php/、skills 與文件；所有應用目錄路徑仍為交付規劃。
+需求／架構與環境準備及階段二已完成；應用程式階段 3–8 尚未開始。每階段先完成實作與相關測試，再交付可操作的成果；功能完成和外部服務已驗證分別記錄。階段二已建立 backend/、frontend/ 與應用驗證；其他業務模組仍為後續交付規劃。
 
 #### 階段 1：需求與環境準備
 
@@ -77,20 +77,20 @@
 
 交付：可啟動的環境、鎖定套件與設計文件。環境驗證記錄見 ENVIRONMENT-SETUP.md。
 
-狀態：沒有 PHP 入口／路由、正式前端、API、業務表、migration、seed 或應用測試。環境健康檢查不等同網站功能驗收。
+階段一結束時未編寫應用程式；應用入口、路由、資料表與測試均於授權後的階段二首次建立。
 
 #### 階段 2：真實登入與管理權限
 
-細部執行順序、資料結構、API、前端銜接與測試情境見 [PHASE-2-PLAN.md](PHASE-2-PLAN.md)。目前僅完成規劃，尚未開始實作。
+細部執行順序、資料結構、API、前端銜接與測試情境見 [PHASE-2-PLAN.md](PHASE-2-PLAN.md)。已實作並完成本機驗收，結果見 [PHASE-2-ACCEPTANCE.md](PHASE-2-ACCEPTANCE.md)。
 
 相依：已備妥的 Docker／PHP／MariaDB／工具環境與設計文件；不依賴任何已實作 API 或業務表。
 
-- [ ] 2.0 按 ARCHITECTURE.md 從零建立 PHP API 入口、Router、Request／Response、PDO、Composer autoload 與共用前端工具／版型；新增對應測試，原始 website 不改動。
-- [ ] 2.1 建立 root 初始化與獨立管理員登入／登出頁面，移除模擬身分切換；Cookie session 與 CSRF 流程由後端提供。
-- [ ] 2.2 完成管理員列表／新增／編輯／刪除、角色範本與逐人權限矩陣；資料寫入稽核。
-- [ ] 2.3 加入後台頁面及 API 的登入、帳號狀態與 module/action 授權；固定 root 保護，停用／登出／撤權立即生效。
-- [ ] 2.4 串接會員註冊／登入／登出、伺服器驗證碼、條款版本、密碼政策、限速與鎖定。
-- [ ] 2.5 完成密碼重設頁面、一次性 token 與開發寄信驗證；測試會員與管理員的 session／權限邊界。
+- [x] 2.0 按 ARCHITECTURE.md 從零建立 PHP API 入口、Router、Request／Response、PDO、Composer autoload 與共用前端工具／版型；新增對應測試，原始 website 不改動。
+- [x] 2.1 建立 root 初始化與獨立管理員登入／登出頁面，移除模擬身分切換；Cookie session 與 CSRF 流程由後端提供。
+- [x] 2.2 完成管理員列表／新增／編輯／刪除、角色範本與逐人權限矩陣；資料寫入稽核。
+- [x] 2.3 加入後台頁面及 API 的登入、帳號狀態與 module/action 授權；固定 root 保護，停用／登出／撤權立即生效。
+- [x] 2.4 串接會員註冊／登入／登出、伺服器驗證碼、條款版本、密碼政策、限速與鎖定。
+- [x] 2.5 完成密碼重設頁面、一次性 token 與開發寄信驗證；測試會員與管理員的 session／權限邊界。
 
 交付：可以真正登入的會員與後台、管理員管理、權限設定，以及帳號初始化／重設工具。
 
@@ -316,4 +316,4 @@ API／整合測試重點是規格中的資料與權限邊界；每階段先跑�
 
 完整 PHP／JavaScript／jQuery 原始碼、MariaDB migrations／受控 seed、Docker Compose／Dockerfile／Nginx 設定、API 文件、環境範本、初始化與排程命令、測試與規格驗收紀錄、後台操作手冊、容器部署／備份／還原說明，以及需由客戶帳號啟用的外部服務清單。
 
-目前只有原始交付、Docker／工具環境與設計文件；網站程式尚未開始。階段 2 將建立真實登入與權限；階段 3 的完整可驗收成果是：管理員登入 → 新增景點與圖片 → 發布 → 前台列表與直接詳情網址讀到同一筆資料。
+階段二已完成真實登入與權限；景點等內容仍待後續階段。階段 3 的完整可驗收成果是：管理員登入 → 新增景點與圖片 → 發布 → 前台列表與直接詳情網址讀到同一筆資料。
