@@ -1,0 +1,253 @@
+{
+  "source": "原始 Excel／權限矩陣／第 5–44 列",
+  "roles": {
+    "root": {
+      "dashboard": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "attractions": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "films": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "news": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "offers": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "routes": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "admins": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "permissions": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "members": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "settings": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      }
+    },
+    "content-editor": {
+      "dashboard": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "attractions": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "films": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "news": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "offers": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "routes": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "admins": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": true
+      },
+      "permissions": {
+        "view": true,
+        "create": false,
+        "edit": true,
+        "delete": false
+      },
+      "members": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "settings": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      }
+    },
+    "news-editor": {
+      "dashboard": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "attractions": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "films": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "news": {
+        "view": true,
+        "create": true,
+        "edit": true,
+        "delete": false
+      },
+      "offers": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "routes": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "admins": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "permissions": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "members": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "settings": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      }
+    },
+    "viewer": {
+      "dashboard": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "attractions": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "films": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "news": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "offers": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "routes": {
+        "view": true,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "admins": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "permissions": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "members": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      },
+      "settings": {
+        "view": false,
+        "create": false,
+        "edit": false,
+        "delete": false
+      }
+    }
+  }
+}

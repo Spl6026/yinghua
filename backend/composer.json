@@ -1,0 +1,16 @@
+{
+    "name": "spl/yinghua",
+    "description": "API-only backend for Yinghua",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": "~8.5.0",
+        "ext-pdo_mysql": "*",
+        "ext-mbstring": "*",
+        "ext-gd": "*",
+        "phpmailer/phpmailer": "~7.1.1"
+    },
+    "autoload": {"psr-4": {"Yinghua\\": "src/"}},
+    "autoload-dev": {"psr-4": {"Yinghua\\Tests\\": "tests/"}},
+    "config": {"allow-plugins": false, "sort-packages": true}
+}
