@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "php-modernization": {
+      "source": "netresearch/php-modernization-skill",
+      "sourceType": "github",
+      "skillPath": "skills/php-modernization/SKILL.md",
+      "computedHash": "2a6f8eea6ecf9deaece9e02dbeca1647fec796eaa59e055d4ad3e71bccb4caa0"
+    }
+  }
+}

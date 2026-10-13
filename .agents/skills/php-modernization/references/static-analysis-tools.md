@@ -1,0 +1,781 @@
+<!-- SPDX-License-Identifier: CC-BY-SA-4.0 -->
+<!-- SPDX-FileCopyrightText: Netresearch DTT GmbH -->
+
+# Static Analysis Tools
+
+Modern PHP projects require a comprehensive static analysis toolchain. This reference covers the **required tools** for quality PHP development.
+
+## Required Toolchain
+
+| Tool | Purpose | Requirement |
+|------|---------|-------------|
+| PHPStan | Type checking, bug detection | **Level 9 minimum**, level 10 recommended |
+| PHPat | Architecture testing | **Required** for projects with defined architecture |
+| Rector | Automated refactoring | **Required** for modernization |
+| PHP-CS-Fixer | Coding style | **Required** with `@PER-CS` |
+
+## PHPStan (Level 9+)
+
+PHPStan performs static analysis to find bugs without running code.
+
+> **Requirement:** Level 9 minimum, level 10 (max) recommended for production code.
+
+### Installation
+
+```bash
+composer require --dev phpstan/phpstan
+composer require --dev phpstan/extension-installer
+
+# Recommended extensions
+composer require --dev phpstan/phpstan-strict-rules
+composer require --dev phpstan/phpstan-deprecation-rules
+```
+
+### Configuration
+
+```neon
+# phpstan.neon
+parameters:
+    level: 10  # Maximum strictness (9 is minimum acceptable)
+    paths:
+        - src
+        - tests
+    excludePaths:
+        - src/*/Tests/*
+
+    # Strict settings
+    checkMissingIterableValueType: true
+    checkGenericClassInNonGenericObjectType: true
+    reportUnmatchedIgnoredErrors: true
+    reportStaticMethodSignatures: true
+
+    # Type aliases for domain concepts
+    typeAliases:
+        UserId: 'int<1, max>'
+        Email: 'non-empty-string'
+        PositiveInt: 'int<1, max>'
+```
+
+### Level Differences
+
+| Level | Added Checks |
+|-------|--------------|
+| 8 | Nullable values, method existence |
+| 9 | **Mixed type strictness** (minimum for production) |
+| 10 | **Maximum strictness**, experimental checks |
+
+### Why Level 9+?
+
+Level 9 enforces `mixed` type handling, catching issues like:
+
+```php
+// Level 8 allows this (dangerous!)
+public function process(mixed $data): void
+{
+    echo $data['key'];  // Could fail at runtime
+}
+
+// Level 9+ requires explicit type handling
+public function process(mixed $data): void
+{
+    if (!is_array($data) || !isset($data['key'])) {
+        throw new InvalidArgumentException('Expected array with key');
+    }
+    echo $data['key'];  // Safe
+}
+```
+
+### CI Integration
+
+```yaml
+# .github/workflows/static-analysis.yml
+name: Static Analysis
+
+on: [push, pull_request]
+
+jobs:
+  phpstan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+      - run: composer install --no-progress
+      - run: vendor/bin/phpstan analyse --error-format=github
+```
+
+## PHPat (Architecture Testing)
+
+PHPat is a PHPStan extension for testing architectural rules.
+
+> **Source:** [phpat.dev](https://www.phpat.dev/) | [GitHub](https://github.com/carlosas/phpat)
+
+### Installation
+
+```bash
+composer require --dev phpat/phpat
+
+# With extension installer (recommended)
+composer require --dev phpstan/extension-installer
+```
+
+### Configuration
+
+```neon
+# phpstan.neon
+includes:
+    - vendor/phpat/phpat/extension.neon
+
+parameters:
+    paths:
+        - src
+        - tests/Architecture  # Include architecture tests
+
+    phpat:
+        ignore_built_in_classes: true
+        show_rule_names: true
+
+services:
+    - class: Tests\Architecture\LayerTest
+      tags:
+          - phpat.test
+    - class: Tests\Architecture\DependencyTest
+      tags:
+          - phpat.test
+```
+
+### Architecture Test Examples
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Architecture;
+
+use PHPat\Selector\Selector;
+use PHPat\Test\Builder\Rule;
+use PHPat\Test\PHPat;
+
+final class LayerTest
+{
+    /**
+     * Domain layer must not depend on Infrastructure.
+     */
+    public function testDomainIndependence(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace('App\Domain'))
+            ->shouldNotDependOn()
+            ->classes(Selector::inNamespace('App\Infrastructure'))
+            ->because('Domain must be independent of infrastructure');
+    }
+
+    /**
+     * Controllers must only depend on Application layer.
+     */
+    public function testControllerDependencies(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace('App\Controller'))
+            ->canOnlyDependOn()
+            ->classes(
+                Selector::inNamespace('App\Application'),
+                Selector::inNamespace('Symfony'),
+                Selector::inNamespace('Psr'),
+            );
+    }
+
+    /**
+     * Entities must not use repositories directly.
+     */
+    public function testEntityPurity(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace('App\Entity'))
+            ->shouldNotDependOn()
+            ->classes(Selector::classname('*Repository'));
+    }
+}
+```
+
+### Common Architecture Rules
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Architecture;
+
+use PHPat\Selector\Selector;
+use PHPat\Test\Builder\Rule;
+use PHPat\Test\PHPat;
+
+final class DependencyTest
+{
+    /**
+     * Services must implement interfaces.
+     */
+    public function testServicesImplementInterfaces(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::classname('*Service'))
+            ->excluding(Selector::classname('*Interface'))
+            ->shouldImplement()
+            ->classes(Selector::classname('*Interface'));
+    }
+
+    /**
+     * No class should depend on concrete implementations.
+     */
+    public function testDependOnAbstractions(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace('App'))
+            ->shouldNotDependOn()
+            ->classes(
+                Selector::classname('GuzzleHttp\Client'),
+                Selector::classname('Doctrine\ORM\EntityManager'),
+            )
+            ->because('Depend on interfaces, not implementations');
+    }
+
+    /**
+     * DTOs must be final and readonly.
+     */
+    public function testDtoStructure(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::classname('*DTO'))
+            ->shouldBeFinal()
+            ->shouldBeReadonly();
+    }
+
+    /**
+     * Commands must not return values.
+     */
+    public function testCommandsAreVoid(): Rule
+    {
+        return PHPat::rule()
+            ->classes(Selector::inNamespace('App\Command'))
+            ->shouldHaveOnlyOnePublicMethod()
+            ->andThisMethodShouldHaveReturnType('void');
+    }
+}
+```
+
+### Selectors Reference
+
+| Selector | Description |
+|----------|-------------|
+| `Selector::inNamespace('App\Domain')` | All classes in namespace |
+| `Selector::classname('*Service')` | Classes matching pattern |
+| `Selector::implements('Interface')` | Classes implementing interface |
+| `Selector::extends('BaseClass')` | Classes extending class |
+| `Selector::isAbstract()` | Abstract classes only |
+| `Selector::isFinal()` | Final classes only |
+
+## Rector (Automated Refactoring)
+
+Rector automates code migrations and refactoring.
+
+### Installation
+
+```bash
+composer require --dev rector/rector
+```
+
+### Configuration (modern, composer-based)
+
+Per-version `SymfonySetList::SYMFONY_*` constants are all
+`@deprecated` upstream — they don't handle package differences. The
+modern shape is to let Rector read installed versions from `composer.lock`:
+
+```php
+<?php
+// rector.php
+
+declare(strict_types=1);
+
+use Rector\Config\RectorConfig;
+use Rector\Set\ValueObject\LevelSetList;
+use Rector\Set\ValueObject\SetList;
+use Rector\Symfony\Set\SymfonySetList;
+use Rector\TypeDeclaration\Rector\ClassMethod\AddVoidReturnTypeWhereNoReturnRector;
+
+return RectorConfig::configure()
+    ->withPaths([
+        __DIR__ . '/src',
+        __DIR__ . '/tests',
+    ])
+    ->withSkip([
+        __DIR__ . '/src/Kernel.php',
+    ])
+    ->withSets([
+        LevelSetList::UP_TO_PHP_85,        // bump alongside composer.json's php constraint
+        SetList::CODE_QUALITY,
+        SetList::DEAD_CODE,
+        SetList::TYPE_DECLARATION,
+        SetList::PRIVATIZATION,
+        SetList::EARLY_RETURN,
+        SymfonySetList::SYMFONY_CODE_QUALITY,  // still non-deprecated
+    ])
+    ->withComposerBased(symfony: true)         // auto-detects Symfony major from composer.lock
+    ->withAttributesSets(symfony: true)        // annotation → attribute migration
+    ->withRules([
+        AddVoidReturnTypeWhereNoReturnRector::class,
+    ]);
+```
+
+`withComposerBased(symfony: true)` replaces every per-version
+`SymfonySetList::SYMFONY_60`/`SYMFONY_70`/`SYMFONY_80` etc. and
+auto-tracks the installed Symfony major. Same for `doctrine`,
+`phpunit`, `behat` flags on the same call.
+
+### Usage
+
+```bash
+# Preview changes — INVOKE THE BINARY DIRECTLY.
+# `composer rector -- --dry-run` does NOT forward the flag (composer
+# script aliases swallow trailing args) and runs Rector in apply mode.
+vendor/bin/rector process --dry-run
+bin/rector process --dry-run                 # netresearch convention
+
+# Apply changes
+vendor/bin/rector process
+
+# Process specific path
+vendor/bin/rector process src/Entity/
+
+# Clear cache
+vendor/bin/rector process --clear-cache
+```
+
+### Key Rule Sets
+
+| Set | Purpose |
+|-----|---------|
+| `LevelSetList::UP_TO_PHP_85` | PHP version upgrade — bump alongside `composer.json`'s `php` constraint; available from Rector 2.4+ |
+| `SetList::CODE_QUALITY` | Improve code quality |
+| `SetList::DEAD_CODE` | Remove unused code |
+| `SetList::TYPE_DECLARATION` | Add type declarations |
+| `SetList::PRIVATIZATION` | Make code more private |
+| `SetList::EARLY_RETURN` | Convert to early returns |
+
+If your installed Rector predates 2.4, the upper `UP_TO_PHP_*` constant
+will be `UP_TO_PHP_84` or lower — check `vendor/rector/rector/src/Set/ValueObject/LevelSetList.php`
+for what's actually available.
+
+### CI Integration
+
+```yaml
+# In CI, run Rector in dry-run to catch unrefactored code
+- name: Rector Check
+  run: vendor/bin/rector process --dry-run --ansi
+```
+
+### DEAD_CODE rewrites can change intent — verify, don't auto-apply
+
+`SetList::DEAD_CODE` includes `RemoveDefaultArgumentValueRector`, which strips a
+trailing argument whose value equals the parameter's default. That is wrong when
+the argument is *meaningful* and only coincidentally equals a default — e.g.
+`verifyChain($from, $to, 0)` where the third parameter defaults to a configured
+value and `0` is passed to disable it: Rector rewrites the call to
+`verifyChain()`, silently restoring the floor. Pass such an argument **by name**
+(`verifyChain(minEpoch: 0)`) — the rule leaves named arguments alone. (The same
+set also rewrites `$x !== null` to `$x instanceof T` on a `?T` return; that one
+is a safe equivalent — apply it and add the import.)
+
+A rewrite from a lossy set (`DEAD_CODE`, `CODE_QUALITY`) is a suggestion to
+verify against intent, not an edit to apply blind.
+
+### Review the lines Rector ADDS, not only the ones it removes
+
+A removal rule can also insert. `RemoveEraseCredentialsRector` deletes
+`User::eraseCredentials()` (correct — Symfony 8 dropped it from
+`UserInterface`) *and* appends a `serialize(): void` method carrying the old
+body to the end of the class. The `--dry-run` output shows the deletion as one
+hunk and the insertion as another at the bottom of the file, so reading only
+the hunk that matches the rule's name misses it. Nothing calls the stub, the
+entity does not implement `Serializable`, and `void` does not match
+`Serializable::serialize(): ?string` — it is dead code with a misleading
+comment that static analysis will not flag.
+
+After applying any rule set, review the insertions specifically:
+
+```bash
+vendor/bin/rector process
+git diff | grep '^+' | grep -v '^+++'
+```
+
+For a cleanup set the expected diff is almost pure deletion, so every `+` line
+is an anomaly that needs a reason. Removing such a stub is stable — the rule
+only fires while the original method is present, so it is not re-added on the
+next run and needs no skip.
+
+### Rector cannot see framework facts — check the assumption behind the rule
+
+Three rules in one dependency bump produced changes that were locally plausible
+and globally wrong, each because Rector could not observe a framework contract:
+
+| Rule | Rewrite | Why it is wrong |
+|------|---------|-----------------|
+| `RenameClassRector` | `HttpKernel\Bundle\BundleInterface` → `DependencyInjection\Kernel\BundleInterface` | The parent `registerBundles()` signature is not covariant with the replacement until Symfony 9. Breaks PHPStan and orphans the `@phpstan-ignore` annotations that documented the decision. |
+| `RemoveDefaultValueFromAssignedPropertyRector` | drops `= null` from `private ?EventDispatcherInterface $eventDispatcher = null;` | The property is assigned by `#[Required]` setter injection *after* construction, not by the constructor. Without the default it stays uninitialized and the `instanceof` guard reading it raises `Typed property must not be accessed before initialization`. |
+| `RemoveEraseCredentialsRector` | see above | Leaves a stray `serialize()` stub. |
+
+Confirm the failure mode before arguing about it — a five-line repro settles it:
+
+```php
+class WithDefault    { private ?X $d = null; public function g(): string { return $this->d instanceof X ? 'set' : 'not set'; } }
+class WithoutDefault { private ?X $d;        public function g(): string { return $this->d instanceof X ? 'set' : 'not set'; } }
+// WithDefault    -> not set
+// WithoutDefault -> Error: Typed property WithoutDefault::$d must not be accessed before initialization
+```
+
+Scope the resulting `withSkip` to the rule's blind spot, not to the file that
+happened to trip it. `RemoveDefaultValueFromAssignedPropertyRector` only fires
+on classes that *have* a constructor, so a second class with the same
+setter-injected property is silently exempt today and starts failing the moment
+someone adds one — a per-file skip would have looked complete and not been:
+
+```php
+->withSkip([
+    // Fires per file, so scope per file:
+    RenameClassRector::class => [__DIR__ . '/../../src/Kernel.php'],
+    // Blind spot is structural (#[Required] setter injection): skip repo-wide.
+    RemoveDefaultValueFromAssignedPropertyRector::class,
+])
+```
+
+## PHP-CS-Fixer (Coding Style)
+
+Enforces coding standards automatically.
+
+### Installation
+
+```bash
+composer require --dev friendsofphp/php-cs-fixer
+```
+
+### Configuration
+
+```php
+<?php
+// .php-cs-fixer.dist.php
+
+declare(strict_types=1);
+
+$finder = PhpCsFixer\Finder::create()
+    ->in(__DIR__ . '/src')
+    ->in(__DIR__ . '/tests');
+
+return (new PhpCsFixer\Config())
+    ->setRules([
+        '@PER-CS' => true,        // Latest PER Coding Style
+        '@PER-CS:risky' => true,
+        'declare_strict_types' => true,
+        'strict_param' => true,
+        'array_syntax' => ['syntax' => 'short'],
+        'no_unused_imports' => true,
+        'ordered_imports' => ['sort_algorithm' => 'alpha'],
+        'single_quote' => true,
+        'trailing_comma_in_multiline' => true,
+    ])
+    ->setRiskyAllowed(true)
+    ->setFinder($finder);
+```
+
+### Deprecation Check
+
+PHP-CS-Fixer 3.50.0+ renamed several rule set aliases. Always check for deprecations:
+
+```bash
+vendor/bin/php-cs-fixer fix --dry-run 2>&1 | grep -A 20 "Detected deprecations"
+```
+
+See `references/php-cs-fixer-deprecations.md` for the full mapping of deprecated aliases to replacements.
+
+### Usage
+
+```bash
+# Check for violations (dry run)
+vendor/bin/php-cs-fixer fix --dry-run --diff
+
+# Fix violations
+vendor/bin/php-cs-fixer fix
+
+# Verbose output
+vendor/bin/php-cs-fixer fix -v
+```
+
+### CI Integration
+
+```yaml
+- name: PHP-CS-Fixer
+  run: vendor/bin/php-cs-fixer fix --dry-run --diff --ansi
+```
+
+### One authoritative style tool, not two
+
+`.php-cs-fixer.dist.php` above is the single source of truth for style. A second
+tool that also *decides* style — GrumPHP's own coding-standard tasks are the
+usual one — gives a project two rule sets that have to agree, and they drift:
+the observed case was `single_line_empty_body`, where the two disagreed on
+whether `public function __construct() {}` stays on one line, so each run undid
+the other and the diff never settled.
+
+The way out is not to tune both. It is to let PHP-CS-Fixer own style and give
+the hook runner nothing to decide:
+
+- **Hooks: CaptainHook.** It runs commands you name, in the order you name
+  them, and holds no rule set of its own — so `vendor/bin/php-cs-fixer fix` is
+  the only thing deciding how the code looks. GrumPHP's value is the tasks it
+  bundles, and that is exactly what collides here.
+- **Style: `@PER-CS`.** PSR-2 was superseded by PSR-12 and PSR-12 is itself
+  folded into PER Coding Style, which is the one that still moves. A ruleset
+  pinned to `@PSR2` is pinned to a document nobody updates — see
+  `references/psr-per-compliance.md`.
+- **Whatever else runs in the hook — PHPStan, Rector, PHPUnit — runs the same
+  binary CI runs**, with the same config file. A hook that enforces something
+  CI does not, or the other way round, is the same two-rule-sets problem in a
+  different place.
+
+```json
+{
+    "config": {
+        "fail-on-first-error": true,
+        "run-mode": "local"
+    },
+    "pre-commit": {
+        "enabled": true,
+        "actions": [
+            { "action": "vendor/bin/php-cs-fixer fix --dry-run --diff" },
+            { "action": "vendor/bin/phpstan analyse --no-progress" }
+        ]
+    }
+}
+```
+
+`fail-on-first-error` decides whether a commit stops at the first failing
+action or collects all of them; `run-mode: local` runs the binaries from the
+developer's own checkout rather than a container.
+
+## Combined CI Workflow
+
+```yaml
+name: Quality Assurance
+
+on: [push, pull_request]
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-progress
+
+      - name: PHP-CS-Fixer
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --ansi
+
+      - name: PHPStan (Level 10)
+        run: vendor/bin/phpstan analyse --error-format=github
+
+      - name: Rector
+        run: vendor/bin/rector process --dry-run --ansi
+```
+
+## Composer Scripts
+
+```json
+{
+    "scripts": {
+        "cs:check": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
+        "stan": "phpstan analyse",
+        "rector:check": "rector process --dry-run",
+        "rector:fix": "rector process",
+        "qa": [
+            "@cs:check",
+            "@stan",
+            "@rector:check"
+        ],
+        "fix": [
+            "@cs:fix",
+            "@rector:fix"
+        ]
+    }
+}
+```
+
+## Quality Gates
+
+### Minimum Requirements
+
+| Tool | Minimum Threshold |
+|------|-------------------|
+| PHPStan | Level 9 (level 10 for new projects) |
+| PHPat | All architecture tests pass |
+| Rector | No remaining suggestions |
+| PHP-CS-Fixer | Zero violations |
+
+### Baseline Strategy
+
+For existing projects, use baselines to adopt tools incrementally:
+
+```bash
+# PHPStan baseline
+vendor/bin/phpstan analyse --generate-baseline
+
+# Include in phpstan.neon
+includes:
+    - phpstan-baseline.neon
+```
+
+Reduce baseline errors over time until reaching zero.
+
+## Cache invalidation hazard
+
+`phpstan.neon`'s `tmpDir` (e.g. `tmpDir: /tmp/phpstan-X`) caches
+analysis results keyed to `vendor/` stubs. After **any** of:
+
+- `composer install` / `composer update`
+- A rebase that pulled in a `phpstan-*` extension or `phpunit` major
+  bump
+- Mass test refactors (mock → stub conversions, etc.)
+
+…the cache may report the OLD shape as clean while CI fails on the new.
+Always purge before final verify:
+
+```bash
+rm -rf /tmp/phpstan-* var/cache/phpstan
+vendor/bin/phpstan analyse --no-progress
+```
+
+Make this part of the agent's verification step, not optional.
+
+## Run the toolchain the way CI does (version parity)
+
+PHP-CS-Fixer (and, less often, PHPStan) behaves in a **PHP-version-specific**
+way: which fixers apply and how they format depends on the PHP version the
+binary runs under. So `php vendor/bin/php-cs-fixer fix --dry-run` on a *newer*
+local PHP can report a file clean while CI — running on the project's *pinned,
+older* PHP — rewrites it and fails the gate. (Seen in practice: a closure
+formatted `fn (` passed local PHP 8.5 but CI's PHP 8.2 demanded `fn(`, costing a
+red Quality gate and a force-push.)
+
+Run quality gates through the project's own runner so the PHP version matches CI:
+
+- If the repo ships a wrapper — `make code-style` / `make phpstan`, a composer
+  script (`composer ci:cs`, `composer ci:test:php:cs`), or a Docker-based
+  runner — use it. It pins the PHP version *and* the config CI uses.
+- If you must call the binary directly, invoke it under the same PHP version CI
+  uses (e.g. `docker run --rm -v "$PWD":/app -w /app php:8.2-cli vendor/bin/php-cs-fixer fix --dry-run`),
+  not your local default interpreter.
+- `PHP_CS_FIXER_IGNORE_ENV` only silences the version-mismatch *warning*; it does
+  **not** make a newer PHP behave like the pinned one.
+
+Make "run the gate the way CI runs it" part of the verification step — a
+locally-green cs-fixer/PHPStan is not proof until it has run on CI's toolchain.
+
+## SAST maintainability refactors can silently drop a branch
+
+SAST maintainability/complexity findings — SonarCloud `S3776` (cognitive
+complexity) and `S1142` (too many `return` statements) — are usually "fixed" by
+**extracting** a helper method or **reordering** control flow. That edit is
+**behavior-risky in a way the other gates cannot see**: an extraction can
+silently drop a branch — e.g. a fallback-to-default path taken on an empty or
+invalid response. PHP-CS-Fixer and PHPStan stay green (the shape is still
+type-correct and well-formatted), and a passing unit suite proves nothing if
+that branch was never covered. (Seen in practice: a 2026 complexity cleanup
+extracted a method and lost an empty-response fallback; every static gate and
+the existing unit suite passed — only a human code reviewer caught it.)
+
+Before trusting green gates on a complexity refactor:
+
+- **Diff the control-flow branches** of the refactored method against the
+  original. Trace every logical path to ensure all outcomes are preserved, even
+  if the structural count of `return` or `else` statements has changed.
+- **Add a unit test for the previously-uncovered branch FIRST**, watch it pass
+  against the original, then refactor. A test that only covers the happy path
+  cannot protect the fallback you are about to move.
+
+Often the better call is to **accept** subjective complexity findings on
+controller / service / command layers rather than perform a risky extraction.
+Mark them won't-fix in the SAST UI with a short comment explaining why the
+method's structure is intentional — a deliberate "review as safe" beats a
+mechanical refactor that ships a regression.
+
+## `php:S2003` is a false positive on a value-returning include
+
+SonarCloud's `php:S2003` flags `require`/`include` and asks for the `_once`
+variant. On a config file that ends in `return [...];` and is read **for its
+return value**, that rewrite is a behavior change, not a style fix.
+
+`require` evaluates the file and yields its return value every time it runs.
+`require_once` yields that value only the **first** time the process includes
+that path; every later inclusion of the same path — from anywhere, including a
+different file — short-circuits and yields `bool(true)`:
+
+```php
+// cfg.php ends in:  return ['a' => 1];
+
+$first  = require      'cfg.php';   // array(1) { 'a' => 1 }  ← file included here
+$second = require_once 'cfg.php';   // bool(true)             ← already included
+$third  = require_once 'cfg.php';   // bool(true)
+```
+
+Order is what makes the bug intermittent. `require_once` on a path nothing has
+touched yet *does* return the array; it degrades to `true` only on the repeat.
+So `$config = require_once $path;` in a loader returns the configuration on the
+first call and `true` on the second, and a loader called exactly once passes
+every test — until a second call site, a second request in a long-running
+worker, or another file's own `require_once` of the same config gets there
+first. (Measured on PHP 8.5.10; this is documented `require_once` semantics, not
+a version quirk.)
+
+The consumer then sees `true` where it expected an array. TYPO3's tailor loads
+its packaging config exactly this way and depends on it — `$configuration =
+require $exludeConfigurationFile;` at
+[`src/Service/VersionService.php:243`](https://github.com/TYPO3/tailor/blob/7faa2d2e7e247f309eb8807a30edea1f911aaf07/src/Service/VersionService.php#L243),
+followed two lines later by an `is_array($configuration)` guard that throws.
+Under the `S2003` rewrite that guard starts throwing on the second load.
+
+**Do not apply `S2003` where the include's return value is assigned.** The
+`_once` guard exists to prevent redeclaration; a file that only returns an array
+declares nothing, so there is nothing for it to protect. Plain `require` is
+correct here, and re-reading the file is the point.
+
+Disposing of the finding has two traps of its own:
+
+- **A false-positive mark does not reliably survive a refactor.** Observed: a
+  refactor that reshaped the flagged line brought the finding back under a *new*
+  issue key, while the "won't fix" / "false positive" disposition stayed on the
+  old one — so the rule reappeared on the next analysis with nothing to show
+  that it had already been triaged. Mark the issue **after** the code has
+  reached its final shape, and re-query the project's open issues on the last
+  push instead of trusting a mark set mid-refactor.
+- **A rule that keeps recurring on the same files belongs in a project-level
+  exclusion**, not in one-by-one marks:
+
+```properties
+sonar.issue.ignore.multicriteria=e1
+sonar.issue.ignore.multicriteria.e1.ruleKey=php:S2003
+sonar.issue.ignore.multicriteria.e1.resourceKey=**/conf/*.php
+```
+
+Put it in the properties file your analysis mode actually reads: Automatic
+Analysis reads `.sonarcloud.properties`, the CI-based scanner reads
+`sonar-project.properties`, and a project carrying both must keep them in sync.
+The equivalent under **Administration → General Settings → Analysis Scope →
+Ignore Issues on Multiple Criteria** applies in either mode.
