@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { passwordError, passwordConfirmationError } from '../assets/js/core/password-policy.js';
 test('Unicode 密碼以字元而非 UTF-16 code unit 計數，保留空白', () => {
-  assert.notEqual(passwordError('😀'.repeat(8)), '');
+  assert.notEqual(passwordError('😀'.repeat(7)), '');
+  assert.equal(passwordError('😀'.repeat(8)), '');
   assert.equal(passwordError('😀'.repeat(15)), '');
   assert.equal(passwordError(' '.repeat(15)), '');
   assert.equal(passwordError('😀'.repeat(128)), '');

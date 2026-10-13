@@ -17,6 +17,19 @@ export function loginLocation(kind) {
   return base + '?returnTo=' + encodeURIComponent(location.pathname + location.search);
 }
 
+// [E-04／E-07] 已登入者離開登入／註冊頁；首登改密碼仍由後端狀態決定。
+export async function redirectAuthenticated(kind = 'member') {
+  try {
+    const identity = await authApi(kind).me();
+    const needsChange = kind === 'admin' && identity.admin.mustChangePassword && !identity.preview?.active;
+    location.replace(needsChange ? '/admin/change-password.html' : returnTo(kind));
+    return true;
+  } catch (error) {
+    if (error.status === 401) return false;
+    throw error;
+  }
+}
+
 export function hasPermission(identity, module, action) {
   return identity.permissions?.some(right => right.module === module && right.action === action && right.allowed) ?? false;
 }
@@ -35,12 +48,15 @@ export async function requireSession(kind = 'member', allowChange = false) {
   }
 }
 
+let memberNavigationVersion = 0;
 export async function memberNavigation() {
+  const generation = ++memberNavigationVersion;
   initializeMenus();
   const node = document.querySelector('#member-navigation');
   if (!node) return;
   try {
     const { member } = await authApi().me();
+    if (generation !== memberNavigationVersion) return;
     node.replaceChildren(element('span', {}, member.displayName), element('a', { href: '/change-password.html' }, '更改密碼'));
     node.className = 'member-menu';
     const button = element('button', { type: 'button' }, '登出');
@@ -51,7 +67,11 @@ export async function memberNavigation() {
     });
     node.append(button);
   } catch (error) {
-    if (error.status !== 401) toast('暫時無法確認登入狀態，請稍後重新整理。');
+    if (generation !== memberNavigationVersion) return;
+    if (error.status === 401) {
+      node.replaceChildren(element('a', { className: 'login-button', href: '/login.html' }, '會員登入 ↗'));
+      node.className = '';
+    } else toast('暫時無法確認登入狀態，請稍後重新整理。');
   }
 }
 

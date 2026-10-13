@@ -1,0 +1,65 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Yinghua\Tests\Unit;
+
+use PHPUnit\Framework\TestCase;
+use Yinghua\Models\Account;
+use Yinghua\Models\IdentityKind;
+use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Policies\PermissionPolicy;
+use Yinghua\DTO\AdminWriteInput;
+
+class PermissionPolicyTest extends TestCase
+{
+    private function account(string $id, bool $root = false): Account
+    {
+        return new Account(
+            $id,
+            IdentityKind::Admin,
+            $root ? 'admin' : 'editor',
+            'test@example.test',
+            '測試',
+            '',
+            'active',
+            $root,
+            $root ? 'root' : 'content-editor',
+            false,
+            1,
+            1,
+            null,
+        );
+    }
+
+    public function testMissingPermissionDeniesAccess(): void
+    {
+        $this->expectException(ApplicationError::class);
+        (new PermissionPolicy())->require($this->account('one'), [], 'admins', 'view');
+    }
+
+    public function testRootCannotBeWrittenByAnotherRoot(): void
+    {
+        $this->expectException(ApplicationError::class);
+        (new PermissionPolicy())->writableTarget($this->account('one', true), $this->account('root', true));
+    }
+
+    public function testAdministratorCannotRemoveSelf(): void
+    {
+        $this->expectException(ApplicationError::class);
+        $actor = $this->account('one');
+        (new PermissionPolicy())->writableTarget($actor, $actor, true);
+    }
+
+    public function testCannotGrantRightsBeyondOwnMatrix(): void
+    {
+        $this->expectException(ApplicationError::class);
+        (new PermissionPolicy())->grantable($this->account('one'), [], [['module' => 'admins', 'action' => 'delete', 'allowed' => true]]);
+    }
+
+    public function testRootMassAssignmentIsRejected(): void
+    {
+        $this->expectException(ApplicationError::class);
+        AdminWriteInput::fromArray(['isRoot' => true], true);
+    }
+}

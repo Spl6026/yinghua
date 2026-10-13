@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Yinghua\Repositories;
 
+use PDOException;
 use Yinghua\DTO\AdminWriteInput;
 use Yinghua\DTO\RegisterInput;
+use Yinghua\Exceptions\AccountConflict;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 
@@ -30,7 +32,7 @@ class AccountRepository
 
     public function createMember(string $id, RegisterInput $input, string $hash): void
     {
-        $this->database->execute(
+        $this->writeAccount(
             'INSERT INTO members (id,email,display_name,password_hash) VALUES (:id,:email,:name,:hash)',
             ['id' => $id, 'email' => $input->email, 'name' => $input->displayName, 'hash' => $hash],
         );
@@ -38,7 +40,7 @@ class AccountRepository
 
     public function createAdmin(string $id, AdminWriteInput $input, string $hash, bool $root = false): void
     {
-        $this->database->execute(
+        $this->writeAccount(
             'INSERT INTO admin_users (id,account,email,display_name,password_hash,role_id,status,is_root,must_change_password) VALUES (:id,:account,:email,:name,:hash,:role,:status,:root,:change)',
             ['id' => $id, 'account' => $input->account, 'email' => $input->email,
                 'name' => $input->displayName, 'hash' => $hash, 'role' => $input->roleId,
@@ -48,7 +50,7 @@ class AccountRepository
 
     public function updateAdmin(string $id, AdminWriteInput $input): void
     {
-        $this->database->execute(
+        $this->writeAccount(
             'UPDATE admin_users SET display_name=:name,email=:email,role_id=:role,status=:status,version=version+1 WHERE id=:id',
             ['id' => $id, 'name' => $input->displayName, 'email' => $input->email, 'role' => $input->roleId, 'status' => $input->status],
         );
@@ -107,6 +109,21 @@ class AccountRepository
 
             return ['id' => $row->string('id'), 'account' => $row->string('account'), 'displayName' => $row->string('display_name'), 'isRoot' => $row->integer('is_root') === 1];
         }, $this->database->rows('SELECT id,account,display_name,is_root FROM admin_users WHERE deleted_at IS NULL ORDER BY display_name,id'));
+    }
+
+    /** [E-01] 只轉譯帳號寫入的 duplicate key；外鍵、CHECK、連線及稽核錯誤仍是非預期失敗。
+     * @param array<string, bool|int|string|null> $parameters
+     */
+    private function writeAccount(string $sql, array $parameters): void
+    {
+        try {
+            $this->database->execute($sql, $parameters);
+        } catch (PDOException $error) {
+            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+                throw new AccountConflict($error);
+            }
+            throw $error;
+        }
     }
 
     /** @param array<string, bool|int|string|null> $parameters */

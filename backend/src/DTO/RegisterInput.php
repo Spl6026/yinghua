@@ -24,10 +24,7 @@ readonly class RegisterInput
     {
         $input = new Input($values);
         $input->only(['email', 'displayName', 'password', 'passwordConfirmation', 'challengeToken', 'answer', 'acceptTerms', 'termsVersion']);
-        $password = $input->text('password', 15, 128, false);
-        if ($password !== $input->text('passwordConfirmation', 15, 128, false)) {
-            throw ApplicationError::invalid('passwordConfirmation', '兩次密碼不一致。');
-        }
+        $password = $input->confirmedPassword();
         if (!$input->boolean('acceptTerms')) {
             throw ApplicationError::invalid('acceptTerms', '請先閱讀並同意條款。');
         }

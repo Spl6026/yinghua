@@ -20,13 +20,22 @@ FROM php-base AS dependencies
 COPY tools/php/composer.json tools/php/composer.lock ./
 RUN --mount=type=cache,target=/root/.composer/cache composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-plugins
 
+FROM php-base AS app-dependencies
+WORKDIR /var/www/app
+COPY backend/composer.json backend/composer.lock ./
+RUN --mount=type=cache,target=/root/.composer/cache composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-plugins
+
 FROM php-base AS runtime
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/yinghua.ini
 COPY docker/php/www.conf /usr/local/etc/php-fpm.d/zz-yinghua.conf
 COPY tools/php/composer.json tools/php/composer.lock ./
 COPY --from=dependencies /var/www/tools/vendor /var/www/tools/vendor
+COPY backend /var/www/app
+COPY --from=app-dependencies /var/www/app/vendor /var/www/app/vendor
+WORKDIR /var/www/app
 
 CMD ["php-fpm"]
 
 FROM runtime AS development
-RUN --mount=type=cache,target=/root/.composer/cache composer install --no-interaction --prefer-dist --no-scripts --no-plugins
+RUN --mount=type=cache,target=/root/.composer/cache composer install --working-dir=/var/www/tools --no-interaction --prefer-dist --no-scripts --no-plugins
+RUN --mount=type=cache,target=/root/.composer/cache composer install --working-dir=/var/www/app --no-interaction --prefer-dist --no-scripts --no-plugins
