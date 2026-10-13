@@ -1,25 +1,52 @@
 import { authApi } from './api/auth-api.js';
 import { authConfiguration } from './core/api-client.js';
-import { returnTo, requireSession, memberNavigation, redirectAuthenticated } from './core/session.js';
+import { returnTo, requireSession, memberNavigation, redirectAuthenticated, adminReturnTo, adminDestination } from './core/session.js';
 import { submitForm, status } from './core/ui.js';
 
 const { authKind: kind, authMode: mode } = document.body.dataset;
 const api = authApi(kind);
 const form = document.querySelector('#auth-form');
-let checkingSession = mode === 'login' || mode === 'register';
+let checkingSession = mode === 'login' || mode === 'register' || mode === 'change-password';
+const returnLink = document.querySelector('[data-auth-return]');
+const logoutButton = document.querySelector('[data-auth-logout]');
+let credentialsChanged = false;
 let challengeToken;
 let termsVersion;
 let refreshingCaptcha = false;
 let submitting = false;
+let signingOut = false;
 let completed = false;
 let retryUntil = 0;
 const submit = form.querySelector('[type="submit"]');
 function canSubmit() {
-  return !checkingSession && !completed && Date.now() >= retryUntil && (mode !== 'register' || Boolean(challengeToken && termsVersion) && !refreshingCaptcha);
+  return !checkingSession && !signingOut && !completed && Date.now() >= retryUntil && (mode !== 'register' || Boolean(challengeToken && termsVersion) && !refreshingCaptcha);
 }
-function updateSubmit() { submit.disabled = submitting || !canSubmit(); }
+function updateSubmit() {
+  submit.disabled = submitting || !canSubmit();
+  if (logoutButton) logoutButton.disabled = checkingSession || submitting || signingOut || completed;
+}
 updateSubmit();
+// [U-13／E-14] 更改密碼頁可登出換帳號，與提交共用互斥狀態。
+logoutButton?.addEventListener('click', async () => {
+  if (checkingSession || submitting || signingOut || completed) return;
+  signingOut = true;
+  updateSubmit();
+  form.setAttribute('aria-busy', 'true');
+  status(form.querySelector('.form-status'), '登出中…');
+  try {
+    await api.logout();
+    completed = true;
+    location.replace('/admin/login.html');
+  } catch (error) {
+    if (error.status === 401) {
+      completed = true;
+      location.replace('/admin/login.html');
+    } else status(form.querySelector('.form-status'), error.message, true);
+  } finally { signingOut = false; form.removeAttribute('aria-busy'); updateSubmit(); }
+});
 // [E-07] 一次性憑證只在記憶體；先清掉網址 fragment，再發任何網路請求。
+const resetToken = mode === 'reset-password' ? new URLSearchParams(location.hash.slice(1)).get('token') : null;
+if (mode === 'reset-password') history.replaceState(null, '', location.pathname);
 
 async function refreshCaptcha(email = false) {
   if (refreshingCaptcha) return;
@@ -50,6 +77,7 @@ form.addEventListener('submit', async event => {
   if (submitting || !canSubmit() || submit.disabled) return;
   // [E-14] 包含 Enter 的提交入口共用此鎖；成功後離頁／重新登入，不重送。
   submitting = true;
+  updateSubmit();
   try { await submitForm(form, async () => {
     const body = Object.fromEntries(new FormData(form));
     if (mode === 'register') {
@@ -60,18 +88,58 @@ form.addEventListener('submit', async event => {
       completed = true;
       location.assign(returnTo(kind));
     } else if (mode === 'login') {
-      const result = await api.login(body);
+      const identity = await api.login(body);
       completed = true;
-      location.assign(kind === 'admin' && result.admin.mustChangePassword ? '/admin/change-password.html' : returnTo(kind));
+      location.assign(kind === 'admin' ? adminReturnTo(identity) : returnTo(kind));
+    } else if (mode === 'forgot-password') {
+      const result = await api.forgot(body);
+      status(form.querySelector('.form-status'), result.message);
+    } else {
+      if (mode === 'reset-password') { body.token = resetToken; await api.reset(body); }
+      else await api.change(body);
+      completed = true;
+      form.reset();
+      credentialsChanged = true;
+      if (logoutButton) logoutButton.hidden = true;
+      if (returnLink) {
+        returnLink.href = kind === 'admin' ? '/admin/login.html' : '/login.html';
+        returnLink.textContent = '重新登入';
+        returnLink.hidden = false;
+      }
+      void memberNavigation();
+      status(form.querySelector('.form-status'), '密碼已更新，請使用新密碼重新登入。');
+      form.querySelector('[type="submit"]').hidden = true;
     }
   }, { canSubmit, onError: error => {
     if (error.retryAfter > 0) retryUntil = Date.now() + Math.min(error.retryAfter, 86400) * 1000;
   } }); }
-  finally { submitting = false; }
+  finally { submitting = false; updateSubmit(); }
 });
 
 // 先綁定 submit 再發請求，避免網路等待時使用瀏覽器預設表單提交。
 void memberNavigation();
+if (mode === 'change-password') {
+  if (returnLink) returnLink.hidden = true;
+  form.setAttribute('aria-busy', 'true');
+  try {
+    const identity = await requireSession(kind, true);
+    const preview = kind === 'admin' && identity?.preview?.active;
+    if (preview) location.replace('/admin/index.html');
+    checkingSession = !identity || Boolean(preview);
+    if (logoutButton) logoutButton.hidden = checkingSession;
+    if (identity && returnLink && !credentialsChanged && !preview) {
+      // [U-13] 更改前可返回；成功撤銷 session 後顯示重新登入。
+      returnLink.hidden = false;
+      if (kind === 'admin') returnLink.href = adminDestination(identity);
+    }
+  }
+  catch (error) { status(form.querySelector('.form-status'), error.message, true); }
+  finally { form.removeAttribute('aria-busy'); updateSubmit(); }
+}
+if (mode === 'reset-password' && !/^[a-f0-9]{64}$/.test(resetToken || '')) {
+  status(form.querySelector('.form-status'), '重設連結無效，請重新申請。', true);
+  form.querySelector('[type="submit"]').disabled = true;
+}
 if (mode === 'login' || mode === 'register') {
   submit.disabled = true;
   form.setAttribute('aria-busy', 'true');

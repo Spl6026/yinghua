@@ -12,10 +12,12 @@ const settle = async () => { for (let i = 0; i < 5; i++) await new Promise(resol
 const unauthorized = () => Object.assign(new Error('請先登入'), { status: 401 });
 function deferred() { let resolve; const promise = new Promise(yes => { resolve = yes; }); return { resolve, promise }; }
 function fixture({ kind = 'member', mode = 'login', identity, query = '', navigation = false, realSubmit = false } = {}) {
-  const state = { redirects: [], calls: [], submits: 0, clock: 1000, timers: [], captcha: async () => ({ challengeToken: 'challenge', imageDataUrl: 'data:image/png;base64,test' }), write: async () => {}, me: async () => { if (identity) return identity; throw unauthorized(); } };
+  if (identity?.admin && !identity.permissions) identity = {...identity,permissions:[{module:'dashboard',action:'view',allowed:true}]};
+  const state = { redirects: [], calls: [], submits: 0, logouts: 0, clock: 1000, timers: [], captcha: async () => ({ challengeToken: 'challenge', imageDataUrl: 'data:image/png;base64,test' }), write: async () => {}, logout: async () => {}, me: async () => { if (identity) return identity; throw unauthorized(); } };
   const submit = { disabled: false, hidden: false };
   const message = { textContent: '', dataset: {}, focus() {} };
   const link = { href: kind === 'admin' ? '/admin/index.html' : '/index.html', textContent: kind === 'admin' ? '回後台' : '回首頁', hidden: false };
+  const logout = { hidden: true, disabled: false, addEventListener(type, callback) { this.listener = callback; } };
   const form = {
     elements: { email: { value: 'fixture@example.test', reportValidity: () => true }, answer: { value: '', focus() {} }, acceptTerms: { checked: true } }, attrs: {}, listeners: {},
     querySelector: selector => selector === '[type="submit"]' ? submit : selector === '.form-status' ? message : null,
@@ -34,6 +36,7 @@ function fixture({ kind = 'member', mode = 'login', identity, query = '', naviga
     document: { body: { dataset: { authKind: kind, authMode: mode } }, querySelector(selector) {
       if (selector === '#auth-form') return form;
       if (selector === '[data-auth-return]') return mode === 'change-password' ? link : null;
+      if (selector === '[data-auth-logout]') return kind === 'admin' && mode === 'change-password' ? logout : null;
       if (selector === '#member-navigation') return node;
       if (captchaNodes.has(selector)) return captchaNodes.get(selector);
       return null;
@@ -46,6 +49,7 @@ function fixture({ kind = 'member', mode = 'login', identity, query = '', naviga
       async me() { state.calls.push(namespace); return state.me(namespace); },
       async login() { state.submits++; await state.write(); return identity || { admin: { mustChangePassword: false } }; },
       async change() { state.submits++; await state.write(); state.me = async () => { throw unauthorized(); }; },
+      async logout() { state.logouts++; await state.logout(); },
       async register() { state.submits++; await state.write(); },
       async captcha() { return state.captcha(); },
       async emailCaptcha() { return state.captcha(); },
@@ -57,7 +61,7 @@ function fixture({ kind = 'member', mode = 'login', identity, query = '', naviga
   vm.runInContext(sessionSource, sandbox);
   const initialize = () => vm.runInContext('(async () => {\n' + authSource + '\n})()', sandbox);
   const send = async () => { form.listeners.submit({ preventDefault() {} }); await settle(); };
-  return { state, sandbox, submit, message, link, form, node, captchaNodes, initialize, send };
+  return { state, sandbox, submit, message, link, logout, form, node, captchaNodes, initialize, send };
 }
 
 test('已登入會員開登入頁返回合法原頁，拒絕跨站目的地', async () => {
@@ -74,8 +78,8 @@ test('後台登入頁使用管理員 session，不借會員身分判斷', async 
   const f = fixture({ kind: 'admin', identity: { admin: { mustChangePassword: false } } });
   await f.initialize(); assert.deepEqual(f.state.calls, ['admin']); assert.deepEqual(f.state.redirects, ['/admin/index.html']);
 });
-test('首登管理員回更改密碼，唯讀模擬不進密碼循環', async () => {
-  for (const [preview, destination] of [[false, '/admin/change-password.html'], [true, '/admin/index.html']]) {
+test('管理員與唯讀模擬皆回後台，不使用舊首登旗標', async () => {
+  for (const [preview, destination] of [[false, '/admin/index.html'], [true, '/admin/index.html']]) {
     const f = fixture({ kind: 'admin', identity: { admin: { mustChangePassword: true }, preview: { active: preview } } });
     await f.initialize(); assert.deepEqual(f.state.redirects, [destination]);
   }
@@ -93,8 +97,56 @@ test('登入身分確認未完成時不提交另一筆登入', async () => {
   pending.resolve({ member: { id: 'member' } }); await ready;
   assert.deepEqual(f.state.redirects, ['/index.html']);
 });
-test('登入請求未完成時不重複提交，成功後不再送出', async () => {
-  for (const mode of ['login']) {
+test('未更改密碼的正常會員／管理員保留返回首頁／後台', async () => {
+  for (const kind of ['member', 'admin']) {
+    const f = fixture({ kind, mode: 'change-password', identity: { member: {}, admin: { mustChangePassword: false } } });
+    await f.initialize(); assert.equal(f.link.hidden, false);
+    assert.equal(f.link.href, kind === 'admin' ? '/admin/index.html' : '/index.html');
+  }
+});
+test('管理員改密碼前可返回，成功後顯示重新登入連結', async () => {
+  const f = fixture({ kind: 'admin', mode: 'change-password', identity: { admin: { mustChangePassword: true } } });
+  await f.initialize(); assert.equal(f.link.hidden, false);
+  await f.send(); assert.equal(f.link.hidden, false); assert.equal(f.link.href, '/admin/login.html'); assert.equal(f.link.textContent, '重新登入');
+});
+
+test('改密碼頁可登出換帳號，等待登出時不更改密碼或重送', async () => {
+  const f = fixture({ kind: 'admin', mode: 'change-password', identity: { admin: { mustChangePassword: true } } });
+  const identity = deferred(); f.state.me = () => identity.promise;
+  const ready = f.initialize(); await f.logout.listener(); assert.equal(f.state.logouts, 0);
+  identity.resolve({ admin: { mustChangePassword: true } }); await ready;
+  assert.equal(f.link.hidden, false); assert.equal(f.logout.hidden, false); assert.equal(f.logout.disabled, false);
+  const pending = deferred(); f.state.logout = () => pending.promise;
+  const leaving = f.logout.listener(); await f.logout.listener(); await f.send();
+  assert.equal(f.state.logouts, 1); assert.equal(f.state.submits, 0); assert.equal(f.submit.disabled, true); assert.equal(f.form.attrs['aria-busy'], 'true');
+  pending.resolve(); await leaving; assert.deepEqual(f.state.redirects, ['/admin/login.html']);
+});
+
+test('改密碼期間不能登出，登出失敗可重試，失效session則回登入', async () => {
+  const f = fixture({ kind: 'admin', mode: 'change-password', identity: { admin: { mustChangePassword: false } }, realSubmit: true });
+  await f.initialize();
+  f.state.logout = async () => { throw new Error('連線暫時失敗'); };
+  await f.logout.listener(); assert.equal(f.message.textContent, '連線暫時失敗'); assert.equal(f.logout.disabled, false); assert.equal(f.submit.disabled, false);
+  const pending = deferred(); f.state.write = () => pending.promise;
+  await f.send(); await f.logout.listener(); assert.equal(f.state.logouts, 1); assert.equal(f.logout.disabled, true);
+  pending.resolve(); await settle(); assert.equal(f.logout.hidden, true);
+  const expired = fixture({ kind: 'admin', mode: 'change-password', identity: { admin: { mustChangePassword: false } } });
+  await expired.initialize(); expired.state.logout = async () => { throw unauthorized(); };
+  await expired.logout.listener(); assert.deepEqual(expired.state.redirects, ['/admin/login.html']);
+});
+test('更改密碼身分尚未讀取時拒絕提交，載入後可正常更新', async () => {
+  const f = fixture({ mode: 'change-password' }); const pending = deferred(); f.state.me = () => pending.promise;
+  const ready = f.initialize(); await f.send();
+  assert.equal(f.state.submits, 0);
+  pending.resolve({ member: { id: 'member' } }); await ready;
+  await f.send();
+  assert.equal(f.link.href, '/login.html'); assert.equal(f.link.textContent, '重新登入'); assert.equal(f.submit.hidden, true);
+  const failed = fixture({ mode: 'change-password' }); failed.state.me = async () => { throw new Error('服務暫時失敗'); };
+  await failed.initialize(); await failed.send(); assert.equal(failed.state.submits, 0); assert.equal(failed.submit.disabled, true);
+});
+
+test('登入與更改密碼的請求未完成時不重複提交，成功後不再送出', async () => {
+  for (const mode of ['login', 'change-password']) {
     const f = fixture({ mode, identity: mode === 'change-password' ? { member: {} } : undefined });
     await f.initialize(); const pending = deferred(); f.state.write = () => pending.promise;
     await f.send(); await f.send(); assert.equal(f.state.submits, 1);

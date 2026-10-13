@@ -17,12 +17,11 @@ export function loginLocation(kind) {
   return base + '?returnTo=' + encodeURIComponent(location.pathname + location.search);
 }
 
-// [E-04／E-07] 已登入者離開登入／註冊頁；首登改密碼仍由後端狀態決定。
+// [U-13／E-04] 已登入者離開登入／註冊頁，不增加首次登入改密碼門檻。
 export async function redirectAuthenticated(kind = 'member') {
   try {
     const identity = await authApi(kind).me();
-    const needsChange = kind === 'admin' && identity.admin.mustChangePassword && !identity.preview?.active;
-    location.replace(needsChange ? '/admin/change-password.html' : returnTo(kind));
+    location.replace(kind === 'admin' ? adminReturnTo(identity) : returnTo(kind));
     return true;
   } catch (error) {
     if (error.status === 401) return false;
@@ -34,13 +33,52 @@ export function hasPermission(identity, module, action) {
   return identity.permissions?.some(right => right.module === module && right.action === action && right.allowed) ?? false;
 }
 
+// [S E27／E-14] 檢視與新增互相獨立；共用登入、側欄與表單離開位置，不擴大 API 權限。
+const adminPages = {
+  dashboard: ['index'],
+  attractions: ['places', 'place-add', 'place-edit', '⌖　新增景點'],
+  films: ['films', 'film-add', 'film-edit', '▣　新增映演場次'],
+  news: ['news'],
+  offers: ['offers'],
+  routes: ['routes'],
+  admins: ['admins', 'admin-add', 'admin-edit', '♙　新增管理員'],
+  permissions: ['permissions'],
+  members: ['members'],
+  settings: ['settings'],
+};
+
+export function adminNavigation(identity, module) {
+  const pages = adminPages[module];
+  if (!pages) return null;
+  if (hasPermission(identity, module, 'view')) return { href: `/admin/${pages[0]}.html` };
+  if (pages[1] && hasPermission(identity, module, 'create')) return { href: `/admin/${pages[1]}.html`, label: pages[3] };
+  return null;
+}
+
+export function adminDestination(identity) {
+  for (const module of Object.keys(adminPages)) {
+    const entry = adminNavigation(identity, module);
+    if (entry) return entry.href;
+  }
+  return '/index.html';
+}
+
+export function adminReturnTo(identity) {
+  const fallback = adminDestination(identity);
+  const target = returnTo('admin', fallback);
+  const path = new URL(target, location.origin).pathname;
+  for (const [module, pages] of Object.entries(adminPages)) {
+    if (path === `/admin/${pages[0]}.html` && hasPermission(identity, module, 'view')) return target;
+    if (pages[1] && path === `/admin/${pages[1]}.html` && hasPermission(identity, module, 'create')) return target;
+    if (pages[2] && path === `/admin/${pages[2]}.html`
+      && hasPermission(identity, module, 'view') && hasPermission(identity, module, 'edit')) return target;
+  }
+  return fallback;
+}
+
 export async function requireSession(kind = 'member', allowChange = false) {
   try {
     const identity = await authApi(kind).me();
-    if (kind === 'admin' && identity.admin.mustChangePassword && !allowChange) {
-      location.replace('/admin/change-password.html');
-      return null;
-    }
     return identity;
   } catch (error) {
     if (error.status === 401) { location.replace(loginLocation(kind)); return null; }
@@ -77,6 +115,5 @@ export async function memberNavigation() {
 
 export function handleAdminError(error, message) {
   if (error.status === 401) location.replace(loginLocation('admin'));
-  else if (error.code === 'PASSWORD_CHANGE_REQUIRED') location.replace('/admin/change-password.html');
   else { message.textContent = error.message; message.dataset.error = 'true'; message.focus(); }
 }

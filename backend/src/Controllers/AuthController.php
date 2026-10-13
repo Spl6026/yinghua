@@ -9,6 +9,7 @@ use Yinghua\DTO\AccountSummary;
 use Yinghua\DTO\IdentityResponse;
 use Yinghua\DTO\Input;
 use Yinghua\DTO\LoginInput;
+use Yinghua\DTO\PasswordInput;
 use Yinghua\DTO\RegisterInput;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Csrf;
@@ -18,6 +19,7 @@ use Yinghua\Models\IdentityKind;
 use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
+use Yinghua\Services\PasswordReset;
 
 class AuthController
 {
@@ -25,6 +27,7 @@ class AuthController
         private readonly Authentication $authentication,
         private readonly Authorization $authorization,
         private readonly Captcha $captcha,
+        private readonly PasswordReset $passwordReset,
         private readonly Csrf $csrf,
         private readonly Config $config,
     ) {}
@@ -75,8 +78,29 @@ class AuthController
         return $this->signedOut($context);
     }
 
+    public function forgotPassword(ApiContext $context): Response
+    {
+        $input = new Input($context->request->json());
+        $input->only(['email']);
+        $pending = $this->passwordReset->prepare($context->kind, $input->email(), $context->client);
+        $callbacks = $pending === null ? [] : [fn() => $this->passwordReset->deliver($pending, $context->client)];
 
+        return new Response(200, ['message' => '若帳號有效，將寄送密碼重設信。'], [], [], $callbacks);
+    }
 
+    public function resetPassword(ApiContext $context): Response
+    {
+        $this->passwordReset->reset($context->kind, PasswordInput::fromArray($context->request->json(), true), $context->client);
+
+        return $this->signedOut($context);
+    }
+
+    public function changePassword(ApiContext $context): Response
+    {
+        $this->passwordReset->change($context->actor(), PasswordInput::fromArray($context->request->json(), false), $context->client);
+
+        return $this->signedOut($context);
+    }
 
     private function signedIn(Account $account, string $token, ApiContext $context, int $status = 200): Response
     {

@@ -26,6 +26,7 @@ use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
 use Yinghua\Services\PasswordHasher;
+use Yinghua\Services\PasswordReset;
 use Yinghua\Services\RateLimiter;
 use Yinghua\Support\Secrets;
 
@@ -52,8 +53,9 @@ readonly class Composition
         $mailer = new PhpMailerAdapter($this->config);
         $captcha = new Captcha(new ChallengeRepository($database), $transactions, $limiter, $secrets, $clock, $this->config, $mailer);
         $authentication = new Authentication($accounts, $sessions, $passwords, $limiter, $events, $transactions, $captcha, $this->config, new ConsentRepository($database));
+        $passwordReset = new PasswordReset($accounts, $resets, $sessions, $passwords, $limiter, $events, $transactions, $clock, $this->config, $mailer);
         $csrf = new Csrf($this->config, $clock, $secrets);
-        $authController = new AuthController($authentication, $authorization, $captcha, $csrf, $this->config);
+        $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config);
         $router = new Router();
         /** @var Closure(Router,AuthController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';

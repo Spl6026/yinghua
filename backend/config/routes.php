@@ -7,7 +7,7 @@ use Yinghua\Http\Route;
 use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
-/** [S-016／S-017／S-026／S-027／E-02／E-03／E-06／E-07／E-13] 正式 11 個端點。 */
+/** [S-016／S-017／S-026／S-027／E-02／E-03／E-06／E-07／E-13] 正式 17 個端點。 */
 return static function (Router $router, AuthController $auth): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
@@ -15,6 +15,9 @@ return static function (Router $router, AuthController $auth): void {
         $router->add(new Route('POST', $prefix . 'login', $kind, $auth->login(...)));
         $router->add(new Route('POST', $prefix . 'logout', $kind, $auth->logout(...), true, allowPasswordChange: true));
         $router->add(new Route('GET', $prefix . 'me', $kind, $auth->me(...), true, allowPasswordChange: true));
+        $router->add(new Route('POST', $prefix . 'forgot-password', $kind, $auth->forgotPassword(...)));
+        $router->add(new Route('POST', $prefix . 'reset-password', $kind, $auth->resetPassword(...)));
+        $router->add(new Route('POST', $prefix . 'change-password', $kind, $auth->changePassword(...), true, allowPasswordChange: true));
     }
     $router->add(new Route('GET', '/api/v1/auth/captcha', IdentityKind::Member, $auth->captcha(...)));
     $router->add(new Route('POST', '/api/v1/auth/captcha/email', IdentityKind::Member, $auth->emailCaptcha(...)));
