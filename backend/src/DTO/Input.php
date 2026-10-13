@@ -46,6 +46,29 @@ readonly class Input
         return $email;
     }
 
+    /** [U-12] 文件未指定非空的文字，省略或空白均保存空字串。 */
+    public function optionalText(string $key, int $max = 255): string
+    {
+        return array_key_exists($key, $this->values) ? $this->text($key, 0, $max) : '';
+    }
+
+    /** [U-13／原型] 共用八字密碼邊界；單一初始密碼不要求不存在的確認欄。 */
+    public function password(): string
+    {
+        return $this->text('password', 8, 128, false);
+    }
+
+    /** [U-15] 註冊、重設及更改密碼必須再次輸入，且逐字一致；不修剪密碼。 */
+    public function confirmedPassword(): string
+    {
+        $password = $this->password();
+        if ($password !== $this->text('passwordConfirmation', 8, 128, false)) {
+            throw ApplicationError::invalid('passwordConfirmation', '兩次密碼不一致。');
+        }
+
+        return $password;
+    }
+
     public function positiveInt(string $key): int
     {
         $value = $this->values[$key] ?? null;
