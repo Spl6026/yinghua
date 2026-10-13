@@ -53,7 +53,7 @@ export async function initializePermissions(identity) {
       if (version !== loadVersion) return false;
       matrix = loaded; populate(matrix.permissions); dirty = false;
       history.replaceState(null, '', location.pathname + '?id=' + encodeURIComponent(id));
-      canEdit = !matrix.isRoot && hasPermission(identity, 'permissions', 'edit');
+      canEdit = !identity.preview?.active && !matrix.isRoot && hasPermission(identity, 'permissions', 'edit');
       const name = catalog.targets.find(account => account.id === id).displayName;
       document.querySelector('#permission-title').textContent = name + ' 的功能權限';
       document.querySelector('#permission-summary').textContent = matrix.isRoot ? '系統管理員｜完整權限' : '自訂權限';
@@ -73,6 +73,7 @@ export async function initializePermissions(identity) {
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
+    if (identity.preview?.active) { status(form.querySelector('.form-status'), '目前為唯讀模擬，無法儲存。'); return; }
     if (loading || saving || !canEdit) return;
     submitForm(form, async () => {
       // [E-14] 保存使用提交時的對象與版本；切換後不覆蓋另一人的矩陣。

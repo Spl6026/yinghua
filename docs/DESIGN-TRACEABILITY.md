@@ -29,10 +29,12 @@
 | S-PAGE | 獨立 HTML 頁面、後台登入檢查／權限不足狀態 | 頁面清單 G5–G44、E23–E44 |
 | S-SEO-17 | 正確 SEO head，不執行 JS 可讀；直接網址可檢索、快取更新 | SEO規格 C17–F17；功能規格 E29–L33 |
 | U-01 | PHP＋MariaDB＋Docker；原生 JS，可用 jQuery | 使用者對話「希望 php+mariadb 並且用 docker 開」 |
-| U-02 | PHP 的網站責任全為 API，明確的 MVC 類似分工、重用、易讀與適當 design pattern | 使用者本次架構要求 |
+| U-02 | PHP 的網站責任全為 API，明確的 MVC 類似分工、重用、易讀與適當 design pattern；分層可參考 Spring Boot | 使用者架構要求，2026-10-17 指定參考 Spring Boot 並授權改善 |
 | U-03 | website 原始交付保留，新文件在 project；其他技術使用者名稱 spl，DB yinghua | 使用者既有對話；固定網站 admin 仍依 S-026 |
 | U-04 | 先安裝環境，暫不改應用程式；Git 原始提交和修正合併原則 | 使用者既有對話、根目錄 AGENTS.md |
 | U-05 | 前端排版依原始交付的 website，串接不能另行改版 | 使用者對話「前端排版似乎沒有全對，要照著原本的來」；版型對照見 modules/frontend.md |
+| U-06 | 固定系統管理員可模擬一般管理員；唯讀驗收介面與權限，不能修改資料 | 使用者對話「系統管理員可以模擬也蠻合理的」，並選擇「唯讀驗收」；不是 Excel 規格要求 |
+| U-07 | 每階段獨立分支，依完成的功能細分提交；原始交付及自身修正合併原則繼續保留 | 使用者對話「依照某個功能完善來做細項 commit」、「每一個階段開一個 branch」；流程見 GIT-WORKFLOW.md |
 
 ## 3. 我額外提出的工程決定
 
@@ -40,7 +42,7 @@
 
 | ID | 工程補充 | 理由／規格關係 | 計畫狀態 |
 | --- | --- | --- | --- |
-| E-01 | Controller／Service／Repository、DTO、建構子 DI、Adapter／Middleware | 落實 U-02；Excel 沒有指定這些 pattern | 基礎方案，見 ARCHITECTURE |
+| E-01 | Controller／Service／Repository、輸入／回應 DTO、建構子 DI、Adapter／Middleware、儲存例外轉譯及帳號／權限服務拆分 | 落實 U-02；Excel 沒有指定這些 pattern | 階段二已實作，見 ARCHITECTURE／modules/backend-layering.md |
 | E-02 | 會員／後台獨立 auth namespace、Cookie 與 CSRF API | 實現 S-SEC-09／14 的身分邊界，確切端點是提案 | 基礎方案 |
 | E-03 | password_reset_tokens 表、兩種重設用途、獨立重設頁 | 重設行為是 S-SEC-09；儲存及頁面拆法是提案 | 基礎方案 |
 | E-04 | MariaDB auth_rate_limits 表、keyed hash、原子更新 | 限速／鎖定是規格；使用共享 DB 桶是提案 | 基礎方案 |
@@ -54,10 +56,11 @@
 | E-12 | frontend/ 與 Node 前端建置／公開內容預先產生、版本同步 | 同時滿足 U-02 API-only 和 S-SEO-17；工具不是文件指定 | 基礎方案，階段二／三分別建立 |
 | E-13 | 角色／權限定義輔助讀取 API、統一 JSON 錯誤、requestId | 供原型表單與矩陣運作且便於排查；路徑／錯誤結構是提案 | 基礎方案 |
 | E-14 | 中文業務理由、來源註記、模組閱讀指南及相依檢查 | 落實 U-02「需要看得懂 code」，格式與檢查是提案 | 基礎方案 |
+| E-16 | 模擬採 owner／effective 雙身分、session target 欄位、token 輪替、交易稽核與 Kernel 唯讀限制 | 落實 U-06；參考 Symfony original user／退出機制與 OWASP session 管理，具體 API／欄位為工程設計 | 已實作，見 modules/admin-preview.md |
 
 ## 4. 階段二 API 的來源
 
-以下與 PHASE-2-PLAN 的 26 個計畫端點一一對應，目前全部已實作於 backend/config/routes.php，契約見 backend/resources/openapi.json。API草案中的方法／路徑屬 D，背後功能的 S 與本案新增 E 分開列出。確切契約已同步至 OpenAPI。
+以下為原計畫 26 個端點及 U-06 補充的 3 個端點，共 29 個，全部已實作於 backend/config/routes.php，契約見 backend/resources/openapi.json。API草案中的方法／路徑屬 D，背後功能的 S 與本案新增 E 分開列出。確切契約已同步至 OpenAPI。
 
 | 方法與路徑 | 要求來源 | 端點設計來源／補充 |
 | --- | --- | --- |
@@ -89,6 +92,14 @@
 | PUT /api/v1/admin/admins/{id}/permissions | S-027／S-SEC-14 | D：API草案 B36–G36；E-10 的防越級選擇 |
 
 目前沒有 health API；Docker 環境健康檢查不算網站 API 或業務功能。
+
+| 新增方法與路徑 | 功能來源 | 具體設計來源／頁面 |
+| --- | --- | --- |
+| GET /api/v1/admin/auth/preview | U-06 | E-16；共用後台左下身分選單 |
+| POST /api/v1/admin/auth/preview | U-06 | E-16；開始／切換唯讀模擬 |
+| DELETE /api/v1/admin/auth/preview | U-06 | E-16；退出模擬，恢復真正登入者 |
+
+U-06 沒有增加業務表或 HTML 網址。sessions 增 preview_admin_id、FK 與 constraint；admin_id 保留真正登入者。me 增 preview 資訊。確切欄位與流程見 [modules/admin-preview.md](modules/admin-preview.md)。
 
 ## 5. 資料表的來源
 
@@ -128,6 +139,6 @@
 | /admin/reset-password.html | 無 | S-SEC-09；後台獨立頁面 E-03 |
 | /admin/change-password.html | 無 | E-07，包含首登強制改密碼 |
 | 其餘 18 個後台頁面的登入／授權 guard | 有 | S-SEC-14／S-PAGE；空殼＋API 授權實作 E-12 |
-| 共用登入身分與登出 | 導覽原型有 | S-017／S-PAGE；移除模擬身分與共用模組為 E-01／02 |
+| 共用登入身分與登出 | 導覽原型有 | S-017／S-PAGE；E-01／02 共用模組；U-06／E-16 增固定 root 唯讀模擬 |
 
 所有新來源放 frontend/，與 website 原始檔對照。本文件列出提案讓範圍可讀；階段二對應頁面已建立；工程補充仍不改成規格硬性要求。

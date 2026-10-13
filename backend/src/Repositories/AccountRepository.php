@@ -111,6 +111,18 @@ class AccountRepository
         }, $this->database->rows('SELECT id,account,display_name,is_root FROM admin_users WHERE deleted_at IS NULL ORDER BY display_name,id'));
     }
 
+    /** [U-06] 只給 root 的選單，排除停用／刪除及固定 root；不回傳 Email 等不必要資料。
+     * @return list<array{id:string,account:string,displayName:string}>
+     */
+    public function previewTargets(): array
+    {
+        return array_map(static function (array $record): array {
+            $row = new Row($record);
+
+            return ['id' => $row->string('id'), 'account' => $row->string('account'), 'displayName' => $row->string('display_name')];
+        }, $this->database->rows("SELECT id,account,display_name FROM admin_users WHERE deleted_at IS NULL AND status='active' AND is_root=0 ORDER BY display_name,id"));
+    }
+
     /** [E-01] 只轉譯帳號寫入的 duplicate key；外鍵、CHECK、連線及稽核錯誤仍是非預期失敗。
      * @param array<string, bool|int|string|null> $parameters
      */

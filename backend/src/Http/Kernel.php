@@ -6,11 +6,13 @@ namespace Yinghua\Http;
 
 use Throwable;
 use Yinghua\DTO\ClientContext;
+use Yinghua\DTO\AuthenticatedIdentity;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
 use Yinghua\Support\Secrets;
 use Yinghua\Repositories\EventRepository;
+use Yinghua\Models\IdentityKind;
 
 /** [E-01] 共用管線：錯誤 → 路由 → CSRF → 身分 → 權限 → Controller。 */
 class Kernel
@@ -38,13 +40,20 @@ class Kernel
                 $request->requestId,
             );
             $token = $this->csrf->sessionToken($request, $route->kind);
-            $actor = $route->authenticated ? $this->authentication->current($route->kind, $token) : null;
-            $context = new ApiContext($request, $route->kind, $client, $anonymous, $actor, $token, $match['parameters']);
+            $identity = $this->identity($route, $token);
+            $actor = $identity?->effective();
+            $context = new ApiContext($request, $route->kind, $client, $anonymous, $actor, $token, $match['parameters'], $identity);
             if (!in_array($request->method, ['GET', 'HEAD'], true)) {
                 $this->csrf->verify($request, $anonymous, $route->kind);
             }
-            if ($actor !== null && $actor->mustChangePassword && !$route->allowPasswordChange) {
-                throw new ApplicationError('PASSWORD_CHANGE_REQUIRED', '請先變更初始密碼。');
+            // [U-06] 唯讀限制由 API 統一強制；退出／登出不依賴被模擬者權限。
+            if ($identity?->isPreview() && !$route->allowPreviewControl) {
+                if (!in_array($request->method, ['GET', 'HEAD'], true)) {
+                    throw new ApplicationError('PREVIEW_READ_ONLY', '目前為唯讀模擬，請先退出模擬再修改資料。');
+                }
+                if (!$identity->previewAvailable()) {
+                    throw new ApplicationError('FORBIDDEN', '模擬對象已停用或刪除，請退出模擬。');
+                }
             }
             if ($actor !== null && $route->module !== null && $route->action !== null) {
                 $this->authorization->require($actor, $route->module, $route->action);
@@ -53,8 +62,8 @@ class Kernel
 
             return $anonymous->newCookie ? $response->withCookie($this->csrf->cookie($anonymous, $route->kind)) : $response;
         } catch (ApplicationError $error) {
-            if ($context !== null && in_array($error->errorCode, ['FORBIDDEN', 'CSRF_INVALID', 'PASSWORD_CHANGE_REQUIRED'], true)) {
-                $this->events->auth('access-denied', false, $error->errorCode, $context->kind, $context->account, '', $context->client);
+            if ($context !== null && in_array($error->errorCode, ['FORBIDDEN', 'CSRF_INVALID', 'PREVIEW_READ_ONLY'], true)) {
+                $this->events->auth('access-denied', false, $error->errorCode, $context->kind, $context->identity?->owner, '', $context->client);
             }
 
             return self::error($error);
@@ -70,7 +79,7 @@ class Kernel
         $status = match ($error->errorCode) {
             'BAD_REQUEST' => 400,
             'UNAUTHENTICATED', 'INVALID_CREDENTIALS' => 401,
-            'FORBIDDEN', 'CSRF_INVALID', 'PASSWORD_CHANGE_REQUIRED' => 403,
+            'FORBIDDEN', 'CSRF_INVALID', 'PREVIEW_READ_ONLY' => 403,
             'NOT_FOUND' => 404,
             'METHOD_NOT_ALLOWED' => 405,
             'CONFLICT' => 409,
@@ -91,5 +100,27 @@ class Kernel
 
         return new Response($status, ['code' => $error->errorCode,
             'message' => $status === 405 ? '不支援的 HTTP 方法。' : $error->getMessage(), 'fieldErrors' => (object) $error->fieldErrors], [], $headers);
+    }
+
+    private function identity(Route $route, string $token): ?AuthenticatedIdentity
+    {
+        if ($route->authenticated) {
+            return $this->authentication->current($route->kind, $token);
+        }
+        // [U-06] 模擬中連匿名的管理員改密碼／登入端點也不能寫入；失效 Cookie 不阻擋正常登入。
+        if ($route->kind !== IdentityKind::Admin || $token === '') {
+            return null;
+        }
+        try {
+            $identity = $this->authentication->current($route->kind, $token);
+
+            return $identity->isPreview() ? $identity : null;
+        } catch (ApplicationError $error) {
+            if ($error->errorCode !== 'UNAUTHENTICATED') {
+                throw $error;
+            }
+
+            return null;
+        }
     }
 }

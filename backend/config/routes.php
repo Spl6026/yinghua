@@ -9,14 +9,14 @@ use Yinghua\Http\Route;
 use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
-/** [S-016／S-017／S-026／S-027／E-02／E-03／E-06／E-07／E-13] 正式 26 個端點。 */
+/** [S-016／S-017／S-026／S-027／U-06／E-02／E-03／E-06／E-07／E-13／E-16] 正式 29 個端點。 */
 return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
-        $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...)));
+        $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...), allowPreviewControl: true));
         $router->add(new Route('POST', $prefix . 'login', $kind, $auth->login(...)));
-        $router->add(new Route('POST', $prefix . 'logout', $kind, $auth->logout(...), true, allowPasswordChange: true));
-        $router->add(new Route('GET', $prefix . 'me', $kind, $auth->me(...), true, allowPasswordChange: true));
+        $router->add(new Route('POST', $prefix . 'logout', $kind, $auth->logout(...), true, allowPasswordChange: true, allowPreviewControl: true));
+        $router->add(new Route('GET', $prefix . 'me', $kind, $auth->me(...), true, allowPasswordChange: true, allowPreviewControl: true));
         $router->add(new Route('POST', $prefix . 'forgot-password', $kind, $auth->forgotPassword(...)));
         $router->add(new Route('POST', $prefix . 'reset-password', $kind, $auth->resetPassword(...)));
         $router->add(new Route('POST', $prefix . 'change-password', $kind, $auth->changePassword(...), true, allowPasswordChange: true));
@@ -25,6 +25,9 @@ return static function (Router $router, AuthController $auth, AdminController $a
     $router->add(new Route('POST', '/api/v1/auth/captcha/email', IdentityKind::Member, $auth->emailCaptcha(...)));
     $router->add(new Route('POST', '/api/v1/auth/register', IdentityKind::Member, $auth->register(...)));
     $kind = IdentityKind::Admin;
+    $router->add(new Route('GET', '/api/v1/admin/auth/preview', $kind, $auth->previewTargets(...), true, allowPreviewControl: true));
+    $router->add(new Route('POST', '/api/v1/admin/auth/preview', $kind, $auth->startPreview(...), true, allowPreviewControl: true));
+    $router->add(new Route('DELETE', '/api/v1/admin/auth/preview', $kind, $auth->stopPreview(...), true, allowPreviewControl: true));
     $router->add(new Route('GET', '/api/v1/admin/admins', $kind, $admins->listing(...), true, 'admins', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/admins/{id}', $kind, $admins->get(...), true, 'admins', 'view'));
     $router->add(new Route('POST', '/api/v1/admin/admins', $kind, $admins->create(...), true, 'admins', 'create'));

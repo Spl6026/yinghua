@@ -7,16 +7,19 @@ namespace Yinghua\Controllers;
 use Yinghua\Config;
 use Yinghua\DTO\AccountSummary;
 use Yinghua\DTO\IdentityResponse;
+use Yinghua\DTO\PreviewStatus;
 use Yinghua\DTO\Input;
 use Yinghua\DTO\LoginInput;
 use Yinghua\DTO\PasswordInput;
 use Yinghua\DTO\RegisterInput;
+use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Csrf;
 use Yinghua\Http\Response;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Services\Authentication;
+use Yinghua\Services\AdminPreview;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
 use Yinghua\Services\PasswordReset;
@@ -30,6 +33,7 @@ class AuthController
         private readonly PasswordReset $passwordReset,
         private readonly Csrf $csrf,
         private readonly Config $config,
+        private readonly AdminPreview $preview,
     ) {}
 
     public function csrf(ApiContext $context): Response
@@ -68,12 +72,26 @@ class AuthController
 
     public function me(ApiContext $context): Response
     {
-        return new Response(200, $this->identity($context->actor())->toArray());
+        $identity = $context->identity;
+        $preview = null;
+        if ($context->kind === IdentityKind::Admin) {
+            $owner = $context->owner();
+            $preview = new PreviewStatus(
+                $identity?->isPreview() ?? false,
+                $identity?->previewAvailable() ?? true,
+                $identity?->previewAdminId,
+                $owner->id,
+                $owner->account,
+                $owner->displayName,
+            );
+        }
+
+        return new Response(200, $this->identity($context->actor(), $identity?->previewAvailable() ?? true, $preview)->toArray());
     }
 
     public function logout(ApiContext $context): Response
     {
-        $this->authentication->logout($context->actor(), $context->sessionToken, $context->client);
+        $this->authentication->logout($context->owner(), $context->sessionToken, $context->client);
 
         return $this->signedOut($context);
     }
@@ -102,6 +120,42 @@ class AuthController
         return $this->signedOut($context);
     }
 
+    public function previewTargets(ApiContext $context): Response
+    {
+        return new Response(200, ['targets' => $this->preview->targets($context->owner())]);
+    }
+
+    public function startPreview(ApiContext $context): Response
+    {
+        $input = new Input($context->request->json());
+        $input->only(['adminId']);
+        $id = $input->text('adminId', 36, 36);
+        if (!preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/D', $id)) {
+            throw ApplicationError::invalid('adminId', '請提供有效管理員 ID。');
+        }
+
+        return $this->switchPreview($context, $id);
+    }
+
+    public function stopPreview(ApiContext $context): Response
+    {
+        (new Input($context->request->json()))->only([]);
+
+        return $this->switchPreview($context, null);
+    }
+
+    private function switchPreview(ApiContext $context, ?string $targetId): Response
+    {
+        $grant = $this->preview->switch($context->owner(), $context->sessionToken, $targetId, $context->client);
+        $anonymous = $this->csrf->rotate($context->kind);
+
+        return new Response(
+            200,
+            ['csrfToken' => $this->csrf->token($anonymous, $context->kind)],
+            [$this->csrf->authCookie($context->kind, $grant->token), $this->csrf->cookie($anonymous, $context->kind)],
+        );
+    }
+
     private function signedIn(Account $account, string $token, ApiContext $context, int $status = 200): Response
     {
         $anonymous = $this->csrf->rotate($context->kind);
@@ -120,10 +174,10 @@ class AuthController
         return new Response(204, [], [$this->csrf->authCookie($context->kind, '', true), $this->csrf->cookie($anonymous, $context->kind)]);
     }
 
-    private function identity(Account $account): IdentityResponse
+    private function identity(Account $account, bool $available = true, ?PreviewStatus $preview = null): IdentityResponse
     {
-        $permissions = $account->kind === IdentityKind::Admin ? $this->authorization->permissions($account) : [];
+        $permissions = $account->kind === IdentityKind::Admin && $available ? $this->authorization->permissions($account) : [];
 
-        return new IdentityResponse(AccountSummary::fromAccount($account), $permissions);
+        return new IdentityResponse(AccountSummary::fromAccount($account), $permissions, $preview);
     }
 }

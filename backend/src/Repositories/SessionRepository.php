@@ -7,6 +7,7 @@ namespace Yinghua\Repositories;
 use Yinghua\Config;
 use Yinghua\Contracts\Clock;
 use Yinghua\DTO\ClientContext;
+use Yinghua\DTO\SessionIdentity;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Support\Secrets;
@@ -28,14 +29,14 @@ class SessionRepository
         );
     }
 
-    public function owner(IdentityKind $kind, string $token): ?string
+    public function find(IdentityKind $kind, string $token, bool $lock = false): ?SessionIdentity
     {
         if (!preg_match('/^[a-f0-9]{64}$/D', $token)) {
             return null;
         }
         $row = $this->database->row(
-            'SELECT id,' . $kind->foreignKey() . ' AS owner FROM sessions WHERE token_hash=:token AND '
-            . $kind->foreignKey() . ' IS NOT NULL AND revoked_at IS NULL AND expires_at>:now AND idle_expires_at>:idle',
+            'SELECT id,preview_admin_id,' . $kind->foreignKey() . ' AS owner FROM sessions WHERE token_hash=:token AND '
+            . $kind->foreignKey() . ' IS NOT NULL AND revoked_at IS NULL AND expires_at>:now AND idle_expires_at>:idle' . ($lock ? ' FOR UPDATE' : ''),
             ['token' => hash('sha256', $token), 'now' => gmdate('Y-m-d H:i:s', $this->clock->now()), 'idle' => gmdate('Y-m-d H:i:s', $this->clock->now())],
         );
         if ($row === null) {
@@ -48,7 +49,16 @@ class SessionRepository
                 'idle' => gmdate('Y-m-d H:i:s', $this->clock->now() + $this->config->integer('AUTH_IDLE_SECONDS', 1800))],
         );
 
-        return $record->string('owner');
+        return new SessionIdentity($record->string('id'), $record->string('owner'), $record->nullableString('preview_admin_id'));
+    }
+
+    /** [U-06／E-16] 在鎖定交易內更新同一 session，輪替 token，不延長最長登入期限。 */
+    public function preview(SessionIdentity $session, ?string $targetId, string $token): void
+    {
+        $this->database->execute(
+            'UPDATE sessions SET preview_admin_id=:target,token_hash=:token WHERE id=:id AND revoked_at IS NULL',
+            ['target' => $targetId, 'token' => hash('sha256', $token), 'id' => $session->id],
+        );
     }
 
     public function revoke(IdentityKind $kind, string $token): void

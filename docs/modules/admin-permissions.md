@@ -6,6 +6,8 @@
 
 `admin-form.js` 在成功重新載入資料後呼叫共用 `formErrors(form, { fieldErrors: {} })`，清除舊草稿的欄位錯誤及 `aria-invalid`／`aria-describedby`（E-14）。例如重複 Email 保存失敗，再確認重新載入時，正確的 Email 不會繼續被標成無效；讀取失敗仍保留錯誤與重試入口。
 
+使用者補充 U-06 允許固定 admin 唯讀模擬其他管理員；個人權限仍是被模擬者的權限，所有業務寫入由 Kernel 拒絕。雙身分、退出與稽核的閱讀指南見 [admin-preview.md](admin-preview.md)。
+
 ## 新增管理員的完整資料流
 
 1. `frontend/pages/admin/admin-add.html` 提供欄位；`assets/js/admin.js` 先取得 me，驗登入／admins.create。
@@ -42,7 +44,9 @@ PermissionPolicy 是不依賴 PDO 的共用規則：操作者須為有效管理�
 
 ## 如何確認分層
 
-`backend/tests/ArchitectureTest.php` 以 PHPat 檢查四條相依規則：Controller 不查 PDO／Repository，Service 不依賴 HTTP，Repository 不回呼 Service／Controller，Model／DTO／Policy 不依賴資料庫或 HTTP。`Composition.php` 明確組裝各層，沒有通用 BaseService、Singleton 或全域服務容器。
+`backend/tests/ArchitectureTest.php` 以 PHPat 檢查五條相依規則，增加 Service 不依賴 PDO／PDOException／PDOStatement。`Composition.php` 明確組裝各層，沒有通用 BaseService、Singleton 或全域服務容器。
+
+`AdminController → AdminManagement` 處理帳號 CRUD；`PermissionController → PermissionManagement` 處理個人矩陣與 catalog，角色清單使用共用 `RoleTemplates`。權限寫入、版本與稽核仍在同一交易。完整責任與閱讀順序見 [PHP 分層閱讀指南](backend-layering.md)。
 
 PHPStan level 10 檢查型別邊界，PHPUnit 測純規則，HTTP 整合測試用真實 MariaDB 驗版本衝突、停權、越級、root 約束與稽核失敗回滾。逐項結果見 PHASE-2-ACCEPTANCE.md。
 

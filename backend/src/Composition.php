@@ -27,6 +27,7 @@ use Yinghua\Repositories\SessionRepository;
 use Yinghua\Services\AdminManagement;
 use Yinghua\Services\PermissionManagement;
 use Yinghua\Services\RoleTemplates;
+use Yinghua\Services\AdminPreview;
 use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
@@ -60,7 +61,7 @@ readonly class Composition
         $authentication = new Authentication($accounts, $sessions, $passwords, $limiter, $events, $transactions, $captcha, $this->config, new ConsentRepository($database));
         $passwordReset = new PasswordReset($accounts, $resets, $sessions, $passwords, $limiter, $events, $transactions, $clock, $this->config, $mailer);
         $csrf = new Csrf($this->config, $clock, $secrets);
-        $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config);
+        $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config, new AdminPreview($accounts, $sessions, $events, $transactions));
         $roles = new RoleTemplates($permissions, $authorization);
         $permissionController = new PermissionController(new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events), $roles);
         $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));

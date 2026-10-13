@@ -157,3 +157,26 @@ MariaDB 12.3 實際 EXPLAIN：session token 使用唯一 token_hash，type=const
 正式 SMTP／寄件身分／TLS 與正式條款待業主提供；本機 Mailpit 不證明外部送達。重設寄送失敗可重新申請，未建立持久郵件佇列。公開內容 CRUD、發布、搜尋、收藏與旅程、設定與完整 SEO／備份還原仍屬階段三至八，不列為階段二完成。
 
 Git 只記錄本階段實際成果，沒有另外留下修正代理自身失誤的進度提交；第一筆原始交付未改寫。此次僅本機提交，不推送或覆寫遠端歷史。
+
+## 2026-10-17 PHP 分層改善驗證
+
+U-02／E-01：依使用者指定參考 Spring Boot 的責任分工，移除 Service 的 PDO 例外依賴；AccountRepository 只轉譯 duplicate key 為 AccountConflict。AdminManagement 專管帳號，PermissionManagement 專管個人矩陣，共用 RoleTemplates。AccountSummary、AdminPage、PermissionCatalog、PermissionMatrix、RoleTemplate、IdentityResponse、PreviewStatus、CaptchaResponse 定義輸出資料；Account 不再負責 API summary。設計來源與程式順序見 [PHP 分層閱讀指南](modules/backend-layering.md)。
+
+| 實際檢查 | 本輪結果 |
+| --- | --- |
+| Docker PHPStan level 10＋PHPat 五條分層規則 | 零錯誤，包含 Service 禁止依賴 PDO／PDOException／PDOStatement |
+| Docker PHPUnit | 9 tests／29 assertions 通過；新增安全摘要、會員身分隔離、模擬操作者與驗證碼輸出邊界 |
+| 真實 MariaDB 儲存例外與交易 | account_persistence.php 六項通過：帳號／Email 重複、編輯重複 Email、會員重複、外鍵失敗不誤轉與完整回滾 |
+| 真實 HTTP／MariaDB／Mailpit | api_integration.py 原有 88 項通過 |
+| 唯讀模擬 HTTP／MariaDB | admin_preview.py 原有 58 項通過，包含越權拒絕與稽核失敗回滾 |
+| 回應欄位相容性 HTTP／MariaDB | response_contract.py 32 項通過，驗證身分、列表、角色、矩陣、模擬、衝突欄位與 204 空內容 |
+| 郵件故障 | mail_failure.py 四項通過；本機 Mailpit 已恢復 |
+| PER-CS 格式 dry-run | 78 個 PHP 檔案，零待修正 |
+| Rector dry-run | 八個檔案有語法簡化建議、零執行錯誤；已檢閱，沒有套用與本次分層無關的語法改寫 |
+| Composer audit --locked | 無已知漏洞或廢棄套件 |
+| 歷史中間版本 | 七個相依改變的版本逐一通過 Docker PHP 語法／PHPStan level 10，含單元測試的版本亦通過；終點 78 個 PHP 檔案 |
+| 分層規則反例 | 僅於忽略的歷史快照加入 Service → PDOException，PHPat 確實拒絕；驗證後移除反例，應用來源未加入 |
+
+依 security-audit 審查本次授權／資料邊界：路由的身分與 module/action 旗標、Service 鎖定重驗、root／自我保護、防越級、版本與交易稽核保留。安全摘要不持有完整 Account；錯誤回應不包含 SQL 或內部例外。只在 yinghua_test 初始化隨機測試憑證，未變更開發庫管理員密碼。
+
+frontend/、website/、OpenAPI JSON、schema、Composer 依賴皆未修改；本輪未重新操作瀏覽器，不宣稱重新驗收整站畫面。Semgrep／Trivy／Gitleaks、正式 SMTP／TLS 不在本次已執行檢查內。本次架構改善歸回相應階段二功能提交，保留原始交付與階段分支。

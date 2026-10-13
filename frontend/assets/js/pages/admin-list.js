@@ -38,6 +38,7 @@ export async function initializeAdmins(identity) {
           if (hasPermission(identity, 'permissions', 'view')) actions.append(element('a', { className: 'table-actions', href: '/admin/permissions.html?id=' + encodeURIComponent(account.id) }, '權限'));
           if (account.id !== identity.admin.id && hasPermission(identity, 'admins', 'delete')) {
             const button = element('button', { type: 'button', className: 'table-actions' }, '刪除');
+            button.disabled = Boolean(identity.preview?.active);
             button.addEventListener('click', async () => {
               if (!await confirmAction('刪除管理員', `確認刪除 ${account.displayName}？此帳號將立即失去登入資格。`, button)) return;
               button.disabled = true;

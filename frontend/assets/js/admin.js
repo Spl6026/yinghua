@@ -4,6 +4,7 @@ import { initializeMenus, status, element } from './core/ui.js';
 import { initializeAdmins } from './pages/admin-list.js';
 import { initializeAdminForm } from './pages/admin-form.js';
 import { initializePermissions } from './pages/permissions.js';
+import { initializeAdminPreview } from './components/admin-preview.js';
 
 initializeMenus();
 const main = document.querySelector('.admin-content');
@@ -33,6 +34,7 @@ try {
       try { await authApi('admin').logout(); location.assign('/admin/login.html'); }
       catch (error) { handleAdminError(error, message); document.querySelector('#admin-logout').disabled = false; }
     });
+    await initializeAdminPreview(identity);
     const { module, action, page } = document.body.dataset;
     if (!hasPermission(identity, module, action)) {
       main.replaceChildren(element('h1', {}, '無法存取'), element('p', {}, '你尚未取得此功能的權限，請聯絡管理員。'));

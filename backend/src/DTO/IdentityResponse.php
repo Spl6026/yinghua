@@ -10,7 +10,7 @@ use Yinghua\Models\IdentityKind;
 readonly class IdentityResponse
 {
     /** @param list<array{module:string,action:string,allowed:bool}> $permissions */
-    public function __construct(public AccountSummary $account, public array $permissions = []) {}
+    public function __construct(public AccountSummary $account, public array $permissions = [], public ?PreviewStatus $preview = null) {}
 
     /** @return array<string,mixed> */
     public function toArray(): array
@@ -19,6 +19,9 @@ readonly class IdentityResponse
             return ['member' => $this->account->toArray()];
         }
         $data = ['admin' => $this->account->toArray(), 'permissions' => $this->permissions];
+        if ($this->preview !== null) {
+            $data['preview'] = $this->preview->toArray();
+        }
 
         return $data;
     }

@@ -137,6 +137,11 @@ test('管理員舊回應不能覆蓋較新重新載入結果', async () => {
   old.resolve({ admin: f.admin('較舊', 2) }); await first;
   assert.equal(f.form.elements.displayName.value, '較新'); assert.equal(f.save.disabled, false);
 });
+test('管理員唯讀模擬重新載入後仍禁止修改和送出', async () => {
+  const f = fixture('admins', { preview: { active: true } }); await f.initialize(); await f.reload.emit('click');
+  assert.equal(f.save.disabled, true); assert.ok(Object.values(f.form.elements).every(input => input.disabled));
+  f.form.emit('submit'); await settle(); assert.equal(f.state.saves.length, 0);
+});
 test('管理員儲存遇到401使用後台登入導向', async () => {
   const f = fixture('admins'); await f.initialize(); f.state.write = async () => { throw Object.assign(new Error('請先登入'), { status: 401 }); };
   f.form.emit('submit'); await settle(); assert.match(f.state.replacements[0], /^\/admin\/login\.html\?returnTo=/);
@@ -171,6 +176,12 @@ test('取消權限對象切換保留修改和原對象', async () => {
   const f = fixture('permissions'); await f.initialize(); const checkbox = f.boxes()[0]; checkbox.checked = false; checkbox.emit('change');
   f.state.confirmation = false; f.target.value = 'root'; await f.target.emit('change');
   assert.equal(f.target.value, 'a'); assert.equal(checkbox.checked, false); assert.equal(f.dirty(), true);
+});
+test('權限唯讀模擬與只有查看權限的帳號不能送出', async () => {
+  for (const identity of [{ preview: { active: true } }, { permissions: [{ module: 'permissions', action: 'view', allowed: true }] }]) {
+    const f = fixture('permissions', identity); await f.initialize(); assert.equal(f.save.disabled, true);
+    assert.ok(f.boxes().every(input => input.disabled)); f.form.emit('submit'); await settle(); assert.equal(f.state.saves.length, 0);
+  }
 });
 test('權限儲存遇到401使用後台登入導向', async () => {
   const f = fixture('permissions'); await f.initialize(); f.state.write = async () => { throw Object.assign(new Error('請先登入'), { status: 401 }); };

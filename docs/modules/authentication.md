@@ -4,7 +4,7 @@
 
 ## 先看哪幾個檔案
 
-1. `backend/config/routes.php`：26 個 API 的方法、路徑、身分及權限要求。
+1. `backend/config/routes.php`：29 個 API 的方法、路徑、身分及權限要求（原計畫 26＋U-06 模擬 3）。
 2. `backend/src/Composition.php`：建構子 DI 的唯一組裝位置；同一請求的 Repository 共用同一 PDO。
 3. `backend/src/Http/Kernel.php`：解析路由 → 匿名 Cookie → 必要登入 → 寫入 CSRF → 權限 → Controller；把錯誤轉成一致 JSON。
 4. `backend/src/Controllers/AuthController.php`：把 JSON 轉成 DTO，呼叫 Service，再明確組合安全摘要與 Cookie。Controller 不寫 SQL。
@@ -14,9 +14,15 @@
 
 前端保留原始 account-page／account-card 排版；共用版型、必要新增欄位與卡片程式閱讀見 [frontend.md](frontend.md)。
 
+分層責任、Spring Boot 對照與輸出欄位白名單見 [PHP 分層閱讀指南](backend-layering.md)。
+
 `core/session.js` 的 `redirectAuthenticated` 以對應 namespace 的 me 判斷登入／註冊頁：已登入返回通過白名單的原頁，未帶原頁時回首頁／後台；管理員同樣返回後台，不再依舊首登旗標轉向。只有 401 視為匿名，其他錯誤明示並保留登入重試。身分確認期間暫停提交，避免較舊 me 回應與另一筆登入交錯。`memberNavigationVersion` 排除舊回應，401 時恢復會員登入入口，不保留已登出的名稱。
 
 `auth.js` 的 `checkingSession`、`submitting`、`completed` 控制讀取中、提交中及成功後的狀態；包含 Enter 的入口都經同一提交鎖。註冊還需 termsVersion 與有效 challengeToken，更新中或更新失敗不能送出，重新取得後才恢復；429 的 retryUntil 不因更新驗證碼而提早解除。`ui.js` 使用 WeakSet 記住已綁定的導覽節點，刷新會員狀態不會重複綁定手機選單／回頂端事件。
+
+系統管理員唯讀模擬的雙身分與 session 流程見 [admin-preview.md](admin-preview.md)。Authentication.current 回傳 owner／effective；一般登入仍按本人權限，模擬時的 me 顯示被模擬者與真正操作者，Kernel 統一禁止業務寫入。
+
+管理員更改密碼頁的 `data-auth-logout` 提供「登出並切換帳號」（E-07／E-14）。更改前可返回後台，也可透過既有 logout API 登出換帳號；不強制首登改密碼。`signingOut` 與 `submitting` 互斥，避免登出與密碼請求交錯；身分讀取中不能操作，網路失敗可重試，401 直接回登入，更改密碼成功後隱藏登出入口並顯示重新登入。這是操作流程補充，沒有新增 API 或放寬授權。
 
 例如註冊：表單 → RegisterInput（欄位白名單、Email、密碼及同意）→ Authentication.register → 挑戰 row lock 與校驗 → 同交易建立 members／consents／session／事件 → 回 201、安全摘要與 HttpOnly Cookie。挑戰錯誤次數會提交；建立資料失敗則整筆交易回滾，不能留下半套會員資料。
 
@@ -65,7 +71,5 @@ docker compose exec app php bin/console.php admin:recover
 Mailpit 是本機攔信器，不對外轉寄。正式 SMTP、寄件人網域與信件送達仍需業主提供後驗證；測試條款不是正式法律文件。正式上線替換條款內容與 TERMS_VERSION，新註冊會保存新版本。
 
 測試方式與實際結果見 PHASE-2-ACCEPTANCE.md。`integration-fixture.php` 只允許 APP_ENV=test／DB_DATABASE=yinghua_test，沒有 HTTP 測試後門。
-
-管理員更改密碼頁的 `data-auth-logout` 提供「登出並切換帳號」（E-07／E-14）。更改前可返回後台，也可透過既有 logout API 登出換帳號；不強制首登改密碼。`signingOut` 與 `submitting` 互斥，避免登出與密碼請求交錯；身分讀取中不能操作，網路失敗可重試，401 直接回登入，更改密碼成功後隱藏登出入口並顯示重新登入。這是操作流程補充，沒有新增 API 或放寬授權。
 
 2026-10-19：管理員帳號登入欄移除原生 maxlength=60，因瀏覽器以 UTF-16 計數；API 仍依 Unicode 字元限制 60 字，與 DB 一致。非 BMP 字元組成的 60 字帳號可完整保存並登入，61 字回 422。密碼與確認政策不變。

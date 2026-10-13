@@ -39,6 +39,7 @@
 5. `assets/js/components/content-cards.js`：每個函式建立一種原型卡片，使用 element／textContent，不把資料直接拼成 HTML。
 6. `assets/js/public.js`：分類、地區、搜尋及唯讀列表的組合；保留原版進入畫面的 reveal 動畫及 reduced-motion 行為。
 7. `assets/js/pages/public-details.js`：詳情資料與同主題前後篇。使用站內絕對網址，巢狀頁不會因相對路徑連錯。
+8. `assets/js/components/admin-preview.js`：U-06 固定 root 的左下唯讀模擬選單，沿用原版 admin-session-switch 外觀；API 取真實帳號、顯示模擬提示與退出，不儲存假身分。詳見 [admin-preview.md](admin-preview.md)。
 
 ## 建置與驗收
 
@@ -49,3 +50,5 @@ docker compose run --rm frontend
 重整 http://localhost:8080/。瀏覽器驗收先比對同一 viewport 的原版與新版，再確認真實 API 與手機導覽；不要只確認 HTML 有 class 就宣稱畫面一致。
 
 本次對照尺寸、原始檔保留與功能觀察記錄在 PHASE-2-ACCEPTANCE.md。圖片仍使用原交付的外部來源；素材品質、正式內容、SEO 與全站最終驗收屬後續階段。
+
+全 57 個原始網址的再次複查與差異分類見 [WEBSITE-COMPARISON-REVIEW.md](../WEBSITE-COMPARISON-REVIEW.md)。本次還恢復 24 頁原有 head 文案、30 頁 aria-current、註冊／footer 文字、首頁真實 href 與詳情箭頭。美食 tab 沒有計數 span 時不能假定節點存在；原「在地店家」的分類值錯誤只修新 frontend，website 仍保留交付原貌。

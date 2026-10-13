@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Http;
 
 use Yinghua\DTO\ClientContext;
+use Yinghua\DTO\AuthenticatedIdentity;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
@@ -20,6 +21,7 @@ readonly class ApiContext
         public ?Account $account,
         public string $sessionToken,
         public array $parameters,
+        public ?AuthenticatedIdentity $identity = null,
     ) {}
 
     public function actor(): Account
@@ -30,5 +32,10 @@ readonly class ApiContext
     public function id(): string
     {
         return $this->parameters['id'] ?? throw new ApplicationError('NOT_FOUND', '找不到此資料。');
+    }
+
+    public function owner(): Account
+    {
+        return $this->identity === null ? $this->actor() : $this->identity->owner;
     }
 }

@@ -9,6 +9,7 @@ use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Contracts\Transactions;
 use Yinghua\DTO\AuthGrant;
+use Yinghua\DTO\AuthenticatedIdentity;
 use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\LoginInput;
 use Yinghua\DTO\RegisterInput;
@@ -35,15 +36,20 @@ class Authentication
         private readonly ConsentRepository $consents,
     ) {}
 
-    public function current(IdentityKind $kind, string $token): Account
+    public function current(IdentityKind $kind, string $token): AuthenticatedIdentity
     {
-        $id = $this->sessions->owner($kind, $token);
-        $account = $id === null ? null : $this->accounts->find($kind, $id);
+        $session = $this->sessions->find($kind, $token);
+        $account = $session === null ? null : $this->accounts->find($kind, $session->ownerId);
         if ($account === null || !$account->isActive()) {
             throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
         }
 
-        return $account;
+        if ($session?->previewAdminId !== null && ($kind !== IdentityKind::Admin || !$account->isRoot)) {
+            throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
+        }
+        $preview = $session?->previewAdminId === null ? null : $this->accounts->find(IdentityKind::Admin, $session->previewAdminId);
+
+        return new AuthenticatedIdentity($account, $preview, $session?->previewAdminId);
     }
 
     public function login(IdentityKind $kind, LoginInput $input, ClientContext $client, string $previousToken = ''): AuthGrant

@@ -23,6 +23,12 @@
 .admin-top-actions a,.admin-top-actions button{white-space:nowrap}
 /* [U-05／E-14] 真實登入操作加入頂列後，保留原型「查看網站」連結的完整文字與箭頭。 */
 .admin-topbar>.admin-preview{flex-shrink:0;white-space:nowrap}
+.admin-preview-hint{margin:8px 12px;color:#f0ede2;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.admin-preview-banner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:12px 20px;background:#f1e5ce;color:var(--ink);border-bottom:1px solid var(--line);font-size:14px}
+.admin-preview-banner .btn{padding:6px 12px;font-size:13px;white-space:nowrap}
+.admin-preview-banner>span{min-width:0;flex:1;overflow-wrap:anywhere}
+.admin-user span{min-width:0;overflow-wrap:anywhere}
+#admin-preview-status[data-error="true"]{color:#ffd7b9}
 .admin-toolbar{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin:0 0 20px}
 .admin-toolbar .admin-field{flex:1;min-width:180px}
 .admin-toolbar .admin-field label{margin-bottom:8px}

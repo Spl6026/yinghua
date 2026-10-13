@@ -7,6 +7,8 @@ namespace Yinghua\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Yinghua\DTO\AccountSummary;
 use Yinghua\DTO\CaptchaResponse;
+use Yinghua\DTO\IdentityResponse;
+use Yinghua\DTO\PreviewStatus;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 
@@ -43,6 +45,30 @@ class ResponseBoundaryTest extends TestCase
         $encoded = json_encode($summary, JSON_THROW_ON_ERROR);
         self::assertStringNotContainsString('internal-password-hash', $encoded);
         self::assertStringNotContainsString('internal-deleted-at', $encoded);
+    }
+
+    public function testMemberResponseCannotCarryAdministratorPrivileges(): void
+    {
+        $response = new IdentityResponse(
+            AccountSummary::fromAccount($this->account(IdentityKind::Member)),
+            [['module' => 'admins', 'action' => 'delete', 'allowed' => true]],
+            new PreviewStatus(true, true, 'target-id', 'owner-id', 'admin', '操作者'),
+        );
+        self::assertSame(['member'], array_keys($response->toArray()));
+        self::assertSame('member', $response->toArray()['member']['kind']);
+    }
+
+    public function testPreviewIdentityKeepsOperatorSeparateAndUnavailableRightsEmpty(): void
+    {
+        $summary = AccountSummary::fromAccount($this->account(IdentityKind::Admin));
+        $login = (new IdentityResponse($summary))->toArray();
+        self::assertArrayNotHasKey('preview', $login);
+        $me = (new IdentityResponse($summary, [], new PreviewStatus(true, false, 'target-id', 'owner-id', 'admin', '操作者')))->toArray();
+        self::assertSame('target-id', $me['admin']['id']);
+        self::assertSame('owner-id', $me['preview']['operator']['id']);
+        self::assertTrue($me['preview']['readOnly']);
+        self::assertFalse($me['preview']['targetAvailable']);
+        self::assertSame([], $me['permissions']);
     }
 
     public function testCaptchaModesDoNotIntroduceAnswerOrNullAlternativeFields(): void

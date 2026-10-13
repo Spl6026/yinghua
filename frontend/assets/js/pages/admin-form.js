@@ -19,14 +19,15 @@ export async function initializeAdminForm(identity, page) {
   let loading = false;
   let saving = false;
   let loaded = creating;
+  const readOnly = Boolean(identity.preview?.active);
   const save = form.querySelector('[type="submit"]');
   // [E-14] 固定管理員會以保護說明取代表單；先保留控制項參照，避免讀取已移除節點。
   const reload = document.querySelector('#reload-admin');
   const message = form.querySelector('.form-status');
   // [E-14] 讀取失敗、重試與保存共用狀態；不能靠 finally 無條件開啟保存。
   function updateControls() {
-    save.disabled = loading || saving || !loaded;
-    form.querySelectorAll('input,select').forEach(input => { input.disabled = loading || saving || !loaded; });
+    save.disabled = readOnly || loading || saving || !loaded;
+    form.querySelectorAll('input,select').forEach(input => { input.disabled = readOnly || loading || saving || !loaded; });
     reload.disabled = saving;
   }
   unsavedChanges(() => dirty);
@@ -61,6 +62,7 @@ export async function initializeAdminForm(identity, page) {
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
+    if (identity.preview?.active) { status(form.querySelector('.form-status'), '目前為唯讀模擬，無法儲存。'); return; }
     if (saving) return;
     if (loading || !loaded) { status(message, '請先重新載入有效資料，再進行儲存。', true); return; }
     submitForm(form, async () => {
@@ -81,7 +83,7 @@ export async function initializeAdminForm(identity, page) {
           message.focus();
         }
       } finally { saving = completed; updateControls(); }
-    }, { canSubmit: () => !loading && !saving && loaded, onError: error => handleAdminError(error, message) });
+    }, { canSubmit: () => !readOnly && !loading && !saving && loaded, onError: error => handleAdminError(error, message) });
   });
   await load();
   updateControls();

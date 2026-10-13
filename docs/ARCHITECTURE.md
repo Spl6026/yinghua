@@ -1,10 +1,12 @@
 # API 與前端分離的架構設計
 
-設計日期：2026-10-13；階段二實作更新：2026-10-14。
+設計日期：2026-10-13；階段二分層改善更新：2026-10-17。
 
 使用者指定 PHP 對網站只提供 API，前端使用原生 JavaScript／jQuery。採 MVC 的責任分工，另外拆出 Service 與 Repository，使業務流程和 SQL 能重用。這是本專案的工程選擇，Excel 並未指定 MVC、框架或 design pattern。
 
 階段二已依以下分工從零建立 PHP API 與前端，不存在後端遷移。原始 website/ 始終保留。網站互動使用原生 JavaScript；jQuery 仍是可選工具，本階段沒有需要而未引入。
+
+2026-10-17 依 U-02 參考 Spring Boot 改善服務責任、回應 DTO 與資料存取例外邊界；具體類別與完整資料流見 [PHP 分層閱讀指南](modules/backend-layering.md)。此為 E-01 工程設計，不新增規格功能或 API。
 
 ## 1. 責任怎麼分
 
@@ -82,7 +84,7 @@ frontend/dist/ 為忽略的產物，由 Docker Node 24 建置；HTML 來源、�
 | --- | --- | --- | --- |
 | Service Layer | Authentication、AdminManagement | Controller 與 CLI 可使用同一業務流程；交易集中管理 | [Fowler：Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html) |
 | Repository | AccountRepository、SessionRepository | SQL 集中，Email 查詢與安全資料映射不在各端點重複 | [Fowler：Repository](https://martinfowler.com/eaaCatalog/repository.html) |
-| DTO | RegisterInput、Account.summary()、PermissionMatrixInput | 明確列出資料欄位；避免把 password_hash 等內部欄位直接序列化 | [Fowler：DTO](https://martinfowler.com/eaaCatalog/dataTransferObject.html) |
+| DTO | RegisterInput、AccountSummary、PermissionMatrixInput | 明確列出資料欄位；避免把 password_hash 等內部欄位直接序列化 | [Fowler：DTO](https://martinfowler.com/eaaCatalog/dataTransferObject.html) |
 | 建構子依賴注入 | 把 Repository、PasswordHasher、Mailer 傳給 Service | 看建構子就知道依賴；可替換寄信與時間來源來測試 | [PHP-FIG：PSR-11 的使用建議](https://www.php-fig.org/psr/psr-11/#13-recommended-usage) |
 | Adapter | Mailer 介面與 PhpMailerAdapter | 業務不綁死 SMTP 套件；本機與正式環境使用同一寄信契約 | [PHPMailer 官方專案](https://github.com/PHPMailer/PHPMailer)；介面切分是本案提案 |
 | Middleware 管線 | Kernel、Csrf、Authentication、Authorization | 共用 HTTP 檢查集中；各 API 不複製整段認證碼 | [PHP-FIG：PSR-15](https://www.php-fig.org/psr/psr-15/)、[Slim 4 的實際用法](https://www.slimframework.com/docs/v4/concepts/middleware.html) |
@@ -106,7 +108,7 @@ Composer 使用 [PSR-4](https://www.php-fig.org/psr/psr-4/) 自動載入；PER-C
 | 5 | Controllers/AdminController::create | 檢查 JSON 欄位與格式，建立 AdminWriteInput |
 | 6 | Services/AdminManagement::create | 驗證可授予權限、禁止建立 root、雜湊密碼，協調 transaction |
 | 7 | AccountRepository／PermissionRepository／EventRepository | 同一 PDO transaction 寫入帳號、完整初始矩陣與安全稽核 |
-| 8 | Account.summary() → JSON 201 | 只回安全欄位；前端成功後顯示通知與導向列表 |
+| 8 | AccountSummary.toArray() → JSON 201 | 只回安全欄位；前端成功後顯示通知與導向列表 |
 
 Controller 的示意只有三件事：
 

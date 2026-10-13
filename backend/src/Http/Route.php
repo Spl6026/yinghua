@@ -19,6 +19,7 @@ readonly class Route
         public ?string $module = null,
         public ?string $action = null,
         public bool $allowPasswordChange = false,
+        public bool $allowPreviewControl = false,
     ) {}
 
     /** @return array<string,string>|null */
