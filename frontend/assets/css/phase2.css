@@ -1,0 +1,44 @@
+/* [E-14] 只補充真實 API 的狀態與新欄位；原始版型由 style.css 提供。 */
+[hidden]{display:none!important}
+.field-error{display:block;color:#a44943;font-size:13px;margin-top:4px}
+[aria-invalid="true"]{border-color:#a44943!important}
+.form-status{overflow-wrap:anywhere}
+.form-status:empty:not(.form-error){display:none}
+.form-status[data-error="true"]{color:#a44943}
+.form-status[data-error="false"]{color:var(--green)}
+.has-recovery-link{position:relative}
+.password-recovery{position:absolute;right:0;top:0;font-size:14px;color:var(--green);text-decoration:underline;text-underline-offset:3px}
+.terms-consent{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.7;margin-top:16px}
+.terms-consent input{width:16px;height:16px;flex:none;margin-top:4px}
+.account-card details{font-size:13px;line-height:1.7;margin:12px 0}
+.account-card details summary{cursor:pointer}
+.captcha-row input{min-width:0;flex:1}
+.captcha-row img{width:115px;height:32px;object-fit:contain;align-self:center;flex:none}
+.captcha-row .captcha-refresh{flex:none}
+.captcha-options{margin-top:8px}
+.captcha-options button{font:inherit;font-size:13px;color:var(--green);background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.member-menu{display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:13px}
+#member-navigation:not(.member-menu){display:contents}
+.member-menu button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;text-decoration:underline}
+.admin-top-actions a,.admin-top-actions button{white-space:nowrap}
+.admin-toolbar{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin:0 0 20px}
+.admin-toolbar .admin-field{flex:1;min-width:180px}
+.admin-toolbar .admin-field label{margin-bottom:8px}
+.pagination{display:flex;gap:16px;align-items:center;justify-content:center;padding:20px 0 0;font-variant-numeric:tabular-nums}
+.pagination button{font:inherit;padding:8px 12px;color:var(--ink);background:none;border:1px solid var(--line);cursor:pointer}
+.table-scroll{overflow-x:auto}
+.admin-wrap>.admin-main{min-width:0}
+.admin-table td{overflow-wrap:anywhere}
+.inline-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+dialog{border:1px solid var(--line);padding:30px;max-width:min(90vw,500px);background:var(--paper);color:var(--ink);overscroll-behavior:contain}
+dialog::backdrop{background:rgb(0 0 0/.5)}
+.dialog-actions{display:flex;justify-content:flex-end;gap:16px;margin-top:24px}
+button:disabled{opacity:.6;cursor:not-allowed}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #a7793e;outline-offset:3px}
+button,a,input,select{touch-action:manipulation}
+@media(max-width:640px){.member-menu{font-size:12px;gap:8px}.admin-top-actions{gap:8px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* [S：功能規格 E34/G34；E-14] 保留原型色系，提高已串接表單的提示文字對比。 */
+:root{--muted:#65685d}
+.admin-page-heading p,.helper-text,.field-hint,.form-privacy{color:#62665c}
