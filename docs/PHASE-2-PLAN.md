@@ -1,12 +1,12 @@
 # 階段二細部實作計畫：認證與管理權限
 
-整理日期：2026-10-13。狀態：規劃，尚未開始實作。
+整理日期：2026-10-13；實作更新：2026-10-14。狀態：階段二已實作；驗收見 [PHASE-2-ACCEPTANCE.md](PHASE-2-ACCEPTANCE.md)。
 
-前置環境已先完成 Composer／PHP 品質工具與 Mailpit 安裝，見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。本計畫的認證、API、資料表及頁面程式仍未開始實作。
+前置環境已先完成 Composer／PHP 品質工具與 Mailpit 安裝，見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。本階段已從零建立認證、原計畫 26 個 API，加 U-06 唯讀模擬的 3 個，共 29 個；13 張業務表、migration 工具表及 64 個前端頁面來源。正式 SMTP 與正式條款仍待提供。
 
-本計畫依原始 Excel「串接總覽」A9–A14、「功能規格」第 16、17、26、27 列，以及已整理的 API-only 架構設計 整理。新增端點、欄位與期限為工程提案，並非已交付功能。
+本計畫依原始 Excel「串接總覽」A9–A14、「功能規格」第 16、17、26、27 列，以及已整理的 API-only 架構設計 整理。端點、欄位與期限的工程補充身分不因已實作而改成規格硬性要求。
 
-依使用者最新指定，後續改為 PHP API-only、前端 HTML View，架構見 [ARCHITECTURE.md](ARCHITECTURE.md)。API、資料表及頁面的規格／草案／工程補充來源逐項見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。此文件描述從零建立的目標，目前沒有應用程式、API 或業務表。
+依使用者最新指定，後續改為 PHP API-only、前端 HTML View，架構見 [ARCHITECTURE.md](ARCHITECTURE.md)。API、資料表及頁面的規格／草案／工程補充來源逐項見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。此文件保留從零建立的範圍與執行次序；實際程式閱讀指南位於 docs/modules/。
 
 ## 1. 完成後的操作結果
 
@@ -22,9 +22,9 @@
 
 ## 2. 起始狀態與本階段建立範圍
 
-目前只有原始 website、環境工具、空的 MariaDB yinghua 與計畫文件。沒有 PHP 應用、CSRF API、登入 session、migration、seed 或共用 API JS。
+開始階段二之前只有原始 website、環境工具、空的 MariaDB yinghua 與計畫文件。本階段所有應用程式與業務表均為新建，沒有遷移既有後端。
 
-本階段從零建立 API 入口、路由、PDO、請求／回應、CSRF、認證、管理員與權限；共規劃 26 個 API、13 張業務表及 migration 工具中繼表。匿名 CSRF 工作階段與資料庫登入工作階段明確分開。
+本階段從零建立 API 入口、路由、PDO、請求／回應、CSRF、認證、管理員與權限；原計畫 26 個 API，加 U-06 的 3 個，共 29 個；13 張業務表及 migration 工具中繼表。匿名 CSRF 工作階段與資料庫登入工作階段明確分開。
 
 規格指定固定後台帳號為 admin，root 是其系統管理員身分；MariaDB 應用登入帳號仍為 spl，資料庫仍為 yinghua。這三者不是同一個帳號或名稱。
 
@@ -92,7 +92,7 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 - 後台 HTML 空殼不含私人資料；共用 guard 呼叫 /admin/auth/me，未登入導向後台登入，無頁面權限顯示拒絕存取。API 未登入回 401、無權限回 403，不依賴前端 guard 保護。
 - returnTo 僅接受站內允許路徑，不接受外站、協定相對網址或登入頁循環。
 - 登入與登出 POST 同樣校驗 CSRF；認證頁、回應與個人化頁面不被快取。
-- 管理員 sidebar／topbar 顯示真實身分與登出，移除模擬身分切換。
+- 管理員 sidebar／topbar 顯示登入身分與登出。依 U-06 保留原版左下切換外觀，改為固定 root 才能使用的真實唯讀模擬；清楚顯示驗收對象與真正登入者，退出不依賴對象權限。流程見 [modules/admin-preview.md](modules/admin-preview.md)。
 - 尚未串接的後台模組保留路由與授權，但顯示待串接狀態，不載入舊管理員模擬 CRUD。
 
 完成條件：未登入不能讀到後台私人資料或使用管理功能；固定管理員可以登入、登出；拿會員 Cookie 呼叫後台仍回 401。
@@ -103,6 +103,7 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 - 新增欄位包括 account、displayName、email、初始密碼、roleId 與 status。初始密碼遵循同一密碼政策；非 root 帳號首次登入必須改密碼。
 - 輸入欄位採白名單；不能提交 is_root、任意 roleId、password_hash 或稽核操作者。
 - account／email 的唯一性由 DB 約束保證，不只先做 SELECT；刪除採軟刪除並保留原識別，維持歷史稽核關聯。
+- 一般管理員的登入 account 建立後固定（E-09 工程政策，原型可修改，非 Excel 明文要求）；名稱、Email、角色與狀態仍按權限編輯。
 - 固定 admin 不顯示編輯／刪除／停用／降權操作；對直接送出的 PUT、DELETE、權限更新請求也回 403。
 - 非 root 不可新增 root、升格 root、修改 root 身分或替換系統旗標；禁止自我刪除／停用，以免在操作中鎖住自己。
 - 角色依文件規劃 root、content-editor、news-editor、viewer 四種。此階段不增加任意角色 CRUD。
@@ -110,6 +111,7 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 - 一般管理員的逐人矩陣是有效權限來源；缺少的 module/action 預設拒絕。root 的完整權限由後端系統身分決定，不能從前端送出。
 - 權限檢查按 module + view/create/edit/delete。新增／編輯頁也分別檢查 create/edit；sidebar 只呈現可查看模組。
 - 提供權限定義、角色範本及可選目標的最小摘要，權限頁不為了選擇對象而取得不必要的管理員 Email 等資料。
+- 權限選單最小摘要包含 id／account／displayName／isRoot；顯示「名稱（帳號）」以區分同名管理員，不回傳 Email。
 - 採用規格允許的防越級策略：非 root 不得透過新增、角色套用或直接修改矩陣授出自己沒有的權限。
 - 編輯、刪除及權限異動放在 transaction 中；寫入前重新檢查操作者與目標，使用版本／鎖定避免兩個操作者靜默覆蓋。
 - 管理異動及其稽核同一交易保存；拒絕操作另記安全事件。before／after 僅用安全欄位，不記錄明文或雜湊密碼。
@@ -154,46 +156,51 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 
 ## 5. API 與頁面契約
 
-階段二盤點：預計建立 26 個 API、13 張業務資料表（另有 migration 工具表）、完整串接 6 個既有頁面、新增 7 個頁面。另有 18 個既有後台頁面只加存取控制與待串接畫面。以下全為計畫，不代表功能已實作。26 個計畫端點包含 E-06 Email 替代入口與 E-07 本人／首登改密碼等額外方案，數量不是 Excel 的硬性要求；完整來源見 DESIGN-TRACEABILITY.md。
+階段二盤點：原計畫 26 個 API 加 U-06 的 3 個，共 29 個；13 張業務資料表（另有 migration 工具表）、完整串接 6 個既有頁面、新增 7 個頁面。另有 18 個既有後台頁面只加存取控制與待串接畫面。以下 API 與本階段頁面已實作；未來業務模組僅有授權入口，正式內容仍待後續階段。原計畫包含 E-06 Email 替代入口與 E-07 本人／首登改密碼等額外方案，數量不是 Excel 的硬性要求；完整來源見 DESIGN-TRACEABILITY.md。
 
 ### 5.1 API 與操作頁面逐項對照
+
+原計畫 26 個端點之外，使用者新增 U-06：共用 sidebar 的 `GET／POST／DELETE /api/v1/admin/auth/preview` 三個端點，總數 29 個。沒有新增頁面／業務表；sessions 加 preview_admin_id，admin/auth/me 加雙身分資訊。三個端點的欄位、授權及頁面對照見 [modules/admin-preview.md](modules/admin-preview.md)，完整契約同步 OpenAPI 2.1.0。
 
 表內路徑都是對外路由；「新增頁」表示原型 website 沒有該檔案，實作時在 frontend/pages 建立 HTML，並不在 website 新增檔案。新增 API 數量按 HTTP 方法＋路徑計算，HEAD 不另外計數。
 
 | 狀態 | 方法與路徑 | 用途／授權 | 對應頁面或共用位置 | 來源標記 |
 | --- | --- | --- | --- | --- |
-| 預計新增 | GET /api/v1/auth/csrf | 匿名／會員流程 CSRF | register.html、login.html、會員密碼流程及共用登出 | S-SEC-09／E-02 |
-| 預計新增 | GET /api/v1/auth/captcha | 註冊圖形挑戰；匿名 session 與限速 | website/register.html | S-016／S-SEC-10／D：API 草案 |
-| 預計新增 | POST /api/v1/auth/captcha/email | Email 驗證碼替代方式；CSRF 與寄送限速 | website/register.html | S-016／E-06／D：API 草案 |
-| 預計新增 | POST /api/v1/auth/register | 註冊成功 201，建立會員 session | website/register.html | S-016／D：API 草案 |
-| 預計新增 | POST /api/v1/auth/login | 會員登入 | website/login.html | S-017／D：API 草案 |
-| 預計新增 | POST /api/v1/auth/logout | 撤銷目前會員 session，成功 204 | 所有前台頁面的共用會員導覽；不另建登出頁 | S-017／D：API 草案 |
-| 預計新增 | GET /api/v1/auth/me | 目前會員，未登入 401 | 共用會員導覽、會員改密碼頁 | S-017／D：API 草案 |
-| 預計新增 | POST /api/v1/auth/forgot-password | 會員重設申請，泛化回應 | /forgot-password.html（新增頁） | S-SEC-09／E-03 |
-| 預計新增 | POST /api/v1/auth/reset-password | 一次性 token 重設密碼 | /reset-password.html（新增頁） | S-SEC-09／E-03 |
-| 預計新增 | POST /api/v1/auth/change-password | 會員以目前密碼更新密碼 | /change-password.html（新增頁） | E-07 |
-| 預計新增 | GET /api/v1/admin/auth/csrf | 後台流程 CSRF | 後台登入、管理表單與後台密碼流程 | S-SEC-09／E-02 |
-| 預計新增 | POST /api/v1/admin/auth/login | 管理員登入 | /admin/login.html（新增頁） | S-SEC-09／S-PAGE／E-02 |
-| 預計新增 | POST /api/v1/admin/auth/logout | 撤銷目前管理員 session | 所有後台頁面的共用導覽；不另建登出頁 | S-SEC-09／E-02 |
-| 預計新增 | GET /api/v1/admin/auth/me | 真實管理員摘要與有效權限 | 共用後台導覽、權限設定及本人改密碼頁 | S-SEC-14／S-PAGE／E-02 |
-| 預計新增 | POST /api/v1/admin/auth/forgot-password | 一般管理員獨立重設申請 | /admin/forgot-password.html（新增頁） | S-SEC-09／E-03 |
-| 預計新增 | POST /api/v1/admin/auth/reset-password | 一般管理員 token 重設 | /admin/reset-password.html（新增頁） | S-SEC-09／E-03 |
-| 預計新增 | POST /api/v1/admin/auth/change-password | 本人改密碼，包含首登強制改密碼 | /admin/change-password.html（新增頁） | E-07 |
-| 預計新增 | GET /api/v1/admin/admins | 搜尋／分頁／狀態篩選，admins.view | website/admin/admins.html | S-026／D：API 草案 |
-| 預計新增 | GET /api/v1/admin/admins/{id} | 單筆資料，admins.view；編輯頁另需 admins.edit | website/admin/admin-edit.html | S-026／E-13 |
-| 預計新增 | POST /api/v1/admin/admins | 新增一般管理員，admins.create | website/admin/admin-add.html | S-026／D：API 草案 |
-| 預計新增 | PUT /api/v1/admin/admins/{id} | 編輯／啟用／停用，admins.edit | website/admin/admin-edit.html；列表可共用狀態操作 | S-026／E-09／D：API 草案 |
-| 預計新增 | DELETE /api/v1/admin/admins/{id} | 軟刪除一般管理員，admins.delete | website/admin/admins.html 的確認操作；無刪除專頁 | S-026／E-09／D：API 草案 |
-| 預計新增 | GET /api/v1/admin/roles | 可選角色與起始矩陣；admins.create、admins.edit 或 permissions.view 其一 | website/admin/admin-add.html、admin-edit.html、permissions.html | S-027／E-13 |
-| 預計新增 | GET /api/v1/admin/permissions/catalog | 矩陣定義與目標最小摘要，permissions.view | website/admin/permissions.html | S-027／E-13 |
-| 預計新增 | GET /api/v1/admin/admins/{id}/permissions | 讀取目標矩陣，permissions.view | website/admin/permissions.html | S-027／D：API 草案 |
-| 預計新增 | PUT /api/v1/admin/admins/{id}/permissions | 保存矩陣，permissions.edit；拒絕 root 目標及越級授權 | website/admin/permissions.html | S-027／S-SEC-14／E-10／D：API 草案 |
+| 本階段新增 | GET /api/v1/auth/csrf | 匿名／會員流程 CSRF | register.html、login.html、會員密碼流程及共用登出 | S-SEC-09／E-02 |
+| 本階段新增 | GET /api/v1/auth/captcha | 註冊圖形挑戰；匿名 session 與限速 | website/register.html | S-016／S-SEC-10／D：API 草案 |
+| 本階段新增 | POST /api/v1/auth/captcha/email | Email 驗證碼替代方式；CSRF 與寄送限速 | website/register.html | S-016／E-06／D：API 草案 |
+| 本階段新增 | POST /api/v1/auth/register | 註冊成功 201，建立會員 session | website/register.html | S-016／D：API 草案 |
+| 本階段新增 | POST /api/v1/auth/login | 會員登入 | website/login.html | S-017／D：API 草案 |
+| 本階段新增 | POST /api/v1/auth/logout | 撤銷目前會員 session，成功 204 | 所有前台頁面的共用會員導覽；不另建登出頁 | S-017／D：API 草案 |
+| 本階段新增 | GET /api/v1/auth/me | 目前會員，未登入 401 | 共用會員導覽、會員改密碼頁 | S-017／D：API 草案 |
+| 本階段新增 | POST /api/v1/auth/forgot-password | 會員重設申請，泛化回應 | /forgot-password.html（新增頁） | S-SEC-09／E-03 |
+| 本階段新增 | POST /api/v1/auth/reset-password | 一次性 token 重設密碼 | /reset-password.html（新增頁） | S-SEC-09／E-03 |
+| 本階段新增 | POST /api/v1/auth/change-password | 會員以目前密碼更新密碼 | /change-password.html（新增頁） | E-07 |
+| 本階段新增 | GET /api/v1/admin/auth/csrf | 後台流程 CSRF | 後台登入、管理表單與後台密碼流程 | S-SEC-09／E-02 |
+| 本階段新增 | POST /api/v1/admin/auth/login | 管理員登入 | /admin/login.html（新增頁） | S-SEC-09／S-PAGE／E-02 |
+| 本階段新增 | POST /api/v1/admin/auth/logout | 撤銷目前管理員 session | 所有後台頁面的共用導覽；不另建登出頁 | S-SEC-09／E-02 |
+| 本階段新增 | GET /api/v1/admin/auth/me | 真實管理員摘要與有效權限 | 共用後台導覽、權限設定及本人改密碼頁 | S-SEC-14／S-PAGE／E-02 |
+| 本階段新增 | POST /api/v1/admin/auth/forgot-password | 一般管理員獨立重設申請 | /admin/forgot-password.html（新增頁） | S-SEC-09／E-03 |
+| 本階段新增 | POST /api/v1/admin/auth/reset-password | 一般管理員 token 重設 | /admin/reset-password.html（新增頁） | S-SEC-09／E-03 |
+| 本階段新增 | POST /api/v1/admin/auth/change-password | 本人改密碼，包含首登強制改密碼 | /admin/change-password.html（新增頁） | E-07 |
+| 本階段新增 | GET /api/v1/admin/admins | 搜尋／分頁／狀態篩選，admins.view | website/admin/admins.html | S-026／D：API 草案 |
+| 本階段新增 | GET /api/v1/admin/admins/{id} | 單筆資料，admins.view；編輯頁另需 admins.edit | website/admin/admin-edit.html | S-026／E-13 |
+| 本階段新增 | POST /api/v1/admin/admins | 新增一般管理員，admins.create | website/admin/admin-add.html | S-026／D：API 草案 |
+| 本階段新增 | PUT /api/v1/admin/admins/{id} | 編輯／啟用／停用，admins.edit | website/admin/admin-edit.html；列表可共用狀態操作 | S-026／E-09／D：API 草案 |
+| 本階段新增 | DELETE /api/v1/admin/admins/{id} | 軟刪除一般管理員，admins.delete | website/admin/admins.html 的確認操作；無刪除專頁 | S-026／E-09／D：API 草案 |
+| 本階段新增 | GET /api/v1/admin/roles | 可選角色與起始矩陣；admins.create、admins.edit 或 permissions.view 其一 | website/admin/admin-add.html、admin-edit.html、permissions.html | S-027／E-13 |
+| 本階段新增 | GET /api/v1/admin/permissions/catalog | 矩陣定義與目標最小摘要，permissions.view | website/admin/permissions.html | S-027／E-13 |
+| 本階段新增 | GET /api/v1/admin/admins/{id}/permissions | 讀取目標矩陣，permissions.view | website/admin/permissions.html | S-027／D：API 草案 |
+| 本階段新增 | PUT /api/v1/admin/admins/{id}/permissions | 保存矩陣，permissions.edit；拒絕 root 目標及越級授權 | website/admin/permissions.html | S-027／S-SEC-14／E-10／D：API 草案 |
+| 使用者補充新增 | GET /api/v1/admin/auth/preview | 可模擬的一般管理員最小摘要；僅真正 root | frontend/templates/admin-sidebar.html 共用左下選單 | U-06／E-16 |
+| 使用者補充新增 | POST /api/v1/admin/auth/preview | 開始／切換唯讀模擬；root＋CSRF，輪替 Cookie／token | 共用左下選單；不新增頁面 | U-06／E-16 |
+| 使用者補充新增 | DELETE /api/v1/admin/auth/preview | 退出；root＋CSRF，不依賴模擬對象的權限／啟用狀態 | 共用左下「本人」及上方「退出模擬」 | U-06／E-16 |
 
-圖形挑戰規劃由 captcha API 回傳 challengeToken、imageDataUrl 與 expiresAt，不額外增加圖片讀取 API。admin:init 與固定管理員 CLI 密碼復原是命令列操作，不新增公開初始化 API。目前沒有 health API；Docker 使用環境層的健康檢查，不列入這 26 個業務／認證端點。
+圖形挑戰規劃由 captcha API 回傳 challengeToken、imageDataUrl 與 expiresAt，不額外增加圖片讀取 API。admin:init 與固定管理員 CLI 密碼復原是命令列操作，不新增公開初始化 API。目前沒有 health API；Docker 使用環境層的健康檢查，不列入這 29 個業務／認證端點。
 
-### 5.2 預計建立的五張認證輔助資料表
+### 5.2 本階段建立的五張認證輔助資料表
 
-下列是欄位設計草案，實作時產生正式 migration。captcha_challenges 的表名見文件「資料表建議」第 23 列，auth_events 見「功能規格」I17；password_reset_tokens、auth_rate_limits、member_consents 是工程補充 E-03／E-04／E-05。逐表來源見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。所有時間以 UTC 保存；不在紀錄中保存原始 Cookie、密碼或可直接使用的 token。
+實際欄位以 backend/database/migrations/001_identity.sql 為準。captcha_challenges 的表名見文件「資料表建議」第 23 列，auth_events 見「功能規格」I17；password_reset_tokens、auth_rate_limits、member_consents 是工程補充 E-03／E-04／E-05。逐表來源見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。所有時間以 UTC 保存；不在紀錄中保存原始 Cookie、密碼或可直接使用的 token。
 
 | 新表 | 主要欄位草案 | 關聯／約束 | 對應功能與頁面 |
 | --- | --- | --- | --- |
@@ -203,9 +210,9 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 | auth_rate_limits | scope、bucket_key、window_start、attempt_count、locked_until、expires_at、updated_at | scope＋bucket_key＋window_start 唯一；原子更新；scope 區分帳號／IP、member／admin 與操作用途 | 登入、註冊、挑戰、Email 挑戰與密碼重設的共用限速；無獨立頁面 |
 | member_consents | id、member_id、document_key、document_version、accepted_at、source、ip_hash | member_id FK members；member_id＋document_key＋document_version 唯一；document_key 區分條款／隱私 | website/register.html 的條款／隱私同意及版本紀錄 |
 
-### 5.3 預計建立的八張核心資料表
+### 5.3 本階段建立的八張核心資料表
 
-下列八張與 5.2 的五張全部是待建立的新表，目前資料庫沒有業務表。正式欄位與 DDL 在開始實作後產生。
+下列八張與 5.2 的五張均於本階段首次建立；正式 DDL 見 001_identity.sql，沒有既有／調整／遷移狀態。
 
 | 預計新表 | 欄位／設計重點 | 對應功能 |
 | --- | --- | --- |
@@ -218,7 +225,7 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 | admin_role_permissions | admin_id＋permission_id 唯一、allowed、updated_by、updated_at | 完整個人矩陣、版本由 admin_users 控制 |
 | audit_logs | actor_admin_id、action、resource、安全 before／after、request_id、created_at、隱私摘要 | 管理員及矩陣異動稽核 |
 
-schema_migrations 也尚未建立，預計由新 migration 工具管理，不計入 13 張業務表。每張表的規格／工程來源見 DESIGN-TRACEABILITY.md。
+schema_migrations 已由本階段新建的 migration 工具管理，不計入 13 張業務表。每張表的規格／工程來源見 DESIGN-TRACEABILITY.md。
 
 ### 5.4 完整串接的六個既有網頁
 
@@ -262,7 +269,7 @@ schema_migrations 也尚未建立，預計由新 migration 工具管理，不計
 
 API 統一使用 code、message、fieldErrors、requestId；401 表示未登入／失效憑證，403 表示無權限／root 保護／CSRF 拒絕，422 表示欄位或挑戰錯誤，409 表示唯一性／編輯版本衝突，429 表示限速且提供 Retry-After。
 
-更新 OpenAPI 的輸入、輸出、方法、狀態碼與安全要求；文件集合路徑混放 CRUD 的草案需整理成正式集合與單筆路徑。目前全部端點為 planned；實作及驗證完成後才標 implemented。
+更新 OpenAPI 的輸入、輸出、方法、狀態碼與安全要求；文件集合路徑混放 CRUD 的草案需整理成正式集合與單筆路徑。backend/resources/openapi.json 2.1.0 已列出 29 個 implemented 操作、明確輸入／輸出 schema 與 Cookie／CSRF 安全要求。
 
 ## 6. 前端銜接與尚未完成模組
 
@@ -322,7 +329,7 @@ IP 判定使用可信的連線來源；只有明確配置的反向代理能影�
 
 本機開始實作不需要正式主機或 SMTP 帳密：可先使用 localhost、Mailpit 與測試條款版本。正式部署前需客戶提供 SMTP／寄件身分、HTTPS 網域及正式條款／隱私版本。Email 是否必須驗證後才啟用會員，原規格未明確要求，預設按註冊成功即登入的草案，不自行加入強制啟用限制。
 
-2A0–2E 是工作順序。階段二完成並可驗收後以實作成果提交；修正代理自身失誤併回對應提交，不另外算進度。前置工具及郵件容器已先完成安裝；API、認證邏輯、資料表與正式帳號尚未實作，不宣告階段二完成。
+2A0–2E 是工作順序。階段二在獨立分支按完成的功能細分提交，各功能包含相應前後端、契約、驗證及閱讀指南；階段驗收後合併 main，不再以一筆提交包住整個階段。修正代理自身失誤併回對應功能提交，不另外算進度。前置工具及郵件容器已先完成安裝；API、認證邏輯、資料表與固定管理員已於本階段建立；本機驗收見 PHASE-2-ACCEPTANCE.md，正式 SMTP 與條款另待提供。Git 流程見 [GIT-WORKFLOW.md](GIT-WORKFLOW.md)。
 
 ## 10. 工程依據
 

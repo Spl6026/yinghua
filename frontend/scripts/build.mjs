@@ -1,0 +1,63 @@
+// [E-12] 固定 HTML 在前端建置時組合；PHP 不輸出任何畫面。
+import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
+import { dirname, join, relative, resolve, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const output = join(root, 'dist');
+if (dirname(output) !== root || output === root) throw new Error('Invalid build output');
+await mkdir(output, { recursive: true });
+const templates = Object.fromEntries(await Promise.all(
+  ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [name.replaceAll('-', '_').toUpperCase(), await readFile(join(root, 'templates', `${name}.html`), 'utf8')])
+));
+async function pages(directory) {
+  const result = [];
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) result.push(...await pages(path));
+    else if (entry.name.endsWith('.html')) result.push(path);
+  }
+  return result;
+}
+const routes = [];
+// [U-03 / E-12] 保留原型各頁導覽的 active 樣式；food/search/auth 原版沒有選中項目。
+const navigationSections = {
+  '/explore.html': ['explore.html', 'museum.html', 'place-detail.html', 'places/'],
+  '/cinema.html': ['cinema.html', 'film-detail.html', 'films/'],
+  '/events.html': ['events.html', 'activities.html', 'city-news.html', 'news-detail.html', 'news/'],
+  '/offers.html': ['offers.html', 'offer-detail.html', 'offers/'],
+  '/planner.html': ['planner.html', 'routes.html'],
+};
+for (const source of await pages(join(root, 'pages'))) {
+  const route = relative(join(root, 'pages'), source).split(sep).join('/');
+  let html = await readFile(source, 'utf8');
+  const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
+  const selectedNavigation = Object.entries(navigationSections).find(([, paths]) => paths.some(path => path.endsWith('/') ? route.startsWith(path) : route === path))?.[0];
+  html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
+    if (name === 'SITE_HEADER' && selectedNavigation) {
+      return templates[name].replace(`href="${selectedNavigation}"`, `class="active" aria-current="page" href="${selectedNavigation}"`);
+    }
+    return templates[name] ?? (name === 'PAGE_TITLE' ? title : (() => { throw new Error(`Unknown template: ${name}`); })());
+  });
+  html = html.replaceAll('{{PAGE_TITLE}}', title);
+  html = html.replace(/<form id="(auth-form|admin-form|permissions-form)"/g, '<form method="post" id="$1"');
+  if (/data-auth-kind=/.test(html) || route.startsWith('admin/')) {
+    html = html.replace(/<input\b([^>]*)>/g, (match, attributes) => {
+      const additions = [];
+      if (!/spellcheck=/.test(attributes)) additions.push('spellcheck="false"');
+      if (!/autocomplete=/.test(attributes)) additions.push('autocomplete="off"');
+      return `<input${attributes} ${additions.join(' ')}>`;
+    });
+  }
+  html = html.replace(/<input\b[^>]*type="password"[^>]*>/g, match => match.replace(/\s(?:minlength|maxlength)="\d+"/g, ''));
+  if (html.includes('{{')) throw new Error(`Unresolved template: ${route}`);
+  const target = join(output, route);
+  await mkdir(dirname(target), { recursive: true });
+  await writeFile(target, html);
+  routes.push(`/${route}`);
+}
+await cp(join(root, 'assets'), join(output, 'assets'), { recursive: true });
+await mkdir(join(output, 'assets/js/core'), { recursive: true });
+await writeFile(join(output, 'assets/js/core/routes.js'), `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`);
+await writeFile(join(output, 'robots.txt'), 'User-agent: *\nDisallow: /admin/\nDisallow: /api/\nDisallow: /reset-password.html\n');
+console.log(`Built ${routes.length} HTML routes with shared templates.`);

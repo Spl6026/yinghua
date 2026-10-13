@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>建立會員帳號｜映畫竹塹</title>
+<meta name="twitter:image" content="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=85">
+<meta name="twitter:description" content="註冊映畫竹塹會員，收藏新竹景點、規劃旅行行程並接收城市旅遊資訊。">
+<meta name="twitter:title" content="建立會員帳號｜映畫竹塹">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:image" content="https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?auto=format&fit=crop&w=1200&q=85">
+<meta property="og:locale" content="zh_TW">
+<meta property="og:site_name" content="映畫竹塹">
+<meta property="og:type" content="website">
+<meta property="og:description" content="註冊映畫竹塹會員，收藏新竹景點、規劃旅行行程並接收城市旅遊資訊。">
+<meta property="og:title" content="建立會員帳號｜映畫竹塹">
+<meta name="author" content="映畫竹塹">
+<meta name="keywords" content="映畫竹塹會員註冊, 新竹旅遊行程">
+<meta name="description" content="註冊映畫竹塹會員，收藏新竹景點、規劃旅行行程並接收城市旅遊資訊。">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/phase2.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"映畫竹塹","description":"從新竹市影像博物館出發，探索電影、美食、活動與城市旅行。","inLanguage":"zh-Hant-TW"}</script>
+</head>
+<body data-auth-kind="member" data-auth-mode="register">
+<a class="skip-link" href="#main-content">跳到主要內容</a>
+<div class="site-shell">{{SITE_HEADER}}
+<main id="main-content" tabindex="-1"><div class="page inner-page active">
+<section class="section-pad account-page"><div class="account-card">
+<p class="eyebrow">JOIN THE CITY STORY</p>
+<h1>讓旅程，有你的名字。</h1><p>收藏喜歡的地方，安排專屬的新竹旅程。</p>
+<form id="auth-form">
+<div class="form-field">
+<label for="displayName">顯示名稱</label>
+<input id="displayName" name="displayName" type="text" required autocomplete="nickname" maxlength="80">
+</div>
+<div class="form-field">
+<label for="email">電子郵件</label>
+<input id="email" name="email" type="email" required autocomplete="email" maxlength="254" placeholder="name@example.com">
+</div>
+<div class="form-field">
+<label for="password">密碼（8–128 字元）</label>
+<input id="password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password">
+</div>
+<div class="form-field">
+<label for="passwordConfirmation">確認密碼</label>
+<input id="passwordConfirmation" name="passwordConfirmation" type="password" required minlength="8" maxlength="128" autocomplete="new-password">
+</div>
+<div class="form-field">
+<label for="answer">驗證碼</label>
+<div class="captcha-row">
+<input id="answer" name="answer" required autocomplete="one-time-code" inputmode="numeric" maxlength="12" placeholder="輸入驗證碼">
+<img id="captcha-image" alt="圖形驗證碼，亦可選擇寄送 Email 驗證碼" width="230" height="64">
+<button id="refresh-captcha" class="captcha-refresh" type="button" aria-label="重新產生驗證碼">↻</button>
+</div>
+<div class="captcha-options"><button id="email-captcha" type="button">改寄 Email 驗證碼</button></div>
+<p id="captcha-status" class="helper-text" role="status"></p>
+</div>
+<label class="terms-consent">
+<input id="acceptTerms" name="acceptTerms" type="checkbox" required>
+<span>我已閱讀並同意以下開發測試條款與隱私說明。</span>
+</label>
+<details>
+<summary>開發測試條款與隱私說明</summary>
+<p>此版本供本機開發驗收：記錄 Email、名稱、密碼雜湊及條款同意版本，以提供帳號與登入功能。請使用測試資料；正式上線條款與隱私政策待業主提供後替換。</p>
+</details>
+<p class="form-error form-status" role="status" aria-live="polite" tabindex="-1"></p>
+<button class="button button-dark full-button" type="submit">建立會員帳號 ↗</button>
+</form><p class="account-switch">已經有帳號？ <a href="/login.html">前往登入</a></p>
+</div></section></div></main>
+{{SITE_FOOTER}}{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+<script type="module" src="/assets/js/auth.js"></script>
+</body>
+</html>

@@ -13,3 +13,4 @@ vendor
 *.ndjson
 tools/php/vendor
 tools/php/.build
+frontend/dist

@@ -1,0 +1,21 @@
+includes:
+    - /var/www/tools/vendor/phpat/phpat/extension.neon
+parameters:
+    level: 10
+    phpVersion: 80511
+    paths:
+        - src
+        - public/index.php
+        - bin/console.php
+        - config/routes.php
+        - tests/ArchitectureTest.php
+    tmpDir: .build/phpstan
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: true
+    bootstrapFiles:
+        - vendor/autoload.php
+services:
+    -
+        class: Yinghua\Tests\ArchitectureTest
+        tags:
+            - phpat.test

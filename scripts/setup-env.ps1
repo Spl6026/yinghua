@@ -15,5 +15,6 @@ $template = [IO.File]::ReadAllText((Join-Path $projectRoot '.env.example'))
 $template = $template.Replace('APP_KEY=', ('APP_KEY=' + (New-Secret)))
 $template = $template.Replace('DB_PASSWORD=', ('DB_PASSWORD=' + (New-Secret)))
 $template = $template.Replace('DB_ROOT_PASSWORD=', ('DB_ROOT_PASSWORD=' + (New-Secret)))
+$template = $template.Replace('ADMIN_INITIAL_PASSWORD=', ('ADMIN_INITIAL_PASSWORD=' + (New-Secret)))
 [IO.File]::WriteAllText($envFile, $template, (New-Object Text.UTF8Encoding($false)))
 Write-Output '.env created with random local secrets; no secrets were printed.'

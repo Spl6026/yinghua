@@ -1,8 +1,11 @@
 # Git 提交規則
 
 - 第一筆提交保留原始交付的網站與規格，不修改該提交。
+- 每一階段使用獨立分支；從最新 main 開始，完成驗收後以 merge commit 合併回 main，保留階段分支。未開始的階段不提前冒充實作成果。
+- 按可獨立說明與驗證的功能提交；相關後端、前端、API 契約、測試及閱讀指南一起交付。共用前置環境另作明確的準備提交，不把整個階段塞成一筆，也不只按副檔名／目錄拆分。
 - 提交應反映專案的實際進度。修正代理自身失誤時，將修正合併回對應的實作提交，不另留一筆進度提交。
 - 合併前備份歷史，合併後確認最終檔案內容與原始交付提交都完整保留。
+- 分支命名、功能提交及歷史整理方式見 [docs/GIT-WORKFLOW.md](docs/GIT-WORKFLOW.md)。
 
 # 開發流程與 Skills
 
@@ -14,5 +17,6 @@
 - website/ 保留原始交付檔案；新增後端程式放 backend/，新前端來源放 frontend/，新增工程文件放專案根目錄 docs/。維持 PHP＋MariaDB＋Docker、原生 JavaScript／jQuery 架構與原型設計。
 - 後續架構依 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)：PHP 網站 HTTP 責任只提供 API；HTML View 在前端，Controller／Service／Repository 分工，使用 DTO、建構子依賴與適當共用規則。必要 CLI 不受 API-only 限制。
 - 新功能與業務註解標出規格、文件草案、使用者指定或工程補充，來源 ID 見 [docs/DESIGN-TRACEABILITY.md](docs/DESIGN-TRACEABILITY.md)。完成模組提供中文閱讀指南，不能把工程提案寫成規格硬性要求。
-- 目前只有原始交付、環境工具與設計文件，沒有應用程式、API 或業務資料表。開始實作須依使用者指示；計畫全部以從零建立描述，不寫成已有基礎或架構遷移。
+- 每完成一個階段，必須在宣告完成及合併 main 前更新 [docs/PROJECT-GUIDE.md](docs/PROJECT-GUIDE.md)：更新日期、實際完成範圍、架構與檔案用途、頁面／API 狀態、資料表／migration、Docker／環境及操作命令；核對檔案清單與連結，不提前標記後續功能。功能開發期間有相關變更亦應隨功能提交同步維護。
+- 使用者已授權從零實作階段二。依階段二計畫完成認證、管理員與權限；其餘業務模組仍依後續階段處理。狀態與驗收只記錄實際結果。
 - PHP、Composer 與品質檢查工具在 Docker 開發環境執行。缺少工具時先建立或如實記錄，不能把「未安裝／未執行」當成檢查通過。
