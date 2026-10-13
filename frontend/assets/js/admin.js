@@ -1,5 +1,5 @@
 import { authApi } from './api/auth-api.js';
-import { requireSession, hasPermission, handleAdminError } from './core/session.js';
+import { requireSession, hasPermission, handleAdminError, adminNavigation, adminDestination } from './core/session.js';
 import { initializeMenus, status, element } from './core/ui.js';
 
 initializeMenus();
@@ -12,8 +12,14 @@ try {
   if (identity) {
     document.querySelector('#admin-display-name').textContent = identity.admin.displayName;
     document.querySelector('#admin-account').textContent = identity.admin.account;
+    document.querySelector('.admin-brand').href = adminDestination(identity);
     document.querySelectorAll('.admin-nav').forEach(link => {
-      link.hidden = !hasPermission(identity, link.dataset.module, 'view');
+      const entry = adminNavigation(identity, link.dataset.module);
+      link.hidden = !entry;
+      if (entry) {
+        link.href = entry.href;
+        if (entry.label) link.textContent = entry.label;
+      }
       if (link.dataset.module === document.body.dataset.module) {
         link.classList.add('active');
         link.setAttribute('aria-current', 'page');

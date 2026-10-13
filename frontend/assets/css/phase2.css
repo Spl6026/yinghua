@@ -21,6 +21,8 @@
 #member-navigation:not(.member-menu){display:contents}
 .member-menu button{font:inherit;color:inherit;cursor:pointer;background:none;border:0;text-decoration:underline}
 .admin-top-actions a,.admin-top-actions button{white-space:nowrap}
+/* [U-05／E-14] 真實登入操作加入頂列後，保留原型「查看網站」連結的完整文字與箭頭。 */
+.admin-topbar>.admin-preview{flex-shrink:0;white-space:nowrap}
 .admin-toolbar{display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;margin:0 0 20px}
 .admin-toolbar .admin-field{flex:1;min-width:180px}
 .admin-toolbar .admin-field label{margin-bottom:8px}
