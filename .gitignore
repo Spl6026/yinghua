@@ -1,0 +1,14 @@
+.env
+.env.*
+!.env.example
+artifacts/
+node_modules/
+vendor/
+.build/
+backend/storage/
+frontend/dist/
+__pycache__/
+*.py[cod]
+*.inspect.ndjson
+!website/映畫竹塹_後台工程串接功能規格.xlsx.inspect.ndjson
+*.log

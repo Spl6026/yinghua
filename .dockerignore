@@ -1,0 +1,15 @@
+.git
+.agents
+skills-lock.json
+.env
+.env.*
+artifacts
+backend/storage
+backend/.build
+backend/vendor
+node_modules
+vendor
+*.xlsx
+*.ndjson
+tools/php/vendor
+tools/php/.build
