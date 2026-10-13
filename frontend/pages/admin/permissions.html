@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>權限設定｜映畫竹塹後台</title>
+<meta name="theme-color" content="#f5f0e6">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/phase2.css">
+</head>
+<body data-module="permissions" data-action="view" data-page="permissions">
+<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
+<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">SYSTEM / ACCESS CONTROL</p><h1>權限設定</h1><p>設定各管理員可查看、新增、編輯與刪除的後台功能。</p></div></div><div class="admin-panel permission-toolbar"><div class="admin-field"><label for="target">管理員</label><select id="target"></select></div>
+<div><strong id="permission-summary">管理員功能權限</strong><p id="root-note" class="helper-text"></p></div></div>
+<section class="admin-panel"><div class="admin-panel-heading"><h3 id="permission-title">功能權限</h3><span>勾選允許此管理員使用的功能。</span></div>
+<form id="permissions-form"><div class="permission-table-wrap"><table class="admin-table permission-table"><caption class="sr-only">功能權限矩陣</caption>
+<thead><tr><th scope="col">功能</th><th scope="col">查看</th><th scope="col">新增</th><th scope="col">編輯</th><th scope="col">刪除</th></tr></thead><tbody id="permission-rows"></tbody></table></div>
+<div class="admin-form-actions"><button id="reload-matrix" class="button button-outline" type="button">重新載入</button><button class="button button-dark" type="submit">儲存權限 ↗</button></div><p class="form-error form-status" role="status" aria-live="polite" tabindex="-1"></p></form></section>
+<section class="admin-panel admin-note-panel"><h3>快速套用角色範本</h3><p>套用後請儲存，才會更新管理員權限。</p><div class="admin-toolbar"><div class="admin-field"><label for="template">權限範本</label><select id="template"></select></div><button id="apply-template" class="button button-outline" type="button">套用範本</button></div></section></div>
+</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+<script type="module" src="/assets/js/admin.js"></script></body>
+</html>

@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
 // 執行實際頁面模組；只替換 DOM、導航及 API 邊界，驗證非同步控制狀態。
-const sources = await Promise.all(['core/ui.js', 'core/session.js', 'pages/admin-form.js'].map(async path =>
+const sources = await Promise.all(['core/ui.js', 'core/session.js', 'pages/admin-form.js', 'pages/permissions.js'].map(async path =>
   (await readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8'))
     .replace(/^import .*;\r?\n/gm, '').replace(/\bexport /g, '')));
 const settle = async () => { for (let i = 0; i < 5; i++) await new Promise(resolve => setImmediate(resolve)); };
@@ -149,6 +149,32 @@ test('管理員儲存期間重新載入不能開啟第二次送出', async () =>
   const requests = f.state.saves.length;
   pending.resolve(); await settle();
   assert.equal(locked, true); assert.equal(requests, 1);
+});
+test('權限對象顯示帳號以區分同名管理員', async () => {
+  const f = fixture('permissions'); await f.initialize();
+  assert.match(f.target.children[0].textContent, /同名（editor）/); assert.match(f.target.children[1].textContent, /同名（admin）/);
+});
+test('權限儲存期間切到root，完成後仍唯讀且不覆蓋新對象', async () => {
+  const f = fixture('permissions'); await f.initialize(); const save = deferred(); f.state.write = () => save.promise;
+  f.form.emit('submit'); await settle(); assert.equal(f.save.disabled, true);
+  f.target.value = 'root'; await f.target.emit('change'); save.resolve(); await settle();
+  assert.equal(f.target.value, 'root'); assert.equal(f.save.disabled, true); assert.ok(f.boxes().every(input => input.disabled));
+  assert.equal(f.state.saves[0].id, 'a'); assert.equal(f.node('#permission-summary').textContent, '系統管理員｜完整權限');
+});
+test('權限儲存後讀取失敗保留提示並要求重新載入', async () => {
+  const f = fixture('permissions'); await f.initialize(); f.state.read = async () => { throw new Error('讀取失敗'); };
+  f.form.emit('submit'); await settle(); assert.match(f.message.textContent, /已儲存.*無法重新載入/);
+  assert.equal(f.message.dataset.error, 'true'); assert.equal(f.save.disabled, true);
+  f.state.read = async id => f.matrix(id, 2); await f.reload.emit('click'); assert.equal(f.save.disabled, false);
+});
+test('取消權限對象切換保留修改和原對象', async () => {
+  const f = fixture('permissions'); await f.initialize(); const checkbox = f.boxes()[0]; checkbox.checked = false; checkbox.emit('change');
+  f.state.confirmation = false; f.target.value = 'root'; await f.target.emit('change');
+  assert.equal(f.target.value, 'a'); assert.equal(checkbox.checked, false); assert.equal(f.dirty(), true);
+});
+test('權限儲存遇到401使用後台登入導向', async () => {
+  const f = fixture('permissions'); await f.initialize(); f.state.write = async () => { throw Object.assign(new Error('請先登入'), { status: 401 }); };
+  f.form.emit('submit'); await settle(); assert.match(f.state.replacements[0], /^\/admin\/login\.html\?returnTo=/);
 });
 
 test('直接開固定管理員編輯頁時，替換表單後不再查找已移除的按鈕', async () => {

@@ -25,6 +25,7 @@ use Yinghua\Repositories\RateLimitRepository;
 use Yinghua\Repositories\ResetRepository;
 use Yinghua\Repositories\SessionRepository;
 use Yinghua\Services\AdminManagement;
+use Yinghua\Services\PermissionManagement;
 use Yinghua\Services\RoleTemplates;
 use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
@@ -61,7 +62,7 @@ readonly class Composition
         $csrf = new Csrf($this->config, $clock, $secrets);
         $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config);
         $roles = new RoleTemplates($permissions, $authorization);
-        $permissionController = new PermissionController($roles);
+        $permissionController = new PermissionController(new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events), $roles);
         $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));
         $router = new Router();
         /** @var Closure(Router,AuthController,AdminController,PermissionController):void $routes */

@@ -3,6 +3,7 @@ import { requireSession, hasPermission, handleAdminError, adminNavigation, admin
 import { initializeMenus, status, element } from './core/ui.js';
 import { initializeAdmins } from './pages/admin-list.js';
 import { initializeAdminForm } from './pages/admin-form.js';
+import { initializePermissions } from './pages/permissions.js';
 
 initializeMenus();
 const main = document.querySelector('.admin-content');
@@ -37,6 +38,7 @@ try {
       main.replaceChildren(element('h1', {}, '無法存取'), element('p', {}, '你尚未取得此功能的權限，請聯絡管理員。'));
     } else if (page === 'admins') await initializeAdmins(identity);
     else if (page === 'admin-add' || page === 'admin-edit') await initializeAdminForm(identity, page);
+    else if (page === 'permissions') await initializePermissions(identity);
   }
 } catch (error) { status(message, error.message, true); message.focus(); }
 finally { main.removeAttribute('aria-busy'); }
