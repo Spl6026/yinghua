@@ -108,9 +108,10 @@ test('確認候選帶入行政區與官網，但簡介只顯示參考、不改�
  f.state.mapResult={candidates:[candidate],attribution:'Google Maps',notice:'請核對'};
  await f.node('#parse-place-url').emit('click');await f.node('#map-candidates').children[0].children.find(node=>node.tag==='button').emit('click');
  assert.equal(f.form.elements.district.value,'東區');assert.equal(f.form.elements.websiteUrl.value,'http://example.test');assert.equal(f.form.elements.description.value,'介紹');assert.equal(f.form.elements.summary.value,'摘要');assert.equal(f.node('#google-place-reference').reference.editorialSummary,'Google原文');
- f.form.emit('submit');await settle();assert.equal(Object.hasOwn(f.state.saves[0].body,'editorialSummary'),false);
+ f.form.emit('submit');await settle();assert.equal(f.state.saves[0].body.googleLinkConfirmed,true);assert.equal(Object.hasOwn(f.state.saves[0].body,'editorialSummary'),false);
 });
-test('取消候選確認不改動內容',async()=>{
+test('取消候選確認不改動內容；未確認的新地點關聯不能送出',async()=>{
  const f=fixture();await f.initialize();f.state.confirm=false;f.node('#google-short-url').value='https://www.google.com/maps?q=test';f.state.mapResult={candidates:[{name:'另一地點',address:'地址'}],attribution:'Google Maps',notice:''};
  await f.node('#parse-place-url').emit('click');await f.node('#map-candidates').children[0].children.find(node=>node.tag==='button').emit('click');assert.equal(f.form.elements.name.value,'原景點');
+ f.state.linkStale=true;f.form.emit('submit');await settle();assert.equal(f.state.saves.length,0);assert.equal(f.node('#google-place-link').focused,true);
 });

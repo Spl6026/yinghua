@@ -83,7 +83,7 @@ readonly class Composition
         $permissionController = new PermissionController(new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events), $roles);
         $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));
         $publication = $this->publication($database);
-        $attractionController = new AttractionController(new AttractionManagement(new AttractionRepository($database), $authorization, $transactions, $events, $publication));
+        $attractionController = new AttractionController(new AttractionManagement(new AttractionRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\GooglePlaceLinkPolicy()));
         $publicAttractions = new PublicAttractionController(new PublicAttractions($publication), $publication);
         $mediaController = new MediaController(new MediaManagement(new MediaRepository($database), new LocalImageStorage($this->config), $authorization, $transactions, $events), new MediaAccess($publication, $authentication, $authorization));
         $mapPolicy = new GoogleUrlPolicy();

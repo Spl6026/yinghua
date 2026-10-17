@@ -1,5 +1,7 @@
 # Git 階段分支與功能提交
 
+2026-10-18 U-10沿用階段三分支，先快轉到最新main；候選欄位／原文參考與關聯確認各自作完整功能提交，包含相應前後端、契約、測試與閱讀指南。以隔離來源驗證各提交的PHPStan／PHPUnit、建置／Node及Router／OpenAPI；本輪HTTP與畫面證據見階段三驗收。沒有重寫既有提交。事前全部refs備份為artifacts/history-before-map-fields-20261018.bundle；整理功能邊界及合併前另備份完整交付，再以--no-ff合併，最終tree、階段分支、原始69檔與遠端refs都須核對。
+
 2026-10-18 U-09 共用營業時間屬使用者新增要求，沿用階段三分支，先快轉到最新 main，再以完整功能提交交付 DTO／Google Adapter／原生編輯器／發布／契約／測試與閱讀指南。驗收後以 --no-ff 合併，保留階段分支。沒有重寫先前五筆功能或另開階段四；新功能與先前自身失誤歸併的歷史整理分開。全部 refs 的事前備份為 artifacts/history-before-opening-hours-20261018.bundle，合併前再備份並核對最終 tree 和原始69檔。
 
 來源：使用者於 2026-10-14 指定「依某個功能完善做細項 commit」及「每一個階段開一個 branch」。本規則補充 AGENTS.md，不改變功能範圍或驗收標準。

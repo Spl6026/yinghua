@@ -1,5 +1,15 @@
 # 階段三驗收記錄
 
+## 2026-10-18 新增要求U-10：Google候選與地點關聯
+
+行政區依地址結構確認新竹市及其區，未知清空並要求人工選擇；官網可HTTP／HTTPS，保留原協定且伺服器不抓取，地圖與Google請求仍HTTPS。Google簡介依使用者選擇原文只供參考，不覆蓋／保存網站介紹。地點關聯可見，改名稱／地址／座標或換ID須人工確認或解除，後端Policy在授權及版本後再次檢查。API仍44操作、業務表20、migration五支，未新增端點或表。
+
+本輪通過：PHPStan level10／PHPat、PHPUnit35 tests／166 assertions、前端63項／64頁建置、PER-CS dry-run零差異；既有HTTP65項、契約9項／44操作、前次修正21項及週表21項；新增官網／欄位10項及關聯15項真實HTTP／MariaDB。Rector只dry-run，14檔風格建議已檢視未套用，未執行獨立掃描器。
+
+瀏覽器本輪實連一次Text Search New，取得一筆博物館、東區及官方簡介；候選確認後網站自寫摘要／介紹不變，參考區仍可讀，沒有將實連候選保存至DB。另於自有隔離筆實測改名阻擋、錯誤焦點、重新確認保存／重開及解除；API確認改名保留且ID解除為null。截圖artifacts/map-reference-desktop.png、map-link-desktop.png。逾時恢復後已補驗手機關聯區：重新開啟顯示未關聯、ID空值；實際355 CSS px／scrollWidth341、無水平溢出、錯誤記錄空、尺寸還原，截圖map-link-mobile.png。Google原文參考的舊分頁失去連線，本輪手機簡介參考區未另驗，未重複消耗Google配額或混用其他紀錄冒稱通過。
+
+完整範圍及最新結果見 [地圖改善計畫](MAP-IMPORT-IMPROVEMENTS.md)，各檔案責任、命令參數與來源界線見 [閱讀指南](modules/google-place-fields.md)。原始website／Excel不改，階段四未啟動。
+
 ## 2026-10-18 新增要求 U-09：共用營業時間
 
 人工建檔與 Google 候選使用相同七天編輯器及 OpeningHours DTO，支援未知、公休、全天、午休多段及跨日。舊文字保留備註，不推測每天相同。新增004 migration的 opening_hours JSON；API仍44操作、業務表仍20，主庫／隔離庫均先備份後升級及發布。完整設計、相近欄位問題及本輪結果見 [營業時間計畫](OPENING-HOURS-PLAN.md)，逐檔閱讀見 [營業時間指南](modules/opening-hours.md)。
@@ -114,3 +124,19 @@ R3-01／02／04 已修正，R3-03 的行為測試已補齊。圖片說明由景�
 最新完整公開查詢 EXPLAIN 使用 attraction_admin（ref）且含 filesort；樣本少，不推論大規模效能，未增索引。人工安全審查及越權／唯讀／型別／長度／版本失敗測試通過，不等於執行獨立掃描器。
 
 桌面實際 innerWidth 1745、scrollWidth 1732；截圖 artifacts/phase3-corrected-admin-desktop.png。瀏覽器逾時恢復後，本輪另完成手機公開列表及管理編輯頁複驗：實際 innerWidth 355、scrollWidth 341，無水平溢出，後台側欄收合後表單可見、載入值正確，錯誤記錄為空。截圖 phase3-corrected-public-mobile.png、phase3-corrected-admin-mobile.png，臨時尺寸已還原。原型版型沿用，必要的新欄位及發布流程仍依已確認範圍，不宣稱精確 390 或全站像素一致。P0 後續功能及正式外部條件仍依前述界線處理。
+
+
+## 2026-10-18：縮小 Google 關聯提示（U-10）
+
+使用者指出人工景點的獨立「Google 地點關聯」區塊過大。本輪只修改新增／編輯表單與共用元件：移除標題／常駐說明，未關聯完全隱藏，已關聯在地圖匯入欄下顯示短提示，Place ID／解除操作收進原生 details；修改地點才顯示確認提醒。解除後移焦景點名稱，避免焦點留在隱藏區塊。
+
+Docker 前端 64 項測試及 64 頁建置通過。實際瀏覽器：人工新增隱藏、既有關聯預設收合（桌面提示約25px高）、修改名稱出現確認、對話框確認後恢復提示、手機詳細資訊展開與解除／焦點正常。手機實際 innerWidth355、scrollWidth341，無水平溢出；臨時尺寸已還原。截圖：artifacts/compact-link-manual-desktop.png、compact-link-linked-desktop.png、compact-link-mobile-open.png。僅使用隔離庫自有草稿並已刪除，沒有呼叫 Google API、修改 PHP／API／資料表；本輪沒有重跑 PHP 或完整 HTTP 測試。介面依 web-design-guidelines 檢視本次修改範圍。原始 website／Excel 保持原狀。
+
+本輪介面修正歸回原本的地點關聯實作提交，不另列進度提交；全部 refs 已事前備份，合併前另備份，保留階段分支並核對最終 tree。
+
+
+## 2026-10-18：關聯狀態列對齊修正（U-10）
+
+依使用者指出「已關聯 Google 地點」排版不自然，將狀態文字與切換操作納入同一個原生 summary；Place ID／解除操作固定向下展開，確認按鈕獨立排列。使用原型色系、緊湊字級及可換行佈局，人工未關聯仍完全隱藏。
+
+Docker 前端64項測試、64頁建置通過。實際桌面 summary 高36.79px，展開前後狀態文字的 top 同為395.18px，沒有垂直置中位移；手機實際 innerWidth355／scrollWidth341，收合、待確認長提醒、展開皆無水平溢出，解除後隱藏並聚焦 place-name。臨時尺寸已還原，自有隔離草稿已刪除。截圖 artifacts/link-layout-desktop.png、link-layout-desktop-open.png、link-layout-mobile.png、link-layout-mobile-pending.png、link-layout-mobile-open.png。套用 web-design-guidelines 檢視本次元件及CSS。PHP／API／DB schema無變動，沒有重跑PHP或完整HTTP套件，也沒有呼叫Google。本輪修正歸回原地點關聯功能提交；後續內容補位仍只是規劃。

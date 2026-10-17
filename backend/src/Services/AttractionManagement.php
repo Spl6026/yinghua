@@ -17,6 +17,7 @@ use Yinghua\Models\ContentStatus;
 use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Support\Secrets;
+use Yinghua\Policies\GooglePlaceLinkPolicy;
 
 /** [S：功能規格 19/20；E-01] 景點生命週期與授權／交易，Controller 不處理 SQL。 */
 class AttractionManagement
@@ -27,6 +28,7 @@ class AttractionManagement
         private readonly Transactions $transactions,
         private readonly EventRepository $events,
         private readonly ContentPublication $publication,
+        private readonly GooglePlaceLinkPolicy $placeLinks,
     ) {}
 
     public function listing(Account $actor, string $q, string $status, int $page, int $size): AttractionPage
@@ -68,6 +70,7 @@ class AttractionManagement
                     if ($before !== null && $before->version !== $input->version) {
                         throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
                     }
+                    $this->placeLinks->assertConfirmed($before, $input);
                     $media = $input->fields['media_id'];
                     if (is_string($media) && !$this->attractions->mediaExists($media)) {
                         throw ApplicationError::invalid('mediaId', '找不到可用的景點圖片。');

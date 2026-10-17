@@ -23,7 +23,8 @@
 <div class="admin-field full"><label for="google-short-url">Google 地圖短網址</label>
 <div class="url-import"><input id="google-short-url" type="url" placeholder="貼上 Google Maps 網址" maxlength="2000"><button type="button" class="button button-outline" id="parse-place-url" data-write>解析地圖資料 ↗</button></div>
 <p class="helper-text">由伺服器安全解析，只提供候選資料；可直接人工輸入。Google Maps 候選資料須核實使用及保存範圍，不會自動儲存。</p>
-<p id="map-status" class="form-status" role="status" tabindex="-1"></p><div id="map-candidates" class="map-candidates"></div></div>
+<p id="map-status" class="form-status" role="status" tabindex="-1"></p><div id="map-candidates" class="map-candidates"></div>
+<div id="google-place-link" class="google-place-link" data-field-name="googlePlaceId" role="group" aria-label="Google 地點關聯" tabindex="-1" hidden></div></div>
 <div class="admin-field"><label for="place-name">景點名稱 *</label><input id="place-name" name="name" type="text" required maxlength="120"></div>
 <div class="admin-field"><label for="place-slug">網址識別（slug）*</label><input id="place-slug" name="slug" type="text" required maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="例：hsinchu-park"></div>
 <div class="admin-field"><label for="place-category">分類</label><select id="place-category" name="category"><option value="景點">景點</option><option value="美食">美食</option><option value="在地店家">在地店家</option></select></div>

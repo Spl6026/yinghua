@@ -6,6 +6,23 @@
 .map-candidate[hidden]{display:none}.map-candidate h3,.map-candidate p{margin:0}
 .google-editorial-summary{white-space:pre-wrap}
 .google-maps-attribution{font-family:Roboto,sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;white-space:nowrap;color:#1f1f1f}
+/* [U-10／E-21] 狀態與展開操作共用一列；詳細內容獨立向下展開，避免 flex 對齊跳動。 */
+.google-place-link{display:grid;gap:8px;min-width:0;font-size:13px;line-height:1.6;margin-top:4px}
+.google-place-link[hidden],.google-place-link button[hidden]{display:none}
+.google-place-link>details{min-width:0;border:1px solid var(--line);background:#f5f3eb}
+.google-place-link-summary{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;padding:8px 12px;cursor:pointer;list-style:none}
+.google-place-link-summary::-webkit-details-marker{display:none}
+.google-place-link-message{min-width:0;color:var(--green);overflow-wrap:anywhere}
+.google-place-link-message[data-error="true"]{color:#a12622}
+.google-place-link-toggle{display:inline-flex;align-items:center;gap:8px;color:var(--green);white-space:nowrap}
+.google-place-link-toggle::after{content:"";width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:translateY(-2px) rotate(45deg)}
+.google-place-link details[open] .google-place-link-toggle::after{transform:translateY(2px) rotate(225deg)}
+.google-place-link-summary:hover{background:#eeece2}
+.google-place-link-details{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;border-top:1px solid var(--line);padding:10px 12px}
+.google-place-link code{overflow-wrap:anywhere;min-width:0;max-width:100%;color:#686b60;font-size:12px}
+.google-place-link .button{justify-self:start;font-size:13px;padding:8px 12px;min-height:36px}
+.google-place-link .button:hover{transform:none}
+@media(prefers-reduced-motion:reduce){.google-place-link .button{transition:none}}
 .table-scroll{overflow-x:auto}
 .admin-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:end;margin-bottom:18px}
 .admin-toolbar .admin-field{min-width:160px;flex:1}

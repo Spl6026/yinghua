@@ -10,7 +10,7 @@ U-09／E-20 另新增共用營業週表：人工與 Google 帶入皆經 OpeningH
 
 先看 `backend/config/routes.php`，再看 `AttractionController` → `AttractionManagement` → `AttractionRepository`。Controller 處理 HTTP 與輸入 DTO；Service 管授權、交易、版本、發布條件、引用檢查及稽核；Repository 集中 SQL，映射成 Attraction／AttractionPage。
 
-`AttractionInput` 驗證欄位白名單、分類、slug、成對座標、HTTPS、時區與版本。`ContentStatus` 是 draft／published／archived enum。`AttractionWriteResult` 將「已存資料」和「公開頁是否同步」分開，避免儲存成功卻誤稱發布成功。
+`AttractionInput` 驗證欄位白名單、分類、slug、成對座標、網址、時區與版本。U-10後官網可HTTP／HTTPS，地圖仍HTTPS；GooglePlaceLinkPolicy要求新增／更換地點或改名稱／地址／座標後明確確認，或解除關聯。`ContentStatus` 是 draft／published／archived enum。`AttractionWriteResult` 將「已存資料」和「公開頁是否同步」分開，避免儲存成功卻誤稱發布成功。
 
 `frontend/assets/js/pages/attraction-list.js` 控制清單、搜尋、分頁、刪除對話框。`attraction-form.js` 共用新增與編輯：讀取成功才開放修改，等待請求時禁止重複送出，衝突／載入失敗可重載，未儲存修改有提醒。共用請求在 `api/attractions-api.js`；它沿用 core/api-client.js 的 CSRF／錯誤處理。PHP 不產生表單 HTML。
 

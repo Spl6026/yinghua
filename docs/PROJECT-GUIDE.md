@@ -755,6 +755,33 @@ attractions.opening_hours 是 nullable JSON；舊 hours 保留原文／新摘要
 
 共用 ui.js 的 formErrors 增 data-field-name 複合欄位支援，讓週表具體錯誤可讀且可取得焦點；其餘表單維持原有 namedItem 路徑。既有 attraction-form／publication 測試同步週表，HTTP 列表測試使用唯一名稱避免歷次 fixture 相互干擾。
 
+## 階段三新增：地圖候選與關聯（U-10）
+
+Google候選以GooglePlaceMapper轉為MapCandidate DTO，不直接信任外部JSON。行政區需確認新竹市及東區／北區／香山區，否則清空並要求管理員選擇，人工新增也沒有預設北區。官網HTTP／HTTPS保留原協定、不含帳密且伺服器不抓取；mapUrl與Google安全HTTP Adapter仍HTTPS。
+
+Google簡介依使用者選擇只作原文參考，候選及選中後的獨立區塊都有Google Maps及提供者來源，沒有簡介時明示。網站摘要／介紹不被覆蓋，參考區不進保存請求、DB、公開投影或瀏覽器儲存，重載清除。FieldMask增加addressComponents、editorialSummary及attributions，沒有照片／評價匯入。
+
+Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳細資訊切換同列對齊，展開內容固定在下方，避免擠壓狀態文字。人工未關聯不顯示，Place ID／解除按鈕收進「關聯詳細資訊」。名稱／地址／座標改動後才顯示確認操作，解除後聚焦景點名稱。AttractionInput接收嚴格boolean的googleLinkConfirmed命令，AttractionManagement先做授權／版本，再由GooglePlaceLinkPolicy比對資料；省略前端同樣拒絕未確認的變更。這是管理員核對，不是Google簽章。API仍44操作、表仍20、migration仍五支，沒有新增表或端點。
+
+| 新檔 | 功能 |
+| --- | --- |
+| [GooglePlaceMapper.php](../backend/src/Adapters/GooglePlaceMapper.php) | 外部欄位驗證、地址結構／協定及簡介原文映射 |
+| [MapCandidate.php](../backend/src/DTO/MapCandidate.php) | Typed候選及統一輸出 |
+| [GooglePlaceLinkPolicy.php](../backend/src/Policies/GooglePlaceLinkPolicy.php) | DB既有地點與新輸入比對，要求人工確認或解除 |
+| [GooglePlaceMapperTest.php](../backend/tests/Unit/GooglePlaceMapperTest.php) | 候選型別、行政區、URL與原文邊界 |
+| [GooglePlaceLinkPolicyTest.php](../backend/tests/Unit/GooglePlaceLinkPolicyTest.php) | 新增／更換／未改／解除／嚴格布林 |
+| [map_fields_integration.py](../backend/tests/map_fields_integration.py) | HTTP官網與行政區、公開外連及錯誤不改資料 |
+| [google_link_integration.py](../backend/tests/google_link_integration.py) | 真實DB／HTTP的未確認變更、越權／唯讀／409與解除 |
+| [place-candidate.js](../frontend/assets/js/core/place-candidate.js) | 單一候選套用流程，不猜行政區、不覆蓋網站介紹 |
+| [place-reference.js](../frontend/assets/js/components/place-reference.js) | Google原文、來源與提供者的暫時參考區 |
+| [google-place-link.js](../frontend/assets/js/components/google-place-link.js) | 條件顯示的緊湊關聯、詳細資訊、核對／解除、唯讀與確認競態 |
+| [place-candidate.test.mjs](../frontend/tests/place-candidate.test.mjs) | 候選套用與缺值保留界線 |
+| [google-place-link.test.mjs](../frontend/tests/google-place-link.test.mjs) | 真正元件與原文參考、錯誤焦點、唯讀及等待期間變更 |
+| [MAP-IMPORT-IMPROVEMENTS.md](MAP-IMPORT-IMPROVEMENTS.md) | U-10計畫與實際結果 |
+| [google-place-fields.md](modules/google-place-fields.md) | API命令語意、資料流、檔案用途、Google限制及操作 |
+
+共用ui.formErrors優先聚焦可見複合群組，避免Place ID驗證失敗時落在隱藏欄位。完整實際測試及UI結果見階段三驗收；工程新增選擇以E-21標記。
+
 ## 文件索引與維護方式
 
 2026-10-18 再次檢查的 R3-01／02／04 已修正，R3-03 已增加九項景點表單行為測試；新增真實 HTTP／MariaDB 回歸 21 項及資料庫約束 8 項通過。歷史發現、採用設計、測試與畫面驗收界線見 [階段三複查計畫](PHASE-3-REVIEW-PLAN.md)，其餘階段仍依原計畫。
@@ -785,12 +812,6 @@ attractions.opening_hours 是 nullable JSON；舊 hours 保留原文／新摘要
 **每完成一個階段，必須在宣告完成及合併 main 前更新本文件。** 更新日期與該階段實際完成範圍，核對架構、檔案用途與清單、頁面／API 狀態、資料表／migration、Docker／環境設定及啟動／驗證命令，並檢查連結。即使沒有新增檔案，也要核對既有說明並更新階段摘要；後續未實作功能仍標為待開放。此要求同步記在 AGENTS.md 與 DEVELOPMENT-WORKFLOW.md。
 
 功能開發期間新增、移動或刪除檔案，也應在同一功能提交同步維護本導讀；新增 API／表另更新 OpenAPI、來源表與模組指南。狀態只記實際完成，驗收結果放驗收文件，秘密仍只放本機被忽略的設定。
-
-## U-10本提交：候選欄位與原文參考
-
-GooglePlaceMapper驗證外部欄位，MapCandidate DTO輸出行政區、官網與Google簡介原文。新竹市行政區無法判定時清空；官網HTTP／HTTPS保留原協定，地圖及伺服器請求仍HTTPS。place-candidate.js統一套用，place-reference.js顯示原文與來源，不改寫網站介紹、不送出或保存簡介。人工新增不預設北區。關聯確認仍待下一功能交付。API仍44操作，表與migration不增加。
-
-新檔：backend/src/Adapters/GooglePlaceMapper.php、backend/src/DTO/MapCandidate.php、backend/tests/Unit/GooglePlaceMapperTest.php、backend/tests/map_fields_integration.py、frontend/assets/js/core/place-candidate.js、frontend/assets/js/components/place-reference.js、frontend/tests/place-candidate.test.mjs；用途見 [地圖欄位指南](modules/google-place-fields.md)。實作計畫見 [MAP-IMPORT-IMPROVEMENTS.md](MAP-IMPORT-IMPROVEMENTS.md)。
 
 
 ## 本功能歷史校正同步說明

@@ -13,7 +13,7 @@ use Yinghua\Models\ContentStatus;
 readonly class AttractionInput
 {
     /** @param array<string,bool|int|string|null> $fields */
-    private function __construct(public array $fields, public ?int $version, public ContentStatus $status) {}
+    private function __construct(public array $fields, public ?int $version, public ContentStatus $status, public bool $googleLinkConfirmed) {}
 
     /** @param array<string,mixed> $values */
     public static function fromArray(array $values, bool $creating): self
@@ -21,7 +21,7 @@ readonly class AttractionInput
         $input = new Input($values);
         $input->only(['slug','name','category','district','typeLabel','summary','description','hours','address',
             'phone','latitude','longitude','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','featured','isMuseum',
-            'status','publishAt','seoTitle','seoDescription','version','imageAlt','imageSource','imageLicense','recommendationLabel','openingHours']);
+            'status','publishAt','seoTitle','seoDescription','version','imageAlt','imageSource','imageLicense','recommendationLabel','openingHours','googleLinkConfirmed']);
         $slug = $input->text('slug', 1, 120);
         if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
             throw ApplicationError::invalid('slug', '網址識別只可使用小寫英數字與連字號。');
@@ -115,6 +115,6 @@ readonly class AttractionInput
             $fields['recommendation_label'] = $input->text('recommendationLabel', 0, 80);
         }
 
-        return new self($fields, $creating ? null : $input->positiveInt('version'), $status);
+        return new self($fields, $creating ? null : $input->positiveInt('version'), $status, array_key_exists('googleLinkConfirmed', $values) ? $input->boolean('googleLinkConfirmed') : false);
     }
 }

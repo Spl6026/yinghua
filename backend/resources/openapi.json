@@ -8666,6 +8666,11 @@
           "openingHours": {
             "$ref": "#/components/schemas/OpeningHours"
           },
+          "googleLinkConfirmed": {
+            "type": "boolean",
+            "default": false,
+            "description": "U-10／E-21：本次人工確認地點。新增／更換 Place ID 或修改名稱／地址／座標後，保留關聯須為true；只作命令參數，不落DB。"
+          },
           "phone": {
             "type": "string",
             "minLength": 0,
@@ -8833,6 +8838,11 @@
           },
           "openingHours": {
             "$ref": "#/components/schemas/OpeningHours"
+          },
+          "googleLinkConfirmed": {
+            "type": "boolean",
+            "default": false,
+            "description": "U-10／E-21：本次人工確認地點。新增／更換 Place ID 或修改名稱／地址／座標後，保留關聯須為true；只作命令參數，不落DB。"
           },
           "phone": {
             "type": "string",

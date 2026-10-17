@@ -6,6 +6,8 @@
 
 營業時間已依使用者新增要求統一為每週表單，手動建立與 Google 候選共用，可填公休、全天、午休多段及跨日。舊文字保留為備註；格式、相容及升級方式見 [營業時間閱讀指南](docs/modules/opening-hours.md)，其他相近匯入缺口見 [欄位檢查與計畫](docs/OPENING-HOURS-PLAN.md)。
 
+Google匯入另依U-10改善行政區、HTTP官網與可見地點關聯；Google簡介僅顯示原文供參考，網站介紹由管理員撰寫。變更地點後須重新確認或解除，前後端都會檢查。見 [地圖改善計畫](docs/MAP-IMPORT-IMPROVEMENTS.md)與[程式指南](docs/modules/google-place-fields.md)。
+
 後續計畫已按 P0（階段 2–8）→ P1（9–12）→ P2（13–15）重排，階段一為共用準備；各級有整合驗收界線，詳見 [實作計畫](docs/IMPLEMENTATION-PLAN.md)。目前階段一至三完成本機驗收，P0 尚未完成。
 
 ## 本機啟動
@@ -79,5 +81,3 @@ docker compose run --rm --no-deps frontend node --test tests/*.test.mjs
 整合測試使用獨立 `yinghua_test`、8081 與測試 root，只使用 Mailpit，不寄到外部信箱。它不清空 `yinghua`；執行時會復原測試 root 的密碼並撤銷其舊 session，因此不要同時操作 8081 的測試 root。測試輸出／憑證只放忽略的 `artifacts/`。
 
 目前是本機 HTTP 開發設定。正式 SMTP、HTTPS 網域與正式條款尚未提供；部署前需另外設定及驗證，不將本機寄信成功視為正式信箱送達。
-
-本提交已改善Google候選行政區、HTTP官網與原文簡介參考；網站介紹由管理員撰寫。詳見 [計畫](docs/MAP-IMPORT-IMPROVEMENTS.md)與[閱讀指南](docs/modules/google-place-fields.md)，地點關聯確認待下一功能交付。
