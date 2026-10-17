@@ -2,6 +2,10 @@
 .place-photo-preview{display:block;max-width:100%;width:640px;height:400px;object-fit:cover;background:#ebe5d8;border-radius:14px}
 .map-candidates{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .map-candidates .button{white-space:normal;text-align:left}
+.map-candidate{grid-column:1/-1;flex:1 1 300px;min-width:0;border:1px solid #d9d7cd;background:#f5f3eb;padding:16px;display:grid;gap:10px;overflow-wrap:anywhere}
+.map-candidate[hidden]{display:none}.map-candidate h3,.map-candidate p{margin:0}
+.google-editorial-summary{white-space:pre-wrap}
+.google-maps-attribution{font-family:Roboto,sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;white-space:nowrap;color:#1f1f1f}
 .table-scroll{overflow-x:auto}
 .admin-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:end;margin-bottom:18px}
 .admin-toolbar .admin-field{min-width:160px;flex:1}

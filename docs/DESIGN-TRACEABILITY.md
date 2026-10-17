@@ -157,3 +157,7 @@ U-06 沒有增加業務表或 HTML 網址。sessions 增 preview_admin_id、FK �
 U-09／E-20：同一 OpeningHours 週表 DTO、Google Adapter 與前端編輯器。狀態、四段上限、台北時區、JSON 欄位、舊文字僅備註、重疊驗證與摘要是工程設計，參考 Google OpeningHours 常態 periods，不使用語系字串猜測星期。計畫及其他相近缺口見 OPENING-HOURS-PLAN.md，中文閱讀指南見 modules/opening-hours.md；其餘列管項目沒有自動擴成已授權功能。
 
 R3-01／E-18：各景點圖片說明覆寫及 API 可寫欄位，回應規格圖片／alt 保存與 U-02 的資料重用要求；SQL 欄位及「省略保留、空白回到資產」為工程設計。R3-02／U-05：保留原型六筆順序、推薦文案與後台營業時間欄；recommendationLabel 不是新增評分業務。受控標籤回填的預覽／明確套用、交易稽核為 E-18。R3-04／E-18：新增 migration 補正雙座標 CHECK，API 原有成對驗證保留。R3-03 為必要的表單失敗與競態回歸，沒有新增後續階段業務。
+
+## U-10／E-21：地圖候選欄位
+
+使用者要求改善行政區、官網、地點關聯，並選Google簡介只供參考、網站介紹人工撰寫。本提交完成候選映射／行政區／HTTP官網及原文參考。DTO、Mapper、未知區清空、協定與來源標示屬工程設計；關聯Policy將隨下一功能交付。

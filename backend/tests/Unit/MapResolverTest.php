@@ -43,7 +43,7 @@ class MapResolverTest extends TestCase
         $authorization->expects(self::once())->method('require')->with(self::isInstanceOf(Account::class), 'attractions', 'edit')->willReturn($this->actor());
         $limiter = $this->createStub(RateLimiter::class);
 
-        return new MapResolver($http, new GoogleUrlPolicy(), new Config(), $authorization, $limiter, new \Yinghua\Adapters\GoogleOpeningHours());
+        return new MapResolver($http, new GoogleUrlPolicy(), new Config(), $authorization, $limiter, new \Yinghua\Adapters\GooglePlaceMapper(new \Yinghua\Adapters\GoogleOpeningHours()));
     }
 
     public function testUnsafeRedirectIsRejectedBeforeSecondNetworkCall(): void

@@ -27,7 +27,7 @@
 <div class="admin-field"><label for="place-name">景點名稱 *</label><input id="place-name" name="name" type="text" required maxlength="120"></div>
 <div class="admin-field"><label for="place-slug">網址識別（slug）*</label><input id="place-slug" name="slug" type="text" required maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="例：hsinchu-park"></div>
 <div class="admin-field"><label for="place-category">分類</label><select id="place-category" name="category"><option value="景點">景點</option><option value="美食">美食</option><option value="在地店家">在地店家</option></select></div>
-<div class="admin-field"><label for="place-district">行政區</label><select id="place-district" name="district"><option value="北區">北區</option><option value="東區">東區</option><option value="香山區">香山區</option></select></div>
+<div class="admin-field"><label for="place-district">行政區 *</label><select id="place-district" name="district" required><option value="">請選擇行政區</option><option value="北區">北區</option><option value="東區">東區</option><option value="香山區">香山區</option></select></div>
 <div class="admin-field"><label for="place-typeLabel">分類補充</label><input id="place-typeLabel" name="typeLabel" type="text" maxlength="80" placeholder="例：文化場館、咖啡・甜點"></div>
 <div class="admin-field"><label for="place-recommendationLabel">推薦文案標籤</label><input id="place-recommendationLabel" name="recommendationLabel" type="text" maxlength="80" placeholder="例：城市記憶；留空顯示在地推薦"></div>
 <!-- [U-09／E-20] 手動與 Google 候選共用每週編輯器；舊 hours 只保留相容摘要。 -->
@@ -36,11 +36,12 @@
 <!-- [S：功能規格 G6／E-24] 電話選填，格式由 API 驗證；不推測國碼。 -->
 <div class="admin-field full"><label for="place-phone">電話（選填）</label><input id="place-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="80" aria-describedby="phone-help"><p id="phone-help" class="helper-text">可使用國碼、空格、括號、連字號及分機，例如 03-1234567 分機 123。</p></div>
 <div class="admin-field full"><label for="place-summary">列表摘要 *</label><textarea id="place-summary" name="summary" required maxlength="500" rows="2"></textarea></div>
+<aside id="google-place-reference" class="map-candidate" aria-label="Google 地點原文參考" hidden></aside>
 <div class="admin-field full"><label for="place-description">景點介紹 *</label><textarea id="place-description" name="description" required maxlength="20000" rows="6"></textarea></div>
 <div class="admin-field"><label for="place-latitude">緯度</label><input id="place-latitude" name="latitude" type="number" step="any" min="-90" max="90"></div>
 <div class="admin-field"><label for="place-longitude">經度</label><input id="place-longitude" name="longitude" type="number" step="any" min="-180" max="180"></div>
 <div class="admin-field full"><label for="place-transport">交通資訊</label><textarea id="place-transport" name="transport" maxlength="2000" rows="2"></textarea></div>
-<div class="admin-field"><label for="place-websiteUrl">官方網站（HTTPS）</label><input id="place-websiteUrl" name="websiteUrl" type="url" maxlength="2000"></div>
+<div class="admin-field"><label for="place-websiteUrl">官方網站（HTTP／HTTPS）</label><input id="place-websiteUrl" name="websiteUrl" type="url" maxlength="2000" aria-describedby="website-help"><p id="website-help" class="helper-text">保留官網原本的協定，不會自動改寫網址。</p></div>
 <div class="admin-field"><label for="place-mapUrl">地圖網址（HTTPS）</label><input id="place-mapUrl" name="mapUrl" type="url" maxlength="2000"></div>
 <div class="admin-field"><label for="place-status">發布狀態</label><select id="place-status" name="status"><option value="draft">草稿</option><option value="published">發布／排程</option><option value="archived">下架</option></select></div>
 <div class="admin-field"><label for="place-publishAt">發布時間（台北；留空立即發布）</label><input id="place-publishAt" name="publishAt" type="datetime-local" step="1"></div>

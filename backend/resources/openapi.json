@@ -8562,7 +8562,8 @@
             "type": "string"
           },
           "websiteUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "HTTP／HTTPS 外部官網，保留原協定，不含帳密；伺服器不抓取此網址。"
           },
           "mapUrl": {
             "type": "string"
@@ -8725,7 +8726,8 @@
             "type": "string"
           },
           "websiteUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "HTTP／HTTPS 外部官網，保留原協定，不含帳密；伺服器不抓取此網址。"
           },
           "mapUrl": {
             "type": "string"
@@ -9652,6 +9654,41 @@
           },
           "openingHours": {
             "$ref": "#/components/schemas/OpeningHours"
+          },
+          "district": {
+            "type": "string",
+            "enum": [
+              "",
+              "北區",
+              "東區",
+              "香山區"
+            ],
+            "description": "確認新竹市及其行政區才帶值，無法確認為空，須人工選擇。"
+          },
+          "editorialSummary": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "Google原文僅供本頁參考；不改寫、不帶入網站summary／description、不接受保存。未提供或不可用時為空。"
+          },
+          "attributions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provider",
+                "providerUri"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string"
+                },
+                "providerUri": {
+                  "type": "string",
+                  "description": "安全HTTP／HTTPS外連；缺少或無效為空"
+                }
+              }
+            }
           }
         },
         "required": [
@@ -9663,7 +9700,10 @@
           "hours",
           "websiteUrl",
           "mapUrl",
-          "openingHours"
+          "openingHours",
+          "district",
+          "editorialSummary",
+          "attributions"
         ]
       },
       "MapCandidates": {

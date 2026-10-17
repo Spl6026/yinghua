@@ -786,6 +786,12 @@ attractions.opening_hours 是 nullable JSON；舊 hours 保留原文／新摘要
 
 功能開發期間新增、移動或刪除檔案，也應在同一功能提交同步維護本導讀；新增 API／表另更新 OpenAPI、來源表與模組指南。狀態只記實際完成，驗收結果放驗收文件，秘密仍只放本機被忽略的設定。
 
+## U-10本提交：候選欄位與原文參考
+
+GooglePlaceMapper驗證外部欄位，MapCandidate DTO輸出行政區、官網與Google簡介原文。新竹市行政區無法判定時清空；官網HTTP／HTTPS保留原協定，地圖及伺服器請求仍HTTPS。place-candidate.js統一套用，place-reference.js顯示原文與來源，不改寫網站介紹、不送出或保存簡介。人工新增不預設北區。關聯確認仍待下一功能交付。API仍44操作，表與migration不增加。
+
+新檔：backend/src/Adapters/GooglePlaceMapper.php、backend/src/DTO/MapCandidate.php、backend/tests/Unit/GooglePlaceMapperTest.php、backend/tests/map_fields_integration.py、frontend/assets/js/core/place-candidate.js、frontend/assets/js/components/place-reference.js、frontend/tests/place-candidate.test.mjs；用途見 [地圖欄位指南](modules/google-place-fields.md)。實作計畫見 [MAP-IMPORT-IMPROVEMENTS.md](MAP-IMPORT-IMPROVEMENTS.md)。
+
 
 ## 本功能歷史校正同步說明
 

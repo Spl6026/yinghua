@@ -4,6 +4,8 @@ import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, submitForm, unsavedChanges, formErrors } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { openingHoursEditor } from '../components/opening-hours-editor.js';
+import { applyPlaceCandidate } from '../core/place-candidate.js';
+import { renderPlaceReference } from '../components/place-reference.js';
 
 const fields = ['slug','name','category','district','typeLabel','summary','description','hours','address','phone','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','seoTitle','seoDescription','status','imageAlt','imageSource','imageLicense','recommendationLabel'];
 
@@ -17,10 +19,11 @@ export async function initializeAttractionForm(identity, page) {
   const mediaMessage = document.querySelector('#media-status');
   const mapMessage = document.querySelector('#map-status');
   const openingEditor = openingHoursEditor(document.querySelector('#opening-hours-editor'));
+  const reference = document.querySelector('#google-place-reference');
   const writeAllowed = () => !identity.preview?.active && hasPermission(identity, 'attractions', id ? 'edit' : 'create');
   const available = () => writeAllowed() && loaded && !busy && !completed;
   const samples = attractionSamplePicker(creating ? document.querySelector('#place-samples') : null,
-    form, openingEditor, available, () => { dirty = true; document.querySelector('#map-candidates').replaceChildren(); });
+    form, openingEditor, available, () => { dirty = true; renderPlaceReference(reference, null); document.querySelector('#map-candidates').replaceChildren(); });
   function controls() {
     form.querySelectorAll('input,select,textarea,button[data-write]').forEach(node => { node.disabled = !available(); });
     form.querySelector('[type="submit"]').disabled = !available();
@@ -43,6 +46,7 @@ export async function initializeAttractionForm(identity, page) {
       for (const name of fields) form.elements[name].value = attraction[name] ?? '';
       openingEditor.load(attraction.openingHours, attraction.hours);
       for (const name of ['latitude','longitude']) form.elements[name].value = attraction[name] ?? '';
+      renderPlaceReference(reference, null);
       for (const name of ['featured','isMuseum']) form.elements[name].checked = attraction[name];
       const date = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(attraction.publishAt));
       form.elements.publishAt.value = date.replace(' ', 'T');
@@ -93,14 +97,18 @@ export async function initializeAttractionForm(identity, page) {
       const result = await attractionsApi.resolve({ mapUrl, action: id ? 'edit' : 'create' });
       status(mapMessage, `${result.attribution}：${result.notice}`);
       for (const item of result.candidates) {
+        const card = element('article', { className: 'map-candidate' });
+        renderPlaceReference(card, item);
         const button = element('button', { type: 'button', className: 'button button-outline' }, `${item.name}｜${item.address}　帶入欄位`);
         button.addEventListener('click', async () => {
           if (!available() || !await confirmAction('確認候選地點', `將「${item.name}」的資料帶入表單。請自行核實資料與保存授權；不會自動儲存或帶入 Google 照片。`, button)) return;
-          for (const name of ['name','address','latitude','longitude','hours','websiteUrl','mapUrl','googlePlaceId']) form.elements[name].value = item[name] ?? '';
-          openingEditor.load(item.openingHours, item.hours);
-          dirty = true; status(mapMessage, '候選資料已帶入，請核實後儲存。'); candidates.replaceChildren();
+          if (!available()) return;
+          const notes = applyPlaceCandidate(form, item, openingEditor);
+          renderPlaceReference(reference, item);
+          dirty = true; status(mapMessage, ['候選資料已帶入，請核實後儲存。',...notes].join(' ')); candidates.replaceChildren();
+          form.elements[form.elements.district.value ? 'name' : 'district'].focus();
         });
-        candidates.append(button);
+        card.append(button);candidates.append(card);
       }
     } catch (error) { handleAdminError(error, mapMessage); }
     finally { busy = false; controls(); }

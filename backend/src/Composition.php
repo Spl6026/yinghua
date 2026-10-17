@@ -87,7 +87,7 @@ readonly class Composition
         $publicAttractions = new PublicAttractionController(new PublicAttractions($publication), $publication);
         $mediaController = new MediaController(new MediaManagement(new MediaRepository($database), new LocalImageStorage($this->config), $authorization, $transactions, $events), new MediaAccess($publication, $authentication, $authorization));
         $mapPolicy = new GoogleUrlPolicy();
-        $mapController = new MapController(new MapResolver(new CurlGoogleHttp($mapPolicy), $mapPolicy, $this->config, $authorization, $limiter, new \Yinghua\Adapters\GoogleOpeningHours()));
+        $mapController = new MapController(new MapResolver(new CurlGoogleHttp($mapPolicy), $mapPolicy, $this->config, $authorization, $limiter, new \Yinghua\Adapters\GooglePlaceMapper(new \Yinghua\Adapters\GoogleOpeningHours())));
         $router = new Router();
         /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';

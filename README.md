@@ -79,3 +79,5 @@ docker compose run --rm --no-deps frontend node --test tests/*.test.mjs
 整合測試使用獨立 `yinghua_test`、8081 與測試 root，只使用 Mailpit，不寄到外部信箱。它不清空 `yinghua`；執行時會復原測試 root 的密碼並撤銷其舊 session，因此不要同時操作 8081 的測試 root。測試輸出／憑證只放忽略的 `artifacts/`。
 
 目前是本機 HTTP 開發設定。正式 SMTP、HTTPS 網域與正式條款尚未提供；部署前需另外設定及驗證，不將本機寄信成功視為正式信箱送達。
+
+本提交已改善Google候選行政區、HTTP官網與原文簡介參考；網站介紹由管理員撰寫。詳見 [計畫](docs/MAP-IMPORT-IMPROVEMENTS.md)與[閱讀指南](docs/modules/google-place-fields.md)，地點關聯確認待下一功能交付。

@@ -71,9 +71,11 @@ readonly class AttractionInput
         $urls = [];
         foreach (['websiteUrl','mapUrl'] as $key) {
             $url = $optional($key, 2000);
-            if ($url !== '' && (!filter_var($url, FILTER_VALIDATE_URL) || parse_url($url, PHP_URL_SCHEME) !== 'https'
+            // [U-10／E-21] 官網可保留 HTTP 外連；地圖及伺服器外部請求仍為 HTTPS。
+            $schemes = $key === 'websiteUrl' ? ['http','https'] : ['https'];
+            if ($url !== '' && (!filter_var($url, FILTER_VALIDATE_URL) || !in_array(parse_url($url, PHP_URL_SCHEME), $schemes, true)
                 || parse_url($url, PHP_URL_USER) !== null || parse_url($url, PHP_URL_PASS) !== null)) {
-                throw ApplicationError::invalid($key, '請輸入不含登入資訊的 HTTPS 網址。');
+                throw ApplicationError::invalid($key, $key === 'websiteUrl' ? '請輸入不含登入資訊的 HTTP 或 HTTPS 官網網址。' : '請輸入不含登入資訊的 HTTPS 地圖網址。');
             }
             $urls[$key] = $url;
         }

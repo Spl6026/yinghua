@@ -15,3 +15,5 @@ MapController 驗證輸入及 create／edit 情境 → MapResolver 檢查管理�
 參考 [Place Details New](https://developers.google.com/maps/documentation/places/web-service/place-details)、[FieldMask](https://developers.google.com/maps/documentation/places/web-service/choose-fields) 與 [OWASP SSRF 防護](https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html)。這些提供設計依據，並未指定本案類別名稱。
 
 使用者已於 .env 提供金鑰，完整 Maps 網址及實際 maps.app.goo.gl 短網址均以真實 API 取得候選；測試未保存 Google 候選資料。惡意重導向、循環、錯誤 JSON、配額錯誤與缺金鑰另有不耗配額的單元測試。可用 `python backend/tests/attractions_integration.py --live-map` 明確重驗實連；一般回歸不重複消耗配額。
+
+U-10／E-21本提交新增GooglePlaceMapper／MapCandidate及addressComponents／editorialSummary／attributions。未知行政區清空，官網HTTP／HTTPS保留，原文簡介只供本頁參考。網站介紹不覆蓋，無新增表或端點；詳見 [欄位指南](google-place-fields.md)。關聯確認待下一功能提交。
