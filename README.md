@@ -25,6 +25,7 @@ docker compose exec -T app php bin/console.php db:seed
 
 ## 閱讀與驗收
 
+- [全站架構與檔案功能導讀：前後端、資料庫、Docker 與操作流程](docs/PROJECT-GUIDE.md)
 - [完整實作計畫](docs/IMPLEMENTATION-PLAN.md)
 - [階段二 API／表／頁面對照](docs/PHASE-2-PLAN.md)
 - [架構與成熟做法參考](docs/ARCHITECTURE.md)

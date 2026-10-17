@@ -51,3 +51,5 @@ git merge --no-ff phase/03-attractions-media
 先將所有 refs 備份為本機忽略的 `artifacts/history-before-feature-split-20261014.bundle` 並驗證，再建立新歷史。更新 main 前比對各階段最終 tree、全部原始交付檔案與新分支依賴；更新後確認工作樹、原始提交及最終應用檔案完整保留。未修改 `.env`、資料庫或已驗證的應用程式。只新增本次 Git 工作流程文件／規則。
 
 2026-10-17 PHP 分層改善依認證、管理員帳號、個人矩陣、整合驗證與唯讀模擬歸回對應功能提交，階段二維持十七筆。重整前備份為 `artifacts/history-before-layering-20261017.bundle` 並驗證；七個相依改變的 PHP 快照通過語法、PHPStan level 10 與適用單元測試，並以反例確認新增的 Service／PDO 相依限制生效。最終內容、原始交付、階段分支與 merge 邊界均有檢查；本輪實際 HTTP／MariaDB 驗證見 PHASE-2-ACCEPTANCE.md，沒有把內部改善寫成後續階段進度。
+
+使用者後續新增要求的全站架構／檔案導讀以獨立 `docs:` 提交交付，包含 PROJECT-GUIDE.md 與 README 入口；階段二因此為十七筆原有功能／準備／驗證提交，加一筆文件交付。此文件提交屬新增交付要求，不冒充新業務實作；前後端、資料庫與環境程式沒有異動。
