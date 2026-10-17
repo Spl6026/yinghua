@@ -40,8 +40,8 @@ export function formErrors(form, error) {
   return Boolean(first);
 }
 
-export async function submitForm(form, action, { canSubmit = () => true, onError } = {}) {
-  const message = form.querySelector('.form-status');
+export async function submitForm(form, action, { canSubmit = () => true, onError, statusNode } = {}) {
+  const message = statusNode || form.querySelector('.form-status');
   const button = form.querySelector('[type="submit"]');
   let retryAfter = 0;
   button.disabled = true;

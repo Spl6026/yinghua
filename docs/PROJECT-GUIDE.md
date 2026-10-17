@@ -1,6 +1,6 @@
 # 全站架構與檔案功能導讀
 
-階段三進行中（2026-10-18）：本提交已完成公開景點 API、完整 HTML／SEO、排程 CLI 與原型列表互動。以下階段二清單保留已交付說明；階段三新增用途列於末節，未將整個階段標為完成。
+階段三進行中（2026-10-18）：本提交已完成景點／媒體完整管理表單、授權、版本、交易稽核及發布／引用保護。以下階段二清單保留已交付說明；階段三新增用途列於末節，未將整個階段標為完成。
 
 
 更新日期：2026-10-18。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
@@ -659,7 +659,7 @@ python backend/tests/origin_redirect.py
 
 ## 階段三本提交累計能力
 
-公開景點 API、完整 HTML／SEO、排程 CLI 與原型列表互動。
+景點／媒體完整管理表單、授權、版本、交易稽核及發布／引用保護。
 
 | 檔案 | 用途 |
 | --- | --- |
@@ -694,17 +694,37 @@ python backend/tests/origin_redirect.py
 | [assets/image-placeholder.svg](../frontend/assets/image-placeholder.svg) | 本機圖片失敗替代圖。 |
 | [components/content-cards.js](../frontend/assets/js/components/content-cards.js) | 景點、電影、消息、優惠、路線、搜尋與行程示意的 DOM 元件；重用原型 class 並用安全文字建立。 |
 | [core/session.js](../frontend/assets/js/core/session.js) | me 驗證、已登入頁導向、首登限制、module/action 判斷、會員導覽、登入逾時及安全 returnTo。 |
-| [pages/public-details.js](../frontend/assets/js/pages/public-details.js) | 公開快照的景點／電影／消息／優惠詳情、站內連結與前後篇；尚未接正式內容 API。 |
+| [pages/public-details.js](../frontend/assets/js/pages/public-details.js) | 未完成模組的電影／消息／優惠原型詳情與前後篇；managed 景點頁由發布器提供，避免原型覆蓋。 |
 | [assets/js/pages/attractions.js](../frontend/assets/js/pages/attractions.js) | 公開列表 API 篩選、分類鍵盤操作、分頁、錯誤／替代圖。 |
 | [public.js](../frontend/assets/js/public.js) | 公開頁入口：唯讀快照列表、分類／地區／搜尋、展示卡片、動畫、詳情與會員導覽；planner 要登入，收藏／行程保存尚未開放。 |
 | [tests/attraction-publication.test.mjs](../frontend/tests/attraction-publication.test.mjs) | 真實 Node 產物、XSS 編碼、canonical、台北日期及失敗不切換。 |
 | [return-to.test.mjs](../frontend/tests/return-to.test.mjs) | 站內路由白名單、會員／後台命名空間及不安全重新導向拒絕。 |
+| [Request.php](../backend/src/Http/Request.php) | 從 PHP 請求資料建立不可變請求物件；校驗網址、JSON／multipart、query 與必要輸入，產生 requestId。 |
+| [EventRepository.php](../backend/src/Repositories/EventRepository.php) | 認證事件與管理稽核的寫入；欄位白名單與個資 HMAC 遮罩，避免保存明文憑證。 |
+| [src/Adapters/LocalImageStorage.php](../backend/src/Adapters/LocalImageStorage.php) | 圖片真實解碼、重新編碼、隨機儲存與失敗清理。 |
+| [src/Controllers/AttractionController.php](../backend/src/Controllers/AttractionController.php) | 管理列表、單筆、寫入、刪除及發布重試 HTTP 轉接。 |
+| [src/Controllers/MediaController.php](../backend/src/Controllers/MediaController.php) | multipart 上傳、分頁與 Nginx 媒體存取檢查。 |
+| [src/Services/AttractionManagement.php](../backend/src/Services/AttractionManagement.php) | 權限、交易、版本、媒體、博物館、引用、稽核及同步發布。 |
+| [src/Services/MediaAccess.php](../backend/src/Services/MediaAccess.php) | 匿名只讀已發布媒體，管理員讀取依有效身分與模組權限。 |
+| [src/Services/MediaManagement.php](../backend/src/Services/MediaManagement.php) | 媒體授權、儲存、交易／稽核與失敗檔案清理。 |
+| [admin.js](../frontend/assets/js/admin.js) | 後台共用入口：me、首登／權限 guard、側欄與身分、登出／模擬，依 data-page 初始化 CRUD 或矩陣頁。 |
+| [core/api-client.js](../frontend/assets/js/core/api-client.js) | 共用 fetch、15 秒逾時、同來源 Cookie、CSRF 記憶體快取與一次刷新重試、ApiError／Retry-After。 |
+| [core/ui.js](../frontend/assets/js/core/ui.js) | 共用 DOM 建立、文字／狀態、欄位錯誤與焦點、提交鎖與限速等待、未保存提示、選單操作。 |
+| [assets/js/pages/attraction-list.js](../frontend/assets/js/pages/attraction-list.js) | 後台列表、搜尋、狀態、分頁、刪除、重試及權限控制。 |
+| [admin/places.html](../frontend/pages/admin/places.html) | 景點與店家；guard 要求 `attractions.view` | `admin.js` | 階段三 API 已串接 |
+| [tests/content-fixture.php](../backend/tests/content-fixture.php) | 只允許隔離測試 volume 的發布失敗／恢復注入，無 HTTP 後門。 |
+| [tests/content_contract.py](../backend/tests/content_contract.py) | 實際 Router／OpenAPI 操作一致及內容回應欄位契約。 |
+| [assets/js/pages/attraction-form.js](../frontend/assets/js/pages/attraction-form.js) | 新增／編輯共用、載入／保存、圖片、候選確認與未存提醒。 |
+| [assets/js/api/attractions-api.js](../frontend/assets/js/api/attractions-api.js) | 景點、媒體、地圖與重試共用 API 呼叫。 |
+| [tests/attractions_integration.py](../backend/tests/attractions_integration.py) | 真實上傳／MariaDB／HTTP／發布故障及越權；選用 live-map。 |
 
 ## 本功能提交的複查補正
 
 [U-05／E-18] attractions 增 image_alt／image_source／image_license（景點使用說明，空值沿用原資產）及 recommendation_label（文案）；003 migration 明確拒絕單側 NULL 座標，不改 002。AttractionInput 沿用型別與長度檢查；AttractionInputTest 驗證忽略欄位、空值、型別與長度。共用 EventRepository 提供內容交易稽核，未提前註冊管理端點。
 
 公開 API／SSR／JS 讀同一份文案與圖片說明；同發布時間以 id ASC 保留六筆原型順序。AttractionSeeder／console 的 content:backfill-demo-labels 預設預覽，加 --apply 才補仍符合原始名稱／圖片且標籤為空的展示資料，固定管理員及稽核在同一交易，普通 seed 不覆寫既有資料。更新 PHP 後 restart publisher，再以 www-data 執行 content:publish。
+
+管理表單使用 imageAlt／imageSource／imageLicense／recommendationLabel；不換圖也隨既有保存 API 寫入，保留原共用媒體來源；恢復清單營業時間。新增 frontend/tests/attraction-form.test.mjs（九項失敗／競態行為）、backend/tests/attraction_corrections.py（21 項 HTTP／共用隔離）及 attraction_constraints.php（八項真實 DB 約束回滾）。API 版本／授權／唯讀仍由既有管理服務執行。詳細資料流見景點與媒體中文閱讀指南。
 
 
 ## 本功能歷史校正同步說明

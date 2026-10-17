@@ -16,6 +16,16 @@ readonly class Attraction
         return $this->values;
     }
 
+    /** [S：功能規格 E20] 僅提供試填基本資料，不複製識別、發布、圖片授權或 Google 關聯。
+     * @return array<string,mixed>
+     */
+    public function sampleArray(): array
+    {
+        return array_intersect_key($this->values, array_flip(['id','name','category','district','typeLabel',
+            'summary','description','hours','openingHours','address','phone','latitude','longitude','transport',
+            'websiteUrl','mapUrl','recommendationLabel']));
+    }
+
     /** @return array<string,mixed> */
     public function publicArray(): array
     {

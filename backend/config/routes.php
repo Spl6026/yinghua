@@ -5,13 +5,15 @@ declare(strict_types=1);
 use Yinghua\Controllers\AdminController;
 use Yinghua\Controllers\AuthController;
 use Yinghua\Controllers\PermissionController;
+use Yinghua\Controllers\AttractionController;
 use Yinghua\Controllers\PublicAttractionController;
+use Yinghua\Controllers\MediaController;
 use Yinghua\Http\Route;
 use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
 /** [S-016／17／26／27；S：功能規格 6/13/19/20；E-18] 路由只宣告 HTTP、身分與授權。 */
-return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, PublicAttractionController $publicAttractions): void {
+return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
         $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...), allowPreviewControl: true));
@@ -38,6 +40,16 @@ return static function (Router $router, AuthController $auth, AdminController $a
     $router->add(new Route('GET', '/api/v1/admin/permissions/catalog', $kind, $permissions->catalog(...), true, 'permissions', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/admins/{id}/permissions', $kind, $permissions->matrix(...), true, 'permissions', 'view'));
     $router->add(new Route('PUT', '/api/v1/admin/admins/{id}/permissions', $kind, $permissions->saveMatrix(...), true, 'permissions', 'edit'));
+    $router->add(new Route('GET', '/api/v1/admin/attractions', $kind, $attractions->listing(...), true, 'attractions', 'view'));
+    $router->add(new Route('GET', '/api/v1/admin/attractions/samples', $kind, $attractions->samples(...), true, 'attractions', 'create'));
+    $router->add(new Route('GET', '/api/v1/admin/attractions/{id}', $kind, $attractions->get(...), true, 'attractions', 'view'));
+    $router->add(new Route('POST', '/api/v1/admin/attractions', $kind, $attractions->create(...), true, 'attractions', 'create'));
+    $router->add(new Route('PUT', '/api/v1/admin/attractions/{id}', $kind, $attractions->update(...), true, 'attractions', 'edit'));
+    $router->add(new Route('DELETE', '/api/v1/admin/attractions/{id}', $kind, $attractions->delete(...), true, 'attractions', 'delete'));
+    $router->add(new Route('POST', '/api/v1/admin/attractions/publish-retry', $kind, $attractions->retry(...), true, 'attractions', 'edit'));
+    $router->add(new Route('POST', '/api/v1/admin/media', $kind, $media->upload(...), true));
+    $router->add(new Route('GET', '/api/v1/admin/media', $kind, $media->listing(...), true, 'attractions', 'view'));
+    $router->add(new Route('GET', '/api/v1/admin/media/access', $kind, $media->access(...)));
     $kind = IdentityKind::Member;
     $router->add(new Route('GET', '/api/v1/publication/access', $kind, $publicAttractions->access(...)));
     $router->add(new Route('GET', '/api/v1/attractions/resolve-url', $kind, $publicAttractions->resolve(...)));

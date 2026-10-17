@@ -8,6 +8,7 @@ use PDOException;
 use Yinghua\DTO\Attraction;
 use Yinghua\DTO\AttractionInput;
 use Yinghua\DTO\AttractionPage;
+use Yinghua\DTO\PhoneNumber;
 use Yinghua\Exceptions\ContentConflict;
 
 /** [S：功能規格 13/19/20；E-18] SQL 僅在此層，公開投影與管理查詢共用映射。 */
@@ -45,6 +46,16 @@ class AttractionRepository
         );
 
         return new AttractionPage(array_map($this->map(...), $rows), $total->integer('total'), $page, $size);
+    }
+
+    /** [S：功能規格 E20；E-24] 僅原始六筆、已發布且未刪除的 DB 內容；不重建本機模擬資料。
+     * @return list<Attraction>
+     */
+    public function samples(): array
+    {
+        $rows = $this->database->rows(self::SELECT . " WHERE a.legacy_id BETWEEN 1 AND 6 AND a.status='published' AND a.deleted_at IS NULL AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.legacy_id");
+
+        return array_map($this->map(...), $rows);
     }
 
     public function save(string $id, AttractionInput $input, bool $creating): void
@@ -127,7 +138,7 @@ class AttractionRepository
         $r = new Row($values);
         $data = [];
         foreach (['id' => 'id','slug' => 'slug','name' => 'name','category' => 'category','district' => 'district','typeLabel' => 'type_label',
-            'summary' => 'summary','description' => 'description','hours' => 'hours','address' => 'address','transport' => 'transport',
+            'phone' => 'phone','summary' => 'summary','description' => 'description','hours' => 'hours','address' => 'address','transport' => 'transport',
             'websiteUrl' => 'website_url','mapUrl' => 'map_url','seoTitle' => 'seo_title','seoDescription' => 'seo_description','status' => 'status'] as $key => $column) {
             $data[$key] = $r->string($column);
         }
@@ -135,6 +146,7 @@ class AttractionRepository
             $value = $r->nullableString($key);
             $data[$key] = $value === null ? null : (float) $value;
         }
+        $data['phoneUrl'] = PhoneNumber::fromText($r->string('phone'))->uri;
         $data['mediaId'] = $r->nullableString('media_id');
         $key = $r->nullableString('storage_key');
         $data['image'] = $key === null ? $r->string('external_image_url') : '/media/' . $key;

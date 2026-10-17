@@ -1,0 +1,57 @@
+"""[E-18] 真實路由／OpenAPI 一致性及內容回應欄位契約；僅使用隔離環境。"""
+import json
+import subprocess
+from api_integration import Client, ROOT, fixture, password
+
+
+def main():
+    spec = json.loads((ROOT / 'backend/resources/openapi.json').read_text(encoding='utf-8'))
+    php = '''<?php
+    require 'vendor/autoload.php';
+    $kernel = (new Yinghua\\Composition(new Yinghua\\Config()))->kernel();
+    $router = (new ReflectionProperty($kernel, 'router'))->getValue($kernel);
+    $routes = (new ReflectionProperty($router, 'routes'))->getValue($router);
+    echo json_encode(array_map(fn($r) => [$r->method, $r->path], $routes));
+    '''
+    result = subprocess.run(['docker', 'compose', 'exec', '-T', 'app-test', 'php'],
+                            cwd=ROOT, input=php, capture_output=True, text=True, encoding='utf-8', check=True)
+    actual = {tuple(item) for item in json.loads(result.stdout)}
+    documented = {(method.upper(), path) for path, value in spec['paths'].items()
+                  for method in value if method in {'get', 'post', 'put', 'delete', 'patch'}}
+    assert actual == documented, (actual - documented, documented - actual)
+    fixture(password, 'root')
+    root = Client('admin')
+    assert root.login('admin')[0] == 200
+    guest = Client()
+    count = 1
+
+    def shape(client, path, schema):
+        nonlocal count
+        status, data, _ = client.call('GET', path)
+        assert status == 200, (path, status)
+        definition = spec['components']['schemas'][schema]
+        assert set(data) == set(definition['properties']), (schema, set(data))
+        assert set(definition.get('required', [])) <= set(data)
+        count += 1
+        return data
+
+    page = shape(root, '/api/v1/admin/attractions', 'AttractionList')
+    assert page['items']
+    item = page['items'][0]
+    assert set(item) == set(spec['components']['schemas']['Attraction']['properties'])
+    count += 1
+    shape(root, '/api/v1/admin/attractions/' + item['id'], 'AttractionRecord')
+    shape(root, '/api/v1/admin/media', 'MediaList')
+    public = shape(guest, '/api/v1/attractions', 'PublicAttractionList')
+    assert public['items']
+    public_item = public['items'][0]
+    assert set(public_item) == set(spec['components']['schemas']['PublicAttraction']['properties'])
+    assert not {'status', 'deletedAt', 'googlePlaceId', 'legacyImage'} & set(public_item)
+    count += 1
+    shape(guest, '/api/v1/attractions/' + public_item['slug'], 'PublicAttractionRecord')
+    shape(guest, '/api/v1/museum', 'PublicAttractionRecord')
+    print(json.dumps({'contractChecks': count, 'routeOperations': len(actual)}))
+
+
+if __name__ == '__main__':
+    main()

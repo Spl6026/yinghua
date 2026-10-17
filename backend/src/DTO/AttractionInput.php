@@ -20,7 +20,7 @@ readonly class AttractionInput
     {
         $input = new Input($values);
         $input->only(['slug','name','category','district','typeLabel','summary','description','hours','address',
-            'latitude','longitude','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','featured','isMuseum',
+            'phone','latitude','longitude','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','featured','isMuseum',
             'status','publishAt','seoTitle','seoDescription','version','imageAlt','imageSource','imageLicense','recommendationLabel']);
         $slug = $input->text('slug', 1, 120);
         if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
@@ -85,7 +85,7 @@ readonly class AttractionInput
             'slug' => $slug, 'name' => $input->text('name', 1, 120), 'category' => $category, 'district' => $district,
             'type_label' => $optional('typeLabel', 80), 'summary' => $input->text('summary', 1, 500),
             'description' => $input->text('description', 1, 20000), 'hours' => $optional('hours', 500),
-            'address' => $input->text('address', 1, 255), 'latitude' => $coordinates['latitude'],'longitude' => $coordinates['longitude'],
+            'address' => $input->text('address', 1, 255), 'phone' => PhoneNumber::fromText($input->optionalText('phone', 80))->text, 'latitude' => $coordinates['latitude'],'longitude' => $coordinates['longitude'],
             'transport' => $optional('transport', 2000), 'website_url' => $urls['websiteUrl'],'map_url' => $urls['mapUrl'],
             'google_place_id' => $placeId === '' ? null : $placeId, 'media_id' => $mediaId === '' ? null : $mediaId,
             'featured' => array_key_exists('featured', $values) ? $input->boolean('featured') : false,

@@ -6,12 +6,15 @@ namespace Yinghua\Http;
 
 use JsonException;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\DTO\UploadedImage;
 
 readonly class Request
 {
     /** @param array<string,mixed> $query
      * @param array<string,string> $headers
      * @param array<string,string> $cookies
+     * @param array<string,mixed> $form
+     * @param array<string,UploadedImage> $files
      */
     public function __construct(
         public string $method,
@@ -23,6 +26,8 @@ readonly class Request
         public string $ip,
         public string $userAgent,
         public string $requestId,
+        public array $form = [],
+        public array $files = [],
     ) {}
 
     public static function capture(): self
@@ -55,7 +60,26 @@ readonly class Request
                 $query[$name] = $value;
             }
         }
-        $body = file_get_contents('php://input', false, null, 0, 65537);
+        $multipart = str_starts_with(strtolower($headers['content-type']), 'multipart/form-data;');
+        if ($multipart && (int) self::server('CONTENT_LENGTH', '0') > 10 * 1024 * 1024) {
+            throw new ApplicationError('PAYLOAD_TOO_LARGE', '上傳內容過大。');
+        }
+        $form = [];
+        $files = [];
+        if ($multipart) {
+            foreach ($_POST as $name => $value) {
+                if (is_string($name)) {
+                    $form[$name] = $value;
+                }
+            }
+            foreach ($_FILES as $name => $file) {
+                if (!is_string($name) || !is_array($file) || !is_string($file['tmp_name'] ?? null) || !is_int($file['error'] ?? null) || !is_int($file['size'] ?? null)) {
+                    throw ApplicationError::invalid('image', '上傳格式無效。');
+                }
+                $files[$name] = new UploadedImage($file['tmp_name'], $file['error'], $file['size']);
+            }
+        }
+        $body = $multipart ? '' : file_get_contents('php://input', false, null, 0, 65537);
         if ($body === false || strlen($body) > 65536) {
             throw new ApplicationError('PAYLOAD_TOO_LARGE', '請求內容過大。');
         }
@@ -70,6 +94,8 @@ readonly class Request
             self::server('REMOTE_ADDR'),
             self::server('HTTP_USER_AGENT'),
             bin2hex(random_bytes(16)),
+            $form,
+            $files,
         );
     }
 

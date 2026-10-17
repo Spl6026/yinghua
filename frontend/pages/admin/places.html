@@ -5,22 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<title>景點與店家｜映畫竹塹</title>
-<meta name="description" content="映畫竹塹｜新竹城市影像與旅行指南。">
-<meta name="theme-color" content="#f5f0e6">
+<title>景點與店家｜映畫竹塹後台</title>
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/phase2.css">
+<link rel="stylesheet" href="/assets/css/phase3.css">
 </head>
 <body data-module="attractions" data-action="view" data-page="places">
-<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
-<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / ATTRACTIONS</p><h1>景點與店家</h1><p>此功能將於後續階段提供。</p></div></div>
+<a class="skip-link" href="#main-content">跳到主要內容</a>
+<div class="site-shell"><main id="main-content" tabindex="-1">
+<div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
+<div class="admin-content">
+<div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT / PLACES</p><h1>景點與店家</h1><p>管理景點、美食與在地店家，發布後同步前台。</p></div></div>
 <section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
-</section>
+<div class="admin-panel-heading"><h2>景點列表</h2><a id="add-place" class="button button-dark" href="/admin/place-add.html">新增景點 ↗</a></div>
+<div class="admin-toolbar">
+<div class="admin-field"><label for="admin-place-search">搜尋景點</label><input id="admin-place-search" type="search" placeholder="名稱或地址" maxlength="80"></div>
+<div class="admin-field"><label for="place-status-filter">發布狀態</label><select id="place-status-filter"><option value="">全部狀態</option><option value="draft">草稿</option><option value="published">已發布／排程</option><option value="archived">已下架</option></select></div>
+<button type="button" class="button button-outline" id="reload-places">重新載入</button>
+<button type="button" class="button button-outline" id="retry-publication">重試公開頁面同步</button>
 </div>
-</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
-<script type="module" src="/assets/js/admin.js"></script></body>
-</html>
+<p id="place-list-status" class="form-status" role="status" tabindex="-1"></p>
+<div class="table-scroll"><table class="admin-table"><caption class="sr-only">景點與店家列表</caption><thead><tr><th scope="col">名稱</th><th scope="col">分類</th><th scope="col">行政區</th><th scope="col">營業時間</th><th scope="col">狀態</th><th scope="col">操作</th></tr></thead><tbody id="place-rows"></tbody></table></div>
+<div class="admin-form-actions"><button type="button" class="button button-outline" id="place-previous" disabled>上一頁</button><span id="place-page" aria-live="polite"></span><button type="button" class="button button-outline" id="place-next" disabled>下一頁</button></div>
+</section>
+</div></div></div></main>{{DIALOG}}
+<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+<script type="module" src="/assets/js/admin.js"></script>
+</body></html>

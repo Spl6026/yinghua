@@ -9,3 +9,7 @@
 .list-pagination{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;margin:28px 0}
 .admin-field input[type="checkbox"]{width:auto;margin-right:10px}
 @media(max-width:760px){.place-photo-preview{height:240px}.admin-toolbar .button{width:100%}}
+
+/* [S E20／E-24] 保留原型配色，讓範例選單與操作於窄畫面換行。 */
+#place-samples .url-import{grid-template-columns:minmax(0,1fr) auto auto}#place-samples select{min-width:0;width:100%}
+@media(max-width:760px){#place-samples .url-import{grid-template-columns:1fr}}
