@@ -1,6 +1,9 @@
 # 全站架構與檔案功能導讀
 
-更新日期：2026-10-17。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
+階段三進行中（2026-10-18）：本提交已完成schema、型別化 DTO／enum、Repository 與外部介面的共用準備。以下階段二清單保留已交付說明；階段三新增用途列於末節，未將整個階段標為完成。
+
+
+更新日期：2026-10-18。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
 
 **目前完成階段二：會員認證、管理員帳號與權限、固定管理員唯讀模擬。** 公開內容使用交付時的展示快照；其餘業務後台有登入／權限檢查及待開放提示，尚未完成內容管理。頁面存在不代表該模組已串接資料庫。完整階段規劃見 [實作計畫](IMPLEMENTATION-PLAN.md)，實際驗證見 [階段二驗收](PHASE-2-ACCEPTANCE.md)。
 
@@ -653,6 +656,33 @@ python backend/tests/origin_redirect.py
 **每完成一個階段，必須在宣告完成及合併 main 前更新本文件。** 更新日期與該階段實際完成範圍，核對架構、檔案用途與清單、頁面／API 狀態、資料表／migration、Docker／環境設定及啟動／驗證命令，並檢查連結。即使沒有新增檔案，也要核對既有說明並更新階段摘要；後續未實作功能仍標為待開放。此要求同步記在 AGENTS.md 與 DEVELOPMENT-WORKFLOW.md。
 
 功能開發期間新增、移動或刪除檔案，也應在同一功能提交同步維護本導讀；新增 API／表另更新 OpenAPI、來源表與模組指南。狀態只記實際完成，驗收結果放驗收文件，秘密仍只放本機被忽略的設定。
+
+## 階段三本提交累計能力
+
+schema、型別化 DTO／enum、Repository 與外部介面的共用準備。
+
+| 檔案 | 用途 |
+| --- | --- |
+| [database/migrations/002_attractions.sql](../backend/database/migrations/002_attractions.sql) | 七張新表、外鍵、發布／管理／媒體分頁索引及最小路線引用保護。 |
+| [src/DTO/Attraction.php](../backend/src/DTO/Attraction.php) | Repository 的內容快照，區分管理與公開欄位。 |
+| [src/DTO/AttractionInput.php](../backend/src/DTO/AttractionInput.php) | 欄位白名單、slug、座標、網址、發布時間與版本校驗。 |
+| [src/DTO/AttractionPage.php](../backend/src/DTO/AttractionPage.php) | 管理列表的 typed 分頁結果。 |
+| [src/DTO/AttractionWriteResult.php](../backend/src/DTO/AttractionWriteResult.php) | 已保存內容與公開同步狀態分別輸出。 |
+| [src/DTO/MediaAsset.php](../backend/src/DTO/MediaAsset.php) | 媒體 ID、URL、格式、尺寸、alt、來源與授權。 |
+| [src/DTO/RemoteResponse.php](../backend/src/DTO/RemoteResponse.php) | 外部 HTTP status、body、headers。 |
+| [src/DTO/UploadedImage.php](../backend/src/DTO/UploadedImage.php) | PHP 上傳暫存路徑、error、size。 |
+| [src/Contracts/ContentRenderer.php](../backend/src/Contracts/ContentRenderer.php) | 公開版本讀取、產生、版本及排他鎖介面。 |
+| [src/Contracts/GoogleHttp.php](../backend/src/Contracts/GoogleHttp.php) | 可替換的 Google HTTP 介面，單元測試不耗真實配額。 |
+| [src/Contracts/ImageStorage.php](../backend/src/Contracts/ImageStorage.php) | 媒體保存與失敗清理介面。 |
+| [src/Exceptions/ContentConflict.php](../backend/src/Exceptions/ContentConflict.php) | 內容 slug／歷史路徑唯一衝突的儲存例外。 |
+| [src/Models/ContentStatus.php](../backend/src/Models/ContentStatus.php) | draft／published／archived backed enum。 |
+| [src/Repositories/AttractionRepository.php](../backend/src/Repositories/AttractionRepository.php) | 內容 SQL、排序／搜尋／分頁、merchants、alias、引用及公開投影。 |
+| [src/Repositories/MediaRepository.php](../backend/src/Repositories/MediaRepository.php) | 媒體寫入與模組分頁。 |
+| [src/Repositories/PublicationRepository.php](../backend/src/Repositories/PublicationRepository.php) | 公開版本 pending／succeeded／failed 紀錄。 |
+
+## 本功能提交的複查補正
+
+[U-05／E-18] attractions 增 image_alt／image_source／image_license（景點使用說明，空值沿用原資產）及 recommendation_label（文案）；003 migration 明確拒絕單側 NULL 座標，不改 002。AttractionInput 沿用型別與長度檢查；AttractionInputTest 驗證忽略欄位、空值、型別與長度。共用 EventRepository 提供內容交易稽核，未提前註冊管理端點。
 
 
 ## 本功能歷史校正同步說明

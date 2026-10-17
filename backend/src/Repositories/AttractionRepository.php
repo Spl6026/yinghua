@@ -1,0 +1,158 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Yinghua\Repositories;
+
+use PDOException;
+use Yinghua\DTO\Attraction;
+use Yinghua\DTO\AttractionInput;
+use Yinghua\DTO\AttractionPage;
+use Yinghua\Exceptions\ContentConflict;
+
+/** [S：功能規格 13/19/20；E-18] SQL 僅在此層，公開投影與管理查詢共用映射。 */
+class AttractionRepository
+{
+    private const string SELECT = 'SELECT a.*,m.storage_key,m.alt AS media_alt,m.source AS media_source,m.license AS media_license FROM attractions a LEFT JOIN media_assets m ON m.id=a.media_id';
+
+    public function __construct(private readonly Database $database) {}
+
+    public function find(string $id, bool $lock = false): ?Attraction
+    {
+        $row = $this->database->row(self::SELECT . ' WHERE a.id=:id' . ($lock ? ' FOR UPDATE' : ''), ['id' => $id]);
+
+        return $row === null ? null : $this->map($row);
+    }
+
+    public function listing(string $query, string $status, int $page, int $size): AttractionPage
+    {
+        $where = 'a.deleted_at IS NULL';
+        $parameters = [];
+        if ($query !== '') {
+            $where .= ' AND (a.name LIKE :name OR a.address LIKE :address)';
+            $parameters['name'] = $parameters['address'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query) . '%';
+            $where = str_replace('LIKE :name', "LIKE :name ESCAPE '!'", $where);
+            $where = str_replace('LIKE :address', "LIKE :address ESCAPE '!'", $where);
+        }
+        if ($status !== '') {
+            $where .= ' AND a.status=:status';
+            $parameters['status'] = $status;
+        }
+        $total = new Row($this->database->row('SELECT COUNT(*) AS total FROM attractions a WHERE ' . $where, $parameters) ?? []);
+        $rows = $this->database->rows(
+            self::SELECT . ' WHERE ' . $where . ' ORDER BY a.updated_at DESC,a.id DESC LIMIT :size OFFSET :offset',
+            [...$parameters,'size' => $size,'offset' => ($page - 1) * $size],
+        );
+
+        return new AttractionPage(array_map($this->map(...), $rows), $total->integer('total'), $page, $size);
+    }
+
+    public function save(string $id, AttractionInput $input, bool $creating): void
+    {
+        try {
+            if ($creating) {
+                $columns = implode(',', array_keys($input->fields));
+                $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($input->fields)));
+                $this->database->execute('INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')', ['id' => $id,...$input->fields]);
+            } else {
+                $columns = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($input->fields)));
+                $this->database->execute('UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$input->fields]);
+            }
+            if ($input->fields['category'] === '景點') {
+                $this->database->execute('DELETE FROM merchants WHERE attraction_id=:id', ['id' => $id]);
+            } else {
+                $this->database->execute('INSERT IGNORE INTO merchants (attraction_id) VALUES (:id)', ['id' => $id]);
+            }
+            $this->alias('/places/' . (string) $input->fields['slug'] . '.html', $id);
+        } catch (PDOException $error) {
+            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+                throw new ContentConflict('Content identity already reserved.', previous: $error);
+            }
+            throw $error;
+        }
+    }
+
+    public function alias(string $path, string $id): void
+    {
+        $existing = $this->database->row('SELECT attraction_id FROM attraction_aliases WHERE path=:path', ['path' => $path]);
+        if ($existing !== null && (new Row($existing))->string('attraction_id') !== $id) {
+            throw new ContentConflict('Historical URL already reserved.');
+        }
+        $this->database->execute('INSERT IGNORE INTO attraction_aliases (path,attraction_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
+    }
+
+    public function delete(string $id): void
+    {
+        $this->database->execute("UPDATE attractions SET status='archived',deleted_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id", ['id' => $id]);
+    }
+
+    public function referenced(string $id): bool
+    {
+        return $this->database->row('SELECT attraction_id FROM route_attractions WHERE attraction_id=:id LIMIT 1', ['id' => $id]) !== null;
+    }
+
+    public function hasMuseum(string $exceptId): bool
+    {
+        return $this->database->row('SELECT id FROM attractions WHERE is_museum=1 AND deleted_at IS NULL AND id<>:id LIMIT 1', ['id' => $exceptId]) !== null;
+    }
+
+    public function mediaExists(string $id): bool
+    {
+        return $this->database->row("SELECT id FROM media_assets WHERE id=:id AND module='attractions'", ['id' => $id]) !== null;
+    }
+
+    /** @return list<Attraction> */
+    public function published(): array
+    {
+        // [U-05／R3-02] 發布時間優先；同時發布的受控 seed ID 按原型順序，其他 ID 亦有穩定次排序。
+        return array_map($this->map(...), $this->database->rows(self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.publish_at DESC,a.id ASC"));
+    }
+
+    /** @return array<string,string> */
+    public function aliases(): array
+    {
+        $result = [];
+        foreach ($this->database->rows("SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP()") as $values) {
+            $row = new Row($values);
+            $result[$row->string('path')] = $row->integer('is_museum') === 1 ? '/museum.html' : '/places/' . $row->string('slug') . '.html';
+        }
+        ksort($result);
+
+        return $result;
+    }
+
+    /** @param array<string,mixed> $values */
+    private function map(array $values): Attraction
+    {
+        $r = new Row($values);
+        $data = [];
+        foreach (['id' => 'id','slug' => 'slug','name' => 'name','category' => 'category','district' => 'district','typeLabel' => 'type_label',
+            'summary' => 'summary','description' => 'description','hours' => 'hours','address' => 'address','transport' => 'transport',
+            'websiteUrl' => 'website_url','mapUrl' => 'map_url','seoTitle' => 'seo_title','seoDescription' => 'seo_description','status' => 'status'] as $key => $column) {
+            $data[$key] = $r->string($column);
+        }
+        foreach (['latitude','longitude'] as $key) {
+            $value = $r->nullableString($key);
+            $data[$key] = $value === null ? null : (float) $value;
+        }
+        $data['mediaId'] = $r->nullableString('media_id');
+        $key = $r->nullableString('storage_key');
+        $data['image'] = $key === null ? $r->string('external_image_url') : '/media/' . $key;
+        $data['imageAlt'] = $r->nullableString('image_alt') ?? ($key === null ? $r->string('external_image_alt') : $r->string('media_alt'));
+        $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? '原始交付展示素材';
+        $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? '正式上線前須確認授權';
+        $data['recommendationLabel'] = $r->string('recommendation_label');
+        $data['legacyImage'] = $r->string('external_image_url');
+        $data['googlePlaceId'] = $r->nullableString('google_place_id');
+        $data['version'] = $r->integer('version');
+        $data['featured'] = $r->integer('featured') === 1;
+        $data['isMuseum'] = $r->integer('is_museum') === 1;
+        $data['url'] = $data['isMuseum'] ? '/museum.html' : '/places/' . $r->string('slug') . '.html';
+        $data['publishAt'] = str_replace(' ', 'T', $r->string('publish_at')) . '+00:00';
+        $data['updatedAt'] = str_replace(' ', 'T', $r->string('updated_at')) . '+00:00';
+        $data['deletedAt'] = $r->nullableString('deleted_at');
+        $data['legacyId'] = ($values['legacy_id'] ?? null) === null ? null : $r->integer('legacy_id');
+
+        return new Attraction($r->string('id'), $r->string('slug'), $r->integer('version'), $r->string('status'), $r->nullableString('deleted_at'), $data);
+    }
+}
