@@ -23,7 +23,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 
 ## 2. 當前狀態
 
-已完成環境與階段二：backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依階段三起進行。
+已完成環境與階段二：backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前仍僅階段一、二完成。
 
 工具可執行不代表功能或分析已通過。環境結果見 ENVIRONMENT-SETUP.md；功能驗收以 PHASE-2-ACCEPTANCE.md 的實際結果為準。
 
@@ -50,7 +50,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 
 | 步驟 | 動作 | 判斷完成的依據 |
 | --- | --- | --- |
-| 開始前 | 核對架構、階段計畫、API／資料表／頁面契約、來源標記與工作樹；選擇當次 skills | 實作範圍與既有未提交改動清楚 |
+| 開始前 | 核對架構、優先級／階段計畫、API／資料表／頁面契約、來源標記與工作樹；選擇當次 skills | 範圍與未提交改動清楚；跨優先級前，上一優先級的界線驗收已完成 |
 | 設計 | 明確 DTO、Controller／Service／Repository 責任、交易、狀態、權限與失敗情境；按需要審查索引 | 能說明成功、拒絕及並行請求的行為 |
 | 實作 | 按架構寫 PHP API／前端頁面與模組，保留原始 website；附中文業務來源註解和閱讀指南 | 新功能來自真正後端資料，不用模擬狀態代替 |
 | 程式檢查 | PHP 語法、PHPStan、格式 dry-run、適用的 PHPat／Rector 檢查 | 有實際結果；工具缺少或失敗不當成通過 |
@@ -75,6 +75,8 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 | web-design-guidelines | vercel-labs/agent-skills：skills/web-design-guidelines | 063bee94c3f4df8453406c830b0a7df0f2860278 |
 
 php-modernization 是使用者已有的安裝，原本 skills-lock.json 保留不覆蓋。該檔由原安裝工具管理，目前只記錄 php-modernization；這次 helper 安裝的三個 skills 以本節的來源 commit 記錄，不假造原工具的 computedHash。它們是專案開發資源，不打包成網站公開資產。
+
+P0 → P1 → P2 依序推進，界線分別為階段 8／12／15。共用前置能力須標明當前用途；計畫重排不算實作或後續階段授權。實際驗收與正式服務差項分列，不以階段內的局部成果代替整個優先級完成。
 
 ## 7. 階段分支與功能提交
 

@@ -18,7 +18,7 @@
 6. 帳號停用、刪除、改密碼及 session 撤銷在下一個請求生效；權限變更不必重新登入才生效。
 7. 重要管理異動與認證事件有紀錄，紀錄不包含密碼、Cookie、驗證碼答案或重設 token。
 
-本階段不完成景點、電影、消息、優惠與路線 CRUD，也不完成會員收藏／行程保存或會員查詢後台。這些仍依階段三至七實作；後台未完成模組使用明確的待串接畫面，避免把 localStorage 操作呈現為正式保存。
+本階段不完成景點、電影、消息、優惠與路線 CRUD，也不完成會員收藏／行程保存或會員查詢後台。這些仍依 [最新實作計畫](IMPLEMENTATION-PLAN.md) 的 P0／P1／P2 後續階段實作；後台未完成模組使用明確的待串接畫面，避免把 localStorage 操作呈現為正式保存。
 
 ## 2. 起始狀態與本階段建立範圍
 
@@ -256,16 +256,16 @@ schema_migrations 已由本階段新建的 migration 工具管理，不計入 13
 
 | website 原始頁面 | 所需權限 | 階段二處理／後續完整實作 |
 | --- | --- | --- |
-| website/admin/index.html | dashboard.view | 真實管理員身分與受保護入口；真實統計留階段七 |
+| website/admin/index.html | dashboard.view | 真實管理員身分與受保護入口；真實統計留 P2 階段十四 |
 | website/admin/places.html、place-add.html、place-edit.html | attractions.view／create／edit，分別對應三頁 | 加授權及待串接畫面；內容與圖片 CRUD 留階段三 |
 | website/admin/films.html、film-add.html、film-edit.html | films.view／create／edit | 加授權及待串接畫面；電影／場次 CRUD 留階段四 |
-| website/admin/news.html、news-add.html、news-edit.html | news.view／create／edit | 加授權及待串接畫面；消息 CRUD 留階段五 |
-| website/admin/offers.html、offer-add.html、offer-edit.html | offers.view／create／edit | 加授權及待串接畫面；優惠 CRUD 留階段五 |
-| website/admin/routes.html、route-add.html、route-edit.html | routes.view／create／edit | 加授權及待串接畫面；推薦路線 CRUD 留階段五 |
-| website/admin/members.html | members.view | 加授權及待串接畫面；會員查詢留階段七 |
-| website/admin/settings.html | settings.view；保存另需 settings.edit | 加授權及待串接畫面；網站／SEO 設定留階段七 |
+| website/admin/news.html、news-add.html、news-edit.html | news.view／create／edit | 加授權及待串接畫面；消息 CRUD 留 P1 階段九 |
+| website/admin/offers.html、offer-add.html、offer-edit.html | offers.view／create／edit | 加授權及待串接畫面；優惠 CRUD 留 P1 階段九 |
+| website/admin/routes.html、route-add.html、route-edit.html | routes.view／create／edit | 加授權及待串接畫面；推薦路線 CRUD 留 P1 階段十 |
+| website/admin/members.html | members.view | 加授權及待串接畫面；會員查詢留 P2 階段十四 |
+| website/admin/settings.html | settings.view；保存另需 settings.edit | 加授權及待串接畫面；SEO 設定留 P0 階段七；一般設定留 P2 階段十四 |
 
-共用 site-header 影響所有前台頁面的會員身分與登出；共用 admin-sidebar／topbar 影響全部後台頁面的身分、登出與導航權限。website/planner.html 在階段二可做登入門檻，但正式行程保存仍是階段六，也不在此新增行程 API。公開導覽的 /auth/me 回 401 只代表訪客，不自動將一般公開頁導向登入。
+共用 site-header 影響所有前台頁面的會員身分與登出；共用 admin-sidebar／topbar 影響全部後台頁面的身分、登出與導航權限。website/planner.html 在階段二可做登入門檻，但必要保存排 P0 階段六，完整旅程管理排 P1 階段十一，也不在此新增行程 API。公開導覽的 /auth/me 回 401 只代表訪客，不自動將一般公開頁導向登入。
 
 API 統一使用 code、message、fieldErrors、requestId；401 表示未登入／失效憑證，403 表示無權限／root 保護／CSRF 拒絕，422 表示欄位或挑戰錯誤，409 表示唯一性／編輯版本衝突，429 表示限速且提供 Retry-After。
 
@@ -279,7 +279,7 @@ API 統一使用 code、message、fieldErrors、requestId；401 表示未登入�
 - 真實會員導覽由後端／me 資料更新；使用 .text() 或輸出編碼顯示名稱，避免名稱成為 XSS。
 - 管理員權限、按鈕與導航只由有效權限決定；後端仍逐請求檢查。
 - 表單含送出中、成功、失敗、欄位錯誤、429 等待與 session 過期狀態；後端成功後才顯示保存成功。
-- 景點等未完成後台操作不再假裝寫入成功；公開內容仍可展示原型資料。收藏／行程保存依階段六，不在本階段自動匯入舊瀏覽器資料。
+- 景點等未完成後台操作不再假裝寫入成功；公開內容仍可展示原型資料。收藏／加入行程必要保存依 P0 階段六，完整旅程依 P1 階段十一，不在本階段自動匯入舊瀏覽器資料。
 
 ## 7. 建議設定初值
 

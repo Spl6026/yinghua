@@ -6,16 +6,27 @@
 
 `main` 保留原始交付與已驗收階段的合併紀錄。每階段從當時最新的 main 建立分支；驗收後使用 `git merge --no-ff` 合併，保留階段分支供查閱。未開始的階段等開始時才建立，避免沿用過時基底。
 
-| 階段 | 分支 | 狀態 |
-| --- | --- | --- |
-| 1：需求與環境 | `phase/01-project-setup` | 已有成果，重整為細項提交並合併 |
-| 2：認證與權限 | `phase/02-auth-permissions` | 已有成果，重整為細項提交並合併 |
-| 3：景點與圖片 | `phase/03-attractions-media` | 開始實作時建立 |
-| 4：電影與場次 | `phase/04-films-screenings` | 開始實作時建立 |
-| 5：消息、優惠與路線 | `phase/05-news-offers-routes` | 開始實作時建立 |
-| 6：收藏與旅程 | `phase/06-favorites-itineraries` | 開始實作時建立 |
-| 7：搜尋、設定與 SEO | `phase/07-search-settings-seo` | 開始實作時建立 |
-| 8：整站驗收與交付 | `phase/08-delivery-validation` | 開始實作時建立 |
+| 階段 | 優先級 | 分支 | 狀態 |
+| --- | --- | --- | --- |
+| 1：需求與環境 | 共用準備 | `phase/01-project-setup` | 已驗收並合併 |
+| 2：認證與權限 | P0 | `phase/02-auth-permissions` | 已驗收並合併 |
+| 3：景點與圖片 | P0 | `phase/03-attractions-media` | 計畫；開始實作時才建立 |
+| 4：電影與場次 | P0 | `phase/04-films-screenings` | 計畫；開始實作時才建立 |
+| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 計畫；開始實作時才建立 |
+| 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 計畫；開始實作時才建立 |
+| 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 計畫；開始實作時才建立 |
+| 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 計畫；開始實作時才建立 |
+| 9：消息／優惠管理與前後篇 | P1 | `phase/09-content-management-details` | 計畫；開始實作時才建立 |
+| 10：推薦路線 | P1 | `phase/10-recommended-routes` | 計畫；開始實作時才建立 |
+| 11：完整會員旅程 | P1 | `phase/11-member-itineraries` | 計畫；開始實作時才建立 |
+| 12：結構化資料／索引與驗收 | P1 界線 | `phase/12-seo-indexing-p1-validation` | 計畫；開始實作時才建立 |
+| 13：全站搜尋 | P2 | `phase/13-site-search` | 計畫；開始實作時才建立 |
+| 14：一般設定與營運後台 | P2 | `phase/14-settings-operations` | 計畫；開始實作時才建立 |
+| 15：全站驗收與交付 | P2／交付界線 | `phase/15-delivery-validation` | 計畫；開始實作時才建立 |
+
+階段分配依 [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) 的 P0 → P1 → P2 界線。完成階段 8 的 P0 驗收後才開始 9，完成階段 12 的 P1 驗收後才開始 13。2026-10-17 只重排計畫，沒有建立階段 3–15 分支。
+
+跨階段的獨立規劃／文件維護可從最新 main 建立 `docs/` 分支，按完整文件議題提交並以 merge commit 合併；不替已完成階段改編號，也不冒稱下一階段開始。例如本次優先級重排使用 `docs/priority-roadmap`，只更新計畫及相依文件，既有階段一／二提交保持不變。
 
 例如進入階段三時：
 
