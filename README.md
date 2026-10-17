@@ -4,6 +4,8 @@
 
 景點、博物館及首頁景點精選已讀真實資料庫，管理新增內容會產生公開 HTML。電影、消息、優惠、路線、收藏與行程保存留後續階段，其餘後台仍顯示尚未開放。
 
+營業時間已依使用者新增要求統一為每週表單，手動建立與 Google 候選共用，可填公休、全天、午休多段及跨日。舊文字保留為備註；格式、相容及升級方式見 [營業時間閱讀指南](docs/modules/opening-hours.md)，其他相近匯入缺口見 [欄位檢查與計畫](docs/OPENING-HOURS-PLAN.md)。
+
 後續計畫已按 P0（階段 2–8）→ P1（9–12）→ P2（13–15）重排，階段一為共用準備；各級有整合驗收界線，詳見 [實作計畫](docs/IMPLEMENTATION-PLAN.md)。目前階段一至三完成本機驗收，P0 尚未完成。
 
 ## 本機啟動
@@ -65,6 +67,7 @@ python backend/tests/api_integration.py
 # 測試庫首次需 migrate、seed，並以 www-data 執行 content:seed-demo。
 python backend/tests/attractions_integration.py
 python backend/tests/content_contract.py
+python backend/tests/opening_hours_integration.py
 docker compose exec -T app /var/www/tools/vendor/bin/phpunit --configuration phpunit.xml
 docker compose exec -T app /var/www/tools/vendor/bin/phpstan analyse --configuration=phpstan.neon --no-progress
 docker compose exec -T app /var/www/tools/vendor/bin/php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run

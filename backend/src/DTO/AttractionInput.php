@@ -21,7 +21,7 @@ readonly class AttractionInput
         $input = new Input($values);
         $input->only(['slug','name','category','district','typeLabel','summary','description','hours','address',
             'phone','latitude','longitude','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','featured','isMuseum',
-            'status','publishAt','seoTitle','seoDescription','version','imageAlt','imageSource','imageLicense','recommendationLabel']);
+            'status','publishAt','seoTitle','seoDescription','version','imageAlt','imageSource','imageLicense','recommendationLabel','openingHours']);
         $slug = $input->text('slug', 1, 120);
         if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
             throw ApplicationError::invalid('slug', '網址識別只可使用小寫英數字與連字號。');
@@ -93,6 +93,13 @@ readonly class AttractionInput
             'status' => $status->value,'publish_at' => $publishAt->format('Y-m-d H:i:s'),
             'seo_title' => $optional('seoTitle', 160),'seo_description' => $optional('seoDescription', 500),
         ];
+
+        // [U-09／E-20] 手動與匯入共用週表驗證；hours 僅作相容摘要。
+        if (array_key_exists('openingHours', $values)) {
+            $opening = OpeningHours::fromValue($values['openingHours']);
+            $fields['opening_hours'] = json_encode($opening->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            $fields['hours'] = $opening->summary();
+        }
 
         // [E-18／R3-01] 未提供欄位保留既有值；明確空白／null 表示回到資產原始說明。
         // 說明屬於此景點的使用情境，不修改共用 media_assets 的來源紀錄。

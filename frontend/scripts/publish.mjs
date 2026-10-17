@@ -3,6 +3,7 @@
 import { readFile, writeFile, mkdir, rename, symlink, rm, realpath } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { openingHoursLines } from '../assets/js/core/opening-hours.js';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -57,7 +58,7 @@ if (!existing) {
   const detailTemplate = await readFile(join(source,'pages','museum.html'),'utf8');
   for (const item of snapshot.items) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid content slug');
-    const metadata = [item.address, `營業時間：${item.hours || '依店家公告'}`, item.transport && `交通：${item.transport}`].filter(Boolean).map(text=>`<p>${e(text).replaceAll('\n','<br>')}</p>`).join('');
+    const metadata = [item.address, item.transport && `交通：${item.transport}`].filter(Boolean).map(text=>`<p>${e(text).replaceAll('\n','<br>')}</p>`).join('') + `<div class="opening-hours-detail"><h2>營業時間</h2>${openingHoursLines(item.openingHours,item.hours).map(line=>`<p>${e(line).replaceAll('\n','<br>')}</p>`).join('')}${item.openingHours ? '<small>跨日時段歸開始日；實際營業以店家公告為準。</small>' : ''}</div>`;
     const telephone = item.phone && /^tel:[+0-9]+(?:;ext=[0-9]+)?$/.test(item.phoneUrl || '')
       ? `<p>電話：<a href="${e(item.phoneUrl)}">${e(item.phone)}</a></p>` : '';
     const links = [[item.mapUrl,'在 Google 地圖開啟'],[item.websiteUrl,'官方網站']].filter(([href])=>href).map(([href,label])=>`<a class="text-link" href="${e(href)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`).join('　');

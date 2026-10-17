@@ -1,5 +1,13 @@
 # 階段三驗收記錄
 
+## 2026-10-18 新增要求 U-09：共用營業時間
+
+人工建檔與 Google 候選使用相同七天編輯器及 OpeningHours DTO，支援未知、公休、全天、午休多段及跨日。舊文字保留備註，不推測每天相同。新增004 migration的 opening_hours JSON；API仍44操作、業務表仍20，主庫／隔離庫均先備份後升級及發布。完整設計、相近欄位問題及本輪結果見 [營業時間計畫](OPENING-HOURS-PLAN.md)，逐檔閱讀見 [營業時間指南](modules/opening-hours.md)。
+
+本輪實際通過：PHPStan level10／PHPat、PHPUnit 27 tests／131 assertions、PER-CS dry-run零差異、前端53項／64頁建置；HTTP既有65項、契約9項／44操作、先前修正21項、新週表21項（真實MariaDB、保存／公開HTML、越權、唯讀、版本及錯誤不改資料）。Rector僅dry-run，14檔風格提案已檢視、未套用。未重跑Google實連、正式外部服務或獨立掃描器。
+
+實際桌面操作：重疊時段顯示具體錯誤、焦點與保留輸入；修正並保存後重開和公開詳情一致。桌面寬1745；手機請求390×844、實際355 CSS px／scrollWidth341，週表欄位與公開詳情可讀、無水平溢出、錯誤記錄空，尺寸已還原。截圖 artifacts/opening-hours-admin-desktop.png、opening-hours-admin-mobile.png、opening-hours-public-mobile.png。自有隔離驗收筆完成後軟刪除；原始website／Excel不動。後續舊章節為各次歷史結果，不把舊測試數量當成本輪數量。
+
 日期：2026-10-17 至 18；完成記錄更新於 2026-10-18。範圍：P0 階段三 3.1–3.5，分支 `phase/03-attractions-media`。不代表 P0 或全站完成。依據與範圍見 [階段三計畫](PHASE-3-PLAN.md)。
 
 ## 實際執行結果
@@ -81,7 +89,7 @@ MariaDB 12.3 實際 EXPLAIN：管理列表使用 attraction_admin（ref），狀
 | R3-02 | 原始六筆景點順序被反轉、個別文案標籤統一改為「在地推薦」 | 原始 app.js、目前 Repository／產生器及實際公開列表對照 |
 | R3-04 | DB CHECK 接受只有一側座標為 NULL | 真實 yinghua_test 交易已驗證並回滾；API DTO 仍會拒絕此輸入，非已確認的外部越權 |
 
-R3-03 是景點表單新增失敗／競態案例的測試計畫，未將尚未重現的情境列為確定程式錯誤。歷史通過結果保留；當時狀態為「有待修項目」。完整設計及後續結果見 複查計畫（後續獨立文件交付）。
+R3-03 是景點表單新增失敗／競態案例的測試計畫，未將尚未重現的情境列為確定程式錯誤。歷史通過結果保留；當時狀態為「有待修項目」。完整設計及後續結果見 [複查計畫](PHASE-3-REVIEW-PLAN.md)。
 
 ## 2026-10-18 修正後驗收
 

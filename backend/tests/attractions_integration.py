@@ -119,14 +119,14 @@ def main():
     check('published image anonymous',raw(guest,media['url'])[0]==200)
     check('old version rejected',root.call('PUT',path,update)[0]==409)
     check('public projection omits admin fields',all(key not in guest.call('GET','/api/v1/attractions/'+prefix)[1]['attraction'] for key in ['status','deletedAt','googlePlaceId','legacyImage']))
-    update.update(version=item['version'],slug=prefix+'-renamed',name='已改名景點')
+    update.update(version=item['version'],slug=prefix+'-renamed',name='已改名景點 '+prefix)
     item,result=write(root,update,identifier)
     # urllib follows the stable 301; final Location must point to the new slug.
     check('old slug resolves to renamed content',raw(guest,'/places/'+prefix+'.html')[0]==200)
     check('unknown slug true 404',raw(guest,'/places/'+prefix+'-missing.html')[0]==404)
     check('legacy numeric URL resolves',raw(guest,'/place-detail.html?id=2')[0]==200)
     check('bad legacy ID is 404',raw(guest,'/place-detail.html?id=999999')[0]==404)
-    page=root.call('GET','/api/v1/admin/attractions?q='+urllib.parse.quote('已改名景點'))[1]
+    page=root.call('GET','/api/v1/admin/attractions?q='+urllib.parse.quote('已改名景點 '+prefix))[1]
     check('admin query hits persisted record',page['total']==1 and page['items'][0]['id']==identifier)
     check('public category filter',all(row['category']=='美食' for row in guest.call('GET','/api/v1/attractions?category='+urllib.parse.quote('美食'))[1]['items']))
     check('public pagination stable',guest.call('GET','/api/v1/attractions?pageSize=1')[1]['pageSize']==1)

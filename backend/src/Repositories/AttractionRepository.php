@@ -8,6 +8,7 @@ use PDOException;
 use Yinghua\DTO\Attraction;
 use Yinghua\DTO\AttractionInput;
 use Yinghua\DTO\AttractionPage;
+use Yinghua\DTO\OpeningHours;
 use Yinghua\DTO\PhoneNumber;
 use Yinghua\Exceptions\ContentConflict;
 
@@ -66,7 +67,10 @@ class AttractionRepository
                 $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($input->fields)));
                 $this->database->execute('INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')', ['id' => $id,...$input->fields]);
             } else {
-                $columns = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($input->fields)));
+                // [U-09] 舊客戶端省略週表時，不可用舊摘要蓋掉已存在的結構化摘要。
+                $structured = array_key_exists('opening_hours', $input->fields);
+                $columns = implode(',', array_map(static fn(string $key): string => $key === 'hours' && !$structured
+                    ? 'hours=CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END' : $key . '=:' . $key, array_keys($input->fields)));
                 $this->database->execute('UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$input->fields]);
             }
             if ($input->fields['category'] === '景點') {
@@ -154,6 +158,8 @@ class AttractionRepository
         $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? '原始交付展示素材';
         $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? '正式上線前須確認授權';
         $data['recommendationLabel'] = $r->string('recommendation_label');
+        $opening = $r->nullableString('opening_hours');
+        $data['openingHours'] = $opening === null ? null : OpeningHours::fromValue(json_decode($opening, true, 32, JSON_THROW_ON_ERROR))->toArray();
         $data['legacyImage'] = $r->string('external_image_url');
         $data['googlePlaceId'] = $r->nullableString('google_place_id');
         $data['version'] = $r->integer('version');

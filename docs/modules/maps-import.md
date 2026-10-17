@@ -1,5 +1,7 @@
 # Google Maps 候選匯入閱讀指南
 
+U-09／E-20：營業時間 FieldMask 增 regularOpeningHours.periods，GoogleOpeningHours Adapter 依 day／hour／minute 轉成本站週表，人工與匯入共用同一編輯器；weekdayDescriptions 只在無法安全映射時提供人工參考。缺資料為未知，24/7 獨立處理，常態週表不使用 currentOpeningHours。完整規則見 [營業時間指南](opening-hours.md)。
+
 更新：2026-10-18。功能規格列 20 要求地圖短網址匯入；具體 Places API New、網域清單與安全限制為 E-19。
 
 MapController 驗證輸入及 create／edit 情境 → MapResolver 檢查管理員權限與每分鐘 10 次限速 → GoogleUrlPolicy 校驗網址 → CurlGoogleHttp 取得必要回應。金鑰只從 Docker 注入的 GOOGLE_PLACES_API_KEY 讀取，前端、回應與日誌都不含金鑰。

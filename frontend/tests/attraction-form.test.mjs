@@ -41,6 +41,7 @@ function fixture({creating=false,preview=false,edit=true}={}) {
     location:{search:'?id=a',origin:'http://localhost:8081',pathname:'/admin/place-edit.html',assign:url=>state.assignments.push(url),replace:url=>state.replacements.push(url)},
     history:{replaceState(){}},window:{addEventListener:(name,handler)=>state.windowEvents.set(name,handler),setTimeout(){}},
     FormData:class extends Map{},confirmAction:async()=>state.confirm,
+    openingHoursEditor:()=>({load(value,legacy){state.openingHours=value;state.hoursLegacy=legacy;},read:()=>state.openingHours,setDisabled:value=>{state.hoursDisabled=value;}}),
     attractionSamplePicker:()=>({setDisabled(){},async load(){}}),
     attractionsApi:{get:async()=>{state.gets++;return state.get?state.get():{attraction:item};},save:async(id,body)=>{state.saves.push({id,body});return state.write?state.write():{attraction:{id:'a',version:2},publication:{status:'succeeded'}};},upload:async body=>{state.uploads.push(body);return state.upload?state.upload():{media:{id:'new-image',url:'/media/new.png',alt:'新說明',source:'新來源',license:'新授權',width:20,height:20}};},retry:async()=>({message:'公開頁面已同步'})}};
   vm.createContext(sandbox);source.forEach(code=>vm.runInContext(code,sandbox));

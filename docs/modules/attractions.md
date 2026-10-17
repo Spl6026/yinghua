@@ -4,6 +4,8 @@
 
 2026-10-23 操作狀態補充（E-18）：編輯頁確認「重新載入」且取得伺服器資料成功後，`attraction-form.js` 同時清空尚未上傳的圖片選擇，恢復原媒體；取消或讀取失敗時保留選檔。`attraction-form.test.mjs` 執行真正表單邏輯，驗證這三種狀態及重載後保存，不是只檢查程式字串。這是既有放棄修改流程的修正，不新增欄位或必填限制。
 
+U-09／E-20 另新增共用營業週表：人工與 Google 帶入皆經 OpeningHours DTO、相同原生編輯器及既有管理交易；完整模型與檔案分工見 [營業時間指南](opening-hours.md)。API 的 hours 是短摘要／舊內容原文，openingHours 才是新的每週資料。
+
 ## 從哪裡讀
 
 先看 `backend/config/routes.php`，再看 `AttractionController` → `AttractionManagement` → `AttractionRepository`。Controller 處理 HTTP 與輸入 DTO；Service 管授權、交易、版本、發布條件、引用檢查及稽核；Repository 集中 SQL，映射成 Attraction／AttractionPage。

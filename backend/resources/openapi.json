@@ -8549,7 +8549,9 @@
             "maxLength": 20000
           },
           "hours": {
-            "type": "string"
+            "type": "string",
+            "deprecated": true,
+            "description": "相容舊文字。提供 openingHours 時由伺服器產生摘要；省略週表時不覆蓋已有結構化摘要。新前端一律使用週表。"
           },
           "address": {
             "type": "string",
@@ -8660,6 +8662,9 @@
             "maxLength": 80,
             "description": "原型文案標籤；未提供保留既有值，空白公開顯示在地推薦。"
           },
+          "openingHours": {
+            "$ref": "#/components/schemas/OpeningHours"
+          },
           "phone": {
             "type": "string",
             "minLength": 0,
@@ -8675,7 +8680,8 @@
           "summary",
           "description",
           "address",
-          "status"
+          "status",
+          "openingHours"
         ]
       },
       "AttractionUpdate": {
@@ -8706,7 +8712,9 @@
             "maxLength": 20000
           },
           "hours": {
-            "type": "string"
+            "type": "string",
+            "deprecated": true,
+            "description": "相容舊文字。提供 openingHours 時由伺服器產生摘要；省略週表時不覆蓋已有結構化摘要。新前端一律使用週表。"
           },
           "address": {
             "type": "string",
@@ -8820,6 +8828,9 @@
             "type": "string",
             "maxLength": 80,
             "description": "原型文案標籤；未提供保留既有值，空白公開顯示在地推薦。"
+          },
+          "openingHours": {
+            "$ref": "#/components/schemas/OpeningHours"
           },
           "phone": {
             "type": "string",
@@ -8999,6 +9010,17 @@
             "type": "string",
             "maxLength": 80
           },
+          "openingHours": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpeningHours"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 表示尚未轉為週表的舊內容，hours 保留原文"
+          },
           "phone": {
             "type": "string",
             "minLength": 0,
@@ -9047,6 +9069,7 @@
           "imageLicense",
           "legacyImage",
           "recommendationLabel",
+          "openingHours",
           "phone",
           "phoneUrl"
         ]
@@ -9187,6 +9210,17 @@
             "type": "string",
             "maxLength": 80
           },
+          "openingHours": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpeningHours"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 表示尚未轉為週表的舊內容，hours 保留原文"
+          },
           "phone": {
             "type": "string",
             "minLength": 0,
@@ -9231,6 +9265,7 @@
           "imageSource",
           "imageLicense",
           "recommendationLabel",
+          "openingHours",
           "phone",
           "phoneUrl"
         ]
@@ -9614,6 +9649,9 @@
           },
           "mapUrl": {
             "type": "string"
+          },
+          "openingHours": {
+            "$ref": "#/components/schemas/OpeningHours"
           }
         },
         "required": [
@@ -9624,7 +9662,8 @@
           "longitude",
           "hours",
           "websiteUrl",
-          "mapUrl"
+          "mapUrl",
+          "openingHours"
         ]
       },
       "MapCandidates": {
@@ -9687,6 +9726,92 @@
           "requestId"
         ]
       },
+      "OpeningPeriod": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "opens",
+          "closes",
+          "nextDay"
+        ],
+        "properties": {
+          "opens": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "closes": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "nextDay": {
+            "type": "boolean",
+            "description": "結束時間在次日；時段須大於零且最多24小時"
+          }
+        }
+      },
+      "OpeningDay": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day",
+          "status",
+          "periods"
+        ],
+        "properties": {
+          "day": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6,
+            "description": "0週日、1週一，依此類推；不能依陣列位置猜測"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "closed",
+              "all_day",
+              "periods"
+            ]
+          },
+          "periods": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/OpeningPeriod"
+            },
+            "description": "僅 periods 狀態須有1至4段，其餘為空"
+          }
+        }
+      },
+      "OpeningHours": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "timezone",
+          "note",
+          "days"
+        ],
+        "description": "U-09／E-20：常態每週營業時間。全週時段不可重疊，跨日歸開始日；不含即時營業或特殊日期推論。",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Taipei"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "days": {
+            "type": "array",
+            "minItems": 7,
+            "maxItems": 7,
+            "items": {
+              "$ref": "#/components/schemas/OpeningDay"
+            },
+            "description": "星期0至6各一筆"
+          }
+        }
+      },
       "RequestId": {
         "type": "string",
         "minLength": 32,
@@ -9741,6 +9866,17 @@
           "hours": {
             "type": "string"
           },
+          "openingHours": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpeningHours"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 表示尚未轉為週表的舊內容，hours 保留原文"
+          },
           "address": {
             "type": "string",
             "minLength": 0,
@@ -9791,6 +9927,7 @@
           "summary",
           "description",
           "hours",
+          "openingHours",
           "address",
           "phone",
           "latitude",

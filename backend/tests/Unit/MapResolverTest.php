@@ -43,7 +43,7 @@ class MapResolverTest extends TestCase
         $authorization->expects(self::once())->method('require')->with(self::isInstanceOf(Account::class), 'attractions', 'edit')->willReturn($this->actor());
         $limiter = $this->createStub(RateLimiter::class);
 
-        return new MapResolver($http, new GoogleUrlPolicy(), new Config(), $authorization, $limiter);
+        return new MapResolver($http, new GoogleUrlPolicy(), new Config(), $authorization, $limiter, new \Yinghua\Adapters\GoogleOpeningHours());
     }
 
     public function testUnsafeRedirectIsRejectedBeforeSecondNetworkCall(): void
@@ -104,5 +104,19 @@ class MapResolverTest extends TestCase
             self::assertFalse($policy->publicIp($ip), $ip);
         }
         self::assertTrue($policy->publicIp('8.8.8.8'));
+    }
+
+    public function testCandidateUsesTheSharedStructuredSchedule(): void
+    {
+        $http = $this->createMock(GoogleHttp::class);
+        $http->expects(self::once())->method('request')->with(
+            self::stringContains('places.googleapis.com/v1/places/'),
+            self::callback(static fn(array $headers): bool => str_contains($headers['X-Goog-FieldMask'] ?? '', 'regularOpeningHours.periods')),
+            null,
+            true,
+        )->willReturn(new RemoteResponse(200, json_encode(['id' => 'ChIJ_test','displayName' => ['text' => '店家'],'regularOpeningHours' => ['periods' => [['open' => ['day' => 1,'hour' => 9],'close' => ['day' => 1,'hour' => 12]]]]], JSON_THROW_ON_ERROR), []));
+        $result = $this->resolver($http)->resolve($this->actor(), 'https://www.google.com/maps?query_place_id=ChIJ_test', 'edit');
+        self::assertSame('09:00', $result['candidates'][0]['openingHours']['days'][1]['periods'][0]['opens']);
+        self::assertSame('每週時段不同，詳見介紹', $result['candidates'][0]['hours']);
     }
 }

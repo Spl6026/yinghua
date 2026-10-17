@@ -3,6 +3,7 @@ import { attractionsApi } from '../api/attractions-api.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, submitForm, unsavedChanges, formErrors } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
+import { openingHoursEditor } from '../components/opening-hours-editor.js';
 
 const fields = ['slug','name','category','district','typeLabel','summary','description','hours','address','phone','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','seoTitle','seoDescription','status','imageAlt','imageSource','imageLicense','recommendationLabel'];
 
@@ -15,15 +16,17 @@ export async function initializeAttractionForm(identity, page) {
   const preview = document.querySelector('#place-photo-preview');
   const mediaMessage = document.querySelector('#media-status');
   const mapMessage = document.querySelector('#map-status');
+  const openingEditor = openingHoursEditor(document.querySelector('#opening-hours-editor'));
   const writeAllowed = () => !identity.preview?.active && hasPermission(identity, 'attractions', id ? 'edit' : 'create');
   const available = () => writeAllowed() && loaded && !busy && !completed;
   const samples = attractionSamplePicker(creating ? document.querySelector('#place-samples') : null,
-    form, { load() {} }, available, () => { dirty = true; document.querySelector('#map-candidates').replaceChildren(); });
+    form, openingEditor, available, () => { dirty = true; document.querySelector('#map-candidates').replaceChildren(); });
   function controls() {
     form.querySelectorAll('input,select,textarea,button[data-write]').forEach(node => { node.disabled = !available(); });
     form.querySelector('[type="submit"]').disabled = !available();
     document.querySelector('#reload-place').disabled = busy;
     document.querySelector('#retry-place-publication').disabled = busy || !writeAllowed() || !hasPermission(identity, 'attractions', 'edit');
+    openingEditor.setDisabled(!available());
     samples.setDisabled(!available());
   }
   function photo(url) { preview.src = url || '/assets/image-placeholder.svg'; preview.alt = form.elements.imageAlt.value || '景點圖片預覽'; }
@@ -38,6 +41,7 @@ export async function initializeAttractionForm(identity, page) {
       const { attraction } = await attractionsApi.get(id);
       if (request !== generation) return;
       for (const name of fields) form.elements[name].value = attraction[name] ?? '';
+      openingEditor.load(attraction.openingHours, attraction.hours);
       for (const name of ['latitude','longitude']) form.elements[name].value = attraction[name] ?? '';
       for (const name of ['featured','isMuseum']) form.elements[name].checked = attraction[name];
       const date = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(attraction.publishAt));
@@ -93,6 +97,7 @@ export async function initializeAttractionForm(identity, page) {
         button.addEventListener('click', async () => {
           if (!available() || !await confirmAction('確認候選地點', `將「${item.name}」的資料帶入表單。請自行核實資料與保存授權；不會自動儲存或帶入 Google 照片。`, button)) return;
           for (const name of ['name','address','latitude','longitude','hours','websiteUrl','mapUrl','googlePlaceId']) form.elements[name].value = item[name] ?? '';
+          openingEditor.load(item.openingHours, item.hours);
           dirty = true; status(mapMessage, '候選資料已帶入，請核實後儲存。'); candidates.replaceChildren();
         });
         candidates.append(button);
@@ -112,6 +117,7 @@ export async function initializeAttractionForm(identity, page) {
     if (!available()) return;
     if (form.elements.image.files.length) { status(message, '已選擇的新圖片尚未上傳，請先按「上傳圖片」。', true); return; }
     const body = Object.fromEntries(fields.map(name => [name, form.elements[name].value]));
+    body.openingHours = openingEditor.read();
     for (const name of ['latitude','longitude']) body[name] = form.elements[name].value.trim() === '' ? null : Number(form.elements[name].value);
     for (const name of ['featured','isMuseum']) body[name] = form.elements[name].checked;
     const publishAt = form.elements.publishAt.value;

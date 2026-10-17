@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Services;
 
 use Yinghua\Config;
+use Yinghua\Adapters\GoogleOpeningHours;
 use Yinghua\Contracts\GoogleHttp;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
@@ -13,7 +14,7 @@ use Yinghua\Policies\GoogleUrlPolicy;
 /** [S：功能規格 20；E-19] 只回傳候選資料，不寫景點或下載 Google 照片。 */
 class MapResolver
 {
-    public function __construct(private readonly GoogleHttp $http, private readonly GoogleUrlPolicy $policy, private readonly Config $config, private readonly Authorization $authorization, private readonly RateLimiter $limiter) {}
+    public function __construct(private readonly GoogleHttp $http, private readonly GoogleUrlPolicy $policy, private readonly Config $config, private readonly Authorization $authorization, private readonly RateLimiter $limiter, private readonly GoogleOpeningHours $openingHours) {}
 
     /** @return array<string,mixed> */
     public function resolve(Account $actor, string $url, string $action): array
@@ -52,7 +53,7 @@ class MapResolver
         if (!is_string($placeId) && preg_match('/!1s(ChI[A-Za-z0-9_-]+)/', rawurldecode($url), $match)) {
             $placeId = $match[1];
         }
-        $fields = 'id,displayName,formattedAddress,location,regularOpeningHours.weekdayDescriptions,websiteUri,googleMapsUri';
+        $fields = 'id,displayName,formattedAddress,location,regularOpeningHours.periods,regularOpeningHours.weekdayDescriptions,websiteUri,googleMapsUri';
         $headers = ['X-Goog-Api-Key' => $key,'X-Goog-FieldMask' => $fields,'Accept' => 'application/json'];
         if (is_string($placeId) && preg_match('/^[A-Za-z0-9_-]{5,255}$/D', $placeId)) {
             $response = $this->http->request('https://places.googleapis.com/v1/places/' . rawurlencode($placeId) . '?languageCode=zh-TW', $headers, api: true);
@@ -87,13 +88,12 @@ class MapResolver
             }
             $display = $candidate['displayName'] ?? [];
             $location = $candidate['location'] ?? [];
-            $opening = $candidate['regularOpeningHours'] ?? [];
-            $weekdays = is_array($opening) ? ($opening['weekdayDescriptions'] ?? []) : [];
+            $opening = $this->openingHours->convert($candidate['regularOpeningHours'] ?? null);
             $result[] = ['googlePlaceId' => $candidate['id'] ?? '',
                 'name' => is_array($display) ? ($display['text'] ?? '') : '', 'address' => $candidate['formattedAddress'] ?? '',
                 'latitude' => is_array($location) ? ($location['latitude'] ?? null) : null,
                 'longitude' => is_array($location) ? ($location['longitude'] ?? null) : null,
-                'hours' => is_array($weekdays) ? implode('；', array_filter($weekdays, is_string(...))) : '',
+                'hours' => $opening->summary(), 'openingHours' => $opening->toArray(),
                 'websiteUrl' => $candidate['websiteUri'] ?? '', 'mapUrl' => $candidate['googleMapsUri'] ?? $url];
         }
 

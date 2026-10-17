@@ -22,7 +22,7 @@ class NodeContentRenderer implements ContentRenderer
     public function version(): string
     {
         $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
-        $files = [$source . '/scripts/publish.mjs', ...glob($source . '/templates/*.html') ?: [],
+        $files = [$source . '/scripts/publish.mjs', $source . '/assets/js/core/opening-hours.js', ...glob($source . '/templates/*.html') ?: [],
             $source . '/pages/index.html',$source . '/pages/explore.html',$source . '/pages/food.html',$source . '/pages/museum.html'];
         $hash = hash_init('sha256');
         foreach ($files as $path) {

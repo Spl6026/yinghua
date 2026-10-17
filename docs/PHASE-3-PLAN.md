@@ -1,5 +1,7 @@
 # 階段三：景點、媒體與地圖匯入
 
+2026-10-18 新增 U-09：人工與 Google 匯入共用結構化營業週表。新增 attractions.opening_hours（004 migration）、DTO／Google Adapter／原生表單及公開詳情；API 不增加端點、業務表不增加。設計與相近缺口見 [共用營業時間計畫](OPENING-HOURS-PLAN.md)，程式閱讀見 [模組指南](modules/opening-hours.md)。
+
 更新：2026-10-18。使用者已授權實作，分支 `phase/03-attractions-media`。本階段屬 P0；不包含電影、消息、優惠管理、收藏保存或完整路線管理。實際結果見 [驗收記錄](PHASE-3-ACCEPTANCE.md)。
 
 ## 功能與來源

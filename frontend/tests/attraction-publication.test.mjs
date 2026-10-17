@@ -5,6 +5,7 @@ import { mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { emptyOpeningHours } from '../assets/js/core/opening-hours.js';
 
 // 真正執行 renderer；檢查產物，不以 source substring 當功能測試。
 const script = fileURLToPath(new URL('../scripts/publish.mjs', import.meta.url));
@@ -43,4 +44,18 @@ test('失敗不切換 current；下架後新版本不含舊詳情', async () => 
     await assert.rejects(readFile(join(directory, 'current/places/test-place.html'), 'utf8'), { code: 'ENOENT' });
     assert.equal(JSON.parse(await readFile(join(directory, 'current/.snapshot.json'), 'utf8')).items.length, 0);
   } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test('週表詳情含午休、跨日、公休及安全備註，卡片保留短摘要',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'spl-hours-'));
+  try {
+    const openingHours=emptyOpeningHours('<script>備註</script>');
+    openingHours.days[1]={day:1,status:'periods',periods:[{opens:'09:00',closes:'12:00',nextDay:false},{opens:'22:00',closes:'02:00',nextDay:true}]};
+    openingHours.days[2].status='closed';
+    assert.equal(publish(directory,snapshot('e',[{...sample,hours:'每週時段不同，詳見介紹',openingHours}])).status,0);
+    const html=await readFile(join(directory,'current/places/test-place.html'),'utf8');
+    assert.match(html,/週一：09:00–12:00、22:00–次日 02:00/);assert.match(html,/週二：公休/);assert.match(html,/&lt;script&gt;備註&lt;\/script&gt;/);
+    const list=await readFile(join(directory,'current/explore.html'),'utf8');
+    assert.match(list,/◷ 每週時段不同，詳見介紹/);
+  }finally{await rm(directory,{recursive:true,force:true});}
 });

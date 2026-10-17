@@ -1,6 +1,6 @@
 # 全站架構與檔案功能導讀
 
-**2026-10-18 修正補充：** 已修正圖片說明保存、原型順序／文案標籤、營業時間欄及座標約束，並補齊景點表單失敗／競態測試。修正結果及驗收界線見 PHASE-3-REVIEW-PLAN.md（後續獨立文件交付）。
+**2026-10-18 修正補充：** 已修正圖片說明保存、原型順序／文案標籤、營業時間欄及座標約束，並補齊景點表單失敗／競態測試。修正結果及驗收界線見 [PHASE-3-REVIEW-PLAN.md](PHASE-3-REVIEW-PLAN.md)。
 
 更新日期：2026-10-18。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
 
@@ -399,7 +399,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 MariaDB 沒有映射宿主機 port，Windows 上不能直接把 localhost:3306 當成目前容器的資料庫。資料存在 Docker volume `yinghua_db_data` 的 `/var/lib/mysql`；不是 backend/ 下的 SQL 或 JSON 檔。開發／測試使用同一個 MariaDB 容器中的不同 database，測試程式及 fixture 有指定庫名防護。
 
-資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以四支 migration 為準。
+資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以五支 migration 為準；004 增加常態營業週表 JSON，不增加業務表。
 
 ### 20 張業務表＋1 張 migration 紀錄
 
@@ -728,9 +728,36 @@ attractions.image_alt／image_source／image_license 是各景點的圖片使用
 
 PHP 常駐 publisher 在啟動時載入類別；更新 PHP 程式後必須 `docker compose restart publisher`，否則舊程序可能產生與 FPM 不同的投影。更新流程：備份 DB／volumes → 檢查既存座標 → db:migrate → 重建 frontend → 重啟 publisher → content:publish → 視需要預覽／套用受控標籤。測試環境沒有常駐 publisher，更新模板後需手動 content:publish。
 
+## 階段三新增：共用營業時間（U-09）
+
+人工及 Google 匯入使用相同週表。新增／編輯頁使用原生每週編輯器，支援未知、公休、全天、每日最多四段及次日結束。後端 OpeningHours DTO 統一驗證七天、型別、時間與全週重疊，GoogleOpeningHours 只負責外部格式轉換。Controller／Service／Repository 架構不變，依原授權／版本／稽核交易保存並發布。
+
+attractions.opening_hours 是 nullable JSON；舊 hours 保留原文／新摘要，不推測舊文字適用七天。首次人工保存時舊文字進備註；所有新前端保存都送 openingHours。舊客戶端省略週表時不覆蓋既有 JSON 或其摘要。API 仍44操作、業務表仍20；確切新增 schema 見 OpenAPI。
+
+公開列表和後台清單使用短摘要，詳情由前端 renderer 產生七天與備註。共用 opening-hours.js 也納入 NodeContentRenderer 的版本雜湊，變更顯示規則不重用過期 HTML。新增欄位以 migration 升級，執行前備份，更新後建置 frontend、restart publisher，再以 www-data content:publish；無須重建或清空資料庫。
+
+| 新檔案 | 功能 |
+| --- | --- |
+| [004_opening_hours.sql](../backend/database/migrations/004_opening_hours.sql) | 增加 nullable JSON，不改舊時間文字 |
+| [OpeningDayStatus.php](../backend/src/Models/OpeningDayStatus.php) | 未知、公休、全天、自訂時段 enum |
+| [OpeningPeriod.php](../backend/src/DTO/OpeningPeriod.php) | 開始／結束、次日與24小時邊界 |
+| [OpeningDay.php](../backend/src/DTO/OpeningDay.php) | 星期、狀態、最多四段與排序 |
+| [OpeningHours.php](../backend/src/DTO/OpeningHours.php) | 七天驗證、跨日／跨週重疊與摘要 |
+| [GoogleOpeningHours.php](../backend/src/Adapters/GoogleOpeningHours.php) | 外部常態 periods 轉為相同 DTO，缺值不視為公休 |
+| [opening-hours.js](../frontend/assets/js/core/opening-hours.js) | 空週表、星期文字與公開完整時間顯示 |
+| [opening-hours-editor.js](../frontend/assets/js/components/opening-hours-editor.js) | 手動／匯入／重載共用表單與唯讀 |
+| [OpeningHoursTest.php](../backend/tests/Unit/OpeningHoursTest.php) | DTO、提供者及整合輸入單元案例；MapResolverTest 亦驗證候選與 FieldMask |
+| [opening_hours_integration.py](../backend/tests/opening_hours_integration.py) | 真實 MariaDB／HTTP／SSR 及失敗／越權回歸 |
+| [opening-hours.test.mjs](../frontend/tests/opening-hours.test.mjs) | 舊文字、每日狀態與星期順序 |
+| [opening-hours-editor.test.mjs](../frontend/tests/opening-hours-editor.test.mjs) | 真正編輯器的多段、跨日、唯讀、隱藏必填與焦點 |
+| [OPENING-HOURS-PLAN.md](OPENING-HOURS-PLAN.md) | 本次要求、設計、其他匯入欄位缺口與驗收狀態 |
+| [opening-hours.md](modules/opening-hours.md) | 欄位例子、分層資料流、相容邏輯及環境操作 |
+
+共用 ui.js 的 formErrors 增 data-field-name 複合欄位支援，讓週表具體錯誤可讀且可取得焦點；其餘表單維持原有 namedItem 路徑。既有 attraction-form／publication 測試同步週表，HTTP 列表測試使用唯一名稱避免歷次 fixture 相互干擾。
+
 ## 文件索引與維護方式
 
-2026-10-18 再次檢查的 R3-01／02／04 已修正，R3-03 已增加九項景點表單行為測試；新增真實 HTTP／MariaDB 回歸 21 項及資料庫約束 8 項通過。歷史發現、採用設計、測試與畫面驗收界線見 階段三複查計畫（後續獨立文件交付），其餘階段仍依原計畫。
+2026-10-18 再次檢查的 R3-01／02／04 已修正，R3-03 已增加九項景點表單行為測試；新增真實 HTTP／MariaDB 回歸 21 項及資料庫約束 8 項通過。歷史發現、採用設計、測試與畫面驗收界線見 [階段三複查計畫](PHASE-3-REVIEW-PLAN.md)，其餘階段仍依原計畫。
 
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
