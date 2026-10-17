@@ -1,6 +1,6 @@
 # 階段三：景點、媒體與地圖匯入
 
-更新：2026-10-18。使用者已授權實作，分支 `phase/03-attractions-media`。目前為共用資料結構準備；功能表列為目標，尚未全數交付。本階段屬 P0；不包含電影、消息、優惠管理、收藏保存或完整路線管理。驗收結果將隨完整階段交付。
+更新：2026-10-18。使用者已授權實作，分支 `phase/03-attractions-media`。本階段屬 P0；不包含電影、消息、優惠管理、收藏保存或完整路線管理。實際結果見 [驗收記錄](PHASE-3-ACCEPTANCE.md)。
 
 ## 功能與來源
 
@@ -15,7 +15,7 @@
 
 ## API 與對應畫面
 
-以下路徑均加 `/api/v1`；契約以 [OpenAPI](../backend/resources/openapi.json) 為準。預計新增 15 個操作，累計 44 個；本準備提交未註冊新 API。
+以下路徑均加 `/api/v1`；契約以 [OpenAPI](../backend/resources/openapi.json) 為準。新增 15 個操作，累計 44 個。
 
 | API | 對應頁面／用途 |
 | --- | --- |
@@ -58,3 +58,7 @@ Migration：`backend/database/migrations/002_attractions.sql`。另有已存在�
 5. 整合驗收：真實 MariaDB／HTTP、前端與 PHP 品質檢查、實際瀏覽器上傳、手機／桌面、原始交付保留及文件更新。
 
 每個完成的能力提交對應程式、契約、測試與中文指南。共用前置項目清楚標示為準備，不視為已完成畫面。階段四以後維持未開始。
+
+## 複查修正的欄位與命令
+
+003_attraction_review.sql 增 attractions.image_alt／image_source／image_license／recommendation_label，並補正座標 CHECK；表總數仍為 20。44 個 API 操作維持，POST／PUT attractions 擴充圖片說明及推薦文案欄位。新增 content:backfill-demo-labels 維護命令，預設只預覽，--apply 才交易更新符合原型且未編寫標籤的資料及稽核。PHP 類別更新後需重啟 publisher。驗收涵蓋不換圖修改說明、共用媒體隔離、原型順序／標籤、表單失敗與直接 DB 約束。

@@ -10,7 +10,7 @@
 | --- | --- | --- | --- |
 | 1：需求與環境 | 共用準備 | `phase/01-project-setup` | 已驗收並合併 |
 | 2：認證與權限 | P0 | `phase/02-auth-permissions` | 已驗收並合併 |
-| 3：景點與圖片 | P0 | `phase/03-attractions-media` | 計畫；開始實作時才建立 |
+| 3：景點與圖片 | P0 | `phase/03-attractions-media` | 已完成本機驗收並合併；複查修正歸回相應功能提交 |
 | 4：電影與場次 | P0 | `phase/04-films-screenings` | 計畫；開始實作時才建立 |
 | 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 計畫；開始實作時才建立 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 計畫；開始實作時才建立 |
@@ -64,3 +64,11 @@ git merge --no-ff phase/03-attractions-media
 2026-10-17 PHP 分層改善依認證、管理員帳號、個人矩陣、整合驗證與唯讀模擬歸回對應功能提交，階段二維持十七筆。重整前備份為 `artifacts/history-before-layering-20261017.bundle` 並驗證；七個相依改變的 PHP 快照通過語法、PHPStan level 10 與適用單元測試，並以反例確認新增的 Service／PDO 相依限制生效。最終內容、原始交付、階段分支與 merge 邊界均有檢查；本輪實際 HTTP／MariaDB 驗證見 PHASE-2-ACCEPTANCE.md，沒有把內部改善寫成後續階段進度。
 
 使用者後續新增要求的全站架構／檔案導讀以獨立 `docs:` 提交交付，包含 PROJECT-GUIDE.md 與 README 入口；階段二因此為十七筆原有功能／準備／驗證提交，加一筆文件交付。此文件提交屬新增交付要求，不冒充新業務實作；前後端、資料庫與環境程式沒有異動。
+
+## 階段三功能提交（2026-10-18）
+
+階段三從 main b78b82d 開始，依序整理為：共用 schema／DTO／Repository 準備、公開景點 API 與 HTML／SEO 發布、景點與圖片完整管理、Google Maps 候選匯入、整合／重啟驗收與文件交付。中間版本逐一檢查 PHPStan／單元測試、前端建置與 API 操作契約；最終實際 HTTP／MariaDB／瀏覽器結果見 PHASE-3-ACCEPTANCE.md。未把自身錯誤修正另列進度提交。
+
+已以 --no-ff 合併並保留階段分支。2026-10-18 複查修正按共用資料準備、公開內容、管理表單與測試歸回相應的五筆階段三提交；使用者另要求的複查／計畫文件保留獨立 docs 分支及合併界線。階段一、二、優先級重排及原始交付提交不改，遠端不推送或覆寫。
+
+整理前以 artifacts/history-before-phase3-corrections-20261018.bundle 備份全部 refs，修正後另建 checkpoint bundle；整理使用獨立 index，逐一驗證功能快照的 PHPStan／PHPUnit、前端建置／Node 測試及 Router／OpenAPI。最後比對驗收工作樹 tree、原始 69 檔及保留分支。正式 .env、DB volumes 及本機驗收憑證不提交。
