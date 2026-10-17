@@ -62,6 +62,12 @@
 
 ## 4. 階段二 API 的來源
 
+階段三新增 E-18：景點與媒體 schema、DTO／Repository、版本／軟刪除、歷史網址、內容發布紀錄、Node 前端 HTML 產生器、Nginx 版本／媒體存取檢查，以及僅供引用保護的 routes／route_attractions。功能依據為功能規格 5／6／13／19／20、SEO規格 17；具體表名、路徑、限制及發布方式為工程設計。2026-10-18 已實作，對照見 [階段三計畫](PHASE-3-PLAN.md) 與 [景點指南](modules/attractions.md)。
+
+階段三新增 E-19：Google Maps 網址允許清單、逐跳重導向、DNS／IP 固定、Places API New FieldMask、候選確認及每分鐘 10 次限制。短網址匯入是功能規格列 20，以上安全與 API 選型為工程設計；金鑰由使用者提供至忽略的 .env。實作及服務條件見 [地圖指南](modules/maps-import.md)。
+
+階段三新增 15 個 API 操作、七張表及公開 HTML 發布，累計 44 個 API／20 張業務表。下列階段二清單保留其歷史範圍；不是全專案只剩 29 個 API。新增端點與所有表的來源逐項對照在 PHASE-3-PLAN.md，原始規格與 website 不改動。
+
 以下為原計畫 26 個端點及 U-06 補充的 3 個端點，共 29 個，全部已實作於 backend/config/routes.php，契約見 backend/resources/openapi.json。API草案中的方法／路徑屬 D，背後功能的 S 與本案新增 E 分開列出。確切契約已同步至 OpenAPI。
 
 | 方法與路徑 | 要求來源 | 端點設計來源／補充 |
@@ -144,7 +150,3 @@ U-06 沒有增加業務表或 HTML 網址。sessions 增 preview_admin_id、FK �
 | 共用登入身分與登出 | 導覽原型有 | S-017／S-PAGE；E-01／02 共用模組；U-06／E-16 增固定 root 唯讀模擬 |
 
 所有新來源放 frontend/，與 website 原始檔對照。本文件列出提案讓範圍可讀；階段二對應頁面已建立；工程補充仍不改成規格硬性要求。
-
-## 階段三工程補充
-
-E-18：景點／媒體 schema、DTO、儲存／發布、歷史網址與最小路線引用保護；E-19：Google Maps 安全解析與候選確認。原功能來自功能規格 5／6／13／19／20、SEO規格 17；具體限制、表名與介面為工程選擇，目前先交付資料結構準備。

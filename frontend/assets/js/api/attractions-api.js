@@ -9,4 +9,5 @@ export const attractionsApi = {
   delete: (id, version) => api(`${base}/${encodeURIComponent(id)}`, { method: 'DELETE', body: { version }, kind: 'admin' }),
   retry: () => api(`${base}/publish-retry`, { method: 'POST', body: {}, kind: 'admin' }),
   upload: body => api('/api/v1/admin/media', { method: 'POST', body, kind: 'admin' }),
+  resolve: body => api('/api/v1/admin/places/resolve-map-url', { method: 'POST', body, kind: 'admin' }),
 };

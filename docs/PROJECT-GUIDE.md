@@ -1,6 +1,6 @@
 # 全站架構與檔案功能導讀
 
-階段三進行中（2026-10-18）：本提交已完成景點／媒體完整管理表單、授權、版本、交易稽核及發布／引用保護。以下階段二清單保留已交付說明；階段三新增用途列於末節，未將整個階段標為完成。
+階段三進行中（2026-10-18）：本提交已完成地圖安全解析、真實候選預填及明確確認。以下階段二清單保留已交付說明；階段三新增用途列於末節，未將整個階段標為完成。
 
 
 更新日期：2026-10-18。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
@@ -659,7 +659,7 @@ python backend/tests/origin_redirect.py
 
 ## 階段三本提交累計能力
 
-景點／媒體完整管理表單、授權、版本、交易稽核及發布／引用保護。
+地圖安全解析、真實候選預填及明確確認。
 
 | 檔案 | 用途 |
 | --- | --- |
@@ -714,9 +714,12 @@ python backend/tests/origin_redirect.py
 | [admin/places.html](../frontend/pages/admin/places.html) | 景點與店家；guard 要求 `attractions.view` | `admin.js` | 階段三 API 已串接 |
 | [tests/content-fixture.php](../backend/tests/content-fixture.php) | 只允許隔離測試 volume 的發布失敗／恢復注入，無 HTTP 後門。 |
 | [tests/content_contract.py](../backend/tests/content_contract.py) | 實際 Router／OpenAPI 操作一致及內容回應欄位契約。 |
-| [assets/js/pages/attraction-form.js](../frontend/assets/js/pages/attraction-form.js) | 新增／編輯共用、載入／保存、圖片、候選確認與未存提醒。 |
-| [assets/js/api/attractions-api.js](../frontend/assets/js/api/attractions-api.js) | 景點、媒體、地圖與重試共用 API 呼叫。 |
-| [tests/attractions_integration.py](../backend/tests/attractions_integration.py) | 真實上傳／MariaDB／HTTP／發布故障及越權；選用 live-map。 |
+| [src/Adapters/CurlGoogleHttp.php](../backend/src/Adapters/CurlGoogleHttp.php) | 固定主機、公開 IP、TLS／逾時／大小限制的 Google HTTP adapter。 |
+| [src/Controllers/MapController.php](../backend/src/Controllers/MapController.php) | 地圖網址／action 輸入與候選輸出。 |
+| [src/Policies/GoogleUrlPolicy.php](../backend/src/Policies/GoogleUrlPolicy.php) | Google 網域／路徑與公開 IPv4 的允許規則。 |
+| [src/Services/MapResolver.php](../backend/src/Services/MapResolver.php) | 地圖展開、Places Details／Text Search、限速與候選映射，不保存資料。 |
+| [tests/Unit/MapResolverTest.php](../backend/tests/Unit/MapResolverTest.php) | 重導向、循環、無效 JSON、配額、缺金鑰及私有 IP 測試。 |
+| [.env.example](../.env.example) | 可提交的環境變數範本，秘密欄位留空；實際值放在被忽略的 .env。 |
 
 ## 本功能提交的複查補正
 

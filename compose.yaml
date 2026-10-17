@@ -70,6 +70,7 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@example.test}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-映畫竹塹}
+      GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
       PUBLICATION_PATH: /var/www/publication
       MEDIA_PATH: /var/www/media
       FRONTEND_SOURCE_PATH: /var/www/frontend-source

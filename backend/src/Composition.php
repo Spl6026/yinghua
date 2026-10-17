@@ -48,6 +48,10 @@ use Yinghua\Services\ContentPublication;
 use Yinghua\Services\PublicAttractions;
 use Yinghua\Services\MediaManagement;
 use Yinghua\Services\MediaAccess;
+use Yinghua\Adapters\CurlGoogleHttp;
+use Yinghua\Controllers\MapController;
+use Yinghua\Policies\GoogleUrlPolicy;
+use Yinghua\Services\MapResolver;
 
 /** [E-01] 唯一組裝位置；業務類別不查容器，也不自行 new 資料庫／SMTP。 */
 readonly class Composition
@@ -82,10 +86,12 @@ readonly class Composition
         $attractionController = new AttractionController(new AttractionManagement(new AttractionRepository($database), $authorization, $transactions, $events, $publication));
         $publicAttractions = new PublicAttractionController(new PublicAttractions($publication), $publication);
         $mediaController = new MediaController(new MediaManagement(new MediaRepository($database), new LocalImageStorage($this->config), $authorization, $transactions, $events), new MediaAccess($publication, $authentication, $authorization));
+        $mapPolicy = new GoogleUrlPolicy();
+        $mapController = new MapController(new MapResolver(new CurlGoogleHttp($mapPolicy), $mapPolicy, $this->config, $authorization, $limiter));
         $router = new Router();
-        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController):void $routes */
+        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes($router, $authController, $adminController, $permissionController, $attractionController, $publicAttractions, $mediaController);
+        $routes($router, $authController, $adminController, $permissionController, $attractionController, $publicAttractions, $mediaController, $mapController);
 
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }

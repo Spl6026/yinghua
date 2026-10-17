@@ -8,12 +8,13 @@ use Yinghua\Controllers\PermissionController;
 use Yinghua\Controllers\AttractionController;
 use Yinghua\Controllers\PublicAttractionController;
 use Yinghua\Controllers\MediaController;
+use Yinghua\Controllers\MapController;
 use Yinghua\Http\Route;
 use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
 /** [S-016／17／26／27；S：功能規格 6/13/19/20；E-18] 路由只宣告 HTTP、身分與授權。 */
-return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media): void {
+return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media, MapController $maps): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
         $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...), allowPreviewControl: true));
@@ -50,6 +51,7 @@ return static function (Router $router, AuthController $auth, AdminController $a
     $router->add(new Route('POST', '/api/v1/admin/media', $kind, $media->upload(...), true));
     $router->add(new Route('GET', '/api/v1/admin/media', $kind, $media->listing(...), true, 'attractions', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/media/access', $kind, $media->access(...)));
+    $router->add(new Route('POST', '/api/v1/admin/places/resolve-map-url', $kind, $maps->resolve(...), true));
     $kind = IdentityKind::Member;
     $router->add(new Route('GET', '/api/v1/publication/access', $kind, $publicAttractions->access(...)));
     $router->add(new Route('GET', '/api/v1/attractions/resolve-url', $kind, $publicAttractions->resolve(...)));

@@ -14,10 +14,11 @@ export async function initializeAttractionForm(identity, page) {
   let version, loaded = creating, busy = false, dirty = false, generation = 0, completed = false;
   const preview = document.querySelector('#place-photo-preview');
   const mediaMessage = document.querySelector('#media-status');
+  const mapMessage = document.querySelector('#map-status');
   const writeAllowed = () => !identity.preview?.active && hasPermission(identity, 'attractions', id ? 'edit' : 'create');
   const available = () => writeAllowed() && loaded && !busy && !completed;
   const samples = attractionSamplePicker(creating ? document.querySelector('#place-samples') : null,
-    form, { load() {} }, available, () => { dirty = true; });
+    form, { load() {} }, available, () => { dirty = true; document.querySelector('#map-candidates').replaceChildren(); });
   function controls() {
     form.querySelectorAll('input,select,textarea,button[data-write]').forEach(node => { node.disabled = !available(); });
     form.querySelector('[type="submit"]').disabled = !available();
@@ -76,6 +77,27 @@ export async function initializeAttractionForm(identity, page) {
       form.elements.image.value = '';
       status(mediaMessage, `圖片已上傳（${media.width} × ${media.height}）；儲存景點後才套用。`);
     } catch (error) { handleAdminError(error, mediaMessage); formErrors(form, error); }
+    finally { busy = false; controls(); }
+  });
+  document.querySelector('#parse-place-url').addEventListener('click', async () => {
+    if (!available()) return;
+    const mapUrl = document.querySelector('#google-short-url').value.trim();
+    if (!mapUrl) { status(mapMessage, '請先輸入 Google Maps 網址。', true); return; }
+    busy = true; controls(); status(mapMessage, '解析地圖資料中…');
+    const candidates = document.querySelector('#map-candidates'); candidates.replaceChildren();
+    try {
+      const result = await attractionsApi.resolve({ mapUrl, action: id ? 'edit' : 'create' });
+      status(mapMessage, `${result.attribution}：${result.notice}`);
+      for (const item of result.candidates) {
+        const button = element('button', { type: 'button', className: 'button button-outline' }, `${item.name}｜${item.address}　帶入欄位`);
+        button.addEventListener('click', async () => {
+          if (!available() || !await confirmAction('確認候選地點', `將「${item.name}」的資料帶入表單。請自行核實資料與保存授權；不會自動儲存或帶入 Google 照片。`, button)) return;
+          for (const name of ['name','address','latitude','longitude','hours','websiteUrl','mapUrl','googlePlaceId']) form.elements[name].value = item[name] ?? '';
+          dirty = true; status(mapMessage, '候選資料已帶入，請核實後儲存。'); candidates.replaceChildren();
+        });
+        candidates.append(button);
+      }
+    } catch (error) { handleAdminError(error, mapMessage); }
     finally { busy = false; controls(); }
   });
   document.querySelector('#retry-place-publication').addEventListener('click', async () => {

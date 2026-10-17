@@ -137,11 +137,14 @@ def main():
     check('viewer can read',viewer.call('GET',path)[0]==200)
     check('viewer cannot write',viewer.call('PUT',path,dict(update,version=item['version']))[0]==403)
     check('viewer cannot upload',upload(viewer,png)[0]==403)
+    check('viewer cannot resolve',viewer.call('POST','/api/v1/admin/places/resolve-map-url',{'mapUrl':'https://www.google.com/maps?q=test','action':'create'})[0]==403)
     check('root enters read-only preview',root.call('POST',root.auth+'preview',{'adminId':viewer_id})[0]==200)
     check('preview can read content',root.call('GET',path)[0]==200)
     check('preview cannot update',root.call('PUT',path,dict(update,version=item['version']))[1].get('code')=='PREVIEW_READ_ONLY')
     check('preview cannot upload',upload(root,png)[1].get('code')=='PREVIEW_READ_ONLY')
     root.call('DELETE',root.auth+'preview',{})
+    for url in ['http://127.0.0.1/','https://google.com.attacker.test/maps','https://www.google.com@127.0.0.1/maps','https://www.google.com:8443/maps','file:///etc/passwd','https://127.0.0.1/maps','https://goo.gl/notmaps/123']:
+        check('unsafe map URL rejected '+str(len(checks)),root.call('POST','/api/v1/admin/places/resolve-map-url',{'mapUrl':url,'action':'edit'})[0]==422)
     scheduled,_=write(root,body(media_id,slug=prefix+'-scheduled',status='published',publishAt='2099-01-01T00:00:00+08:00'),expect=201)
     check('scheduled content not early',guest.call('GET','/api/v1/attractions/'+prefix+'-scheduled')[0]==404)
     fixture("UPDATE attractions SET publish_at='2026-10-10 00:00:00' WHERE id='"+scheduled['id']+"'")
@@ -173,6 +176,9 @@ def main():
     check('content audit recorded',bool(fixture("SELECT id FROM audit_logs WHERE resource_type='attraction' AND resource_id='"+identifier+"' LIMIT 1")))
     # 真正外部 Places 另以 --live-map 明確執行一次，與本機安全驗收分開。
     live={'status':'not_run'}
+    if '--live-map' in os.sys.argv:
+        code,result,_=root.call('POST','/api/v1/admin/places/resolve-map-url',{'mapUrl':'https://www.google.com/maps/search/?api=1&query='+urllib.parse.quote('新竹市影像博物館'),'action':'edit'})
+        live={'status':'passed' if code==200 and result.get('candidates') else 'failed','httpStatus':code,'candidateCount':len(result.get('candidates',[])),'errorCode':result.get('code')}
     report={'checks':len(checks),'passed':checks,'liveGooglePlaces':live}
     (ROOT/'artifacts/phase3-attractions-results.json').write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8')
     (ROOT/'artifacts/phase3-browser-credentials.json').write_text(json.dumps({'rootPassword':password,'base':BASE}),encoding='utf-8')
