@@ -4,20 +4,22 @@
 
 2026-10-23 操作狀態補充（E-18）：編輯頁確認「重新載入」且取得伺服器資料成功後，`attraction-form.js` 同時清空尚未上傳的圖片選擇，恢復原媒體；取消或讀取失敗時保留選檔。`attraction-form.test.mjs` 執行真正表單邏輯，驗證這三種狀態及重載後保存，不是只檢查程式字串。這是既有放棄修改流程的修正，不新增欄位或必填限制。
 
+2026-10-23 介面複驗補充（U-11／E-18）：摘要、介紹及行政區留空時，公開 renderer 與瀏覽器卡片省略空段落及孤立的「／」「・」。保留有內容時的原型結構，不補入 Google 簡介或其他預設介紹；欄位仍選填，API／資料表不變。`frontend/tests/attraction-publication.test.mjs` 直接執行 renderer 驗證空值產物。
+
 U-09／E-20 另新增共用營業週表：人工與 Google 帶入皆經 OpeningHours DTO、相同原生編輯器及既有管理交易；完整模型與檔案分工見 [營業時間指南](opening-hours.md)。API 的 hours 是短摘要／舊內容原文，openingHours 才是新的每週資料。
 
 ## 從哪裡讀
 
 先看 `backend/config/routes.php`，再看 `AttractionController` → `AttractionManagement` → `AttractionRepository`。Controller 處理 HTTP 與輸入 DTO；Service 管授權、交易、版本、發布條件、引用檢查及稽核；Repository 集中 SQL，映射成 Attraction／AttractionPage。
 
-`AttractionInput` 驗證欄位白名單、分類、slug、成對座標、網址、時區與版本。U-10後官網可HTTP／HTTPS，地圖仍HTTPS；GooglePlaceLinkPolicy要求新增／更換地點或改名稱／地址／座標後明確確認，或解除關聯。`ContentStatus` 是 draft／published／archived enum。`AttractionWriteResult` 將「已存資料」和「公開頁是否同步」分開，避免儲存成功卻誤稱發布成功。
+`AttractionInput` 驗證欄位白名單、分類、非空 slug 格式、成對座標、網址、時區與版本。地址／行政區可省略，slug 新增留空自動產生，編輯留空沿用原值。006 的 created_by／updated_by 由 Service 提供，不接受 HTTP 冒名。U-10後官網可HTTP／HTTPS，地圖仍HTTPS；GooglePlaceLinkPolicy要求新增／更換地點或改名稱／地址／座標後明確確認，或解除關聯。`ContentStatus` 是 draft／published／archived enum。`AttractionWriteResult` 將「已存資料」和「公開頁是否同步」分開，避免儲存成功卻誤稱發布成功。
 
 `frontend/assets/js/pages/attraction-list.js` 控制清單、搜尋、分頁、刪除對話框。`attraction-form.js` 共用新增與編輯：讀取成功才開放修改，等待請求時禁止重複送出，衝突／載入失敗可重載，未儲存修改有提醒。共用請求在 `api/attractions-api.js`；它沿用 core/api-client.js 的 CSRF／錯誤處理。PHP 不產生表單 HTML。
 
 ## 儲存與發布資料流
 
-1. 表單呼叫 POST／PUT，Kernel 檢查 session、CSRF、首登與唯讀模擬。
-2. Service 取得發布鎖，交易內重查管理員權限、鎖定既有資料、比對 version、檢查圖片與博物館唯一設定，保存內容與稽核。
+1. 表單呼叫 POST／PUT，Kernel 檢查 session、CSRF、權限與唯讀模擬。
+2. Service 取得發布鎖，交易內重查管理員權限、鎖定既有資料、比對 version、若指定圖片則檢查存在性，另檢查博物館唯一設定，保存內容與稽核。
 3. ContentPublication 從 DB 取得所有已發布且到期的資料與歷史網址，組成公開投影；版本雜湊包括模板版本與 origin。
 4. NodeContentRenderer 透過無 shell 的程序參數呼叫 `frontend/scripts/publish.mjs`，JSON 由 stdin 傳入。實際 HTML 組合、編碼與 head 都在前端腳本；成功完成後原子切換 publication volume 的 current symlink。
 5. API 與 Nginx 同時檢查已啟用版本。公開資料與新 DB 投影不一致時回 503，防止下架／生成失敗時繼續提供舊內容。成功同步回 200／201；已保存但生成失敗回 202，後台保留重試。
@@ -44,7 +46,7 @@ docker compose exec -u www-data -T app php bin/console.php content:seed-demo
 docker compose exec -u www-data -T app php bin/console.php content:publish
 ```
 
-`resources/attractions-demo.json` 只給明確 CLI seed 使用，網站讀取不退回該 JSON。原型外部圖片只允許受控 seed；新內容需上傳圖片。正式素材與來源授權須另外提供。`db:seed` 只初始化角色，不等於內容 seed。
+`resources/attractions-demo.json` 只給明確 CLI seed 使用，網站讀取不退回該 JSON。原型外部圖片只允許受控 seed；新內容圖片選填，無圖時用既有替代圖；不冒用原始展示素材來源。正式素材與來源授權須另外提供。`db:seed` 只初始化角色，不等於內容 seed。
 
 刪除採軟刪除；被 route_attractions 引用時回 409，必須先調整路線。媒體不跟著刪除景點而破壞其他引用。歷代 HTML／未引用媒體目前保留在私有 volumes，沒有自動清理；備份與儲存量管理應同時涵蓋 DB、media 與 publication，不能只備份程式碼。
 

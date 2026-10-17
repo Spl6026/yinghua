@@ -19,7 +19,10 @@ def main():
         media = upload(root, test_png())[1]['media']
         value = body(media['id'], slug='map-fields-'+secrets.token_hex(4), websiteUrl='http://example.test/original', district='東區', status='published')
         code, result, _ = root.call('POST', '/api/v1/admin/attractions', dict(value, district=''))
-        check('unknown district requires manual selection', code == 422 and 'district' in result.get('fieldErrors', {}))
+        check('unknown district stays blank and can be saved', code == 201 and result['attraction']['district'] == '')
+        unknown = result['attraction']
+        assert root.call('DELETE', '/api/v1/admin/attractions/' + unknown['id'], {'version': unknown['version']})[0] == 200
+        value['slug'] += '-known'
         code, result, _ = root.call('POST', '/api/v1/admin/attractions', value);assert code == 201
         item = result['attraction'];identifier = item['id'];path = '/api/v1/admin/attractions/'+identifier
         check('HTTP website and selected district saved', item['websiteUrl'] == value['websiteUrl'] and item['district'] == '東區')

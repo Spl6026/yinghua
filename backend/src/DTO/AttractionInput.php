@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
+use Yinghua\Policies\GoogleUrlPolicy;
 
 /** [S：功能規格 F13/G20；E-18] 表單與受控匯入共用同一組驗證。 */
 readonly class AttractionInput
@@ -22,16 +23,16 @@ readonly class AttractionInput
         $input->only(['slug','name','category','district','typeLabel','summary','description','hours','address',
             'phone','latitude','longitude','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','featured','isMuseum',
             'status','publishAt','seoTitle','seoDescription','version','imageAlt','imageSource','imageLicense','recommendationLabel','openingHours','googleLinkConfirmed']);
-        $slug = $input->text('slug', 1, 120);
-        if (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
+        $slug = $input->optionalText('slug', 120);
+        if ($slug !== '' && !preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $slug)) {
             throw ApplicationError::invalid('slug', '網址識別只可使用小寫英數字與連字號。');
         }
         $category = $input->text('category');
-        $district = $input->text('district');
+        $district = $input->optionalText('district', 40);
         if (!in_array($category, ['景點','美食','在地店家'], true)) {
             throw ApplicationError::invalid('category', '請選擇有效分類。');
         }
-        if (!in_array($district, ['北區','東區','香山區'], true)) {
+        if (!in_array($district, ['','北區','東區','香山區'], true)) {
             throw ApplicationError::invalid('district', '請選擇新竹市行政區。');
         }
         $status = ContentStatus::tryFrom($input->text('status'));
@@ -80,14 +81,19 @@ readonly class AttractionInput
             $urls[$key] = $url;
         }
         $placeId = $optional('googlePlaceId', 255);
+        // [S：功能規格 G20／U-12] 手填與匯入皆採相同 Google 地圖網址規則。
+        if ($urls['mapUrl'] !== '') {
+            (new GoogleUrlPolicy())->validate($urls['mapUrl']);
+        }
         if ($placeId !== '' && !preg_match('/^[A-Za-z0-9_-]+$/D', $placeId)) {
             throw ApplicationError::invalid('googlePlaceId', '地圖地點識別無效。');
         }
+        // [U-11／E-22] 網站摘要與介紹選填；留空保存空字串，仍檢查型別及字數上限。
         $fields = [
             'slug' => $slug, 'name' => $input->text('name', 1, 120), 'category' => $category, 'district' => $district,
-            'type_label' => $optional('typeLabel', 80), 'summary' => $input->text('summary', 1, 500),
-            'description' => $input->text('description', 1, 20000), 'hours' => $optional('hours', 500),
-            'address' => $input->text('address', 1, 255), 'phone' => PhoneNumber::fromText($input->optionalText('phone', 80))->text, 'latitude' => $coordinates['latitude'],'longitude' => $coordinates['longitude'],
+            'type_label' => $optional('typeLabel', 80), 'summary' => $optional('summary', 500),
+            'description' => $optional('description', 20000), 'hours' => $optional('hours', 500),
+            'address' => $input->optionalText('address'), 'phone' => PhoneNumber::fromText($input->optionalText('phone', 80))->text, 'latitude' => $coordinates['latitude'],'longitude' => $coordinates['longitude'],
             'transport' => $optional('transport', 2000), 'website_url' => $urls['websiteUrl'],'map_url' => $urls['mapUrl'],
             'google_place_id' => $placeId === '' ? null : $placeId, 'media_id' => $mediaId === '' ? null : $mediaId,
             'featured' => array_key_exists('featured', $values) ? $input->boolean('featured') : false,
@@ -116,5 +122,16 @@ readonly class AttractionInput
         }
 
         return new self($fields, $creating ? null : $input->positiveInt('version'), $status, array_key_exists('googleLinkConfirmed', $values) ? $input->boolean('googleLinkConfirmed') : false);
+    }
+
+    /** [S：唯一 slug／U-12] 留空新增時由系統產生；編輯留空則沿用原網址。 */
+    public function withDefaultSlug(string $slug): self
+    {
+        return $this->fields['slug'] !== '' ? $this : new self(
+            [...$this->fields, 'slug' => $slug],
+            $this->version,
+            $this->status,
+            $this->googleLinkConfirmed,
+        );
     }
 }

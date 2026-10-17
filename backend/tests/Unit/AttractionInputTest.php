@@ -44,4 +44,34 @@ class AttractionInputTest extends TestCase
         $this->expectException(ApplicationError::class);
         AttractionInput::fromArray([...$this->valid(),'recommendationLabel' => str_repeat('字', 81)], true);
     }
+
+    public function testOptionalContentAcceptsBlankAndOmittedValues(): void
+    {
+        foreach (['', " \n\t "] as $blank) {
+            $input = AttractionInput::fromArray([...$this->valid(), 'summary' => $blank, 'description' => $blank], true);
+            self::assertSame('', $input->fields['summary']);
+            self::assertSame('', $input->fields['description']);
+        }
+        $values = $this->valid();
+        unset($values['summary'], $values['description']);
+        $input = AttractionInput::fromArray($values, true);
+        self::assertSame('', $input->fields['summary']);
+        self::assertSame('', $input->fields['description']);
+    }
+
+    public function testOptionalContentStillEnforcesTypeAndLength(): void
+    {
+        foreach (['summary' => 500, 'description' => 20000] as $field => $max) {
+            $input = AttractionInput::fromArray([...$this->valid(), $field => str_repeat('字', $max)], true);
+            self::assertSame($max, mb_strlen((string) $input->fields[$field]));
+            foreach ([null, [], false, str_repeat('字', $max + 1)] as $invalid) {
+                try {
+                    AttractionInput::fromArray([...$this->valid(), $field => $invalid], true);
+                    self::fail('Invalid optional content must be rejected.');
+                } catch (ApplicationError $error) {
+                    self::assertArrayHasKey($field, $error->fieldErrors);
+                }
+            }
+        }
+    }
 }

@@ -22,7 +22,7 @@ class Node {
   closest(){return this.parent;}
   remove(){this.parent.children=this.parent.children.filter(x=>x!==this);}
 }
-function fixture({creating=false,preview=false,edit=true}={}) {
+function fixture({creating=false,preview=false,edit=true,view=true}={}) {
   const nodes=new Map();const node=(id,tag='div')=>{if(!nodes.has(id))nodes.set(id,new Node(tag));return nodes.get(id);};
   const form=node('#place-form','form'),save=node('#save','button'),message=node('#place-form-status','p');
   form.elements={};
@@ -47,10 +47,25 @@ function fixture({creating=false,preview=false,edit=true}={}) {
     attractionSamplePicker:()=>({setDisabled(){},async load(){}}),
     attractionsApi:{get:async()=>{state.gets++;return state.get?state.get():{attraction:item};},save:async(id,body)=>{state.saves.push({id,body});return state.write?state.write():{attraction:{id:'a',version:2},publication:{status:'succeeded'}};},upload:async body=>{state.uploads.push(body);return state.upload?state.upload():{media:{id:'new-image',url:'/media/new.png',alt:'新說明',source:'新來源',license:'新授權',width:20,height:20}};},resolve:async()=>state.mapResult,retry:async()=>({message:'公開頁面已同步'})}};
   vm.createContext(sandbox);source.forEach(code=>vm.runInContext(code,sandbox));
-  const identity={preview:{active:preview},permissions:['view','create',...(edit?['edit']:[])].map(action=>({module:'attractions',action,allowed:true}))};
+  const identity={preview:{active:preview},permissions:[...(view?['view']:[]),'create',...(edit?['edit']:[])].map(action=>({module:'attractions',action,allowed:true}))};
   return {form,save,message,node,state,item,initialize:()=>sandbox.initializeAttractionForm(identity,creating?'place-add':'place-edit')};
 }
 
+test('只有新增權限保存後留在成功畫面，再次送出不重複新增',async()=>{
+  const f=fixture({creating:true,view:false,edit:false});await f.initialize();
+  assert.equal(f.node('#place-cancel').href,'/admin/place-add.html');
+  f.form.emit('submit');await settle();
+  assert.equal(f.state.assignments.length,0);assert.match(f.message.textContent,/已儲存/);
+  assert.equal(f.node('#place-another').hidden,false);assert.equal(f.save.disabled,true);
+  f.form.emit('submit');await settle();assert.equal(f.state.saves.length,1);
+});
+test('只有新增權限遇到同步失敗，保留已保存結果並禁止第二筆 POST',async()=>{
+  const f=fixture({creating:true,view:false,edit:false});await f.initialize();
+  f.state.write=async()=>({attraction:{id:'saved',version:1},publication:{status:'failed',message:'資料已保存，公開同步失敗'}});
+  f.form.emit('submit');await settle();f.form.emit('submit');await settle();
+  assert.equal(f.state.saves.length,1);assert.equal(f.save.disabled,true);
+  assert.match(f.message.textContent,/資料已保存/);assert.equal(f.state.assignments.length,0);
+});
 test('只改圖片說明也送出完整保存資料及版本',async()=>{
   const f=fixture();await f.initialize();Object.assign(f.form.elements.imageAlt,{value:'修改說明'});f.form.elements.imageSource.value='修改來源';f.form.elements.imageLicense.value='修改授權';
   f.form.emit('submit');await settle();const body=f.state.saves[0].body;
@@ -114,4 +129,11 @@ test('取消候選確認不改動內容；未確認的新地點關聯不能送�
  const f=fixture();await f.initialize();f.state.confirm=false;f.node('#google-short-url').value='https://www.google.com/maps?q=test';f.state.mapResult={candidates:[{name:'另一地點',address:'地址'}],attribution:'Google Maps',notice:''};
  await f.node('#parse-place-url').emit('click');await f.node('#map-candidates').children[0].children.find(node=>node.tag==='button').emit('click');assert.equal(f.form.elements.name.value,'原景點');
  f.state.linkStale=true;f.form.emit('submit');await settle();assert.equal(f.state.saves.length,0);assert.equal(f.node('#google-place-link').focused,true);
+});
+
+test('圖片來源及授權說明留空仍可上傳，替代文字仍必填',async()=>{
+ const f=fixture();await f.initialize();
+ f.form.elements.image.files=[{}];f.form.elements.imageSource.value='';f.form.elements.imageLicense.value='';
+ f.form.elements.imageAlt.value='';await f.node('#upload-place-image').emit('click');assert.equal(f.state.uploads.length,0);
+ f.form.elements.imageAlt.value='測試圖片';await f.node('#upload-place-image').emit('click');assert.equal(f.state.uploads.length,1);
 });

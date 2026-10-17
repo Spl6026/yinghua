@@ -5339,7 +5339,7 @@
             }
           }
         },
-        "description": "attractions.create；發布需要圖片，草稿不公開。",
+        "description": "attractions.create；圖片選填；草稿不公開，上傳圖片仍須符合替代文字與內容檢查。",
         "requestBody": {
           "required": true,
           "content": {
@@ -8527,8 +8527,10 @@
         "properties": {
           "slug": {
             "type": "string",
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-            "maxLength": 120
+            "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+            "maxLength": 120,
+            "minLength": 0,
+            "description": "U-12：選填；新增留空自動產生唯一識別，編輯留空沿用原識別。"
           },
           "name": {
             "type": "string",
@@ -8540,13 +8542,15 @@
           },
           "summary": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 500
+            "minLength": 0,
+            "maxLength": 500,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
           },
           "description": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 20000
+            "minLength": 0,
+            "maxLength": 20000,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
           },
           "hours": {
             "type": "string",
@@ -8555,8 +8559,9 @@
           },
           "address": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 255
+            "minLength": 0,
+            "maxLength": 255,
+            "description": "U-12：選填；省略或空白保存空字串。"
           },
           "transport": {
             "type": "string"
@@ -8566,7 +8571,8 @@
             "description": "HTTP／HTTPS 外部官網，保留原協定，不含帳密；伺服器不抓取此網址。"
           },
           "mapUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "功能規格 G20：手填與匯入同樣只接受允許的 HTTPS Google 地圖入口；可留空。"
           },
           "seoTitle": {
             "type": "string"
@@ -8585,10 +8591,13 @@
           "district": {
             "type": "string",
             "enum": [
+              "",
               "北區",
               "東區",
               "香山區"
-            ]
+            ],
+            "minLength": 0,
+            "description": "U-12：選填；未知保留空字串，不推測行政區。"
           },
           "latitude": {
             "type": [
@@ -8664,7 +8673,8 @@
             "description": "原型文案標籤；未提供保留既有值，空白公開顯示在地推薦。"
           },
           "openingHours": {
-            "$ref": "#/components/schemas/OpeningHours"
+            "$ref": "#/components/schemas/OpeningHours",
+            "description": "U-09／U-12：選填；省略維持既有相容行為，提供時驗證完整週表。"
           },
           "googleLinkConfirmed": {
             "type": "boolean",
@@ -8679,15 +8689,9 @@
           }
         },
         "required": [
-          "slug",
           "name",
           "category",
-          "district",
-          "summary",
-          "description",
-          "address",
-          "status",
-          "openingHours"
+          "status"
         ]
       },
       "AttractionUpdate": {
@@ -8696,8 +8700,10 @@
         "properties": {
           "slug": {
             "type": "string",
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
-            "maxLength": 120
+            "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+            "maxLength": 120,
+            "minLength": 0,
+            "description": "U-12：選填；新增留空自動產生唯一識別，編輯留空沿用原識別。"
           },
           "name": {
             "type": "string",
@@ -8709,13 +8715,15 @@
           },
           "summary": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 500
+            "minLength": 0,
+            "maxLength": 500,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
           },
           "description": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 20000
+            "minLength": 0,
+            "maxLength": 20000,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
           },
           "hours": {
             "type": "string",
@@ -8724,8 +8732,9 @@
           },
           "address": {
             "type": "string",
-            "minLength": 1,
-            "maxLength": 255
+            "minLength": 0,
+            "maxLength": 255,
+            "description": "U-12：選填；省略或空白保存空字串。"
           },
           "transport": {
             "type": "string"
@@ -8735,7 +8744,8 @@
             "description": "HTTP／HTTPS 外部官網，保留原協定，不含帳密；伺服器不抓取此網址。"
           },
           "mapUrl": {
-            "type": "string"
+            "type": "string",
+            "description": "功能規格 G20：手填與匯入同樣只接受允許的 HTTPS Google 地圖入口；可留空。"
           },
           "seoTitle": {
             "type": "string"
@@ -8754,10 +8764,13 @@
           "district": {
             "type": "string",
             "enum": [
+              "",
               "北區",
               "東區",
               "香山區"
-            ]
+            ],
+            "minLength": 0,
+            "description": "U-12：選填；未知保留空字串，不推測行政區。"
           },
           "latitude": {
             "type": [
@@ -8837,7 +8850,8 @@
             "description": "原型文案標籤；未提供保留既有值，空白公開顯示在地推薦。"
           },
           "openingHours": {
-            "$ref": "#/components/schemas/OpeningHours"
+            "$ref": "#/components/schemas/OpeningHours",
+            "description": "U-09／U-12：選填；省略維持既有相容行為，提供時驗證完整週表。"
           },
           "googleLinkConfirmed": {
             "type": "boolean",
@@ -8852,13 +8866,8 @@
           }
         },
         "required": [
-          "slug",
           "name",
           "category",
-          "district",
-          "summary",
-          "description",
-          "address",
           "status",
           "version"
         ]
@@ -8882,12 +8891,12 @@
           },
           "summary": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 500
           },
           "description": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 20000
           },
           "hours": {
@@ -8895,7 +8904,7 @@
           },
           "address": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 255
           },
           "transport": {
@@ -8924,10 +8933,12 @@
           "district": {
             "type": "string",
             "enum": [
+              "",
               "北區",
               "東區",
               "香山區"
-            ]
+            ],
+            "minLength": 0
           },
           "latitude": {
             "type": [
@@ -9105,12 +9116,12 @@
           },
           "summary": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 500
           },
           "description": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 20000
           },
           "hours": {
@@ -9118,7 +9129,7 @@
           },
           "address": {
             "type": "string",
-            "minLength": 1,
+            "minLength": 0,
             "maxLength": 255
           },
           "transport": {
@@ -9147,10 +9158,12 @@
           "district": {
             "type": "string",
             "enum": [
+              "",
               "北區",
               "東區",
               "香山區"
-            ]
+            ],
+            "minLength": 0
           },
           "latitude": {
             "type": [
@@ -9592,18 +9605,20 @@
             "type": "string"
           },
           "source": {
-            "type": "string"
+            "type": "string",
+            "minLength": 0,
+            "description": "U-12：選填，省略或空白保存空字串。"
           },
           "license": {
-            "type": "string"
+            "type": "string",
+            "minLength": 0,
+            "description": "U-12：選填，省略或空白保存空字串。"
           }
         },
         "required": [
           "image",
           "action",
-          "alt",
-          "source",
-          "license"
+          "alt"
         ]
       },
       "MapResolve": {
@@ -9673,7 +9688,7 @@
               "東區",
               "香山區"
             ],
-            "description": "確認新竹市及其行政區才帶值，無法確認為空，須人工選擇。"
+            "description": "確認新竹市及其行政區才帶值，無法確認為空，可稍後補填。"
           },
           "editorialSummary": {
             "type": "string",

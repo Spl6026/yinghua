@@ -1,6 +1,6 @@
 import { attractionSamplePicker } from '../components/attraction-samples.js';
 import { attractionsApi } from '../api/attractions-api.js';
-import { hasPermission, handleAdminError } from '../core/session.js';
+import { hasPermission, handleAdminError, adminDestination } from '../core/session.js';
 import { element, status, submitForm, unsavedChanges, formErrors } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { openingHoursEditor } from '../components/opening-hours-editor.js';
@@ -14,6 +14,10 @@ export async function initializeAttractionForm(identity, page) {
   const form = document.querySelector('#place-form');
   const message = document.querySelector('#place-form-status');
   const creating = page === 'place-add';
+  if (!hasPermission(identity, 'attractions', 'view')) {
+    const cancel = document.querySelector('#place-cancel');
+    cancel.href = adminDestination(identity); cancel.textContent = '返回可用功能';
+  }
   let id = creating ? null : new URLSearchParams(location.search).get('id');
   let version, loaded = creating, busy = false, dirty = false, generation = 0, completed = false;
   const preview = document.querySelector('#place-photo-preview');
@@ -77,8 +81,8 @@ export async function initializeAttractionForm(identity, page) {
   document.querySelector('#upload-place-image').addEventListener('click', async () => {
     if (!available()) return;
     const image = form.elements.image.files[0];
-    if (!image || !form.elements.imageAlt.value.trim() || !form.elements.imageSource.value.trim() || !form.elements.imageLicense.value.trim()) {
-      status(mediaMessage, '請選擇圖片並填寫替代文字、來源與授權。', true); mediaMessage.focus(); return;
+    if (!image || !form.elements.imageAlt.value.trim()) {
+      status(mediaMessage, '請選擇圖片並填寫替代文字。', true); mediaMessage.focus(); return;
     }
     const body = new FormData();
     body.set('image', image); body.set('action', id ? 'edit' : 'create');
@@ -145,9 +149,17 @@ export async function initializeAttractionForm(identity, page) {
       try {
         const result = await attractionsApi.save(id, body);
         id = result.attraction.id; version = result.attraction.version; dirty = false;
-        if (result.publication.status === 'succeeded') { completed = true; location.assign('/admin/places.html'); }
+        if (result.publication.status === 'succeeded') {
+          completed = true;
+          if (hasPermission(identity, 'attractions', 'view')) location.assign('/admin/places.html');
+          else {
+            status(message, result.publication.message || '景點已儲存。');
+            document.querySelector('#place-another').hidden = !hasPermission(identity, 'attractions', 'create');
+            message.focus();
+          }
+        }
         else {
-          if (hasPermission(identity, 'attractions', 'edit')) history.replaceState(null, '', '/admin/place-edit.html?id=' + encodeURIComponent(id));
+          if (hasPermission(identity, 'attractions', 'edit') && hasPermission(identity, 'attractions', 'view')) history.replaceState(null, '', '/admin/place-edit.html?id=' + encodeURIComponent(id));
           status(message, result.publication.message + (hasPermission(identity, 'attractions', 'edit') ? '' : ' 本帳號沒有重試權限，請聯絡具編輯權限的管理員；資料已保存，請勿重複新增。'), true);
           document.querySelector('#retry-place-publication').hidden = false;
         }

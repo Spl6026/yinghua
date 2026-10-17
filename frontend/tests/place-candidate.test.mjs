@@ -14,5 +14,5 @@ test('候選行政區更新與 HTTP 官網保留，週表走相同編輯器',()=
 test('候選無法確認行政區時清空原值，不能沿用北區',()=>{
   const f=fixture();f.form.elements.district.value='北區';
   const notes=applyPlaceCandidate(f.form,{name:'其他地點',district:''},f.editor);
-  assert.equal(f.form.elements.district.value,'');assert.match(notes.join(''),/人工選擇/);assert.equal(f.form.elements.description.value,'原值');assert.equal(f.form.elements.phone.value,'');
+  assert.equal(f.form.elements.district.value,'');assert.match(notes.join(''),/可稍後補填/);assert.equal(f.form.elements.description.value,'原值');assert.equal(f.form.elements.phone.value,'');
 });

@@ -29,19 +29,19 @@
 <p id="map-status" class="form-status" role="status" tabindex="-1"></p><div id="map-candidates" class="map-candidates"></div>
 <div id="google-place-link" class="google-place-link" data-field-name="googlePlaceId" role="group" aria-label="Google 地點關聯" tabindex="-1" hidden></div></div>
 <div class="admin-field"><label for="place-name">景點名稱 *</label><input id="place-name" name="name" type="text" required maxlength="120"></div>
-<div class="admin-field"><label for="place-slug">網址識別（slug）*</label><input id="place-slug" name="slug" type="text" required maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="例：hsinchu-park"></div>
+<div class="admin-field"><label for="place-slug">網址識別（slug，留空自動產生）</label><input id="place-slug" name="slug" type="text" maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="例：hsinchu-park"></div>
 <div class="admin-field"><label for="place-category">分類</label><select id="place-category" name="category"><option value="景點">景點</option><option value="美食">美食</option><option value="在地店家">在地店家</option></select></div>
-<div class="admin-field"><label for="place-district">行政區 *</label><select id="place-district" name="district" required><option value="">請選擇行政區</option><option value="北區">北區</option><option value="東區">東區</option><option value="香山區">香山區</option></select></div>
+<div class="admin-field"><label for="place-district">行政區（選填）</label><select id="place-district" name="district"><option value="">尚未確認</option><option value="北區">北區</option><option value="東區">東區</option><option value="香山區">香山區</option></select></div>
 <div class="admin-field"><label for="place-typeLabel">分類補充</label><input id="place-typeLabel" name="typeLabel" type="text" maxlength="80" placeholder="例：文化場館、咖啡・甜點"></div>
 <div class="admin-field"><label for="place-recommendationLabel">推薦文案標籤</label><input id="place-recommendationLabel" name="recommendationLabel" type="text" maxlength="80" placeholder="例：城市記憶；留空顯示在地推薦"></div>
 <!-- [U-09／E-20] 手動與 Google 候選共用每週編輯器；舊 hours 只保留相容摘要。 -->
 <div class="admin-field full"><h2>營業時間</h2><p id="opening-hours-help" class="helper-text">台北時間；每天可選公休、全天或最多四段。跨日時段歸開始日，請勾選次日結束。未確認的時間選「依店家公告」。舊文字保留在備註，不推測為每天相同。</p><input id="place-hours" name="hours" type="hidden"><div id="opening-hours-editor" class="opening-hours-editor" data-field-name="openingHours" role="group" aria-label="每週營業時間" aria-describedby="opening-hours-help" tabindex="-1"></div></div>
-<div class="admin-field full"><label for="place-address">地址 *</label><input id="place-address" name="address" type="text" required maxlength="255"></div>
+<div class="admin-field full"><label for="place-address">地址（選填）</label><input id="place-address" name="address" type="text" maxlength="255"></div>
 <!-- [S：功能規格 G6／E-24] 電話選填，格式由 API 驗證；不推測國碼。 -->
 <div class="admin-field full"><label for="place-phone">電話（選填）</label><input id="place-phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="80" aria-describedby="phone-help"><p id="phone-help" class="helper-text">可使用國碼、空格、括號、連字號及分機，例如 03-1234567 分機 123。</p></div>
-<div class="admin-field full"><label for="place-summary">列表摘要 *</label><textarea id="place-summary" name="summary" required maxlength="500" rows="2"></textarea></div>
 <aside id="google-place-reference" class="map-candidate" aria-label="Google 地點原文參考" hidden></aside>
-<div class="admin-field full"><label for="place-description">景點介紹 *</label><textarea id="place-description" name="description" required maxlength="20000" rows="6"></textarea></div>
+<div class="admin-field full"><label for="place-summary">列表摘要（選填）</label><textarea id="place-summary" name="summary" maxlength="500" rows="2"></textarea></div>
+<div class="admin-field full"><label for="place-description">景點介紹（選填）</label><textarea id="place-description" name="description" maxlength="20000" rows="6"></textarea></div>
 <div class="admin-field"><label for="place-latitude">緯度</label><input id="place-latitude" name="latitude" type="number" step="any" min="-90" max="90"></div>
 <div class="admin-field"><label for="place-longitude">經度</label><input id="place-longitude" name="longitude" type="number" step="any" min="-180" max="180"></div>
 <div class="admin-field full"><label for="place-transport">交通資訊</label><textarea id="place-transport" name="transport" maxlength="2000" rows="2"></textarea></div>
@@ -53,14 +53,14 @@
 <div class="admin-field"><label><input type="checkbox" name="isMuseum" id="place-isMuseum">作為博物館介紹（僅一筆）</label></div>
 <div class="admin-field"><label for="place-seoTitle">SEO 標題覆寫</label><input id="place-seoTitle" name="seoTitle" type="text" maxlength="160"></div>
 <div class="admin-field"><label for="place-seoDescription">SEO 摘要覆寫</label><textarea id="place-seoDescription" name="seoDescription" maxlength="500" rows="2"></textarea></div>
-<div class="admin-field full"><h2>景點圖片</h2><p class="helper-text">先上傳，再儲存景點套用；JPEG／PNG／WebP，最多 8 MiB、6000 邊長及 1200 萬像素。發布需要圖片與替代文字。替代文字、來源與授權的修改會隨景點儲存；留空沿用原圖片說明，不影響其他景點。</p><label for="place-image">選擇圖片</label><input id="place-image" name="image" type="file" accept="image/jpeg,image/png,image/webp"><input type="hidden" name="mediaId"><input type="hidden" name="googlePlaceId"></div>
+<div class="admin-field full"><h2>景點圖片</h2><p class="helper-text">先上傳，再儲存景點套用；JPEG／PNG／WebP，最多 8 MiB、6000 邊長及 1200 萬像素。圖片選填；上傳圖片須填替代文字，來源與授權說明選填。替代文字、來源與授權的修改會隨景點儲存；留空沿用原圖片說明，不影響其他景點。</p><label for="place-image">選擇圖片</label><input id="place-image" name="image" type="file" accept="image/jpeg,image/png,image/webp"><input type="hidden" name="mediaId"><input type="hidden" name="googlePlaceId"></div>
 <div class="admin-field"><label for="place-alt">圖片替代文字</label><input id="place-alt" name="imageAlt" type="text" maxlength="255"></div>
-<div class="admin-field"><label for="place-source">圖片來源</label><input id="place-source" name="imageSource" type="text" maxlength="255" placeholder="例：本案攝影師提供"></div>
-<div class="admin-field"><label for="place-license">圖片授權</label><input id="place-license" name="imageLicense" type="text" maxlength="255" placeholder="例：已取得網站使用授權"></div>
+<div class="admin-field"><label for="place-source">圖片來源（選填）</label><input id="place-source" name="imageSource" type="text" maxlength="255" placeholder="例：本案攝影師提供"></div>
+<div class="admin-field"><label for="place-license">圖片授權（選填）</label><input id="place-license" name="imageLicense" type="text" maxlength="255" placeholder="例：已取得網站使用授權"></div>
 <div class="admin-field"><button type="button" id="upload-place-image" class="button button-outline" data-write>上傳圖片 ↗</button></div>
 <div class="admin-field full"><img id="place-photo-preview" class="place-photo-preview" src="/assets/image-placeholder.svg" alt="景點圖片預覽" width="640" height="400"><p id="media-status" class="form-status" role="status" tabindex="-1"></p></div>
 </div>
-<div class="admin-form-actions"><a class="button button-outline" href="/admin/places.html">取消</a><button type="button" class="button button-outline" id="reload-place">重新載入</button><button type="submit" class="button button-dark">儲存內容 ↗</button><button type="button" class="button button-outline" id="retry-place-publication" hidden>重試公開頁面同步</button></div>
+<div class="admin-form-actions"><a id="place-cancel" class="button button-outline" href="/admin/places.html">取消</a><a id="place-another" class="button button-outline" href="/admin/place-add.html" hidden>再新增景點 ↗</a><button type="button" class="button button-outline" id="reload-place">重新載入</button><button type="submit" class="button button-dark">儲存內容 ↗</button><button type="button" class="button button-outline" id="retry-place-publication" hidden>重試公開頁面同步</button></div>
 <p id="place-form-status" class="form-status" role="status" tabindex="-1"></p>
 <p class="helper-text">資料儲存及公開頁面同步的結果分開顯示；草稿與下架內容不公開。</p>
 </form></section>

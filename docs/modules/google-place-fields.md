@@ -20,7 +20,7 @@ MapController → MapResolver（授權、限速、安全URL／HTTP）→ GoogleP
 
 websiteUri只接受無帳密的http／https，保留原協定，PHP不下載或探測該網站。AttractionInput對websiteUrl採相同驗證；mapUrl與伺服器Google請求仍HTTPS，javascript／ftp／帳密網址仍拒絕。公開外連保持noopener noreferrer。
 
-editorialSummary原文只放回應與目前DOM，不trim／截斷／改寫，過長或不合法時明示未提供；最多20000字的上限是防護，不把截斷內容冒充完整簡介。不送summary／description、不進DB／public projection／localStorage；重新載入或解除關聯清除參考區。選擇候選後仍可在網站介紹上方查看原文。Google未提供簡介時保留網站既有內容。
+editorialSummary原文只放回應與目前DOM，不trim／截斷／改寫，過長或不合法時明示未提供；最多20000字的上限是防護，不把截斷內容冒充完整簡介。不送summary／description、不進DB／public projection／localStorage；重新載入或解除關聯清除參考區。依使用者後續排版要求，選擇候選後在列表摘要上方查看原文，順序為地址 → Google原文參考 → 列表摘要 → 景點介紹，新增／編輯頁一致。Google未提供簡介時保留網站既有內容。
 
 來源標示依[Google Maps歸屬政策](https://developers.google.com/maps/documentation/places/web-service/policies)：候選／參考區使用獨立底色與Google Maps文字、translate=no、不換行及12–16px正常字重；提供者名稱及安全連結一併顯示。沒有照片、評價或生成式摘要。FieldMask新增addressComponents、editorialSummary及attributions；editorialSummary屬Enterprise + Atmosphere，實際費率由客戶帳戶及[官方欄位表](https://developers.google.com/maps/documentation/places/web-service/data-fields)為準，不硬編價格。
 

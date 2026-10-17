@@ -46,6 +46,21 @@ test('失敗不切換 current；下架後新版本不含舊詳情', async () => 
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test('選填介紹與行政區留空可發布，詳情和列表不留下空段落或孤立分隔符號', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'spl-optional-view-'));
+  try {
+    const item = {...sample, district:'', summary:'', description:''};
+    assert.equal(publish(directory, snapshot('f', [item])).status, 0);
+    const detail = await readFile(join(directory, 'current/places/test-place.html'), 'utf8');
+    const list = await readFile(join(directory, 'current/explore.html'), 'utf8');
+    assert.match(detail, /<div class="detail-meta">測試<\/div>/);
+    assert.doesNotMatch(detail, /<p class="detail-lead"><\/p>|<p><\/p>|測試・<\/div>/);
+    assert.match(list, /<span class="place-area">在地推薦<\/span>/);
+    assert.doesNotMatch(list, /<p><\/p>|　\/　在地推薦/);
+    assert.doesNotMatch(detail, /Google 簡介|尚未提供介紹/);
+  } finally { await rm(directory, {recursive:true,force:true}); }
+});
+
 test('週表詳情含午休、跨日、公休及安全備註，卡片保留短摘要',async()=>{
   const directory=await mkdtemp(join(tmpdir(),'spl-hours-'));
   try {

@@ -140,3 +140,15 @@ Docker 前端 64 項測試及 64 頁建置通過。實際瀏覽器：人工新�
 依使用者指出「已關聯 Google 地點」排版不自然，將狀態文字與切換操作納入同一個原生 summary；Place ID／解除操作固定向下展開，確認按鈕獨立排列。使用原型色系、緊湊字級及可換行佈局，人工未關聯仍完全隱藏。
 
 Docker 前端64項測試、64頁建置通過。實際桌面 summary 高36.79px，展開前後狀態文字的 top 同為395.18px，沒有垂直置中位移；手機實際 innerWidth355／scrollWidth341，收合、待確認長提醒、展開皆無水平溢出，解除後隱藏並聚焦 place-name。臨時尺寸已還原，自有隔離草稿已刪除。截圖 artifacts/link-layout-desktop.png、link-layout-desktop-open.png、link-layout-mobile.png、link-layout-mobile-pending.png、link-layout-mobile-open.png。套用 web-design-guidelines 檢視本次元件及CSS。PHP／API／DB schema無變動，沒有重跑PHP或完整HTTP套件，也沒有呼叫Google。本輪修正歸回原地點關聯功能提交；後續內容補位仍只是規劃。
+
+
+## 2026-10-18：列表摘要／景點介紹選填（U-11／E-22）
+
+使用者後續要求實際改為選填，本輪移除新增／編輯兩欄 required／星號，標示選填，AttractionInput 與 OpenAPI 同步允許留空／省略。保留字串型別、500／20000字上限與完整表單PUT／版本／權限規則。NOT NULL 不等於必須非空，真實MariaDB已確認空字串可保存，無新增表、migration或端點。Google帶入、自家摘要摘錄與預覽仍未實作；空白照實保存及輸出，不冒稱已有備援。
+
+PHPStan level10／PHPat通過，PHPUnit37 tests／182 assertions，前端64項測試、64頁建置通過。PER-CS兩檔dry-run無差異；Rector限定AttractionInput dry-run提出一項既有closure改arrow風格建議，已檢視未套用。既有API契約9項／44操作通過。新增 optional_content_integration.py 真實HTTP／MariaDB19項通過：留空／省略新增、清空重讀、後補、獨立選填、PUT省略清空、錯誤型別／超長不改版本、匿名／越權／唯讀、409、空內容公開API／HTML及下架。
+
+瀏覽器實際編輯頁確認兩欄label為選填、required均false、value均空字串；點儲存後資料庫版本8→9，空內容確實保存。新增頁使用相同變更並已建置，本輪未另外手動新增一筆，新增保存由真實HTTP驗證。自有隔離草稿已刪除，驗收憑證在Git忽略的artifacts；正式資料／.env未改，未呼叫Google。安全審查本次變更的白名單、型別、長度、參數化保存與既有權限／版本管線；無新增HTML解譯或任意外部請求，未宣稱獨立掃描器結果。介面依web-design-guidelines審查本次兩欄標示與原有label。原始website／Excel保持原狀。
+
+
+2026-10-18 U-10 排版位置補充：依使用者要求，Google原文參考區由摘要／介紹之間移到列表摘要上方，新增／編輯頁一致。64頁Docker建置通過，實際解析兩份來源與兩份建置HTML，確認地址 → Google參考 → 列表摘要 → 景點介紹、參考區ID唯一且預設隱藏、兩欄保持選填。依web-design-guidelines檢視標籤與DOM閱讀順序；本輪只移動HTML節點，未更動JS、API、保存或Google請求，沒有重跑PHP／HTTP套件或再次取得Google候選。導讀已同步，排版調整併入本次景點表單提交。

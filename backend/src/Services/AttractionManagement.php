@@ -67,6 +67,7 @@ class AttractionManagement
                 $item = $this->transactions->run(function () use ($actor, $targetId, $input, $client, $creating): Attraction {
                     $fresh = $this->authorization->require($actor, 'attractions', $creating ? 'create' : 'edit', true);
                     $before = $creating ? null : $this->target($targetId, true);
+                    $input = $input->withDefaultSlug($before === null ? 'place-' . str_replace('-', '', $targetId) : $before->slug);
                     if ($before !== null && $before->version !== $input->version) {
                         throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
                     }
@@ -75,13 +76,10 @@ class AttractionManagement
                     if (is_string($media) && !$this->attractions->mediaExists($media)) {
                         throw ApplicationError::invalid('mediaId', '找不到可用的景點圖片。');
                     }
-                    if ($input->status === ContentStatus::Published && $media === null && ($before?->values['legacyImage'] ?? '') === '') {
-                        throw ApplicationError::invalid('mediaId', '發布前請上傳圖片及替代文字。');
-                    }
                     if ($input->fields['is_museum'] === true && $this->attractions->hasMuseum($targetId)) {
                         throw ApplicationError::invalid('isMuseum', '已設定博物館介紹景點，請先取消原設定。');
                     }
-                    $this->attractions->save($targetId, $input, $creating);
+                    $this->attractions->save($targetId, $input, $creating, $fresh->id);
                     $updated = $this->target($targetId);
                     $this->events->content(
                         $fresh->id,

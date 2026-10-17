@@ -33,7 +33,7 @@ class MediaAccess
         try {
             $identity = $this->authentication->current(IdentityKind::Admin, $token);
             $actor = $identity->effective();
-            if ($identity->owner->mustChangePassword || $actor->mustChangePassword || !$identity->previewAvailable()) {
+            if (!$identity->previewAvailable()) {
                 return false;
             }
             foreach ($this->authorization->permissions($actor) as $right) {

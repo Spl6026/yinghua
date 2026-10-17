@@ -38,8 +38,8 @@ class MediaController
             $context->request->files['image'],
             $action,
             $input->text('alt', 1, 255),
-            $input->text('source', 1, 255),
-            $input->text('license', 1, 255),
+            $input->optionalText('source'),
+            $input->optionalText('license'),
             $context->client,
         );
 

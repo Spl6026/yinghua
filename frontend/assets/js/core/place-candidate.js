@@ -5,7 +5,7 @@ export function applyPlaceCandidate(form, item, openingEditor) {
   if (form.elements.phone) form.elements.phone.value = ''; // 新地點尚無已核實電話，不沿用上一筆。
   openingEditor.load(item.openingHours, item.hours);
   const notes = [];
-  if (!form.elements.district.value) notes.push('無法確認新竹市行政區，請人工選擇。');
+  if (!form.elements.district.value) notes.push('無法確認新竹市行政區，暫留空白，可稍後補填。');
   if (form.elements.websiteUrl.value.startsWith('http:')) notes.push('官網使用 HTTP，已保留原網址。');
   return notes;
 }

@@ -2,9 +2,9 @@
 
 更新：2026-10-18。功能規格的圖片／alt／管理授權要求為 S；8 MiB、6000 邊長、1200 萬像素、重新編碼與 volume 拆分為 E-18 工程選擇。
 
-入口為 MediaController：multipart 轉 UploadedImage，讀取 action、alt、source、license，再交 MediaManagement。Service 先依 attractions create／edit 驗權；LocalImageStorage 驗證真實 PHP 上傳、檔案大小、finfo、尺寸及 GD 解碼，只接受 JPEG／PNG／WebP。重新編碼去除原始中繼資料，使用隨機 UUID 檔名及固定副檔名，以暫存檔 rename 保存。
+入口為 MediaController：multipart 轉 UploadedImage，讀取 action、alt 與選填 source／license，再交 MediaManagement。Service 先依 attractions create／edit 驗權；LocalImageStorage 驗證真實 PHP 上傳、檔案大小、finfo、尺寸及 GD 解碼，只接受 JPEG／PNG／WebP。重新編碼去除原始中繼資料，使用隨機 UUID 檔名及固定副檔名，以暫存檔 rename 保存。
 
-MediaManagement 在資料庫交易內再次確認管理員權限，透過 MediaRepository 保存 media_assets 及稽核。若 DB 保存失敗則移除剛建立的檔案，不留下成功假象。source／license 是管理員填寫的來源紀錄，不代表系統替內容取得法律授權。
+MediaManagement 在資料庫交易內再次確認管理員權限，透過 MediaRepository 保存 media_assets 及稽核。若 DB 保存失敗則移除剛建立的檔案，不留下成功假象。source／license 可省略／空白，是管理員填寫的來源紀錄，不代表系統替內容取得法律授權。
 
 圖片保存在 `/var/www/media` 的 media_data volume；Nginx 只讀掛載，不交 PHP 解譯。路徑僅接受指定 UUID＋副檔名。MediaAccess 對匿名使用者只放行目前成功發布快照引用的圖片；草稿或未引用圖片須有有效管理員 session 及本模組查看／新增／編輯權限。未授權讀取回 404，唯讀模擬仍不能上傳。
 
@@ -23,3 +23,7 @@ R3-02：recommendationLabel 是原型的「城市記憶／巷弄探索」等文�
 既有資料升級使用 003_attraction_review.sql，不改已套用的 SQL。新增座標約束明確要求兩者皆空或皆非空且合法；不合法的既存資料會阻止 DDL，不默默刪改。
 
 更新後需重啟常駐 publisher，並以 www-data 執行 content:publish。舊展示資料標籤先執行 content:backfill-demo-labels 預覽，再加 --apply；只有未人工編寫且仍符合受控來源的展示筆會被補上，原始素材授權仍須確認。
+
+## U-14 的掃描範圍
+
+使用者明確選擇維持圖檔內容檢查：MIME、尺寸／大小、實際解碼與重新編碼。沒有獨立病毒掃描服務，不宣稱已做病毒掃描。圖片本身選填；上傳時 alt 必填，來源與授權說明不作非空門檻。

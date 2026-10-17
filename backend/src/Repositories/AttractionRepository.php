@@ -59,19 +59,27 @@ class AttractionRepository
         return array_map($this->map(...), $rows);
     }
 
-    public function save(string $id, AttractionInput $input, bool $creating): void
+    public function save(string $id, AttractionInput $input, bool $creating, ?string $actorId = null): void
     {
+        // [D：資料表建議 C10] 真正操作者由服務層傳入，不能由 HTTP 欄位冒名。
+        $fields = $input->fields;
+        if ($actorId !== null) {
+            $fields['updated_by'] = $actorId;
+            if ($creating) {
+                $fields['created_by'] = $actorId;
+            }
+        }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($input->fields));
-                $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($input->fields)));
-                $this->database->execute('INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')', ['id' => $id,...$input->fields]);
+                $columns = implode(',', array_keys($fields));
+                $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
+                $this->database->execute('INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')', ['id' => $id,...$fields]);
             } else {
                 // [U-09] 舊客戶端省略週表時，不可用舊摘要蓋掉已存在的結構化摘要。
                 $structured = array_key_exists('opening_hours', $input->fields);
                 $columns = implode(',', array_map(static fn(string $key): string => $key === 'hours' && !$structured
-                    ? 'hours=CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END' : $key . '=:' . $key, array_keys($input->fields)));
-                $this->database->execute('UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$input->fields]);
+                    ? 'hours=CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END' : $key . '=:' . $key, array_keys($fields)));
+                $this->database->execute('UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$fields]);
             }
             if ($input->fields['category'] === '景點') {
                 $this->database->execute('DELETE FROM merchants WHERE attraction_id=:id', ['id' => $id]);
@@ -155,8 +163,9 @@ class AttractionRepository
         $key = $r->nullableString('storage_key');
         $data['image'] = $key === null ? $r->string('external_image_url') : '/media/' . $key;
         $data['imageAlt'] = $r->nullableString('image_alt') ?? ($key === null ? $r->string('external_image_alt') : $r->string('media_alt'));
-        $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? '原始交付展示素材';
-        $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? '正式上線前須確認授權';
+        $legacy = $r->string('external_image_url') !== '';
+        $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? ($legacy ? '原始交付展示素材' : '');
+        $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? ($legacy ? '正式上線前須確認授權' : '');
         $data['recommendationLabel'] = $r->string('recommendation_label');
         $opening = $r->nullableString('opening_hours');
         $data['openingHours'] = $opening === null ? null : OpeningHours::fromValue(json_decode($opening, true, 32, JSON_THROW_ON_ERROR))->toArray();

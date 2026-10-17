@@ -4,6 +4,8 @@
 
 更新日期：2026-10-18。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
 
+內容補位進度：[景點摘要與介紹自動補位計畫](ATTRACTION-CONTENT-FALLBACK-PLAN.md)（U-11／E-22）。兩欄已完成選填，可留空新增／編輯／發布，空值以空字串保存；自家介紹摘錄、預覽及 Google 即時原文備援尚未實作，Google 仍僅供後台參考。
+
 **目前完成階段二、三：認證／權限／唯讀模擬，以及景點／店家、圖片、地圖候選匯入與公開 HTML 發布。** 景點、博物館與首頁景點精選讀真實資料；其他未實作業務仍為展示快照或待開放。頁面存在不代表該模組已串接資料庫。完整階段規劃見 [實作計畫](IMPLEMENTATION-PLAN.md)，實際驗證見 [階段二驗收](PHASE-2-ACCEPTANCE.md) 與 [階段三驗收](PHASE-3-ACCEPTANCE.md)。
 
 來源標記沿用 [設計來源表](DESIGN-TRACEABILITY.md)：S 是規格要求，D 是規格中的建議草案，U 是使用者指定，E 是工程補充。本案 PHP＋MariaDB＋Docker、原生 JS／可用 jQuery 來自 U-01；API-only、易讀分層及參考 Spring Boot 來自 U-02。以下目錄、類別、工具與容器拆法屬工程實作，不冒稱 Excel 指定。
@@ -759,7 +761,7 @@ attractions.opening_hours 是 nullable JSON；舊 hours 保留原文／新摘要
 
 Google候選以GooglePlaceMapper轉為MapCandidate DTO，不直接信任外部JSON。行政區需確認新竹市及東區／北區／香山區，否則清空並要求管理員選擇，人工新增也沒有預設北區。官網HTTP／HTTPS保留原協定、不含帳密且伺服器不抓取；mapUrl與Google安全HTTP Adapter仍HTTPS。
 
-Google簡介依使用者選擇只作原文參考，候選及選中後的獨立區塊都有Google Maps及提供者來源，沒有簡介時明示。網站摘要／介紹不被覆蓋，參考區不進保存請求、DB、公開投影或瀏覽器儲存，重載清除。FieldMask增加addressComponents、editorialSummary及attributions，沒有照片／評價匯入。
+Google簡介依使用者選擇只作原文參考，選中後的獨立區塊放在列表摘要上方，讓摘要與景點介紹連續排列。候選及參考區都有Google Maps及提供者來源，沒有簡介時明示。網站摘要／介紹不被覆蓋，參考區不進保存請求、DB、公開投影或瀏覽器儲存，重載清除。FieldMask增加addressComponents、editorialSummary及attributions，沒有照片／評價匯入。
 
 Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳細資訊切換同列對齊，展開內容固定在下方，避免擠壓狀態文字。人工未關聯不顯示，Place ID／解除按鈕收進「關聯詳細資訊」。名稱／地址／座標改動後才顯示確認操作，解除後聚焦景點名稱。AttractionInput接收嚴格boolean的googleLinkConfirmed命令，AttractionManagement先做授權／版本，再由GooglePlaceLinkPolicy比對資料；省略前端同樣拒絕未確認的變更。這是管理員核對，不是Google簽章。API仍44操作、表仍20、migration仍五支，沒有新增表或端點。
 
@@ -814,6 +816,20 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 功能開發期間新增、移動或刪除檔案，也應在同一功能提交同步維護本導讀；新增 API／表另更新 OpenAPI、來源表與模組指南。狀態只記實際完成，驗收結果放驗收文件，秘密仍只放本機被忽略的設定。
 
 
+## 階段三補充：摘要／介紹選填（U-11／E-22）
+
+新增／編輯頁移除兩欄 required 與星號，明示選填。AttractionInput 共用 optional 驗證，允許留空／省略，字數500／20000上限、文字型別及空字元防護保留；API 契約同步允許空字串，回應仍固定帶兩欄。PUT 省略這兩欄會清空，並非部分更新。資料表、migration、API端點數及環境變數不變，PHP 仍只提供 API。
+
+| 檔案 | 用途 |
+| --- | --- |
+| [optional_content_integration.py](../backend/tests/optional_content_integration.py) | 真實隔離 HTTP／MariaDB 選填保存、失敗不改資料、越權／唯讀、公開發布及重讀；可用 --keep-for-browser 保留自有草稿供瀏覽器驗收 |
+| [AttractionInputTest.php](../backend/tests/Unit/AttractionInputTest.php) | 補充空白／省略、型別與 Unicode 字數邊界 |
+
+自動補位仍依前述計畫，不能把選填交付寫成 Google 內容已自動帶入。
+
+
 ## 本功能歷史校正同步說明
 
 U-13／U-15：八字密碼、確認必填且一致、無首登強制；一般管理員可改名，具權限時可自我停用／軟刪除／降權。固定 root、最後管理權與防越級仍保護。005 修正一般帳號字元集與 root trigger，007 清除相容首登旗標；已套用的舊 migration 不改。上述說明取代本快照舊段落中的相反政策。
+
+U-12／U-14：景點地址、行政區、slug、週表及圖片均可省略；系統產生／保留 slug，來源／授權選填。006 增可空行政區及建立／更新者 UUID 外鍵；圖片檢查範圍為 MIME、尺寸、解碼及重編碼。本快照共八份 migration；新增 specification_alignment.py 驗證跨層限制，完整 API 契約及模組指南同步校正。
