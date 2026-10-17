@@ -1,6 +1,6 @@
 # 全站架構與檔案功能導讀
 
-階段三進行中（2026-10-18）：本提交已完成schema、型別化 DTO／enum、Repository 與外部介面的共用準備。以下階段二清單保留已交付說明；階段三新增用途列於末節，未將整個階段標為完成。
+階段三進行中（2026-10-18）：本提交已完成公開景點 API、完整 HTML／SEO、排程 CLI 與原型列表互動。以下階段二清單保留已交付說明；階段三新增用途列於末節，未將整個階段標為完成。
 
 
 更新日期：2026-10-18。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
@@ -659,7 +659,7 @@ python backend/tests/origin_redirect.py
 
 ## 階段三本提交累計能力
 
-schema、型別化 DTO／enum、Repository 與外部介面的共用準備。
+公開景點 API、完整 HTML／SEO、排程 CLI 與原型列表互動。
 
 | 檔案 | 用途 |
 | --- | --- |
@@ -679,10 +679,32 @@ schema、型別化 DTO／enum、Repository 與外部介面的共用準備。
 | [src/Repositories/AttractionRepository.php](../backend/src/Repositories/AttractionRepository.php) | 內容 SQL、排序／搜尋／分頁、merchants、alias、引用及公開投影。 |
 | [src/Repositories/MediaRepository.php](../backend/src/Repositories/MediaRepository.php) | 媒體寫入與模組分頁。 |
 | [src/Repositories/PublicationRepository.php](../backend/src/Repositories/PublicationRepository.php) | 公開版本 pending／succeeded／failed 紀錄。 |
+| [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover、content:seed-demo／publish／tick／watch。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |
+| [Kernel.php](../backend/src/Http/Kernel.php) | 整合路由、身分、CSRF、首登限制、唯讀模擬與授權，再呼叫 Controller；統一應用例外與非預期錯誤。 |
+| [Route.php](../backend/src/Http/Route.php) | 一條路由的資料與路徑比對，包括 {id}、身分、授權及首登／模擬控制旗標。 |
+| [src/Adapters/AttractionSeeder.php](../backend/src/Adapters/AttractionSeeder.php) | CLI 明確匯入原始示範內容及 legacy_id，不自動執行。 |
+| [src/Adapters/NodeContentRenderer.php](../backend/src/Adapters/NodeContentRenderer.php) | 無 shell 呼叫前端 HTML 產生器、模板版本、current 快照與發布鎖。 |
+| [resources/attractions-demo.json](../backend/resources/attractions-demo.json) | 原始六筆受控示範 seed，網站不直接讀取，不覆寫既有內容。 |
+| [src/Controllers/PublicAttractionController.php](../backend/src/Controllers/PublicAttractionController.php) | 公開列表／詳情／博物館、版本存取檢查與歷史網址轉向。 |
+| [src/Services/ContentPublication.php](../backend/src/Services/ContentPublication.php) | 建立公開投影、版本比較、發布／重試與排程 tick。 |
+| [src/Services/PublicAttractions.php](../backend/src/Services/PublicAttractions.php) | 只讀成功發布快照，分類／行政區／搜尋與公開單筆。 |
+| [docker/php/Dockerfile](../docker/php/Dockerfile) | 多階段 PHP image：Composer binary、PHP／extension 基底、品質工具與應用依賴、runtime、development；development 額外安裝品質工具 dev 依賴。 |
+| [scripts/publish.mjs](../frontend/scripts/publish.mjs) | 公開投影 → 原型模板、正文及 SEO；不可變 generation 與原子啟用。 |
+| [assets/css/phase3.css](../frontend/assets/css/phase3.css) | 沿用原型的表格溢出容器、圖片預覽、地圖候選及分頁補充。 |
+| [assets/image-placeholder.svg](../frontend/assets/image-placeholder.svg) | 本機圖片失敗替代圖。 |
+| [components/content-cards.js](../frontend/assets/js/components/content-cards.js) | 景點、電影、消息、優惠、路線、搜尋與行程示意的 DOM 元件；重用原型 class 並用安全文字建立。 |
+| [core/session.js](../frontend/assets/js/core/session.js) | me 驗證、已登入頁導向、首登限制、module/action 判斷、會員導覽、登入逾時及安全 returnTo。 |
+| [pages/public-details.js](../frontend/assets/js/pages/public-details.js) | 公開快照的景點／電影／消息／優惠詳情、站內連結與前後篇；尚未接正式內容 API。 |
+| [assets/js/pages/attractions.js](../frontend/assets/js/pages/attractions.js) | 公開列表 API 篩選、分類鍵盤操作、分頁、錯誤／替代圖。 |
+| [public.js](../frontend/assets/js/public.js) | 公開頁入口：唯讀快照列表、分類／地區／搜尋、展示卡片、動畫、詳情與會員導覽；planner 要登入，收藏／行程保存尚未開放。 |
+| [tests/attraction-publication.test.mjs](../frontend/tests/attraction-publication.test.mjs) | 真實 Node 產物、XSS 編碼、canonical、台北日期及失敗不切換。 |
+| [return-to.test.mjs](../frontend/tests/return-to.test.mjs) | 站內路由白名單、會員／後台命名空間及不安全重新導向拒絕。 |
 
 ## 本功能提交的複查補正
 
 [U-05／E-18] attractions 增 image_alt／image_source／image_license（景點使用說明，空值沿用原資產）及 recommendation_label（文案）；003 migration 明確拒絕單側 NULL 座標，不改 002。AttractionInput 沿用型別與長度檢查；AttractionInputTest 驗證忽略欄位、空值、型別與長度。共用 EventRepository 提供內容交易稽核，未提前註冊管理端點。
+
+公開 API／SSR／JS 讀同一份文案與圖片說明；同發布時間以 id ASC 保留六筆原型順序。AttractionSeeder／console 的 content:backfill-demo-labels 預設預覽，加 --apply 才補仍符合原始名稱／圖片且標籤為空的展示資料，固定管理員及稽核在同一交易，普通 seed 不覆寫既有資料。更新 PHP 後 restart publisher，再以 www-data 執行 content:publish。
 
 
 ## 本功能歷史校正同步說明

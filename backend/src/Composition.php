@@ -35,6 +35,12 @@ use Yinghua\Services\PasswordHasher;
 use Yinghua\Services\PasswordReset;
 use Yinghua\Services\RateLimiter;
 use Yinghua\Support\Secrets;
+use Yinghua\Adapters\NodeContentRenderer;
+use Yinghua\Controllers\PublicAttractionController;
+use Yinghua\Repositories\AttractionRepository;
+use Yinghua\Repositories\PublicationRepository;
+use Yinghua\Services\ContentPublication;
+use Yinghua\Services\PublicAttractions;
 
 /** [E-01] 唯一組裝位置；業務類別不查容器，也不自行 new 資料庫／SMTP。 */
 readonly class Composition
@@ -65,11 +71,20 @@ readonly class Composition
         $roles = new RoleTemplates($permissions, $authorization);
         $permissionController = new PermissionController(new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events), $roles);
         $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));
+        $publication = $this->publication($database);
+        $publicAttractions = new PublicAttractionController(new PublicAttractions($publication), $publication);
         $router = new Router();
-        /** @var Closure(Router,AuthController,AdminController,PermissionController):void $routes */
+        /** @var Closure(Router,AuthController,AdminController,PermissionController,PublicAttractionController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes($router, $authController, $adminController, $permissionController);
+        $routes($router, $authController, $adminController, $permissionController, $publicAttractions);
 
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
+    }
+
+    public function publication(?Database $database = null): ContentPublication
+    {
+        $database ??= Database::connect($this->config);
+
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config);
     }
 }

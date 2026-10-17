@@ -16,3 +16,13 @@ test('後台 returnTo 保留合法編輯網址，拒絕登入循環與跨 namesp
     assert.equal(returnTo('admin'), '/admin/index.html');
   }
 });
+
+test('會員登入可回到發布的景點網址，仍拒絕非 slug 與跨站網址', () => {
+  globalThis.location = { origin: 'http://localhost:8080', search: '?returnTo=' + encodeURIComponent('/places/hsinchu-park.html?from=explore') };
+  assert.equal(returnTo('member'), '/places/hsinchu-park.html?from=explore');
+  assert.equal(returnTo('admin'), '/admin/index.html');
+  for (const value of ['/places/../admin/admins.html', '/places/bad_name.html', '/places/test.php', '/places/%2fadmin.html', '//attacker.test/places/test.html']) {
+    globalThis.location.search = '?returnTo=' + encodeURIComponent(value);
+    assert.equal(returnTo('member'), '/index.html');
+  }
+});

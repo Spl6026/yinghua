@@ -3,7 +3,7 @@ import { element } from '../core/ui.js';
 import { places, films, detailLinks } from '../data/prototype.js';
 
 export function detailHref(item, fallback) {
-  return detailLinks[item.name || item.title] || fallback;
+  return item.url || detailLinks[item.name || item.title] || fallback;
 }
 
 export function imageBlock(className, image, label, gradient) {

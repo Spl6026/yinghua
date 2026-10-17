@@ -1,0 +1,110 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Yinghua\Services;
+
+use Throwable;
+use Yinghua\Config;
+use Yinghua\Contracts\ContentRenderer;
+use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Repositories\AttractionRepository;
+use Yinghua\Repositories\PublicationRepository;
+
+/** [E-12／E-18] DB 是編輯來源；成功產生的不可變快照是公開讀取版本。 */
+class ContentPublication
+{
+    public function __construct(
+        private readonly AttractionRepository $attractions,
+        private readonly PublicationRepository $publications,
+        private readonly ContentRenderer $renderer,
+        private readonly Config $config,
+    ) {}
+
+    /** @template T
+     * @param \Closure():T $callback
+     * @return T
+     */
+    public function exclusive(\Closure $callback): mixed
+    {
+        return $this->renderer->exclusive($callback);
+    }
+
+    /** [E-18] 呼叫端已提交內容；發布任何步驟失敗都須保留已保存的回應，不讓使用者重複新增。 */
+    public function synchronize(): bool
+    {
+        $id = null;
+        try {
+            $snapshot = $this->projection();
+            $id = $this->publications->begin($this->generation($snapshot));
+            $this->renderer->render($snapshot);
+            $this->publications->finish($id, true);
+
+            return true;
+        } catch (Throwable $error) {
+            // 紀錄資料庫本身可能故障；記錄失敗不能遮蔽「內容已保存」。
+            if ($id !== null) {
+                try {
+                    $this->publications->finish($id, false);
+                } catch (Throwable $recordError) {
+                    error_log('publication=' . $id . ' record_exception=' . $recordError::class);
+                }
+            }
+            error_log('publication=' . ($id ?? 'unrecorded') . ' exception=' . $error::class);
+
+            return false;
+        }
+    }
+
+    public function retry(): bool
+    {
+        return $this->exclusive($this->synchronize(...));
+    }
+
+    /** 排程由 CLI 週期執行；沒有變更就不重產生。 */
+    public function tick(): bool
+    {
+        return $this->exclusive(function (): bool {
+            return $this->ready() || $this->synchronize();
+        });
+    }
+
+    public function ready(): bool
+    {
+        return ($this->renderer->current()['generation'] ?? null) === $this->generation($this->projection());
+    }
+
+    /** @return array<string,mixed> */
+    public function read(): array
+    {
+        // [S-SEO-17] 產生失敗／下架／排程切換期間不繼續公開舊版本。
+        $current = $this->renderer->current();
+        if ($current === null || ($current['generation'] ?? null) !== $this->generation($this->projection())) {
+            throw new ApplicationError('PUBLICATION_PENDING', '公開頁面正在更新，請稍後重試。', retryAfter: 5);
+        }
+
+        return $current;
+    }
+
+    /** @return array<string,mixed> */
+    private function projection(): array
+    {
+        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),
+            'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published()),
+            'aliases' => $this->attractions->aliases()];
+        $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+
+        return $data;
+    }
+
+    /** @param array<string,mixed> $snapshot */
+    private function generation(array $snapshot): string
+    {
+        $generation = $snapshot['generation'] ?? null;
+        if (!is_string($generation)) {
+            throw new \RuntimeException('Invalid publication generation.');
+        }
+
+        return $generation;
+    }
+}

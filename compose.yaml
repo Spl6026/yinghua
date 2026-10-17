@@ -15,6 +15,8 @@ services:
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
       - ./frontend/dist:/var/www/frontend:ro
+      - publication_data:/var/www/publication:ro
+      - media_data:/var/www/media:ro
     environment:
       API_UPSTREAM: app:9000
       CANONICAL_ORIGIN: ${APP_URL:-http://localhost:8080}
@@ -68,11 +70,17 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-no-reply@example.test}
       MAIL_FROM_NAME: ${MAIL_FROM_NAME:-映畫竹塹}
+      PUBLICATION_PATH: /var/www/publication
+      MEDIA_PATH: /var/www/media
+      FRONTEND_SOURCE_PATH: /var/www/frontend-source
     volumes:
       - ./tools/php:/var/www/tools
       - vendor_data:/var/www/tools/vendor
       - ./backend:/var/www/app
       - backend_vendor_data:/var/www/app/vendor
+      - ./frontend:/var/www/frontend-source:ro
+      - publication_data:/var/www/publication
+      - media_data:/var/www/media
     depends_on:
       db:
         condition: service_healthy
@@ -83,6 +91,20 @@ services:
       retries: 3
       start_period: 15s
     restart: unless-stopped
+
+  publisher:
+    extends:
+      service: app
+    image: yinghua-app
+    user: www-data
+    command: ["php", "bin/console.php", "content:watch"]
+    healthcheck:
+      disable: true
+    depends_on:
+      app:
+        condition: service_healthy
+      db:
+        condition: service_healthy
 
   db:
     image: mariadb:12.3@sha256:2bdff1534a7e569fecaf4b10b66ad0d410806e382d9db29ba305448addda97c4
@@ -121,12 +143,21 @@ services:
 
   app-test:
     profiles: ["test"]
+    image: yinghua-app
     extends:
       service: app
     environment:
       APP_ENV: test
       APP_URL: http://localhost:8081
       DB_DATABASE: yinghua_test
+    volumes: !override
+      - ./tools/php:/var/www/tools
+      - vendor_data:/var/www/tools/vendor
+      - ./backend:/var/www/app
+      - backend_vendor_data:/var/www/app/vendor
+      - ./frontend:/var/www/frontend-source:ro
+      - publication_test_data:/var/www/publication
+      - media_test_data:/var/www/media
     restart: "no"
   web-test:
     profiles: ["test"]
@@ -137,6 +168,11 @@ services:
     environment:
       API_UPSTREAM: app-test:9000
       CANONICAL_ORIGIN: http://localhost:8081
+    volumes: !override
+      - ./docker/nginx/default.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./frontend/dist:/var/www/frontend:ro
+      - publication_test_data:/var/www/publication:ro
+      - media_test_data:/var/www/media:ro
     depends_on: !override
       app-test:
         condition: service_healthy
@@ -149,3 +185,7 @@ volumes:
   vendor_data:
   backend_vendor_data:
   mail_data:
+  publication_data:
+  media_data:
+  publication_test_data:
+  media_test_data:

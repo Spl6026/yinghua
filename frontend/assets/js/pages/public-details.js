@@ -32,6 +32,7 @@ function updateDynamic(selector, item, title, meta) {
 }
 
 export function initializeDetails() {
+  if (document.body.dataset.managedAttractions) return;
   const query = new URLSearchParams(location.search);
   const id = Number(query.get('id'));
   const place = document.querySelector('#place-detail-content');

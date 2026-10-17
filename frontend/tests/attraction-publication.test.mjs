@@ -1,0 +1,46 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import { mkdtemp, readFile, realpath, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// 真正執行 renderer；檢查產物，不以 source substring 當功能測試。
+const script = fileURLToPath(new URL('../scripts/publish.mjs', import.meta.url));
+const sample = { id: '03000000-0000-4000-8000-000000000001', slug: 'test-place', name: '測試「景點」',
+  category: '景點', district: '北區', typeLabel: '測試', summary: '摘要', description: '<script>alert(1)</script>\n\n第二段',
+  hours: '09:00–17:00', address: '測試地址', transport: '', websiteUrl: '', mapUrl: '', image: '/media/test.png', imageAlt: '安全圖片',
+  featured: true, isMuseum: false, updatedAt: '2026-10-17T16:30:00+00:00' };
+const snapshot = (generation, items) => ({ origin: 'https://example.test', generation: generation.repeat(64), items, aliases: {} });
+function publish(directory, data) {
+  return spawnSync(process.execPath, [script, directory], { input: JSON.stringify(data), encoding: 'utf8' });
+}
+
+test('公開 HTML 含可讀詳情、正確 canonical 與安全編碼', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'spl-publish-'));
+  try {
+    assert.equal(publish(directory, snapshot('a', [sample])).status, 0);
+    const html = await readFile(join(directory, 'current/places/test-place.html'), 'utf8');
+    assert.match(html, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+    assert.doesNotMatch(html, /<script>alert\(1\)<\/script>/);
+    assert.match(html, /rel="canonical" href="https:\/\/example.test\/places\/test-place.html"/);
+    assert.match(html, /name="description" content="摘要"/);
+    assert.match(html, /更新日期：2026-10-18/);
+    assert.match(html, /data-managed-attractions="true"/);
+    assert.match(html, /src="\/assets\/js\/pages\/attractions.js"/);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});
+
+test('失敗不切換 current；下架後新版本不含舊詳情', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'spl-publish-'));
+  try {
+    assert.equal(publish(directory, snapshot('b', [sample])).status, 0);
+    const active = await realpath(join(directory, 'current'));
+    assert.notEqual(publish(directory, snapshot('c', [{ ...sample, slug: '../invalid' }])).status, 0);
+    assert.equal(await realpath(join(directory, 'current')), active);
+    assert.equal(publish(directory, snapshot('d', [])).status, 0);
+    await assert.rejects(readFile(join(directory, 'current/places/test-place.html'), 'utf8'), { code: 'ENOENT' });
+    assert.equal(JSON.parse(await readFile(join(directory, 'current/.snapshot.json'), 'utf8')).items.length, 0);
+  } finally { await rm(directory, { recursive: true, force: true }); }
+});

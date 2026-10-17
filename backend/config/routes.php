@@ -5,12 +5,13 @@ declare(strict_types=1);
 use Yinghua\Controllers\AdminController;
 use Yinghua\Controllers\AuthController;
 use Yinghua\Controllers\PermissionController;
+use Yinghua\Controllers\PublicAttractionController;
 use Yinghua\Http\Route;
 use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
-/** [S-016／S-017／S-026／S-027／U-06／E-02／E-03／E-06／E-07／E-13／E-16] 正式 29 個端點。 */
-return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions): void {
+/** [S-016／17／26／27；S：功能規格 6/13/19/20；E-18] 路由只宣告 HTTP、身分與授權。 */
+return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, PublicAttractionController $publicAttractions): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
         $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...), allowPreviewControl: true));
@@ -37,4 +38,10 @@ return static function (Router $router, AuthController $auth, AdminController $a
     $router->add(new Route('GET', '/api/v1/admin/permissions/catalog', $kind, $permissions->catalog(...), true, 'permissions', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/admins/{id}/permissions', $kind, $permissions->matrix(...), true, 'permissions', 'view'));
     $router->add(new Route('PUT', '/api/v1/admin/admins/{id}/permissions', $kind, $permissions->saveMatrix(...), true, 'permissions', 'edit'));
+    $kind = IdentityKind::Member;
+    $router->add(new Route('GET', '/api/v1/publication/access', $kind, $publicAttractions->access(...)));
+    $router->add(new Route('GET', '/api/v1/attractions/resolve-url', $kind, $publicAttractions->resolve(...)));
+    $router->add(new Route('GET', '/api/v1/attractions', $kind, $publicAttractions->listing(...)));
+    $router->add(new Route('GET', '/api/v1/attractions/{slug}', $kind, $publicAttractions->get(...)));
+    $router->add(new Route('GET', '/api/v1/museum', $kind, $publicAttractions->museum(...)));
 };
