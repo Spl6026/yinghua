@@ -139,7 +139,7 @@ Service 的示意則表達業務次序：
 1. 類別與方法說明用途，如 revokeAllForAdmin、findActiveByEmail；避免 handleData、doProcess 等不明名稱。每個方法只表達一個主要目的。
 2. PHP 使用 strict_types、具體參數／回傳型別。DTO 的欄位清楚；有限狀態用 enum；readonly 僅用於適合不可變的資料。資料庫與外部 JSON 的值要先驗證。
 3. 業務規則旁用繁體中文解釋「為什麼」，附來源 ID；一般變數指定不逐行加註。例：`[S-026] 固定 admin 不可由管理員 CRUD 修改，避免繞過 UI 保護。`
-4. `[E-07] 首次登入改密碼` 等工程補充不能標成規格原文。來源 ID 定義見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。
+4. `[E-07] 本人改密碼` 等工程補充不能標成規格原文；首登強制已依 U-13 取消。來源 ID 定義見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。
 5. 每個完成模組在 docs/modules/ 增加簡短閱讀指南：功能 → 頁面 → API → Controller → Service → Repository → 資料表，列出主要錯誤與一次操作例子。只列實際存在的檔案。
 6. 前端同樣按用途拆分：頁面入口、API 封裝、共用元件。資料顯示預設 textContent／jQuery .text()；需 HTML 的內容走既定清理策略。
 7. 分層規則由 PHPat 檢查：Service 不依賴 Controller／Http；Repository 不依賴 Controller／Service；Model／Policy 不依賴 PDO／Http；Controller 不直接依賴 PDO／Repository。組裝位置是明確例外。四條規則已在 backend/tests/ArchitectureTest.php 與 phpstan.neon 建立並驗證。

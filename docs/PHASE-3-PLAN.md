@@ -35,7 +35,7 @@
 | GET `/attractions/{slug}` | `/places/{slug}.html` 真實詳情資料 |
 | GET `/museum` | `/museum.html`、首頁博物館區塊使用相同資料 |
 
-管理 API 沿用階段二 session、CSRF、首登限制、module/action 授權及唯讀模擬。媒體與地圖由 create／edit 情境判權；公開 API 不帶管理欄位。
+管理 API 沿用階段二 session、CSRF、module/action 授權及唯讀模擬。媒體與地圖由 create／edit 情境判權；公開 API 不帶管理欄位。
 
 ## 新增資料表
 
@@ -66,3 +66,7 @@ Migration：`backend/database/migrations/002_attractions.sql`。另有已存在�
 ## 複查修正的欄位與命令
 
 003_attraction_review.sql 增 attractions.image_alt／image_source／image_license／recommendation_label，並補正座標 CHECK；表總數仍為 20。44 個 API 操作維持，POST／PUT attractions 擴充圖片說明及推薦文案欄位。新增 content:backfill-demo-labels 維護命令，預設只預覽，--apply 才交易更新符合原型且未編寫標籤的資料及稽核。PHP 類別更新後需重啟 publisher。驗收涵蓋不換圖修改說明、共用媒體隔離、原型順序／標籤、表單失敗與直接 DB 約束。
+
+## U-12／U-13／U-14 規格校正
+
+地址、行政區、圖片及來源／授權選填；slug 可由系統產生，openingHours 不再列新增必填。006 補操作者外鍵並保留未知值。手填地圖網址也依 G20 限 Google HTTPS。掃描維持使用者選定的圖檔內容檢查，不宣稱病毒掃描。API 仍44操作、表仍20，現有九份 migration（另含 008 固定身分逐位元組保護）。詳細結果見 [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md)。

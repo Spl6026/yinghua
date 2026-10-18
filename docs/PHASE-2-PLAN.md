@@ -67,8 +67,8 @@ website/ 保留原始交付狀態。正式頁面沿用原型設計與網址，�
 Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已先安裝；套件安裝在獨立 tools/php/；應用的 PSR-4 mapping、autoload、工具規則及分層測試均待本階段建立。依 [DEVELOPMENT-WORKFLOW.md](DEVELOPMENT-WORKFLOW.md) 執行：PHP 實作使用 php-modernization；認證／授權完成後使用 security-audit；索引／查詢設計使用 mariadb-query-optimization；表單驗收使用 web-design-guidelines 與 browser。
 
 - 建立本節 5.2／5.3 的 13 張業務表，包含帳號、角色、session、稽核與認證挑戰等；另建立 schema_migrations 工具表。
-- 設計 admin_users 的 deleted_at、必須改密碼與版本欄位，以及 sessions 的 last_seen_at、閒置期限與撤銷索引。
-- 管理員資料與權限矩陣增加版本欄位，供編輯衝突檢查；首次登入必須改密碼的帳號，在完成前僅能使用 me、改密碼與登出流程。
+- 設計 admin_users 的 deleted_at 與版本欄位，以及 sessions 的 last_seen_at、閒置期限與撤銷索引。舊 must_change_password 暫留相容並清零，007 改預設 0；應用程式不再讀取。
+- 管理員資料與權限矩陣增加版本欄位，供編輯衝突檢查；U-13 已取消首登強制改密碼，新帳號立即依授權使用功能。
 - captcha 保存挑戰識別、答案的 HMAC、匿名工作階段綁定、用途、到期時間、嘗試次數與使用時間；低熵答案不以單純 SHA256 保存。
 - 重設 token 保存高熵 token 的雜湊、member／admin 其中一種對象、用途、到期與使用時間。
 - 認證事件和限速桶存於 MariaDB，使不同 PHP-FPM process 與容器重啟共用狀態；IP／帳號限速識別以 keyed hash 保存。
@@ -100,12 +100,12 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 ### 2C：管理員 CRUD、權限矩陣與稽核
 
 - 列表提供搜尋、分頁與啟用狀態；新增／編輯沿用獨立頁，刪除使用確認後的 API，不增加刪除專頁。
-- 新增欄位包括 account、displayName、email、初始密碼、roleId 與 status。初始密碼遵循同一密碼政策；非 root 帳號首次登入必須改密碼。
+- 新增欄位包括 account、displayName、email、初始密碼、roleId 與 status。初始密碼遵循同一密碼政策；非 root 帳號不強制首登改密碼（U-13）。
 - 輸入欄位採白名單；不能提交 is_root、任意 roleId、password_hash 或稽核操作者。
 - account／email 的唯一性由 DB 約束保證，不只先做 SELECT；刪除採軟刪除並保留原識別，維持歷史稽核關聯。
-- 一般管理員的登入 account 建立後固定（E-09 工程政策，原型可修改，非 Excel 明文要求）；名稱、Email、角色與狀態仍按權限編輯。
+- 一般管理員的 account 可修改（U-12），005 支援 Unicode 及唯一性；固定 admin 仍不可更改。
 - 固定 admin 不顯示編輯／刪除／停用／降權操作；對直接送出的 PUT、DELETE、權限更新請求也回 403。
-- 非 root 不可新增 root、升格 root、修改 root 身分或替換系統旗標；禁止自我刪除／停用，以免在操作中鎖住自己。
+- 非 root 不可新增 root、升格 root、修改 root 身分或替換系統旗標；具權限的一般管理員可自我停用／軟刪除（U-13），並撤銷其 session；固定 root 與最後管理權仍保護。
 - 角色依文件規劃 root、content-editor、news-editor、viewer 四種。此階段不增加任意角色 CRUD。
 - 角色範本用來複製每個管理員的起始矩陣；建立時把完整 module/action 矩陣寫入個人權限表，不將日後的範本調整自動擴散到所有既有管理員。
 - 一般管理員的逐人矩陣是有效權限來源；缺少的 module/action 預設拒絕。root 的完整權限由後端系統身分決定，不能從前端送出。
@@ -123,7 +123,7 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 
 - 接上 /register.html、/login.html 與共用會員導覽，會員資料以 /auth/me 判定。
 - 驗證 Email 格式與一致的正規化政策、名稱長度、密碼長度、確認密碼及條款同意；不修剪密碼或任意刪除 Email 的 +tag／點。
-- 建議單因素密碼政策初值為 15–128 字元，允許密碼句、空白與 Unicode；不強制大小寫／數字／符號組合。密碼規則在前後端一致，最終由後端判定。
+- 建議單因素密碼政策初值為 8–128 字元，允許密碼句、空白與 Unicode；不強制大小寫／數字／符號組合。密碼規則在前後端一致，最終由後端判定。
 - 由伺服器產生圖形驗證碼，回 challengeToken、圖片與期限；JSON／DOM 不包含答案文字。
 - 挑戰綁定匿名 session 及 register 用途；換新驗證碼使前一題失效。期限建議 5 分鐘、最多 3 次錯誤；成功、過期或耗盡次數後不可重用。
 - 挑戰消耗與註冊建立使用 transaction／row lock，防止相同挑戰被並行提交成功兩次。
@@ -152,11 +152,11 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 - 郵件服務對外不回信件內容或 token；寄送失敗記錄可定位的錯誤，測試驗證重試與 token 不誤用。測試模式在 Mailpit 讀取信件，不在公開 API 提供 token 捷徑。
 - 正式 SMTP 尚未提供時，只標記本機流程驗證完成；實際投遞、TLS 與正式寄件身分待部署環境驗證。
 
-完成條件：本機信箱可取得連結並完成重設；舊密碼、舊 session、已使用／過期／錯誤用途 token 都失敗；一般管理員首登改密碼流程可完成。
+完成條件：本機信箱可取得連結並完成重設；舊密碼、舊 session、已使用／過期／錯誤用途 token 都失敗；本人更改密碼、session 撤銷與無強制首登流程均可驗證。
 
 ## 5. API 與頁面契約
 
-階段二盤點：原計畫 26 個 API 加 U-06 的 3 個，共 29 個；13 張業務資料表（另有 migration 工具表）、完整串接 6 個既有頁面、新增 7 個頁面。另有 18 個既有後台頁面只加存取控制與待串接畫面。以下 API 與本階段頁面已實作；未來業務模組僅有授權入口，正式內容仍待後續階段。原計畫包含 E-06 Email 替代入口與 E-07 本人／首登改密碼等額外方案，數量不是 Excel 的硬性要求；完整來源見 DESIGN-TRACEABILITY.md。
+階段二盤點：原計畫 26 個 API 加 U-06 的 3 個，共 29 個；13 張業務資料表（另有 migration 工具表）、完整串接 6 個既有頁面、新增 7 個頁面。另有 18 個既有後台頁面只加存取控制與待串接畫面。以下 API 與本階段頁面已實作；未來業務模組僅有授權入口，正式內容仍待後續階段。原計畫包含 E-06 Email 替代入口與 E-07 本人改密碼等額外方案（首登強制已依 U-13 撤除），數量不是 Excel 的硬性要求；完整來源見 DESIGN-TRACEABILITY.md。
 
 ### 5.1 API 與操作頁面逐項對照
 
@@ -182,7 +182,7 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 | 本階段新增 | GET /api/v1/admin/auth/me | 真實管理員摘要與有效權限 | 共用後台導覽、權限設定及本人改密碼頁 | S-SEC-14／S-PAGE／E-02 |
 | 本階段新增 | POST /api/v1/admin/auth/forgot-password | 一般管理員獨立重設申請 | /admin/forgot-password.html（新增頁） | S-SEC-09／E-03 |
 | 本階段新增 | POST /api/v1/admin/auth/reset-password | 一般管理員 token 重設 | /admin/reset-password.html（新增頁） | S-SEC-09／E-03 |
-| 本階段新增 | POST /api/v1/admin/auth/change-password | 本人改密碼，包含首登強制改密碼 | /admin/change-password.html（新增頁） | E-07 |
+| 本階段新增 | POST /api/v1/admin/auth/change-password | 本人改密碼，無首登強制（U-13） | /admin/change-password.html（新增頁） | E-07 |
 | 本階段新增 | GET /api/v1/admin/admins | 搜尋／分頁／狀態篩選，admins.view | website/admin/admins.html | S-026／D：API 草案 |
 | 本階段新增 | GET /api/v1/admin/admins/{id} | 單筆資料，admins.view；編輯頁另需 admins.edit | website/admin/admin-edit.html | S-026／E-13 |
 | 本階段新增 | POST /api/v1/admin/admins | 新增一般管理員，admins.create | website/admin/admin-add.html | S-026／D：API 草案 |
@@ -200,7 +200,7 @@ Docker 中的 Composer、PHPStan、格式檢查、Rector、PHPat 與 PHPUnit 已
 
 ### 5.2 本階段建立的五張認證輔助資料表
 
-實際欄位以 backend/database/migrations/001_identity.sql 為準。captcha_challenges 的表名見文件「資料表建議」第 23 列，auth_events 見「功能規格」I17；password_reset_tokens、auth_rate_limits、member_consents 是工程補充 E-03／E-04／E-05。逐表來源見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。所有時間以 UTC 保存；不在紀錄中保存原始 Cookie、密碼或可直接使用的 token。
+最初 schema 見 001_identity.sql；目前再套用 005 的帳號字元集／root trigger 與 007 的核准認證政策。完整現況見 DATABASE-SPECIFICATION-MAP.md。captcha_challenges 的表名見文件「資料表建議」第 23 列，auth_events 見「功能規格」I17；password_reset_tokens、auth_rate_limits、member_consents 是工程補充 E-03／E-04／E-05。逐表來源見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。所有時間以 UTC 保存；不在紀錄中保存原始 Cookie、密碼或可直接使用的 token。
 
 | 新表 | 主要欄位草案 | 關聯／約束 | 對應功能與頁面 |
 | --- | --- | --- | --- |
@@ -248,7 +248,7 @@ schema_migrations 已由本階段新建的 migration 工具管理，不計入 13
 | 無 | /admin/login.html | frontend/pages/admin/login.html | 獨立管理員登入 | S-PAGE 要管理員登入；獨立頁面 E-02 |
 | 無 | /admin/forgot-password.html | frontend/pages/admin/forgot-password.html | 一般管理員申請重設信 | S-SEC-09；後台獨立頁面 E-03 |
 | 無 | /admin/reset-password.html | frontend/pages/admin/reset-password.html | 一般管理員以 token 重設密碼 | S-SEC-09；後台獨立頁面 E-03 |
-| 無 | /admin/change-password.html | frontend/pages/admin/change-password.html | 本人改密碼、首登強制改密碼及固定管理員安全改密碼 | E-07，包含首登強制改密碼 |
+| 無 | /admin/change-password.html | frontend/pages/admin/change-password.html | 本人改密碼及固定管理員安全改密碼，無首登強制 | E-07／U-13，無首登強制 |
 
 新增頁明確納入前端建置與 Nginx 靜態路由，不依賴只掃 website 原型的 catalog。登出、刪除、啟用／停用及驗證碼切換均是現有頁的操作，不新增專頁。
 
@@ -287,7 +287,7 @@ API 統一使用 code、message、fieldErrors、requestId；401 表示未登入�
 
 | 項目 | 初值 |
 | --- | --- |
-| 密碼長度 | 15–128 字元，允許 Unicode／空白 |
+| 密碼長度 | 8–128 字元，允許 Unicode／空白 |
 | 管理員 session | 閒置 15 分鐘、總長 8 小時 |
 | 會員 session | 閒置 30 分鐘、總長 24 小時 |
 | 驗證碼 | 5 分鐘、最多 3 次錯誤 |
@@ -340,3 +340,7 @@ IP 判定使用可信的連線來源；只有明確配置的反向代理能影�
 - [OWASP Forgot Password](https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html)：一次性 token、泛化回應與重設後的登入處理。
 - [PHPMailer](https://github.com/PHPMailer/PHPMailer)：SMTP 寄信套件與 Composer 安裝。
 - [Mailpit Docker](https://mailpit.axllent.org/docs/install/docker/)：容器化的本機郵件驗證。
+
+2026-10-18 U-15：確認密碼在註冊、會員／管理員重設與本人更改密碼，以及既有 CLI 確認提示均必填且逐字一致；密碼仍為8–128 Unicode字元，不修剪空白。後端共用 Input.confirmedPassword，前端 required 與一致性錯誤同步。管理員新增維持單一初始密碼欄；確認欄不落資料庫。
+
+2026-10-19 再次檢查已修正固定 root 編輯頁及過時首登文案，帳號輸入長度交由 API 依 Unicode 字元判斷。008 migration 加強既有固定身分保護；不新增業務功能，詳見 [再次檢查](FULL-RECHECK-20261019.md)。

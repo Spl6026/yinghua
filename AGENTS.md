@@ -9,6 +9,8 @@
 
 # 開發流程與 Skills
 
+- 原始 `映畫竹塹_後台工程串接功能規格.xlsx` 是功能與限制的基準（使用者 2026-10-18 指定）。必填／選填、格式、條件式限制及驗收須追溯到工作表／儲存格；不能因欄位被列出就判為必填，也不能把文件未定義推定為全部選填。未定義處先核對原始 website 與使用者明確指示，不自行增加阻擋儲存／發布的業務限制；仍無依據者標示待確認。文件中的「建議／草案」保持建議性質。必要技術邊界及安全實作的具體設定標為 E，不冒稱規格硬性要求；既有程式或測試亦不能反過來充當規格來源。詳見 docs/DEVELOPMENT-WORKFLOW.md 的規格基準。
+
 - 開發前讀取 [docs/DEVELOPMENT-WORKFLOW.md](docs/DEVELOPMENT-WORKFLOW.md)，依工作類型套用相關 skill，不預載所有參考文件。
 - PHP 實作或重構使用 [.agents/skills/php-modernization/SKILL.md](.agents/skills/php-modernization/SKILL.md)。新程式採明確型別、DTO／enum 與適用的 PSR 規範；Rector 僅 dry-run，檢視結果後以有範圍的修改處理。
 - 登入、session、密碼、授權及管理 API 完成後，使用 [.agents/skills/security-audit/SKILL.md](.agents/skills/security-audit/SKILL.md) 審查本次變更，並以真實 MariaDB 的失敗／越權測試驗證。

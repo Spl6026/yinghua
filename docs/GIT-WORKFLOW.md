@@ -76,3 +76,15 @@ git merge --no-ff phase/03-attractions-media
 已以 --no-ff 合併並保留階段分支。2026-10-18 複查修正按共用資料準備、公開內容、管理表單與測試歸回相應的五筆階段三提交；使用者另要求的複查／計畫文件保留獨立 docs 分支及合併界線。階段一、二、優先級重排及原始交付提交不改，遠端不推送或覆寫。
 
 整理前以 artifacts/history-before-phase3-corrections-20261018.bundle 備份全部 refs，修正後另建 checkpoint bundle；整理使用獨立 index，逐一驗證功能快照的 PHPStan／PHPUnit、前端建置／Node 測試及 Router／OpenAPI。最後比對驗收工作樹 tree、原始 69 檔及保留分支。正式 .env、DB volumes 及本機驗收憑證不提交。
+
+## Excel 基準回溯校正（2026-10-18）
+
+依 U-12 基準及 U-13／U-14 明確決定，認證、管理員、權限、唯讀模擬及景點／媒體限制校正歸回對應功能提交；各功能的程式、契約、測試與模組閱讀說明一起整理。三份新 migration 保留升級路徑，不改已套用的 001–004。逐表對照及本輪跨階段驗證另作文件交付，不算開始下一階段。
+
+全部 refs 事前備份為 artifacts/history-before-specification-alignment-20261018.bundle；完整校正內容在整理前再備份為 artifacts/history-before-specification-alignment-fold-20261018.bundle。使用獨立 index 重建快照，應用程式工作樹不切回歷史版本；核對最終 tree、原始69檔、階段一不變、階段二／三分支與 merge 邊界，遠端 refs 不改、不推送。本輪實際功能驗證見 [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md)，不把歷史重整本身當成新增驗收結果。
+
+歷史整理另核對七個相依變更快照：PHPStan level 10 均通過，各版本已有的 PHPUnit、前端建置／Node 及 Router／OpenAPI 檢查亦通過。曾發現密碼測試與登入導向修正的提交順序不一致，已歸回同一功能並重跑；最終應用程式內容與完整驗收版本一致。這些快照檢查不重複計入355項HTTP／MariaDB驗證。
+
+U-15確認密碼必填校正歸回固定管理員CLI、認證／密碼共用規則及相應測試／指南提交，不另冒充階段進度。事前備份artifacts/history-before-required-confirmation-20261018.bundle；完整校正與歷史重整候選於合併前再備份，核對最終tree、原始69檔及保留階段分支。
+
+2026-10-19 再次檢查的程式失誤依 HTTP 邊界、認證、管理員、唯讀模擬／契約與景點選填功能歸回對應提交；新獨立 OpenAPI 驗證工具及再次檢查報告為使用者要求的跨模組驗證交付。整理前後保留 artifacts 中的 history-before-full-recheck 備份，核對最終 tree、原始 69 檔、各階段分支與遠端 refs；不推送遠端。
