@@ -4,7 +4,7 @@
 
 2026-10-18 新增 U-09：人工與 Google 匯入共用結構化營業週表。新增 attractions.opening_hours（004 migration）、DTO／Google Adapter／原生表單及公開詳情；API 不增加端點、業務表不增加。設計與相近缺口見 [共用營業時間計畫](OPENING-HOURS-PLAN.md)，程式閱讀見 [模組指南](modules/opening-hours.md)。
 
-更新：2026-10-18。使用者已授權實作，分支 `phase/03-attractions-media`。本階段屬 P0；不包含電影、消息、優惠管理、收藏保存或完整路線管理。實際結果見 [驗收記錄](PHASE-3-ACCEPTANCE.md)。
+更新：2026-10-19。使用者已授權實作，分支 `phase/03-attractions-media`。本階段屬 P0；不包含電影、消息、優惠管理、收藏保存或完整路線管理。實際結果見 [驗收記錄](PHASE-3-ACCEPTANCE.md)。
 
 ## 功能與來源
 
@@ -19,10 +19,11 @@
 
 ## API 與對應畫面
 
-以下路徑均加 `/api/v1`；契約以 [OpenAPI](../backend/resources/openapi.json) 為準。新增 15 個操作，累計 44 個。
+以下路徑均加 `/api/v1`；契約以 [OpenAPI](../backend/resources/openapi.json) 為準。新增 16 個操作，累計 45 個。
 
 | API | 對應頁面／用途 |
 | --- | --- |
+| GET `/admin/attractions/samples` | 新增頁的原始DB範例試填，需attractions.create；不寫資料 |
 | GET／POST `/admin/attractions` | `/admin/places.html` 列表、搜尋、狀態、分頁；`/admin/place-add.html` 新增 |
 | GET／PUT／DELETE `/admin/attractions/{id}` | `/admin/place-edit.html` 載入／修改；列表確認刪除 |
 | POST `/admin/attractions/publish-retry` | 列表／編輯頁重試公開頁同步 |
@@ -69,4 +70,6 @@ Migration：`backend/database/migrations/002_attractions.sql`。另有已存在�
 
 ## U-12／U-13／U-14 規格校正
 
-地址、行政區、圖片及來源／授權選填；slug 可由系統產生，openingHours 不再列新增必填。006 補操作者外鍵並保留未知值。手填地圖網址也依 G20 限 Google HTTPS。掃描維持使用者選定的圖檔內容檢查，不宣稱病毒掃描。API 仍44操作、表仍20，現有九份 migration（另含 008 固定身分逐位元組保護）。詳細結果見 [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md)。
+地址、行政區、圖片及來源／授權選填；slug 可由系統產生，openingHours 不再列新增必填。006 補操作者外鍵並保留未知值。手填地圖網址也依 G20 限 Google HTTPS。掃描維持使用者選定的圖檔內容檢查，不宣稱病毒掃描。當次 API 44操作、表20，九份 migration（另含 008 固定身分逐位元組保護）。詳細結果見 [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md)。
+
+2026-10-19 依 Excel E20／G6 補齊既有範例試填及選填電話。新增 GET /admin/attractions/samples（需create），電話隨既有景點API保存／發布；009 migration增phone，現45操作、十份migration、21表181欄。逐條要求與驗證見 [業主要求對照](PHASE-2-3-OWNER-ALIGNMENT.md)。

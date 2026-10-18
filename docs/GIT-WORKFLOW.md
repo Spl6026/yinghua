@@ -1,90 +1,83 @@
 # Git 階段分支與功能提交
 
-2026-10-18 U-10沿用階段三分支，先快轉到最新main；候選欄位／原文參考與關聯確認各自作完整功能提交，包含相應前後端、契約、測試與閱讀指南。以隔離來源驗證各提交的PHPStan／PHPUnit、建置／Node及Router／OpenAPI；本輪HTTP與畫面證據見階段三驗收。沒有重寫既有提交。事前全部refs備份為artifacts/history-before-map-fields-20261018.bundle；整理功能邊界及合併前另備份完整交付，再以--no-ff合併，最終tree、階段分支、原始69檔與遠端refs都須核對。
+更新日期：2026-10-19。依使用者指定：一個階段一條分支、完整功能分開提交、自身錯誤併回原功能。此次整理實際收整提交與分支拓樸，沒有新增業務功能。
 
-2026-10-18 U-09 共用營業時間屬使用者新增要求，沿用階段三分支，先快轉到最新 main，再以完整功能提交交付 DTO／Google Adapter／原生編輯器／發布／契約／測試與閱讀指南。驗收後以 --no-ff 合併，保留階段分支。沒有重寫先前五筆功能或另開階段四；新功能與先前自身失誤歸併的歷史整理分開。全部 refs 的事前備份為 artifacts/history-before-opening-hours-20261018.bundle，合併前再備份並核對最終 tree 和原始69檔。
+## 目前歷史
 
-來源：使用者於 2026-10-14 指定「依某個功能完善做細項 commit」及「每一個階段開一個 branch」。本規則補充 AGENTS.md，不改變功能範圍或驗收標準。
+`main` 保留原始交付與三個階段合併點；本機只保留 `main` 和三條階段分支。
 
-## 分支
-
-`main` 保留原始交付與已驗收階段的合併紀錄。每階段從當時最新的 main 建立分支；驗收後使用 `git merge --no-ff` 合併，保留階段分支供查閱。未開始的階段等開始時才建立，避免沿用過時基底。
-
-| 階段 | 優先級 | 分支 | 狀態 |
-| --- | --- | --- | --- |
-| 1：需求與環境 | 共用準備 | `phase/01-project-setup` | 已驗收並合併 |
-| 2：認證與權限 | P0 | `phase/02-auth-permissions` | 已驗收並合併 |
-| 3：景點與圖片 | P0 | `phase/03-attractions-media` | 已完成本機驗收並合併；複查修正歸回相應功能提交 |
-| 4：電影與場次 | P0 | `phase/04-films-screenings` | 計畫；開始實作時才建立 |
-| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 計畫；開始實作時才建立 |
-| 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 計畫；開始實作時才建立 |
-| 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 計畫；開始實作時才建立 |
-| 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 計畫；開始實作時才建立 |
-| 9：消息／優惠管理與前後篇 | P1 | `phase/09-content-management-details` | 計畫；開始實作時才建立 |
-| 10：推薦路線 | P1 | `phase/10-recommended-routes` | 計畫；開始實作時才建立 |
-| 11：完整會員旅程 | P1 | `phase/11-member-itineraries` | 計畫；開始實作時才建立 |
-| 12：結構化資料／索引與驗收 | P1 界線 | `phase/12-seo-indexing-p1-validation` | 計畫；開始實作時才建立 |
-| 13：全站搜尋 | P2 | `phase/13-site-search` | 計畫；開始實作時才建立 |
-| 14：一般設定與營運後台 | P2 | `phase/14-settings-operations` | 計畫；開始實作時才建立 |
-| 15：全站驗收與交付 | P2／交付界線 | `phase/15-delivery-validation` | 計畫；開始實作時才建立 |
-
-階段分配依 [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md) 的 P0 → P1 → P2 界線。完成階段 8 的 P0 驗收後才開始 9，完成階段 12 的 P1 驗收後才開始 13。2026-10-17 只重排計畫，沒有建立階段 3–15 分支。
-
-跨階段的獨立規劃／文件維護可從最新 main 建立 `docs/` 分支，按完整文件議題提交並以 merge commit 合併；不替已完成階段改編號，也不冒稱下一階段開始。例如本次優先級重排使用 `docs/priority-roadmap`，只更新計畫及相依文件，既有階段一／二提交保持不變。
-
-例如進入階段三時：
-
-```powershell
-git switch main
-git switch -c phase/03-attractions-media
-# 完成一個功能，執行相應驗證後提交；重複至階段驗收完成。
-git switch main
-git merge --no-ff phase/03-attractions-media
+```text
+原始交付
+  ├─ phase/01-project-setup：規劃、skills、品質工具、Docker 與環境驗證
+  └─ merge 階段一
+       ├─ phase/02-auth-permissions：認證、密碼、管理員、權限與唯讀模擬
+       └─ merge 階段二
+            ├─ phase/03-attractions-media：優先級規劃、景點、媒體、地圖與驗收
+            └─ merge 階段三 → main
 ```
 
-合併訊息要寫出實際成果與驗證範圍；合併不代表正式 SMTP、部署或客戶條款等外部條件已通過。分支與提交保持本機，未另獲授權不推送或覆寫遠端。
+| 階段 | 分支 | 提交與實際範圍 |
+| --- | --- | --- |
+| 1：共用準備 | `phase/01-project-setup` | 7 筆規劃／安裝／環境提交；保持不變 |
+| 2：認證與權限 | `phase/02-auth-permissions` | 18 筆前置、完整功能、驗證與全站導讀；保持不變 |
+| 3：景點與圖片 | `phase/03-attractions-media` | 12 筆規劃、功能、驗證與最終文件；已完成本機驗收，P0 尚未完成 |
 
-## 提交單位
+原始第一提交 `56733e5c566009b02fb8d23c8949eec0c61f80c6` 固定不改。`website/` 與原始 Excel 的 69 檔完整保留。
 
-- 一筆對應一個能說明目的、結果及驗證的功能；例如管理員新增／編輯／停用的完整流程，或個人權限矩陣。不以「所有 PHP」「所有 HTML」分開，避免後端完成卻缺少介面／契約。
-- 功能使用的 Controller／Service／Repository、前端、OpenAPI、相應回歸測試與中文閱讀指南一起納入；共用 schema、初始化 CLI、HTTP 管線或模板可先作清楚命名的前置提交。
-- 跨模組整合／故障驗收可另作 `test:` 提交，註明實際範圍；不能把新增測試稱為新業務功能。
-- 原型公開頁按首頁／景點／映演／消息／優惠／旅程示意分組，提交訊息明示保留原型；不冒充階段三以後的正式內容 API。
-- 一套第三方 skill 的原始安裝檔保持完整，以一次安裝作提交單位，不拆散它的參考文件來壓低檔案數。
-- 自己實作失誤的更正併回原功能提交，不額外留下「修正代理錯誤」的進度提交。新功能仍應另作功能提交。
+階段三依序為：
 
-例如 `feat: manage admin accounts with version checks` 應包含管理 API、列表／表單、版本衝突與 root 保護、契約及對應測試；下一筆 `feat: edit per-admin permission matrices` 再加入矩陣讀寫與介面。
+1. P0／P1／P2 優先級與階段重排；這是規劃，不算新增功能。
+2. 景點與媒體的 schema／DTO／Repository 共用準備。
+3. 公開景點 API、版本化內容與 HTML 發布。
+4. 景點與圖片管理、範例試填、電話及權限流程。
+5. Google Maps 安全解析與候選匯入。
+6. 原始重啟持久化驗證工具與初次交付說明。
+7. 手動／Google 共用結構化營業時間。
+8. Google 候選欄位與原文參考簡介。
+9. Google 地點關聯與位置變更確認。
+10. 景點摘要與介紹選填；自動補位仍延後。
+11. 獨立 OpenAPI 驗證工具及對應規格／複查文件。
+12. 業主要求對照、最終驗收與全站導讀。
 
-## 既有歷史重整
+後續追加功能各自保留完整功能提交；重複複查、基準校正及自身錯誤不再各開一條文件分支／合併節點。報告檔案保留原本內容與日期，收在相應功能及驗收交付中。
 
-原始交付第一提交 `56733e5c566009b02fb8d23c8949eec0c61f80c6` 固定不改。此次將既有階段一／二成果按功能重新分組，並保留兩個階段的分支與合併節點；這是歷史整理，不表示新增業務功能或重新執行所有既有驗收。
+## 後續階段
 
-階段一分為七筆：規劃、PHP skill、安全 skill、查詢／介面 skills、品質工具、Docker 環境及環境驗收。階段二分為十七筆：schema、固定管理員初始化、HTTP 共用規則、首頁與公開原型各模組、認證、密碼流程、其餘後台存取門檻、管理員 CRUD、個人權限矩陣、跨模組驗收、唯讀模擬及本次 Git 工作流程。
+| 階段 | 優先級 | 預定分支 | 狀態 |
+| --- | --- | --- | --- |
+| 4：電影與場次 | P0 | `phase/04-films-screenings` | 未開始 |
+| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 未開始 |
+| 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 未開始 |
+| 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 未開始 |
+| 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 未開始 |
+| 9：消息／優惠管理與前後篇 | P1 | `phase/09-content-management-details` | 未開始 |
+| 10：推薦路線 | P1 | `phase/10-recommended-routes` | 未開始 |
+| 11：完整會員旅程 | P1 | `phase/11-member-itineraries` | 未開始 |
+| 12：結構化資料／索引與驗收 | P1 界線 | `phase/12-seo-indexing-p1-validation` | 未開始 |
+| 13：全站搜尋 | P2 | `phase/13-site-search` | 未開始 |
+| 14：一般設定與營運後台 | P2 | `phase/14-settings-operations` | 未開始 |
+| 15：全站驗收與交付 | P2／交付界線 | `phase/15-delivery-validation` | 未開始 |
 
-拆分副本已在 Docker 驗證各版本 PHP 語法與 PHPStan level 10；有 HTTP 入口的版本，其已註冊路由與該版 OpenAPI 一致。各前端版本建置、imports 及當時已納入的 Node 測試通過；當次終點是 64 頁與 16 項測試，密碼／認證導覽修正加入十項至 26 項，再次複查加入四項至 30 項；2026-10-17 驗收新增首登登出與重載錯誤三項，目前共 33 項，見 PHASE-2-ACCEPTANCE.md。拆分檢查沒有重新計入先前 88／58 項 HTTP 整合驗收；2026-10-17 本輪則實際重跑 88／58 項並通過。路由組裝只連接測試庫，不執行 handler 或寫入資料。
+階段分配依 [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md)。完成 P0 界線驗收才進入 P1，完成 P1 才進入 P2；未開始的分支不提前建立。
 
-先將所有 refs 備份為本機忽略的 `artifacts/history-before-feature-split-20261014.bundle` 並驗證，再建立新歷史。更新 main 前比對各階段最終 tree、全部原始交付檔案與新分支依賴；更新後確認工作樹、原始提交及最終應用檔案完整保留。未修改 `.env`、資料庫或已驗證的應用程式。只新增本次 Git 工作流程文件／規則。
+## 提交流程
 
-2026-10-17 PHP 分層改善依認證、管理員帳號、個人矩陣、整合驗證與唯讀模擬歸回對應功能提交，階段二維持十七筆。重整前備份為 `artifacts/history-before-layering-20261017.bundle` 並驗證；七個相依改變的 PHP 快照通過語法、PHPStan level 10 與適用單元測試，並以反例確認新增的 Service／PDO 相依限制生效。最終內容、原始交付、階段分支與 merge 邊界均有檢查；本輪實際 HTTP／MariaDB 驗證見 PHASE-2-ACCEPTANCE.md，沒有把內部改善寫成後續階段進度。
+- 每階段從當時最新 `main` 開始；階段分支保留，驗收完成以 `--no-ff` 合併。
+- 每筆功能含必要後端、前端、API 契約、測試及中文指南；共用前置環境另作明確準備提交。不要只按目錄／副檔名拆分，也不要把整階段擠成一筆。
+- 原型公開頁的提交明示保留原型，不冒充後續模組的正式 API。
+- 真正新增的需求另作完整功能提交；代理自身失誤歸回原功能。階段內的文件、規格對照及複查隨功能／驗收交付，不另造進度分支。
+- 尚未分享的本機階段歷史，可在備份與驗證後收整為一個完整階段合併點。已分享的歷史不自行覆寫遠端。
+- 完成階段前更新 [PROJECT-GUIDE.md](PROJECT-GUIDE.md)，對齊實際頁面、API、資料表、環境、檔案用途與驗收狀態。
+- 合併只表示紀錄中實際通過的範圍，不代表正式 SMTP、HTTPS 或其他正式環境待驗項已完成。
 
-使用者後續新增要求的全站架構／檔案導讀以獨立 `docs:` 提交交付，包含 PROJECT-GUIDE.md 與 README 入口；階段二因此為十七筆原有功能／準備／驗證提交，加一筆文件交付。此文件提交屬新增交付要求，不冒充新業務實作；前後端、資料庫與環境程式沒有異動。
+## 本次收整與備份
 
-## 階段三功能提交（2026-10-18）
+原本 16 個 merge commit 收為三個階段合併點；14 條本機分支收為四條。階段一、二與原始交付提交保持不變。優先級規劃保留為階段三分支的第一筆規劃提交；其餘功能依相依順序排列，沒有把後續階段列為完成。
 
-階段三從 main b78b82d 開始，依序整理為：共用 schema／DTO／Repository 準備、公開景點 API 與 HTML／SEO 發布、景點與圖片完整管理、Google Maps 候選匯入、整合／重啟驗收與文件交付。中間版本逐一檢查 PHPStan／單元測試、前端建置與 API 操作契約；最終實際 HTTP／MariaDB／瀏覽器結果見 PHASE-3-ACCEPTANCE.md。未把自身錯誤修正另列進度提交。
+整理前以 `artifacts/history-before-stage-compaction-20261019.bundle` 備份全部 refs 並驗證；舊的文件分支及每輪提交均可由備份復原。已合併的十條 `docs/` 分支不留在目前分支圖。
 
-已以 --no-ff 合併並保留階段分支。2026-10-18 複查修正按共用資料準備、公開內容、管理表單與測試歸回相應的五筆階段三提交；使用者另要求的複查／計畫文件保留獨立 docs 分支及合併界線。階段一、二、優先級重排及原始交付提交不改，遠端不推送或覆寫。
+各功能與測試工具的提交快照，均與先前交付的整棵 Git tree 完全相同；重啟及獨立契約驗證保留各自的測試工具提交。最終只有本 Git 流程文件及階段三驗收文件的歷史說明更新，應用程式、測試、契約、資料庫與環境內容不變。本次 Git 驗證不冒稱重新執行功能測試；歷次實際驗收結果保留於原報告。
 
-整理前以 artifacts/history-before-phase3-corrections-20261018.bundle 備份全部 refs，修正後另建 checkpoint bundle；整理使用獨立 index，逐一驗證功能快照的 PHPStan／PHPUnit、前端建置／Node 測試及 Router／OpenAPI。最後比對驗收工作樹 tree、原始 69 檔及保留分支。正式 .env、DB volumes 及本機驗收憑證不提交。
+原始 69 檔、最終應用程式內容、階段分支、merge 父子關係及備份完整性須核對；不修改 `.env`、資料庫、遠端 refs，也不推送遠端。
 
-## Excel 基準回溯校正（2026-10-18）
-
-依 U-12 基準及 U-13／U-14 明確決定，認證、管理員、權限、唯讀模擬及景點／媒體限制校正歸回對應功能提交；各功能的程式、契約、測試與模組閱讀說明一起整理。三份新 migration 保留升級路徑，不改已套用的 001–004。逐表對照及本輪跨階段驗證另作文件交付，不算開始下一階段。
-
-全部 refs 事前備份為 artifacts/history-before-specification-alignment-20261018.bundle；完整校正內容在整理前再備份為 artifacts/history-before-specification-alignment-fold-20261018.bundle。使用獨立 index 重建快照，應用程式工作樹不切回歷史版本；核對最終 tree、原始69檔、階段一不變、階段二／三分支與 merge 邊界，遠端 refs 不改、不推送。本輪實際功能驗證見 [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md)，不把歷史重整本身當成新增驗收結果。
-
-歷史整理另核對七個相依變更快照：PHPStan level 10 均通過，各版本已有的 PHPUnit、前端建置／Node 及 Router／OpenAPI 檢查亦通過。曾發現密碼測試與登入導向修正的提交順序不一致，已歸回同一功能並重跑；最終應用程式內容與完整驗收版本一致。這些快照檢查不重複計入355項HTTP／MariaDB驗證。
-
-U-15確認密碼必填校正歸回固定管理員CLI、認證／密碼共用規則及相應測試／指南提交，不另冒充階段進度。事前備份artifacts/history-before-required-confirmation-20261018.bundle；完整校正與歷史重整候選於合併前再備份，核對最終tree、原始69檔及保留階段分支。
-
-2026-10-19 再次檢查的程式失誤依 HTTP 邊界、認證、管理員、唯讀模擬／契約與景點選填功能歸回對應提交；新獨立 OpenAPI 驗證工具及再次檢查報告為使用者要求的跨模組驗證交付。整理前後保留 artifacts 中的 history-before-full-recheck 備份，核對最終 tree、原始 69 檔、各階段分支與遠端 refs；不推送遠端。
+查看階段主線：`git log --first-parent --oneline main`。查看某階段的功能：`git log --oneline phase/02-auth-permissions..phase/03-attractions-media`。

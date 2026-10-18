@@ -1,5 +1,7 @@
 # 階段二、三再次完整檢查
 
+後續2026-10-19業主逐條核對仍發現本報告未覆蓋 E20 範例試填及 G6 電話；這兩項現已補齊，最新來源與結果見 [業主要求對照](PHASE-2-3-OWNER-ALIGNMENT.md)。本報告的435／445項與九份migration保留為當次事實，不作最新全面符合規格的宣告。
+
 更新：2026-10-19。本次依使用者「全部再檢查一次」要求，重新核對已實作的認證、管理員、權限、唯讀模擬、景點、媒體、地圖候選與公開發布。不代表 P0 全部完成；階段四以後仍未開始。
 
 ## 基準與方法
@@ -85,3 +87,4 @@ python backend/tests/openapi_contracts.py --dependency-path artifacts/audit-json
 修正歸回原有功能提交，新增獨立契約驗證工具與這份報告按跨模組驗證交付。五個改動後的功能快照（HTTP 前置、認證、管理員、唯讀模擬與景點選填）已在 Docker 通過 PHPStan、適用單元測試、前端建置／測試與路由契約檢查。
 
 事前及候選歷史備份在被忽略的 artifacts/history-before-full-recheck-20261018.bundle、artifacts/history-before-full-recheck-fold-20261019.bundle；合併前核對完整 tree、原始 69 檔及保留的階段分支。原始交付提交維持 56733e5c566009b02fb8d23c8949eec0c61f80c6；不推送或改寫遠端。
+

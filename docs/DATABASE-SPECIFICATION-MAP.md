@@ -2,7 +2,7 @@
 
 更新日期：2026-10-19。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。
 
-目前 **20 張業務表＋1 張 migration 工具表**。四份校正 migration 不新增表；隔離 MariaDB 12.3.3 實際檢查為 21 表、180 欄、9 份已完成 migration。主庫也已套用並核對 20 張業務表筆數保留；完整驗收另見 [校正交付](SPECIFICATION-ALIGNMENT.md)，不以隔離結果代替主庫結果。
+目前 **20 張業務表＋1 張 migration 工具表**。五份校正 migration 不新增表；隔離 MariaDB 12.3.3 實際檢查為 21 表、181 欄、10 份已完成 migration。主庫也已套用並核對 20 張業務表筆數保留；完整驗收另見 [校正交付](SPECIFICATION-ALIGNMENT.md)，不以隔離結果代替主庫結果。
 
 ## 原始建議已有對應的資料表
 
@@ -79,3 +79,9 @@ DDL 參照 [MariaDB ALTER TABLE 官方語法](https://mariadb.com/docs/server/re
 [008_root_identity_bytes.sql](../backend/database/migrations/008_root_identity_bytes.sql) 以 BINARY 比較固定身分的文字欄位（E-23），防止 CI collation 忽略大小寫或尾端空白。依 [MariaDB 官方語意](https://mariadb.com/docs/server/reference/sql-functions/string-functions/binary-operator) 實作。001–007 保留原內容；普通管理員仍可改名，密碼及正常登入時間可更新。
 
 16 項隔離 DB 探測全部回滾並通過；主庫先備份再套用，20 張業務表筆數未變；臨時空庫九份 migration／重跑／seed／初始化亦通過。沒有新增表、欄位或索引。實際結果與限制見 [再次檢查報告](FULL-RECHECK-20261019.md)。
+
+## 2026-10-19 G6 電話與 E20 範例
+
+[009_attraction_phone.sql](../backend/database/migrations/009_attraction_phone.sql) 僅增加 attractions.phone VARCHAR(80) NOT NULL DEFAULT ''；電話選填，原有內容預設空字串，不猜電話。phoneUrl由程式衍生，不是重複儲存欄。001–008保持原內容。樣本查詢使用legacy_id唯一欄位、狀態／時間與soft delete條件，沒有新增索引或業務表。
+
+兩庫已先備份至被忽略的before-owner-phone-*-20261019.sql再升級；還原主庫舊備份後逐筆比較六筆景點全部原有欄位，完全一致。空庫十份migration、重跑、seed、固定管理員初始化與六筆範例亦通過；臨時庫及專用授權已移除。MariaDB12.3.3實際EXPLAIN選用attraction_admin索引、估計六筆；小型固定範例的filesort不構成新增索引理由。performance_schema仍OFF，沒有為此重啟資料庫或宣稱效能壓測通過。

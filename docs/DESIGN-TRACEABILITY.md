@@ -67,6 +67,7 @@ U-11（規劃及選填要求，2026-10-18）：使用者要求規劃列表摘要
 | E-12 | frontend/ 與 Node 前端建置／公開內容預先產生、版本同步 | 同時滿足 U-02 API-only 和 S-SEO-17；工具不是文件指定 | 基礎方案，階段二／三分別建立 |
 | E-13 | 角色／權限定義輔助讀取 API、統一 JSON 錯誤、requestId | 供原型表單與矩陣運作且便於排查；路徑／錯誤結構是提案 | 基礎方案 |
 | E-14 | 中文業務理由、來源註記、模組閱讀指南及相依檢查 | 落實 U-02「需要看得懂 code」，格式與檢查是提案 | 基礎方案 |
+| E-24 | 原始DB範例試填白名單／確認／create授權及電話格式、80字上限、phoneUrl、安全HTML與009升級 | 功能依 S E20／G6；端點、型別、上限與允許的電話寫法是工程設定，電話與範例不必填 | 已實作，見 PHASE-2-3-OWNER-ALIGNMENT.md |
 | E-23 | 固定身分文字採逐位元組不可變保護，008 trigger 與真實 DB 回滾探測 | 落實 S-026 固定 root；MariaDB CI collation 不足以驗證字面未變，不限制一般帳號改名 | 已實作，見 FULL-RECHECK-20261019.md |
 | E-16 | 模擬採 owner／effective 雙身分、session target 欄位、token 輪替、交易稽核與 Kernel 唯讀限制 | 落實 U-06；參考 Symfony original user／退出機制與 OWASP session 管理，具體 API／欄位為工程設計 | 已實作，見 modules/admin-preview.md |
 | E-17 | P0 公開消息／優惠用真實資料及受控 CLI 匯入，先提供必要基本閱讀頁、共用關聯保護與部署驗收；完整管理／前後篇仍留 P1 | 解決公開列表 P0 與管理 P1 的相依；CLI 重用 Service／驗證／稽核／發布，不是 Excel 指定的工具或額外 CMS | 計畫，尚未實作；細分見 IMPLEMENTATION-PLAN.md |

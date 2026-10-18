@@ -1,6 +1,8 @@
 # 全站架構與檔案功能導讀
 
-2026-10-19 再次完整檢查：7 項問題已校正；445 項整合／故障復原檢查、PHP 41 項及 Node 68 項通過。獨立 OpenAPI 驗證未再發現格式差異。新增 008 固定身分逐位元組保護，現有九份 migration。範圍、重現命令與限制見 [再次檢查報告](FULL-RECHECK-20261019.md)。
+2026-10-19 業主要求校正：補回 Excel E20 的既有範例景點試填與 G6 電話流程。最新逐條來源、實作／驗證及正式交付差項見 [階段二、三業主要求對照](PHASE-2-3-OWNER-ALIGNMENT.md)。本輪 14 組整合共460項、PHP44項／213斷言、Node73項及獨立契約零差異；原先完整檢查沒有覆蓋這兩個漏項，不能當成全面符合 Excel 的證明。現在45個API操作、十份migration、21表181欄。
+
+2026-10-19 再次完整檢查：7 項問題已校正；445 項整合／故障復原檢查、PHP 41 項及 Node 68 項通過。獨立 OpenAPI 驗證未再發現格式差異。新增 008 固定身分逐位元組保護，當次九份 migration。範圍、重現命令與限制見 [再次檢查報告](FULL-RECHECK-20261019.md)。
 
 2026-10-18 U-15 更新：確認密碼已更正為必填且一致（註冊／重設／更改／CLI）；使用 Input.confirmedPassword 與共用前端比對，沒有新增資料表、migration 或 API。先前選填的驗證紀錄不代表現行政策。
 
@@ -110,12 +112,12 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [public/index.php](../backend/public/index.php) | 唯一網站 PHP 入口：載入 Composer、擷取 Request、組裝 Kernel、處理並輸出 Response；入口本身的失敗也轉成安全 JSON。 |
-| [config/routes.php](../backend/config/routes.php) | 登記 44 個 API 的 HTTP 方法、路徑、會員／管理員身分、module/action 與模擬例外旗標（舊首登旗標已停用）。 |
+| [config/routes.php](../backend/config/routes.php) | 登記 45 個 API 的 HTTP 方法、路徑、會員／管理員身分、module/action 與模擬例外旗標（舊首登旗標已停用）。 |
 | [src/Composition.php](../backend/src/Composition.php) | 依賴組裝位置：建立共用連線、Repositories、Adapters、Services、Controllers，再接路由與 Kernel。 |
 | [src/Config.php](../backend/src/Config.php) | 讀取容器環境變數，校驗數值、APP_KEY、APP_URL 與正式環境 HTTPS／Secure cookie 條件；不解析 .env 檔。 |
 | [composer.json](../backend/composer.json) | 應用程式的 PHP／extension／PHPMailer 依賴及 Yinghua 命名空間的 PSR-4 載入設定。 |
 | [composer.lock](../backend/composer.lock) | 應用依賴的確切版本；安裝時依鎖定版本還原。 |
-| [resources/openapi.json](../backend/resources/openapi.json) | 44 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
+| [resources/openapi.json](../backend/resources/openapi.json) | 45 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
 | [resources/role-templates.json](../backend/resources/role-templates.json) | 原始 Excel 四種角色、十個模組、四個動作的起始權限；供 seed 使用，不是每次請求直接查閱的個人權限。 |
 | [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover、content:seed-demo／backfill-demo-labels／publish／tick／watch。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |
 | [phpstan.neon](../backend/phpstan.neon) | PHPStan level 10 與 PHPat 架構規則的分析範圍、autoload 及快取設定。 |
@@ -239,11 +241,15 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [database/migrations/005_admin_account_specification.sql](../backend/database/migrations/005_admin_account_specification.sql) | 一般帳號改為 Unicode、保留唯一性並修正僅 root 不可改名的 trigger。 |
 | [database/migrations/006_attraction_specification.sql](../backend/database/migrations/006_attraction_specification.sql) | 地址／行政區選填，新增 created_by／updated_by FK 與行政區 CHECK。 |
 | [database/migrations/007_approved_authentication_policy.sql](../backend/database/migrations/007_approved_authentication_policy.sql) | 依 U-13 清零舊首登旗標並將預設設為 0；欄位暫留工具相容，應用程式不再讀取。 |
+| [database/migrations/009_attraction_phone.sql](../backend/database/migrations/009_attraction_phone.sql) | S G6／E-24：新增選填電話，既有內容預設空字串。 |
+| [src/DTO/PhoneNumber.php](../backend/src/DTO/PhoneNumber.php) | 共用電話格式與安全撥號連結，不猜國碼。 |
+| [tests/Unit/PhoneNumberTest.php](../backend/tests/Unit/PhoneNumberTest.php) | 常見格式、分機、非法內容、選填與型別。 |
+| [tests/owner_requirements.py](../backend/tests/owner_requirements.py) | E20／G6 的25項真實HTTP／DB／靜態HTML驗證，包含新增權限邊界與館舍同步。 |
 | [database/migrations/008_root_identity_bytes.sql](../backend/database/migrations/008_root_identity_bytes.sql) | E-23：固定身分以 BINARY 比較，避免大小寫／尾端空白改寫。 |
 | [tests/Unit/RequestBoundaryTest.php](../backend/tests/Unit/RequestBoundaryTest.php) | JSON 數字鍵不可被靜默忽略，巢狀列表仍可使用。 |
 | [tests/root_identity_constraints.php](../backend/tests/root_identity_constraints.php) | 真實隔離 MariaDB 的 16 項固定身分探測，全部回滾。 |
 | [tests/review_regressions.py](../backend/tests/review_regressions.py) | 10 項跨層回歸：JSON 白名單、Unicode 帳號及 root 探測彙總。 |
-| [tests/openapi_contracts.py](../backend/tests/openapi_contracts.py) | 以獨立 JSON Schema 工具驗證 13 套隔離整合測試的實際請求與回應，輸出不含 payload。 |
+| [tests/openapi_contracts.py](../backend/tests/openapi_contracts.py) | 以獨立 JSON Schema 工具驗證 14 套隔離整合測試的實際請求與回應，輸出不含 payload。 |
 | [tests/requirements.txt](../backend/tests/requirements.txt) | 鎖定測試用 jsonschema；非網站執行依賴。 |
 | [tests/specification_alignment.py](../backend/tests/specification_alignment.py) | 50項真實 HTTP／MariaDB／契約驗證，涵蓋選填發布、改名、8字密碼、必填且一致的確認、自我操作、root及外鍵／索引保護。 |
 | [tests/ArchitectureTest.php](../backend/tests/ArchitectureTest.php) | PHPat 五條分層相依規則，由 PHPStan 執行，不是 PHPUnit 測試入口。 |
@@ -274,6 +280,9 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [templates/dialog.html](../frontend/templates/dialog.html) | 共用確認對話框的 HTML 結構。 |
 | [assets/css/style.css](../frontend/assets/css/style.css) | 原始 website 主樣式的保留副本；字型、色彩、排版、斷點與大部分元件。 |
 | [assets/css/seo.css](../frontend/assets/css/seo.css) | 沿用原始交付的詳情／文章等補充樣式；檔名不是 SEO 後端功能。 |
+| [assets/js/core/attraction-sample.js](../frontend/assets/js/core/attraction-sample.js) | 範例基本欄位與週表套用白名單，保留身分／圖片／發布設定。 |
+| [assets/js/components/attraction-samples.js](../frontend/assets/js/components/attraction-samples.js) | DB範例載入／重試、確認、可寫狀態與唯讀；不自動保存。 |
+| [tests/attraction-samples.test.mjs](../frontend/tests/attraction-samples.test.mjs) | 取消、重試、空結果、唯讀及確認競態。 |
 | [assets/css/phase2.css](../frontend/assets/css/phase2.css) | 真實 API 表單、錯誤／成功、等待、對話框、模擬提示與必要新增狀態的補充樣式。 |
 | [assets/favicon.svg](../frontend/assets/favicon.svg) | 沿用網站識別的圖示。 |
 
@@ -421,7 +430,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 MariaDB 沒有映射宿主機 port，Windows 上不能直接把 localhost:3306 當成目前容器的資料庫。資料存在 Docker volume `yinghua_db_data` 的 `/var/lib/mysql`；不是 backend/ 下的 SQL 或 JSON 檔。開發／測試使用同一個 MariaDB 容器中的不同 database，測試程式及 fixture 有指定庫名防護。
 
-資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以九支 migration 為準；004 增加週表，005–007 校正帳號、選填／操作者及核准的認證政策，008 強化固定身分文字的逐位元組保護，皆不增加業務表。
+資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以十支 migration 為準；004 增加週表，005–007 校正帳號、選填／操作者及核准的認證政策，008 強化固定身分文字的逐位元組保護，009 新增選填 phone，皆不增加業務表。
 
 ### 20 張業務表＋1 張 migration 紀錄
 
@@ -708,7 +717,7 @@ python backend/tests/openapi_contracts.py --dependency-path artifacts/audit-json
 | [tests/content_persistence.py](../backend/tests/content_persistence.py) | 隔離 app／web 重啟後，資料、HTML、圖片與刪除存取驗證。 |
 | [tests/content-fixture.php](../backend/tests/content-fixture.php) | 只允許隔離測試 volume 的發布失敗／恢復注入，無 HTTP 後門。 |
 
-既有檔案的本階段擴充：Composition 組裝新能力；routes 登記新增操作；Request 增 multipart；Route 支援 slug；Kernel 增發布／外部服務錯誤轉譯；EventRepository 增內容稽核；console 增內容命令；OpenAPI 描述累計 44 操作。其他階段二類別責任維持原清單。
+既有檔案的本階段擴充：Composition 組裝新能力；routes 登記新增操作；Request 增 multipart；Route 支援 slug；Kernel 增發布／外部服務錯誤轉譯；EventRepository 增內容稽核；console 增內容命令；OpenAPI 描述累計 45 操作。其他階段二類別責任維持原清單。
 
 ### 新增前端檔案
 
@@ -787,7 +796,7 @@ Google候選以GooglePlaceMapper轉為MapCandidate DTO，不直接信任外部JS
 
 Google簡介依使用者選擇只作原文參考，選中後的獨立區塊放在列表摘要上方，讓摘要與景點介紹連續排列。候選及參考區都有Google Maps及提供者來源，沒有簡介時明示。網站摘要／介紹不被覆蓋，參考區不進保存請求、DB、公開投影或瀏覽器儲存，重載清除。FieldMask增加addressComponents、editorialSummary及attributions，沒有照片／評價匯入。
 
-Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳細資訊切換同列對齊，展開內容固定在下方，避免擠壓狀態文字。人工未關聯不顯示，Place ID／解除按鈕收進「關聯詳細資訊」。名稱／地址／座標改動後才顯示確認操作，解除後聚焦景點名稱。AttractionInput接收嚴格boolean的googleLinkConfirmed命令，AttractionManagement先做授權／版本，再由GooglePlaceLinkPolicy比對資料；省略前端同樣拒絕未確認的變更。這是管理員核對，不是Google簽章。API仍44操作、表仍20、此 U-10 交付當時 migration 為五支；目前累計 005–008 的校正，仍無新表或端點。
+Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳細資訊切換同列對齊，展開內容固定在下方，避免擠壓狀態文字。人工未關聯不顯示，Place ID／解除按鈕收進「關聯詳細資訊」。名稱／地址／座標改動後才顯示確認操作，解除後聚焦景點名稱。AttractionInput接收嚴格boolean的googleLinkConfirmed命令，AttractionManagement先做授權／版本，再由GooglePlaceLinkPolicy比對資料；省略前端同樣拒絕未確認的變更。這是管理員核對，不是Google簽章。API仍44操作、表仍20、此 U-10 交付當時 migration 為五支；該次至 008 的校正仍無新表或端點；本輪 009 與 samples 端點見上方更新。
 
 | 新檔 | 功能 |
 | --- | --- |
@@ -814,11 +823,12 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
+| [PHASE-2-3-OWNER-ALIGNMENT.md](PHASE-2-3-OWNER-ALIGNMENT.md) | Excel逐條來源、實作與驗證；範例試填／電話補齊及正式交付界線。 |
 | [FULL-RECHECK-20261019.md](FULL-RECHECK-20261019.md) | 最新完整檢查、七項修正、獨立契約驗證、資料庫升級及驗收界線。 |
 | [PROJECT-GUIDE.md](../docs/PROJECT-GUIDE.md) | 本文件：全站執行架構、現有檔案用途、資料庫、環境及閱讀入口。 |
 | [IMPLEMENTATION-PLAN.md](../docs/IMPLEMENTATION-PLAN.md) | 共用準備及 P0（2–8）／P1（9–12）／P2（13–15）的功能、驗收界線與新舊階段對照。 |
 | [SPECIFICATION-BASELINE-REVIEW-20261018.md](../docs/SPECIFICATION-BASELINE-REVIEW-20261018.md) | 以 Excel 為基準回溯階段二／三的必填、操作與發布限制；差異、來源、33 項隔離觀察及尚未實作的校正順序。 |
-| [DATABASE-SPECIFICATION-MAP.md](DATABASE-SPECIFICATION-MAP.md) | 逐表及逐欄對照 Excel、工程補充／後續表、九份 migration 與操作命令。 |
+| [DATABASE-SPECIFICATION-MAP.md](DATABASE-SPECIFICATION-MAP.md) | 逐表及逐欄對照 Excel、工程補充／後續表、十份 migration 與操作命令。 |
 | [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md) | 規格校正交付、使用者安全選擇、資料保留及本輪實際驗收。 |
 | [REQUIREMENTS-MAP.md](../docs/REQUIREMENTS-MAP.md) | 原始規格功能來源與網站頁面需求對照。 |
 | [PHASE-2-PLAN.md](../docs/PHASE-2-PLAN.md) | 階段二細設、API／表／頁面及工程補充對照。 |
@@ -859,4 +869,12 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 
 本輪依 Excel／原型與 U-13／U-14 校正，而非新增階段。Input 提供 optionalText／password／confirmedPassword 共用邊界；一般帳號可改名並使用 Unicode；Kernel／前端已撤除首登門檻。AttractionInput 可選地址／行政區／slug／週表，Service 產生或保留唯一 slug；Repository 以真實操作者 UUID 寫 created_by／updated_by。圖片選填，source／license 可空白，alt與內容檢查保留。當次資料庫八份 migration、20張業務表＋工具表；主／測試庫均已套用，主庫20表筆數核對保留，Docker服務與環境變數無新增。完整資料表、原文來源及355項整合結果分見本文件上方兩份新指南。
 
-U-15本次驗證：認證108項＋校正50項真實HTTP／MariaDB，PHP37項／182斷言、前端67項及64頁建置通過；細節與先前驗收界線見[SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md#u-15確認密碼必填更正2026-10-18)。Input.confirmedPassword為註冊／重設／更改共用；確認值不落DB，當次資料表與八份migration均無變更；目前九份見本文件上方更新。
+U-15本次驗證：認證108項＋校正50項真實HTTP／MariaDB，PHP37項／182斷言、前端67項及64頁建置通過；細節與先前驗收界線見[SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md#u-15確認密碼必填更正2026-10-18)。Input.confirmedPassword為註冊／重設／更改共用；確認值不落DB，當次資料表與八份migration均無變更；目前十份見本文件上方更新。
+
+### 2026-10-19：範例試填與電話（S E20／G6，E-24）
+
+新增頁先以 GET /api/v1/admin/attractions/samples 讀取 DB 原始六筆中可公開的基本資料；新增權限可讀，但不開放一般列表。確認後才帶入，不寫 DB；保留圖片、slug與發布設定，解除舊Google關聯；後續仍按一般新增API儲存。編輯頁沒有試填入口。
+
+新增／編輯都可填電話；phone選填，phoneUrl是後端衍生的唯讀撥號連結。Controller／Service／Repository責任不變，PhoneNumber DTO負責格式，009 migration只新增phone。公開詳情與博物館使用相同安全輸出。沒有增加Google欄位或查詢配額。格式與來源、備份／migration及正式驗收差項見上述業主要求對照。
+
+E34／G34可讀性補充：phase2.css局部加深muted、標題說明與表單提示文字；新增頁實測提示文字對比由3.46提升至5.62，版型及website原檔不變。這不是完整WCAG／讀屏認證。
