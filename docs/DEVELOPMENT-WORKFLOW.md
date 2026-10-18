@@ -2,9 +2,23 @@
 
 設定日期：2026-10-13。適用架構：PHP 8.5、MariaDB 12.3、Docker、原生 JavaScript／jQuery。
 
-本文件定義後續實作如何選擇 skills 及驗證改動。skills 與 Docker／Composer 品質工具環境已完成安裝；階段二認證已實作，實際驗收見 PHASE-2-ACCEPTANCE.md。安裝、命令與驗證結果見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。
+本文件定義後續實作如何選擇 skills 及驗證改動。skills 與 Docker／Composer 品質工具環境已完成安裝；階段二認證與階段三景點／媒體／發布已實作，實際驗收分見 PHASE-2-ACCEPTANCE.md、PHASE-3-ACCEPTANCE.md。安裝、命令與驗證結果見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。
 
 目標架構見 [ARCHITECTURE.md](ARCHITECTURE.md)：前端 HTML View＋PHP API，Controller／Service／Repository 分工。新功能使用 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md) 的 S／D／U／E 標記，並附模組閱讀指南與真實資料流。backend/ 與 frontend/ 於階段二從零建立，沒有後端遷移。
+
+## 規格基準（U-12，2026-10-18）
+
+使用者指定原始 [工程串接功能規格](../映畫竹塹_後台工程串接功能規格.xlsx) 為作業基準。開發與驗收均依文件實際限制；工程文件、既有程式與測試不能自行擴張客戶要求。
+
+- 欄位的必填／選填、格式、唯一性、範圍、條件式限制及驗收條件，逐項附工作表與儲存格來源。F 欄「主要資料欄位」只是欄位清單，不能直接解讀為全部必填。
+- 未明定的項目標為「文件未定義」，再核對原始 website 的表單及使用者明確指示；不能推定全部必填或全部選填，也不自行增加阻擋儲存／發布的業務限制。仍有影響業務的歧義時，列出具體差異請使用者決定，繼續不受影響的工作。
+- 「建議／草案」維持原文性質，不升格為硬性要求。使用者另行指定的技術、介面與流程持續標 U，不混寫為 Excel 要求。
+- 文件要求安全防護、格式驗證或資源限制時，具體演算法、數值及儲存方式仍標 E。必要技術設定須說明用途；不能用「工程補充」名義自行增加業務必填政策。
+- 既有實作的額外限制不因已存在或測試通過而成為規格。本次確認的是作業基準，未完成逐項校正前不得宣告既有程式全面符合；實際校正須同步處理前端、API／DTO、資料庫約束、契約與相關驗證，依 Git 規則歸回相應功能。
+
+已核對的例子：功能規格 G13 僅寫「必要欄位」，沒有逐欄定義；F20／G20 沒有規定列表摘要／景點介紹必填，兩欄目前依 U-11 選填。圖片替代文字則見串接總覽 B12／功能規格 G7／資料表建議 D11 的明文及用途條件；不能把這些規則擴張成所有圖片相關欄位都必填。
+
+2026-10-18 已完成既有階段二／三的 [規格校正](SPECIFICATION-ALIGNMENT.md) 與 [逐表對照](DATABASE-SPECIFICATION-MAP.md)。使用者明確核准 U-13 的八字密碼／取消首登／一般管理員自我操作；U-14 指定圖檔內容檢查範圍；U-15 最新指定確認密碼必填且一致。後續不得將舊15字、強制首登或一般帳號不可改名重新當成規格要求。固定 root 與最後管理權、授權／CSRF／session／安全雜湊維持。
 
 ## 1. Skills 的使用時機
 
@@ -23,7 +37,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 
 ## 2. 當前狀態
 
-已完成環境與階段二：backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依階段三起進行。
+已完成環境與階段二：backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前階段一至三完成本機驗收；階段三紀錄見 PHASE-3-ACCEPTANCE.md，P0 尚未完成。
 
 工具可執行不代表功能或分析已通過。環境結果見 ENVIRONMENT-SETUP.md；功能驗收以 PHASE-2-ACCEPTANCE.md 的實際結果為準。
 
@@ -50,7 +64,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 
 | 步驟 | 動作 | 判斷完成的依據 |
 | --- | --- | --- |
-| 開始前 | 核對架構、階段計畫、API／資料表／頁面契約、來源標記與工作樹；選擇當次 skills | 實作範圍與既有未提交改動清楚 |
+| 開始前 | 核對架構、優先級／階段計畫、API／資料表／頁面契約、來源標記與工作樹；選擇當次 skills | 範圍與未提交改動清楚；跨優先級前，上一優先級的界線驗收已完成 |
 | 設計 | 明確 DTO、Controller／Service／Repository 責任、交易、狀態、權限與失敗情境；按需要審查索引 | 能說明成功、拒絕及並行請求的行為 |
 | 實作 | 按架構寫 PHP API／前端頁面與模組，保留原始 website；附中文業務來源註解和閱讀指南 | 新功能來自真正後端資料，不用模擬狀態代替 |
 | 程式檢查 | PHP 語法、PHPStan、格式 dry-run、適用的 PHPat／Rector 檢查 | 有實際結果；工具缺少或失敗不當成通過 |
@@ -75,6 +89,8 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 | web-design-guidelines | vercel-labs/agent-skills：skills/web-design-guidelines | 063bee94c3f4df8453406c830b0a7df0f2860278 |
 
 php-modernization 是使用者已有的安裝，原本 skills-lock.json 保留不覆蓋。該檔由原安裝工具管理，目前只記錄 php-modernization；這次 helper 安裝的三個 skills 以本節的來源 commit 記錄，不假造原工具的 computedHash。它們是專案開發資源，不打包成網站公開資產。
+
+P0 → P1 → P2 依序推進，界線分別為階段 8／12／15。共用前置能力須標明當前用途；計畫重排不算實作或後續階段授權。實際驗收與正式服務差項分列，不以階段內的局部成果代替整個優先級完成。
 
 ## 7. 階段分支與功能提交
 

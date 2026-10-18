@@ -35,6 +35,17 @@
 | U-05 | 前端排版依原始交付的 website，串接不能另行改版 | 使用者對話「前端排版似乎沒有全對，要照著原本的來」；版型對照見 modules/frontend.md |
 | U-06 | 固定系統管理員可模擬一般管理員；唯讀驗收介面與權限，不能修改資料 | 使用者對話「系統管理員可以模擬也蠻合理的」，並選擇「唯讀驗收」；不是 Excel 規格要求 |
 | U-07 | 每階段獨立分支，依完成的功能細分提交；原始交付及自身修正合併原則繼續保留 | 使用者對話「依照某個功能完善來做細項 commit」、「每一個階段開一個 branch」；流程見 GIT-WORKFLOW.md |
+| U-08 | 先完成 P0，再 P1、P2；各優先級內可分階段且須有驗收界線。P0 先做收藏／加入行程必要保存，完整旅程留 P1 | 使用者 2026-10-17 指定重排並確認收藏／行程切分；階段一／二成果保留，其餘僅計畫 |
+| U-13 | 密碼最少 8 字；確認欄政策已由 U-15 更新為必填；取消新管理員首登強制；允許具權限的一般管理員自我停用／軟刪除／降權，固定 root 與最後管理權仍保護 | 使用者在列明三項安全影響後明確回答「全部同意，依上述範圍套用」，2026-10-18；已實作及驗證 |
+| U-14 | 媒體維持 MIME／大小／像素／解碼／重編碼的內容檢查，不新增獨立病毒掃描服務 | 使用者 2026-10-18 明確選擇「維持圖片內容檢查，文件明確說明掃描範圍」 |
+| U-15 | 註冊、會員／管理員重設與更改密碼的確認欄必填，且與新密碼逐字一致；CLI 既有確認提示亦必填 | 使用者 2026-10-18 明確更正「確認密碼…應該是必填」；覆蓋 U-13 中確認選填的部分。新增管理員原本只有初始密碼欄，不額外加欄；無 DB／migration 變更 |
+| U-12 | 原始 Excel 是功能與限制的作業基準；不自行擴張必填、發布或其他業務限制，未明定者標示未定義並核對原型與使用者指示；建議保持建議性質 | 使用者 2026-10-18 指定「請完全照這個檔案的限制來作業，這是基準」；執行方式見 DEVELOPMENT-WORKFLOW.md 的規格基準；此規則不代表既有程式已完成逐項校正 |
+| U-09 | 人工建立與 Google 匯入使用相同的結構化每週營業時間表單 | 使用者 2026-10-18 同意週表設計，並指定非 Google 匯入的景點也依此填寫；非原始 Excel 指定格式 |
+| U-10 | 改善行政區、官網網址與Google地點關聯，並顯示Google簡介供參考，網站介紹由管理員撰寫 | 使用者 2026-10-18 要求「景點介紹那些的也可以帶入，你現在說的也都改善」，後續明確選擇只作參考，並要求縮小關聯介面、避免人工景點出現不合適區塊；不自動覆蓋或保存Google簡介 |
+
+U-11（規劃及選填要求，2026-10-18）：使用者要求規劃列表摘要／景點介紹留空時自動帶入 Google 資訊等內容。E-22 中兩欄選填已依後續指示實作；自填優先、自家摘要摘錄、Google 即時原文備援及靜態發布邊界仍為工程提案，尚未實作；見 [景點內容補位計畫](ATTRACTION-CONTENT-FALLBACK-PLAN.md)。U-10 記錄先前已交付的行為，Google 後台參考行為仍維持，選填已取代原本非空驗證。使用者後續明確指示自動補位延後、保留計畫，尚未指定實作階段，不列為本次階段三待修項。
+
+2026-10-18 U-12 回溯已完成來源與現況驗證，結果見 [規格限制回溯驗證](SPECIFICATION-BASELINE-REVIEW-20261018.md)。R-01–R-07 已校正，安全設定另取得 U-13 明確同意；交付與驗證見 [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md)。兩欄選填仍已實作，自動補位仍延後。
 
 ## 3. 我額外提出的工程決定
 
@@ -48,17 +59,26 @@
 | E-04 | MariaDB auth_rate_limits 表、keyed hash、原子更新 | 限速／鎖定是規格；使用共享 DB 桶是提案 | 基礎方案 |
 | E-05 | member_consents 表保存條款版本／時間 | S-016 要同意條款；API草案 G17 提到版本，獨立表是提案 | 基礎方案 |
 | E-06 | Email 驗證碼作為圖形方式的無障礙替代入口 | API草案 F16 提到替代方式；指定 Email 是我新增的選擇，增加端點及郵件成本 | 額外方案，可改為其他可及方式 |
-| E-07 | 一般管理員首次登入強制改密碼、本人改密碼頁／API | 降低管理者設定初始密碼的風險，規格未指定首登強制 | 額外方案 |
-| E-08 | 15–128 字元密碼、挑戰 5 分鐘／3 次、session／token 期限 | 規格要求政策／期限，具體數值不是原文 | 政策初值，實作與驗收前寫清最終值 |
-| E-09 | 管理員軟刪除、禁止自我停用／刪除、版本檢查、一般管理員登入帳號建立後固定 | 保留稽核及避免鎖死／覆蓋；一般帳號不可改是工程政策，原型可改，Excel 未要求此限制 | 基礎方案；帳號政策可再調整 |
+| E-07 | 本人改密碼頁／API；原首登強制已由 U-13 撤除 | 本人操作是工程補充，不冒稱 Excel 要首登強制 | 已校正；舊回應欄位相容為 false |
+| E-08 | 挑戰 5 分鐘／3 次、session／token 期限及密碼最多 128 字 | 具體資源數值為工程設定；密碼至少 8 字由原型／U-13 決定；確認密碼依最新 U-15 必填且一致 | 已實作，見校正交付 |
+| E-09 | 管理員軟刪除、版本及稽核；一般帳號可改名、具權限者可自我操作 | 固定 root／最後管理權保護依 S-026；舊不可改名及一律禁止自我操作已校正 | 已依 U-12／U-13 校正 |
 | E-10 | 完整個人權限快照；非 root 禁授自己沒有的權限 | 起始矩陣符合 S-027；防越級在 G27 是可選策略，我選擇啟用 | 基礎方案，須顯示本案選擇 |
 | E-11 | PHPMailer、Mailpit、品質工具／PHPat、admin:init CLI | 完成寄信、初始化與可維護性；套件與命令非 Excel 指定 | 工具及階段二業務／架構規則已實作，驗收見 PHASE-2-ACCEPTANCE |
 | E-12 | frontend/ 與 Node 前端建置／公開內容預先產生、版本同步 | 同時滿足 U-02 API-only 和 S-SEO-17；工具不是文件指定 | 基礎方案，階段二／三分別建立 |
 | E-13 | 角色／權限定義輔助讀取 API、統一 JSON 錯誤、requestId | 供原型表單與矩陣運作且便於排查；路徑／錯誤結構是提案 | 基礎方案 |
 | E-14 | 中文業務理由、來源註記、模組閱讀指南及相依檢查 | 落實 U-02「需要看得懂 code」，格式與檢查是提案 | 基礎方案 |
+| E-24 | 原始DB範例試填白名單／確認／create授權及電話格式、80字上限、phoneUrl、安全HTML與009升級 | 功能依 S E20／G6；端點、型別、上限與允許的電話寫法是工程設定，電話與範例不必填 | 已實作，見 PHASE-2-3-OWNER-ALIGNMENT.md |
+| E-23 | 固定身分文字採逐位元組不可變保護，008 trigger 與真實 DB 回滾探測 | 落實 S-026 固定 root；MariaDB CI collation 不足以驗證字面未變，不限制一般帳號改名 | 已實作，見 FULL-RECHECK-20261019.md |
 | E-16 | 模擬採 owner／effective 雙身分、session target 欄位、token 輪替、交易稽核與 Kernel 唯讀限制 | 落實 U-06；參考 Symfony original user／退出機制與 OWASP session 管理，具體 API／欄位為工程設計 | 已實作，見 modules/admin-preview.md |
+| E-17 | P0 公開消息／優惠用真實資料及受控 CLI 匯入，先提供必要基本閱讀頁、共用關聯保護與部署驗收；完整管理／前後篇仍留 P1 | 解決公開列表 P0 與管理 P1 的相依；CLI 重用 Service／驗證／稽核／發布，不是 Excel 指定的工具或額外 CMS | 計畫，尚未實作；細分見 IMPLEMENTATION-PLAN.md |
 
 ## 4. 階段二 API 的來源
+
+階段三新增 E-18：景點與媒體 schema、DTO／Repository、版本／軟刪除、歷史網址、內容發布紀錄、Node 前端 HTML 產生器、Nginx 版本／媒體存取檢查，以及僅供引用保護的 routes／route_attractions。功能依據為功能規格 5／6／13／19／20、SEO規格 17；具體表名、路徑、限制及發布方式為工程設計。2026-10-18 已實作，對照見 [階段三計畫](PHASE-3-PLAN.md) 與 [景點指南](modules/attractions.md)。
+
+階段三新增 E-19：Google Maps 網址允許清單、逐跳重導向、DNS／IP 固定、Places API New FieldMask、候選確認及每分鐘 10 次限制。短網址匯入是功能規格列 20，以上安全與 API 選型為工程設計；金鑰由使用者提供至忽略的 .env。實作及服務條件見 [地圖指南](modules/maps-import.md)。
+
+階段三新增 15 個 API 操作、七張表及公開 HTML 發布，累計 44 個 API／20 張業務表。下列階段二清單保留其歷史範圍；不是全專案只剩 29 個 API。新增端點與所有表的來源逐項對照在 PHASE-3-PLAN.md，原始規格與 website 不改動。
 
 以下為原計畫 26 個端點及 U-06 補充的 3 個端點，共 29 個，全部已實作於 backend/config/routes.php，契約見 backend/resources/openapi.json。API草案中的方法／路徑屬 D，背後功能的 S 與本案新增 E 分開列出。確切契約已同步至 OpenAPI。
 
@@ -80,7 +100,7 @@
 | GET /api/v1/admin/auth/me | S-SEC-14；S-PAGE | E-02 |
 | POST /api/v1/admin/auth/forgot-password | S-SEC-09 | E-03 |
 | POST /api/v1/admin/auth/reset-password | S-SEC-09 | E-03 |
-| POST /api/v1/admin/auth/change-password | 首登強制／本人改密碼是補充 | E-07 |
+| POST /api/v1/admin/auth/change-password | 本人改密碼為補充；首登強制已由 U-13 撤除 | E-07 |
 | GET /api/v1/admin/admins | S-026 | D：API草案 B35–G35 |
 | GET /api/v1/admin/admins/{id} | S-026 的編輯頁需要載回資料 | E-13，CRUD 草案沒有逐列展開單筆 GET |
 | POST /api/v1/admin/admins | S-026 | D：API草案 B35–G35 |
@@ -137,8 +157,16 @@ U-06 沒有增加業務表或 HTML 網址。sessions 增 preview_admin_id、FK �
 | /admin/login.html | 無 | S-PAGE 要管理員登入；獨立頁面 E-02 |
 | /admin/forgot-password.html | 無 | S-SEC-09；後台獨立頁面 E-03 |
 | /admin/reset-password.html | 無 | S-SEC-09；後台獨立頁面 E-03 |
-| /admin/change-password.html | 無 | E-07，包含首登強制改密碼 |
+| /admin/change-password.html | 無 | E-07／U-13，本人改密碼，已取消首登強制 |
 | 其餘 18 個後台頁面的登入／授權 guard | 有 | S-SEC-14／S-PAGE；空殼＋API 授權實作 E-12 |
 | 共用登入身分與登出 | 導覽原型有 | S-017／S-PAGE；E-01／02 共用模組；U-06／E-16 增固定 root 唯讀模擬 |
 
 所有新來源放 frontend/，與 website 原始檔對照。本文件列出提案讓範圍可讀；階段二對應頁面已建立；工程補充仍不改成規格硬性要求。
+
+## 階段三複查修正的來源（2026-10-18）
+
+U-10／E-21：GooglePlaceMapper與MapCandidate型別化外部候選；地址結構確認新竹市行政區，未知清空；官網HTTP／HTTPS外連保留原協定，Google伺服器請求與地圖網址仍HTTPS。Google簡介原文只在本頁供參考，來源標示、不落DB。googleLinkConfirmed是本次管理員確認命令，GooglePlaceLinkPolicy在既有交易中比對名稱／地址／座標／ID，不把此參數當Google認證。設計、限制、參考與結果見MAP-IMPORT-IMPROVEMENTS.md及modules/google-place-fields.md。
+
+U-09／E-20：同一 OpeningHours 週表 DTO、Google Adapter 與前端編輯器。狀態、四段上限、台北時區、JSON 欄位、舊文字僅備註、重疊驗證與摘要是工程設計，參考 Google OpeningHours 常態 periods，不使用語系字串猜測星期。計畫及其他相近缺口見 OPENING-HOURS-PLAN.md，中文閱讀指南見 modules/opening-hours.md；其餘列管項目沒有自動擴成已授權功能。
+
+R3-01／E-18：各景點圖片說明覆寫及 API 可寫欄位，回應規格圖片／alt 保存與 U-02 的資料重用要求；SQL 欄位及「省略保留、空白回到資產」為工程設計。R3-02／U-05：保留原型六筆順序、推薦文案與後台營業時間欄；recommendationLabel 不是新增評分業務。受控標籤回填的預覽／明確套用、交易稽核為 E-18。R3-04／E-18：新增 migration 補正雙座標 CHECK，API 原有成對驗證保留。R3-03 為必要的表單失敗與競態回歸，沒有新增後續階段業務。

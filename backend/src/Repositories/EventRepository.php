@@ -54,4 +54,16 @@ class EventRepository
         }
         return $safe;
     }
+
+    /** [S：功能規格 G19/G20] 內容稽核只保存識別、版本與狀態，不記錄上傳內容或金鑰。 */
+    public function content(string $actorId, string $action, string $resource, string $id, ?int $before, int $after, string $status, ClientContext $client): void
+    {
+        $this->database->execute(
+            'INSERT INTO audit_logs (actor_admin_id,action,resource_type,resource_id,before_json,after_json,request_id,ip_hash) VALUES (:actor,:action,:resource,:id,:before,:after,:request,:ip)',
+            ['actor' => $actorId,'action' => $action,'resource' => $resource,'id' => $id,
+                'before' => $before === null ? null : json_encode(['version' => $before], JSON_THROW_ON_ERROR),
+                'after' => json_encode(['version' => $after,'status' => $status], JSON_THROW_ON_ERROR),
+                'request' => $client->requestId,'ip' => $client->ipHash],
+        );
+    }
 }

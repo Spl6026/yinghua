@@ -52,9 +52,9 @@ export async function api(path, { method = 'GET', body, kind = 'member', retry =
   const headers = { Accept: 'application/json' };
   if (method !== 'GET' && method !== 'HEAD') {
     headers['X-CSRF-Token'] = await csrf(kind);
-    headers['Content-Type'] = 'application/json';
+    if (!(body instanceof FormData)) headers['Content-Type'] = 'application/json';
   }
-  const { response, payload } = await request(path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  const { response, payload } = await request(path, { method, headers, body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body) });
   if (!response.ok) {
     if (retry && payload.code === 'CSRF_INVALID') {
       await csrf(kind, true);

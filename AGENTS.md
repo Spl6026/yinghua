@@ -9,6 +9,8 @@
 
 # 開發流程與 Skills
 
+- 原始 `映畫竹塹_後台工程串接功能規格.xlsx` 是功能與限制的基準（使用者 2026-10-18 指定）。必填／選填、格式、條件式限制及驗收須追溯到工作表／儲存格；不能因欄位被列出就判為必填，也不能把文件未定義推定為全部選填。未定義處先核對原始 website 與使用者明確指示，不自行增加阻擋儲存／發布的業務限制；仍無依據者標示待確認。文件中的「建議／草案」保持建議性質。必要技術邊界及安全實作的具體設定標為 E，不冒稱規格硬性要求；既有程式或測試亦不能反過來充當規格來源。詳見 docs/DEVELOPMENT-WORKFLOW.md 的規格基準。
+
 - 開發前讀取 [docs/DEVELOPMENT-WORKFLOW.md](docs/DEVELOPMENT-WORKFLOW.md)，依工作類型套用相關 skill，不預載所有參考文件。
 - PHP 實作或重構使用 [.agents/skills/php-modernization/SKILL.md](.agents/skills/php-modernization/SKILL.md)。新程式採明確型別、DTO／enum 與適用的 PSR 規範；Rector 僅 dry-run，檢視結果後以有範圍的修改處理。
 - 登入、session、密碼、授權及管理 API 完成後，使用 [.agents/skills/security-audit/SKILL.md](.agents/skills/security-audit/SKILL.md) 審查本次變更，並以真實 MariaDB 的失敗／越權測試驗證。
@@ -18,5 +20,6 @@
 - 後續架構依 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)：PHP 網站 HTTP 責任只提供 API；HTML View 在前端，Controller／Service／Repository 分工，使用 DTO、建構子依賴與適當共用規則。必要 CLI 不受 API-only 限制。
 - 新功能與業務註解標出規格、文件草案、使用者指定或工程補充，來源 ID 見 [docs/DESIGN-TRACEABILITY.md](docs/DESIGN-TRACEABILITY.md)。完成模組提供中文閱讀指南，不能把工程提案寫成規格硬性要求。
 - 每完成一個階段，必須在宣告完成及合併 main 前更新 [docs/PROJECT-GUIDE.md](docs/PROJECT-GUIDE.md)：更新日期、實際完成範圍、架構與檔案用途、頁面／API 狀態、資料表／migration、Docker／環境及操作命令；核對檔案清單與連結，不提前標記後續功能。功能開發期間有相關變更亦應隨功能提交同步維護。
-- 使用者已授權從零實作階段二。依階段二計畫完成認證、管理員與權限；其餘業務模組仍依後續階段處理。狀態與驗收只記錄實際結果。
+- 計畫依 [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) 分為共用準備 1、P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；依序完成優先級界線驗收後再進入下一級。必要前置能力標明用途，不提前冒充後續功能；重排不等於新增實作或授權。
+- 使用者已授權實作階段三。階段二認證、管理員與權限保留；依最新階段三計畫完成景點、媒體、地圖解析及公開發布，其餘業務依後續階段處理。狀態與驗收只記錄實際結果。
 - PHP、Composer 與品質檢查工具在 Docker 開發環境執行。缺少工具時先建立或如實記錄，不能把「未安裝／未執行」當成檢查通過。

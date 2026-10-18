@@ -26,10 +26,18 @@ readonly class Route
     public function match(string $path): ?array
     {
         $expression = str_replace(preg_quote('{id}', '~'), '(?P<id>[a-f0-9-]{36})', preg_quote($this->path, '~'));
+        $expression = str_replace(preg_quote('{slug}', '~'), '(?P<slug>[a-z0-9][a-z0-9-]{0,119})', $expression);
         if (!preg_match('~^' . $expression . '$~D', $path, $matches)) {
             return null;
         }
 
-        return isset($matches['id']) ? ['id' => $matches['id']] : [];
+        $parameters = [];
+        foreach (['id','slug'] as $name) {
+            if (isset($matches[$name])) {
+                $parameters[$name] = $matches[$name];
+            }
+        }
+
+        return $parameters;
     }
 }

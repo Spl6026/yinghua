@@ -1,5 +1,8 @@
 FROM composer:2.10.3@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c418b1f6bc4bac AS composer-bin
 
+# [E-12／E-18] 僅執行前端內容產生工具，版本與 frontend 服務相同。
+FROM node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS node-bin
+
 FROM php:8.5-fpm-bookworm@sha256:dd198c828c224e479bdaa184cdcf04a28c73d186bf5a885493bf9cc78d7196ef AS php-base
 
 RUN apt-get update \
@@ -26,6 +29,9 @@ COPY backend/composer.json backend/composer.lock ./
 RUN --mount=type=cache,target=/root/.composer/cache composer install --no-dev --no-interaction --prefer-dist --no-scripts --no-plugins
 
 FROM php-base AS runtime
+COPY --from=node-bin /usr/local/bin/node /usr/local/bin/node
+RUN mkdir -p /var/www/media /var/www/publication && chown -R www-data:www-data /var/www/media /var/www/publication
+COPY frontend /var/www/frontend-source
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/yinghua.ini
 COPY docker/php/www.conf /usr/local/etc/php-fpm.d/zz-yinghua.conf
 COPY tools/php/composer.json tools/php/composer.lock ./

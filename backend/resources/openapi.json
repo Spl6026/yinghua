@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "映畫竹塹階段二 API",
-    "version": "2.1.0",
-    "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。"
+    "title": "映畫竹塹階段二／三 API",
+    "version": "3.0.0",
+    "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。"
   },
   "servers": [
     {
@@ -4968,6 +4968,2573 @@
           }
         }
       }
+    },
+    "/api/v1/admin/attractions": {
+      "get": {
+        "operationId": "get_admin_attractions",
+        "summary": "景點列表",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionList"
+                }
+              }
+            }
+          }
+        },
+        "description": "attractions.view；名稱／地址搜尋、狀態篩選及穩定分頁。",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "post_admin_attractions",
+        "summary": "新增景點",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionWriteResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "資料已儲存；公開產生失敗，必須重試",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionWriteResult"
+                }
+              }
+            }
+          }
+        },
+        "description": "attractions.create；圖片選填；草稿不公開，上傳圖片仍須符合替代文字與內容檢查。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttractionCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/attractions/{id}": {
+      "get": {
+        "operationId": "get_admin_attractions_id",
+        "summary": "讀取景點編輯資料",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionRecord"
+                }
+              }
+            }
+          }
+        },
+        "description": "attractions.view",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "put": {
+        "operationId": "put_admin_attractions_id",
+        "summary": "更新景點",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionWriteResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "資料已儲存；公開產生失敗，必須重試",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionWriteResult"
+                }
+              }
+            }
+          }
+        },
+        "description": "attractions.edit；版本衝突 409，slug 歷史保留。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttractionUpdate"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "delete_admin_attractions_id",
+        "summary": "刪除景點",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionWriteResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "資料已儲存；公開產生失敗，必須重試",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionWriteResult"
+                }
+              }
+            }
+          }
+        },
+        "description": "attractions.delete；被推薦路線引用回 409，刪除為 soft delete。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttractionDelete"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/attractions/publish-retry": {
+      "post": {
+        "operationId": "post_admin_attractions_publish_retry",
+        "summary": "重試公開頁面同步",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationRetry"
+                }
+              }
+            }
+          }
+        },
+        "description": "attractions.edit；成功啟用同一份資料投影與 HTML。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/media": {
+      "get": {
+        "operationId": "get_admin_media",
+        "summary": "可用景點圖片",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaList"
+                }
+              }
+            }
+          }
+        },
+        "description": "attractions.view",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "post_admin_media",
+        "summary": "上傳並重新編碼景點圖片",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MediaRecord"
+                }
+              }
+            }
+          }
+        },
+        "description": "action=create 需 attractions.create，action=edit 需 attractions.edit。拒絕 SVG、假圖片、過大像素；最多 8 MiB。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/MediaUpload"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/media/access": {
+      "get": {
+        "operationId": "get_admin_media_access",
+        "summary": "Nginx 媒體存取判定",
+        "tags": [
+          "publication-internal"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [],
+        "responses": {
+          "204": {
+            "description": "允許"
+          },
+          "403": {
+            "description": "拒絕，Nginx 轉為對外 503／404"
+          }
+        },
+        "description": "公開版本使用的圖片匿名可讀；其他圖片限有景點權限的正常管理員預覽。",
+        "x-internal": true
+      }
+    },
+    "/api/v1/admin/places/resolve-map-url": {
+      "post": {
+        "operationId": "post_admin_places_resolve_map_url",
+        "summary": "安全解析地圖候選資料",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MapCandidates"
+                }
+              }
+            }
+          }
+        },
+        "description": "依 action 需要 attractions.create 或 edit；每管理員 10 次／60 秒。白名單、DNS 驗證／釘選、逐跳檢查，金鑰僅伺服端；不自動保存。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MapResolve"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publication/access": {
+      "get": {
+        "operationId": "get_publication_access",
+        "summary": "Nginx 公開版本判定",
+        "tags": [
+          "publication-internal"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [],
+        "responses": {
+          "204": {
+            "description": "允許"
+          },
+          "403": {
+            "description": "拒絕，Nginx 轉為對外 503／404"
+          }
+        },
+        "description": "只有目前 HTML 與 DB 公開投影一致才允許讀取；沒有 HTML View。",
+        "x-internal": true
+      }
+    },
+    "/api/v1/attractions/resolve-url": {
+      "get": {
+        "operationId": "get_attractions_resolve_url",
+        "summary": "穩定景點舊網址轉向",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "成功",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "同站目前景點網址；不接受任意轉向目的。"
+              }
+            }
+          }
+        },
+        "description": "Nginx 以 X-Original-URI 傳原網址；舊 slug 與 numeric legacyId 指向目前公開網址；不存在 404。"
+      }
+    },
+    "/api/v1/attractions": {
+      "get": {
+        "operationId": "get_attractions",
+        "summary": "公開景點列表",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAttractionList"
+                }
+              }
+            }
+          }
+        },
+        "description": "公開讀取僅使用成功產生且仍與資料庫相符的版本。",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "district",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/attractions/{slug}": {
+      "get": {
+        "operationId": "get_attractions_slug",
+        "summary": "公開景點詳情",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAttractionRecord"
+                }
+              }
+            }
+          }
+        },
+        "description": "公開讀取僅使用成功產生且仍與資料庫相符的版本。",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 120
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/museum": {
+      "get": {
+        "operationId": "get_museum",
+        "summary": "已發布博物館介紹",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicAttractionRecord"
+                }
+              }
+            }
+          }
+        },
+        "description": "公開讀取僅使用成功產生且仍與資料庫相符的版本。"
+      }
+    },
+    "/api/v1/admin/attractions/samples": {
+      "get": {
+        "operationId": "get_admin_attraction_samples",
+        "summary": "既有範例景點試填資料",
+        "tags": [
+          "attractions"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 6/13/19/20；E-18/E-19",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttractionSamples"
+                }
+              }
+            }
+          }
+        },
+        "description": "功能規格 E20；E-24：attractions.create。僅提供原始六筆目前已發布且未刪除的 DB 基本資料，不複製身分、圖片或發布設定，不寫入資料。",
+        "parameters": []
+      }
     }
   },
   "components": {
@@ -5954,12 +8521,1507 @@
           "requestId"
         ]
       },
+      "AttractionCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+            "maxLength": 120,
+            "minLength": 0,
+            "description": "U-12：選填；新增留空自動產生唯一識別，編輯留空沿用原識別。"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 500,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 20000,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
+          },
+          "hours": {
+            "type": "string",
+            "deprecated": true,
+            "description": "相容舊文字。提供 openingHours 時由伺服器產生摘要；省略週表時不覆蓋已有結構化摘要。新前端一律使用週表。"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 255,
+            "description": "U-12：選填；省略或空白保存空字串。"
+          },
+          "transport": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "HTTP／HTTPS 外部官網，保留原協定，不含帳密；伺服器不抓取此網址。"
+          },
+          "mapUrl": {
+            "type": "string",
+            "description": "功能規格 G20：手填與匯入同樣只接受允許的 HTTPS Google 地圖入口；可留空。"
+          },
+          "seoTitle": {
+            "type": "string"
+          },
+          "seoDescription": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "景點",
+              "美食",
+              "在地店家"
+            ]
+          },
+          "district": {
+            "type": "string",
+            "enum": [
+              "",
+              "北區",
+              "東區",
+              "香山區"
+            ],
+            "minLength": 0,
+            "description": "U-12：選填；未知保留空字串，不推測行政區。"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "mediaId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "景點用已上傳媒體識別；寫入時空字串也視為未選擇"
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "isMuseum": {
+            "type": "boolean"
+          },
+          "publishAt": {
+            "type": "string",
+            "description": "ISO 8601，包含秒與時區；寫入留空表示現在"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ]
+          },
+          "googlePlaceId": {
+            "type": "string"
+          },
+          "imageAlt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此景點使用圖片時的說明；未提供保留既有值，空白或 null 恢復原資產說明，不改共用媒體。"
+          },
+          "imageSource": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此景點使用圖片時的說明；未提供保留既有值，空白或 null 恢復原資產說明，不改共用媒體。"
+          },
+          "imageLicense": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此景點使用圖片時的說明；未提供保留既有值，空白或 null 恢復原資產說明，不改共用媒體。"
+          },
+          "recommendationLabel": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "原型文案標籤；未提供保留既有值，空白公開顯示在地推薦。"
+          },
+          "openingHours": {
+            "$ref": "#/components/schemas/OpeningHours",
+            "description": "U-09／U-12：選填；省略維持既有相容行為，提供時驗證完整週表。"
+          },
+          "googleLinkConfirmed": {
+            "type": "boolean",
+            "default": false,
+            "description": "U-10／E-21：本次人工確認地點。新增／更換 Place ID 或修改名稱／地址／座標後，保留關聯須為true；只作命令參數，不落DB。"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 80,
+            "description": "功能規格 G6；E-24：選填電話，可含國碼、空格、括號、連字號及分機。省略或留空保存空字串，不限定台灣市話。"
+          }
+        },
+        "required": [
+          "name",
+          "category",
+          "status"
+        ]
+      },
+      "AttractionUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+            "maxLength": 120,
+            "minLength": 0,
+            "description": "U-12：選填；新增留空自動產生唯一識別，編輯留空沿用原識別。"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 500,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 20000,
+            "description": "U-11／E-22：選填；留空、空白文字或省略均保存為空字串，非 null。PUT 為完整表單替換，省略也會清空；自動補位另行實作。"
+          },
+          "hours": {
+            "type": "string",
+            "deprecated": true,
+            "description": "相容舊文字。提供 openingHours 時由伺服器產生摘要；省略週表時不覆蓋已有結構化摘要。新前端一律使用週表。"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 255,
+            "description": "U-12：選填；省略或空白保存空字串。"
+          },
+          "transport": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": "string",
+            "description": "HTTP／HTTPS 外部官網，保留原協定，不含帳密；伺服器不抓取此網址。"
+          },
+          "mapUrl": {
+            "type": "string",
+            "description": "功能規格 G20：手填與匯入同樣只接受允許的 HTTPS Google 地圖入口；可留空。"
+          },
+          "seoTitle": {
+            "type": "string"
+          },
+          "seoDescription": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "景點",
+              "美食",
+              "在地店家"
+            ]
+          },
+          "district": {
+            "type": "string",
+            "enum": [
+              "",
+              "北區",
+              "東區",
+              "香山區"
+            ],
+            "minLength": 0,
+            "description": "U-12：選填；未知保留空字串，不推測行政區。"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "mediaId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "景點用已上傳媒體識別；寫入時空字串也視為未選擇"
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "isMuseum": {
+            "type": "boolean"
+          },
+          "publishAt": {
+            "type": "string",
+            "description": "ISO 8601，包含秒與時區；寫入留空表示現在"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ]
+          },
+          "googlePlaceId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "imageAlt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此景點使用圖片時的說明；未提供保留既有值，空白或 null 恢復原資產說明，不改共用媒體。"
+          },
+          "imageSource": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此景點使用圖片時的說明；未提供保留既有值，空白或 null 恢復原資產說明，不改共用媒體。"
+          },
+          "imageLicense": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此景點使用圖片時的說明；未提供保留既有值，空白或 null 恢復原資產說明，不改共用媒體。"
+          },
+          "recommendationLabel": {
+            "type": "string",
+            "maxLength": 80,
+            "description": "原型文案標籤；未提供保留既有值，空白公開顯示在地推薦。"
+          },
+          "openingHours": {
+            "$ref": "#/components/schemas/OpeningHours",
+            "description": "U-09／U-12：選填；省略維持既有相容行為，提供時驗證完整週表。"
+          },
+          "googleLinkConfirmed": {
+            "type": "boolean",
+            "default": false,
+            "description": "U-10／E-21：本次人工確認地點。新增／更換 Place ID 或修改名稱／地址／座標後，保留關聯須為true；只作命令參數，不落DB。"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 80,
+            "description": "功能規格 G6；E-24：選填電話，可含國碼、空格、括號、連字號及分機。省略或留空保存空字串，不限定台灣市話。"
+          }
+        },
+        "required": [
+          "name",
+          "category",
+          "status",
+          "version"
+        ]
+      },
+      "Attraction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 120
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 500
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 20000
+          },
+          "hours": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 255
+          },
+          "transport": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": "string"
+          },
+          "mapUrl": {
+            "type": "string"
+          },
+          "seoTitle": {
+            "type": "string"
+          },
+          "seoDescription": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "景點",
+              "美食",
+              "在地店家"
+            ]
+          },
+          "district": {
+            "type": "string",
+            "enum": [
+              "",
+              "北區",
+              "東區",
+              "香山區"
+            ],
+            "minLength": 0
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "mediaId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "景點用已上傳媒體識別；寫入時空字串也視為未選擇"
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "isMuseum": {
+            "type": "boolean"
+          },
+          "publishAt": {
+            "type": "string",
+            "description": "ISO 8601，包含秒與時區；寫入留空表示現在"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ]
+          },
+          "googlePlaceId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "legacyId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "imageAlt": {
+            "type": "string"
+          },
+          "imageSource": {
+            "type": "string"
+          },
+          "imageLicense": {
+            "type": "string"
+          },
+          "legacyImage": {
+            "type": "string"
+          },
+          "recommendationLabel": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "openingHours": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpeningHours"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 表示尚未轉為週表的舊內容，hours 保留原文"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 80,
+            "description": "功能規格 G6；E-24：選填電話，可含國碼、空格、括號、連字號及分機。省略或留空保存空字串，不限定台灣市話。"
+          },
+          "phoneUrl": {
+            "type": "string",
+            "pattern": "^(?:|tel:\\+?[0-9]+(?:;ext=[0-9]+)?)$",
+            "maxLength": 100,
+            "description": "E-24：由已驗證電話產生的撥號連結；空電話為空字串，非可寫欄位。"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "typeLabel",
+          "summary",
+          "description",
+          "hours",
+          "address",
+          "transport",
+          "websiteUrl",
+          "mapUrl",
+          "seoTitle",
+          "seoDescription",
+          "category",
+          "district",
+          "latitude",
+          "longitude",
+          "mediaId",
+          "featured",
+          "isMuseum",
+          "publishAt",
+          "status",
+          "googlePlaceId",
+          "id",
+          "version",
+          "updatedAt",
+          "deletedAt",
+          "legacyId",
+          "url",
+          "image",
+          "imageAlt",
+          "imageSource",
+          "imageLicense",
+          "legacyImage",
+          "recommendationLabel",
+          "openingHours",
+          "phone",
+          "phoneUrl"
+        ]
+      },
+      "PublicAttraction": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "slug": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+            "maxLength": 120
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 500
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 20000
+          },
+          "hours": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 255
+          },
+          "transport": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": "string"
+          },
+          "mapUrl": {
+            "type": "string"
+          },
+          "seoTitle": {
+            "type": "string"
+          },
+          "seoDescription": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "景點",
+              "美食",
+              "在地店家"
+            ]
+          },
+          "district": {
+            "type": "string",
+            "enum": [
+              "",
+              "北區",
+              "東區",
+              "香山區"
+            ],
+            "minLength": 0
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "mediaId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "景點用已上傳媒體識別；寫入時空字串也視為未選擇"
+          },
+          "featured": {
+            "type": "boolean"
+          },
+          "isMuseum": {
+            "type": "boolean"
+          },
+          "publishAt": {
+            "type": "string",
+            "description": "ISO 8601，包含秒與時區；寫入留空表示現在"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "legacyId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "imageAlt": {
+            "type": "string"
+          },
+          "imageSource": {
+            "type": "string"
+          },
+          "imageLicense": {
+            "type": "string"
+          },
+          "recommendationLabel": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "openingHours": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpeningHours"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 表示尚未轉為週表的舊內容，hours 保留原文"
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 80,
+            "description": "功能規格 G6；E-24：選填電話，可含國碼、空格、括號、連字號及分機。省略或留空保存空字串，不限定台灣市話。"
+          },
+          "phoneUrl": {
+            "type": "string",
+            "pattern": "^(?:|tel:\\+?[0-9]+(?:;ext=[0-9]+)?)$",
+            "maxLength": 100,
+            "description": "E-24：由已驗證電話產生的撥號連結；空電話為空字串，非可寫欄位。"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "typeLabel",
+          "summary",
+          "description",
+          "hours",
+          "address",
+          "transport",
+          "websiteUrl",
+          "mapUrl",
+          "seoTitle",
+          "seoDescription",
+          "category",
+          "district",
+          "latitude",
+          "longitude",
+          "mediaId",
+          "featured",
+          "isMuseum",
+          "publishAt",
+          "id",
+          "version",
+          "updatedAt",
+          "legacyId",
+          "url",
+          "image",
+          "imageAlt",
+          "imageSource",
+          "imageLicense",
+          "recommendationLabel",
+          "openingHours",
+          "phone",
+          "phoneUrl"
+        ]
+      },
+      "PublicationResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "succeeded",
+              "failed"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "message"
+        ]
+      },
+      "AttractionWriteResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attraction": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Attraction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "publication": {
+            "$ref": "#/components/schemas/PublicationResult"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "attraction",
+          "publication",
+          "requestId"
+        ]
+      },
+      "AttractionRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attraction": {
+            "$ref": "#/components/schemas/Attraction"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "attraction",
+          "requestId"
+        ]
+      },
+      "AttractionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Attraction"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "requestId"
+        ]
+      },
+      "PublicAttractionRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "attraction": {
+            "$ref": "#/components/schemas/PublicAttraction"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "attraction",
+          "requestId"
+        ]
+      },
+      "PublicAttractionList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicAttraction"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "counts": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "all": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "景點": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "美食": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "在地店家": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "all",
+              "景點",
+              "美食",
+              "在地店家"
+            ]
+          },
+          "generation": {
+            "type": "string"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "counts",
+          "generation",
+          "requestId"
+        ]
+      },
+      "AttractionDelete": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "version"
+        ]
+      },
+      "MediaAsset": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string"
+          },
+          "mimeType": {
+            "type": "string",
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ]
+          },
+          "width": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "height": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "byteSize": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "alt": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string"
+          },
+          "license": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "url",
+          "mimeType",
+          "width",
+          "height",
+          "byteSize",
+          "alt",
+          "source",
+          "license"
+        ]
+      },
+      "MediaRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "media": {
+            "$ref": "#/components/schemas/MediaAsset"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "media",
+          "requestId"
+        ]
+      },
+      "MediaList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MediaAsset"
+            }
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "items",
+          "page",
+          "pageSize",
+          "requestId"
+        ]
+      },
+      "MediaUpload": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "image": {
+            "type": "string",
+            "format": "binary"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "create",
+              "edit"
+            ]
+          },
+          "alt": {
+            "type": "string"
+          },
+          "source": {
+            "type": "string",
+            "minLength": 0,
+            "description": "U-12：選填，省略或空白保存空字串。"
+          },
+          "license": {
+            "type": "string",
+            "minLength": 0,
+            "description": "U-12：選填，省略或空白保存空字串。"
+          }
+        },
+        "required": [
+          "image",
+          "action",
+          "alt"
+        ]
+      },
+      "MapResolve": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "mapUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2000
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "create",
+              "edit"
+            ]
+          }
+        },
+        "required": [
+          "mapUrl",
+          "action"
+        ]
+      },
+      "MapCandidate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "googlePlaceId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "hours": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": "string"
+          },
+          "mapUrl": {
+            "type": "string"
+          },
+          "openingHours": {
+            "$ref": "#/components/schemas/OpeningHours"
+          },
+          "district": {
+            "type": "string",
+            "enum": [
+              "",
+              "北區",
+              "東區",
+              "香山區"
+            ],
+            "description": "確認新竹市及其行政區才帶值，無法確認為空，可稍後補填。"
+          },
+          "editorialSummary": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "Google原文僅供本頁參考；不改寫、不帶入網站summary／description、不接受保存。未提供或不可用時為空。"
+          },
+          "attributions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "provider",
+                "providerUri"
+              ],
+              "properties": {
+                "provider": {
+                  "type": "string"
+                },
+                "providerUri": {
+                  "type": "string",
+                  "description": "安全HTTP／HTTPS外連；缺少或無效為空"
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "googlePlaceId",
+          "name",
+          "address",
+          "latitude",
+          "longitude",
+          "hours",
+          "websiteUrl",
+          "mapUrl",
+          "openingHours",
+          "district",
+          "editorialSummary",
+          "attributions"
+        ]
+      },
+      "MapCandidates": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "candidates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MapCandidate"
+            }
+          },
+          "attribution": {
+            "type": "string"
+          },
+          "notice": {
+            "type": "string"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "candidates",
+          "attribution",
+          "notice",
+          "requestId"
+        ]
+      },
+      "PublicationRetry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "publication": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "succeeded",
+                  "failed"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "publication",
+          "message",
+          "requestId"
+        ]
+      },
+      "OpeningPeriod": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "opens",
+          "closes",
+          "nextDay"
+        ],
+        "properties": {
+          "opens": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "closes": {
+            "type": "string",
+            "pattern": "^(?:[01][0-9]|2[0-3]):[0-5][0-9]$"
+          },
+          "nextDay": {
+            "type": "boolean",
+            "description": "結束時間在次日；時段須大於零且最多24小時"
+          }
+        }
+      },
+      "OpeningDay": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "day",
+          "status",
+          "periods"
+        ],
+        "properties": {
+          "day": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 6,
+            "description": "0週日、1週一，依此類推；不能依陣列位置猜測"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "unknown",
+              "closed",
+              "all_day",
+              "periods"
+            ]
+          },
+          "periods": {
+            "type": "array",
+            "maxItems": 4,
+            "items": {
+              "$ref": "#/components/schemas/OpeningPeriod"
+            },
+            "description": "僅 periods 狀態須有1至4段，其餘為空"
+          }
+        }
+      },
+      "OpeningHours": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "timezone",
+          "note",
+          "days"
+        ],
+        "description": "U-09／E-20：常態每週營業時間。全週時段不可重疊，跨日歸開始日；不含即時營業或特殊日期推論。",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "const": "Asia/Taipei"
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "days": {
+            "type": "array",
+            "minItems": 7,
+            "maxItems": 7,
+            "items": {
+              "$ref": "#/components/schemas/OpeningDay"
+            },
+            "description": "星期0至6各一筆"
+          }
+        }
+      },
       "RequestId": {
         "type": "string",
         "minLength": 32,
         "maxLength": 32,
         "pattern": "^[a-f0-9]{32}$",
         "description": "E-02：伺服器產生的16-byte隨機識別，以32字元小寫hex表示；與X-Request-Id一致。"
+      },
+      "AttractionSample": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "景點",
+              "美食",
+              "在地店家"
+            ]
+          },
+          "district": {
+            "type": "string",
+            "enum": [
+              "",
+              "北區",
+              "東區",
+              "香山區"
+            ],
+            "minLength": 0
+          },
+          "typeLabel": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 500
+          },
+          "description": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 20000
+          },
+          "hours": {
+            "type": "string"
+          },
+          "openingHours": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/OpeningHours"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null 表示尚未轉為週表的舊內容，hours 保留原文"
+          },
+          "address": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 255
+          },
+          "phone": {
+            "type": "string",
+            "minLength": 0,
+            "maxLength": 80,
+            "description": "功能規格 G6；E-24：選填電話，可含國碼、空格、括號、連字號及分機。省略或留空保存空字串，不限定台灣市話。"
+          },
+          "latitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": -180,
+            "maximum": 180
+          },
+          "transport": {
+            "type": "string"
+          },
+          "websiteUrl": {
+            "type": "string"
+          },
+          "mapUrl": {
+            "type": "string"
+          },
+          "recommendationLabel": {
+            "type": "string",
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "district",
+          "typeLabel",
+          "summary",
+          "description",
+          "hours",
+          "openingHours",
+          "address",
+          "phone",
+          "latitude",
+          "longitude",
+          "transport",
+          "websiteUrl",
+          "mapUrl",
+          "recommendationLabel"
+        ]
+      },
+      "AttractionSamples": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 6,
+            "items": {
+              "$ref": "#/components/schemas/AttractionSample"
+            }
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "items",
+          "requestId"
+        ]
       }
     },
     "securitySchemes": {

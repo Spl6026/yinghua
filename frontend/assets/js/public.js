@@ -39,6 +39,7 @@ if (placeSearch) placeSearch.value = initialQuery;
 if (queryInput) queryInput.value = initialQuery;
 
 function renderPlaces() {
+  if (document.body.dataset.managedAttractions) return;
   if (isSearch) return;
   const query = (placeSearch?.value ?? initialQuery).trim().toLowerCase();
   const area = areaFilter?.value || 'all';

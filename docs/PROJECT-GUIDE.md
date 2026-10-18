@@ -1,10 +1,37 @@
 # 全站架構與檔案功能導讀
 
-更新日期：2026-10-17。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
+2026-10-19 業主要求校正：補回 Excel E20 的既有範例景點試填與 G6 電話流程。最新逐條來源、實作／驗證及正式交付差項見 [階段二、三業主要求對照](PHASE-2-3-OWNER-ALIGNMENT.md)。本輪 14 組整合共460項、PHP44項／213斷言、Node73項及獨立契約零差異；原先完整檢查沒有覆蓋這兩個漏項，不能當成全面符合 Excel 的證明。現在45個API操作、十份migration、21表181欄。
 
-**目前完成階段二：會員認證、管理員帳號與權限、固定管理員唯讀模擬。** 公開內容使用交付時的展示快照；其餘業務後台有登入／權限檢查及待開放提示，尚未完成內容管理。頁面存在不代表該模組已串接資料庫。完整時程見 [實作計畫](IMPLEMENTATION-PLAN.md)，實際驗證見 [階段二驗收](PHASE-2-ACCEPTANCE.md)。
+2026-10-19 再次完整檢查：7 項問題已校正；445 項整合／故障復原檢查、PHP 41 項及 Node 68 項通過。獨立 OpenAPI 驗證未再發現格式差異。新增 008 固定身分逐位元組保護，當次九份 migration。範圍、重現命令與限制見 [再次檢查報告](FULL-RECHECK-20261019.md)。
+
+2026-10-18 U-15 更新：確認密碼已更正為必填且一致（註冊／重設／更改／CLI）；使用 Input.confirmedPassword 與共用前端比對，沒有新增資料表、migration 或 API。先前選填的驗證紀錄不代表現行政策。
+
+2026-10-18 規格校正已交付：回溯發現的 R-01–R-07 已處理；安全政策經 U-13 明確同意，掃描範圍依 U-14 定案。355 項隔離整合驗證、主庫保留資料升級及目前行為見 [Excel 基準校正](SPECIFICATION-ALIGNMENT.md)，逐表對照見 [資料庫對照](DATABASE-SPECIFICATION-MAP.md)。以下較早日期的測試保留當時結果，不當作現行政策。
+
+**2026-10-18 修正補充：** 已修正圖片說明保存、原型順序／文案標籤、營業時間欄及座標約束，並補齊景點表單失敗／競態測試。修正結果及驗收界線見 [PHASE-3-REVIEW-PLAN.md](PHASE-3-REVIEW-PLAN.md)。
+
+更新日期：2026-10-19。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
+
+2026-10-18先前完整複查（當次紀錄）：[階段二、三完整複查報告](FULL-REVIEW-20261018.md)。PHP37項／182斷言、前端64項及396項整合檢查通過；64頁路由／資產／imports與桌面／手機Google原文流程已核對。該次複查未新增業務功能、API、表或migration；本輪基準校正則新增005–007，詳見上方校正交付。環境復原及仍未實作的內容補位見該次報告。
+
+規格基準（U-12，2026-10-18）：原始 Excel 為功能與限制的依據；欄位清單不等於必填清單，文件未定義處不自行加上業務限制。「建議／草案」維持原本性質，使用者指定與必要技術設定分別標 U／E。詳細規則見 [開發流程](DEVELOPMENT-WORKFLOW.md#規格基準u-122026-10-18)。該次基準設定僅記錄作業準則；其後本輪已同步校正前後端、API 契約與資料庫，實際範圍見上方交付連結。
+
+內容補位進度：[景點摘要與介紹自動補位計畫](ATTRACTION-CONTENT-FALLBACK-PLAN.md)（U-11／E-22）。兩欄已完成選填，可留空新增／編輯／發布，空值以空字串保存；自動補位（自家介紹摘錄、預覽及 Google 即時原文備援）依使用者2026-10-18指示延後，保留計畫待後續安排；Google 仍僅供後台參考。
+
+**目前完成階段二、三：認證／權限／唯讀模擬，以及景點／店家、圖片、地圖候選匯入與公開 HTML 發布。** 景點、博物館與首頁景點精選讀真實資料；其他未實作業務仍為展示快照或待開放。頁面存在不代表該模組已串接資料庫。完整階段規劃見 [實作計畫](IMPLEMENTATION-PLAN.md)，實際驗證見 [階段二驗收](PHASE-2-ACCEPTANCE.md) 與 [階段三驗收](PHASE-3-ACCEPTANCE.md)。
 
 來源標記沿用 [設計來源表](DESIGN-TRACEABILITY.md)：S 是規格要求，D 是規格中的建議草案，U 是使用者指定，E 是工程補充。本案 PHP＋MariaDB＋Docker、原生 JS／可用 jQuery 來自 U-01；API-only、易讀分層及參考 Spring Boot 來自 U-02。以下目錄、類別、工具與容器拆法屬工程實作，不冒稱 Excel 指定。
+
+2026-10-17 依 U-08 重排後續計畫；本文件以下的檔案、API、資料表及操作描述仍是實際已存在內容，沒有把規劃寫成實作。
+
+| 範圍 | 階段與界線 | 實際狀態 |
+| --- | --- | --- |
+| 共用準備 | 1 | 已完成 |
+| P0 | 2–8；8 為整合驗收 | 2 已完成本機驗收，3 已完成本機驗收，4–8 未開始，P0 尚未完成 |
+| P1 | 9–12；12 為整合驗收 | 未開始；完整內容管理、前後篇、路線、完整旅程、JSON-LD／索引 |
+| P2 | 13–15；15 為全站交付 | 未開始；搜尋、會員查詢、一般設定／營運與最終交付 |
+
+P0 收藏／加入行程的必要保存排階段 6，完整多份旅程編排排階段 11。SEO 設定與 HTML head 排 P0 階段 7，JSON-LD／動態 sitemap 排 P1 階段 12。完整相依與原型頁對應見實作計畫及 [需求對照](REQUIREMENTS-MAP.md)，不是本次新增功能。
 
 ## 目錄
 
@@ -34,11 +61,15 @@ flowchart LR
     C --> S[Service：業務與交易]
     S --> R[Repository：SQL 與映射]
     R --> DB[(Docker db：MariaDB)]
+    S --> PUB[ContentPublication / NodeContentRenderer]
+    PUB --> GEN[frontend publish.mjs]
+    GEN --> SNAP[publication volume: current]
+    WEB -->|受版本檢查的 HTML| SNAP
     S --> MAIL[Mailer Adapter]
     MAIL --> MP[Docker mailpit：本機收信]
 ```
 
-這是多頁網站，每頁保留獨立 `.html` 網址。瀏覽器執行原生 JavaScript ES modules，以 `fetch` 呼叫同來源 API；目前沒有引入 jQuery。PHP 網站 HTTP 責任只提供 JSON API，沒有 PHP HTML View。Node 是建置與測試工具，不是另一個常駐網站後端。
+這是多頁網站，每頁保留獨立 `.html` 網址。瀏覽器執行原生 JavaScript ES modules，以 `fetch` 呼叫同來源 API；目前沒有引入 jQuery。PHP 網站 HTTP 責任只提供 JSON API，沒有 PHP HTML View。Node 是建置、HTML 產生與測試工具；publisher 是 PHP CLI 輪詢程序，按需呼叫 Node，不另開 Node HTTP 服務。
 
 PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求後以 FastCGI 交給它。它不是資料庫，也不是要直接在瀏覽器開啟的 HTTP 網站。業務邏輯仍在 `backend/src/`。
 
@@ -61,7 +92,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [README.md](../README.md) | 快速了解目前範圍、啟動方式與常用驗證命令。 |
-| [compose.yaml](../compose.yaml) | 定義七個服務、網路內的服務名稱、對外 port、掛載、profiles、健康檢查與 volumes；詳見環境章節。 |
+| [compose.yaml](../compose.yaml) | 定義八個服務、網路內的服務名稱、對外 port、掛載、profiles、健康檢查與 volumes；詳見環境章節。 |
 | [.env.example](../.env.example) | 可提交的環境變數範本，秘密欄位留空；實際值放在被忽略的 .env。 |
 | [.gitignore](../.gitignore) | 排除 .env、vendor、dist、.build、artifacts 等秘密或產物，保留 .env.example。 |
 | [.dockerignore](../.dockerignore) | 限制 Docker build context，排除 Git、秘密、原始 Excel、skills、依賴與驗證產物等。 |
@@ -81,14 +112,14 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [public/index.php](../backend/public/index.php) | 唯一網站 PHP 入口：載入 Composer、擷取 Request、組裝 Kernel、處理並輸出 Response；入口本身的失敗也轉成安全 JSON。 |
-| [config/routes.php](../backend/config/routes.php) | 登記 29 個 API 的 HTTP 方法、路徑、會員／管理員身分、module/action、首登與模擬例外旗標。 |
+| [config/routes.php](../backend/config/routes.php) | 登記 45 個 API 的 HTTP 方法、路徑、會員／管理員身分、module/action 與模擬例外旗標（舊首登旗標已停用）。 |
 | [src/Composition.php](../backend/src/Composition.php) | 依賴組裝位置：建立共用連線、Repositories、Adapters、Services、Controllers，再接路由與 Kernel。 |
 | [src/Config.php](../backend/src/Config.php) | 讀取容器環境變數，校驗數值、APP_KEY、APP_URL 與正式環境 HTTPS／Secure cookie 條件；不解析 .env 檔。 |
 | [composer.json](../backend/composer.json) | 應用程式的 PHP／extension／PHPMailer 依賴及 Yinghua 命名空間的 PSR-4 載入設定。 |
 | [composer.lock](../backend/composer.lock) | 應用依賴的確切版本；安裝時依鎖定版本還原。 |
-| [resources/openapi.json](../backend/resources/openapi.json) | 29 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
+| [resources/openapi.json](../backend/resources/openapi.json) | 45 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
 | [resources/role-templates.json](../backend/resources/role-templates.json) | 原始 Excel 四種角色、十個模組、四個動作的起始權限；供 seed 使用，不是每次請求直接查閱的個人權限。 |
-| [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |
+| [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover、content:seed-demo／backfill-demo-labels／publish／tick／watch。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |
 | [phpstan.neon](../backend/phpstan.neon) | PHPStan level 10 與 PHPat 架構規則的分析範圍、autoload 及快取設定。 |
 | [phpunit.xml](../backend/phpunit.xml) | 單元測試的 bootstrap、tests/Unit 套件與快取位置。 |
 | [.php-cs-fixer.dist.php](../backend/.php-cs-fixer.dist.php) | PER-CS 格式與未使用 import 檢查的範圍。 |
@@ -98,11 +129,11 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
-| [Request.php](../backend/src/Http/Request.php) | 從 PHP 請求資料建立不可變請求物件；校驗網址、JSON、query 與必要輸入，產生 requestId。 |
+| [Request.php](../backend/src/Http/Request.php) | 從 PHP 請求資料建立不可變請求物件；校驗網址、JSON／multipart、query 與必要輸入，產生 requestId。 |
 | [Response.php](../backend/src/Http/Response.php) | 保存 status、payload、cookies、headers 及送出後 callback；輸出 JSON／requestId，204 不輸出 body。 |
-| [Route.php](../backend/src/Http/Route.php) | 一條路由的資料與路徑比對，包括 {id}、身分、授權及首登／模擬控制旗標。 |
+| [Route.php](../backend/src/Http/Route.php) | 一條路由的資料與路徑比對，包括 {id}、身分、授權及模擬控制旗標；舊 allowPasswordChange 暫留相容，Kernel 已不使用。 |
 | [Router.php](../backend/src/Http/Router.php) | 依路徑與方法找 Route；支援 GET 的 HEAD，區分 404 與 405／Allow。 |
-| [Kernel.php](../backend/src/Http/Kernel.php) | 整合路由、身分、CSRF、首登限制、唯讀模擬與授權，再呼叫 Controller；統一應用例外與非預期錯誤。 |
+| [Kernel.php](../backend/src/Http/Kernel.php) | 整合路由、身分、CSRF、唯讀模擬與授權，再呼叫 Controller；統一應用例外與非預期錯誤。 |
 | [ApiContext.php](../backend/src/Http/ApiContext.php) | 本次請求交給 Controller 的上下文：Request、ClientContext、身分、路由參數；區分 actor 與 owner。 |
 | [Csrf.php](../backend/src/Http/Csrf.php) | 會員／後台分開的簽章匿名 Cookie、CSRF token、Origin 檢查與登入 Cookie 建立／清除。 |
 | [CsrfContext.php](../backend/src/Http/CsrfContext.php) | 攜帶匿名識別、簽章 Cookie 值與是否需重發 Cookie，供同一請求共用。 |
@@ -207,8 +238,22 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | --- | --- |
 | [database/migrations/001_identity.sql](../backend/database/migrations/001_identity.sql) | 建立階段二 13 張業務表、索引、外鍵、CHECK 與保護 trigger；確切表用途見資料庫章節。 |
 | [database/migrations/002_admin_preview.sql](../backend/database/migrations/002_admin_preview.sql) | 加入 sessions.preview_admin_id、外鍵與身分約束，保留 admin_id 作真正登入者。 |
+| [database/migrations/005_admin_account_specification.sql](../backend/database/migrations/005_admin_account_specification.sql) | 一般帳號改為 Unicode、保留唯一性並修正僅 root 不可改名的 trigger。 |
+| [database/migrations/006_attraction_specification.sql](../backend/database/migrations/006_attraction_specification.sql) | 地址／行政區選填，新增 created_by／updated_by FK 與行政區 CHECK。 |
+| [database/migrations/007_approved_authentication_policy.sql](../backend/database/migrations/007_approved_authentication_policy.sql) | 依 U-13 清零舊首登旗標並將預設設為 0；欄位暫留工具相容，應用程式不再讀取。 |
+| [database/migrations/009_attraction_phone.sql](../backend/database/migrations/009_attraction_phone.sql) | S G6／E-24：新增選填電話，既有內容預設空字串。 |
+| [src/DTO/PhoneNumber.php](../backend/src/DTO/PhoneNumber.php) | 共用電話格式與安全撥號連結，不猜國碼。 |
+| [tests/Unit/PhoneNumberTest.php](../backend/tests/Unit/PhoneNumberTest.php) | 常見格式、分機、非法內容、選填與型別。 |
+| [tests/owner_requirements.py](../backend/tests/owner_requirements.py) | E20／G6 的25項真實HTTP／DB／靜態HTML驗證，包含新增權限邊界與館舍同步。 |
+| [database/migrations/008_root_identity_bytes.sql](../backend/database/migrations/008_root_identity_bytes.sql) | E-23：固定身分以 BINARY 比較，避免大小寫／尾端空白改寫。 |
+| [tests/Unit/RequestBoundaryTest.php](../backend/tests/Unit/RequestBoundaryTest.php) | JSON 數字鍵不可被靜默忽略，巢狀列表仍可使用。 |
+| [tests/root_identity_constraints.php](../backend/tests/root_identity_constraints.php) | 真實隔離 MariaDB 的 16 項固定身分探測，全部回滾。 |
+| [tests/review_regressions.py](../backend/tests/review_regressions.py) | 10 項跨層回歸：JSON 白名單、Unicode 帳號及 root 探測彙總。 |
+| [tests/openapi_contracts.py](../backend/tests/openapi_contracts.py) | 以獨立 JSON Schema 工具驗證 14 套隔離整合測試的實際請求與回應，輸出不含 payload。 |
+| [tests/requirements.txt](../backend/tests/requirements.txt) | 鎖定測試用 jsonschema；非網站執行依賴。 |
+| [tests/specification_alignment.py](../backend/tests/specification_alignment.py) | 50項真實 HTTP／MariaDB／契約驗證，涵蓋選填發布、改名、8字密碼、必填且一致的確認、自我操作、root及外鍵／索引保護。 |
 | [tests/ArchitectureTest.php](../backend/tests/ArchitectureTest.php) | PHPat 五條分層相依規則，由 PHPStan 執行，不是 PHPUnit 測試入口。 |
-| [tests/Unit/PermissionPolicyTest.php](../backend/tests/Unit/PermissionPolicyTest.php) | 純規則測試：缺權限、root、自我保護、防越級與 mass assignment。 |
+| [tests/Unit/PermissionPolicyTest.php](../backend/tests/Unit/PermissionPolicyTest.php) | 純規則測試：缺權限、固定 root、防越級與 mass assignment；一般管理員可自我操作。 |
 | [tests/Unit/ResponseBoundaryTest.php](../backend/tests/Unit/ResponseBoundaryTest.php) | 安全輸出測試：摘要不持有內部資料、會員不輸出管理權、模擬操作者與驗證碼可選欄位。 |
 | [tests/integration-fixture.php](../backend/tests/integration-fixture.php) | CLI 測試 fixture；僅 APP_ENV=test 且 DB=yinghua_test 可初始化測試 root／執行測試 SQL。沒有 HTTP 測試後門。 |
 | [tests/api_integration.py](../backend/tests/api_integration.py) | 真實 HTTP／MariaDB／Mailpit 的認證、密碼、CRUD、矩陣、並行、越權與回滾測試。 |
@@ -235,6 +280,9 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [templates/dialog.html](../frontend/templates/dialog.html) | 共用確認對話框的 HTML 結構。 |
 | [assets/css/style.css](../frontend/assets/css/style.css) | 原始 website 主樣式的保留副本；字型、色彩、排版、斷點與大部分元件。 |
 | [assets/css/seo.css](../frontend/assets/css/seo.css) | 沿用原始交付的詳情／文章等補充樣式；檔名不是 SEO 後端功能。 |
+| [assets/js/core/attraction-sample.js](../frontend/assets/js/core/attraction-sample.js) | 範例基本欄位與週表套用白名單，保留身分／圖片／發布設定。 |
+| [assets/js/components/attraction-samples.js](../frontend/assets/js/components/attraction-samples.js) | DB範例載入／重試、確認、可寫狀態與唯讀；不自動保存。 |
+| [tests/attraction-samples.test.mjs](../frontend/tests/attraction-samples.test.mjs) | 取消、重試、空結果、唯讀及確認競態。 |
 | [assets/css/phase2.css](../frontend/assets/css/phase2.css) | 真實 API 表單、錯誤／成功、等待、對話框、模擬提示與必要新增狀態的補充樣式。 |
 | [assets/favicon.svg](../frontend/assets/favicon.svg) | 沿用網站識別的圖示。 |
 
@@ -245,12 +293,12 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [public.js](../frontend/assets/js/public.js) | 公開頁入口：唯讀快照列表、分類／地區／搜尋、展示卡片、動畫、詳情與會員導覽；planner 要登入，收藏／行程保存尚未開放。 |
-| [auth.js](../frontend/assets/js/auth.js) | 會員／管理員認證頁共用入口：依 data-auth-kind／mode 綁定登入、註冊、挑戰、忘記／重設／更改密碼與首登登出。 |
-| [admin.js](../frontend/assets/js/admin.js) | 後台共用入口：me、首登／權限 guard、側欄與身分、登出／模擬，依 data-page 初始化 CRUD 或矩陣頁。 |
+| [auth.js](../frontend/assets/js/auth.js) | 會員／管理員認證頁共用入口：依 data-auth-kind／mode 綁定登入、註冊、挑戰、忘記／重設／更改密碼與登出切換帳號。 |
+| [admin.js](../frontend/assets/js/admin.js) | 後台共用入口：me、權限 guard、側欄與身分、登出／模擬，依 data-page 初始化 CRUD 或矩陣頁。 |
 | [api/auth-api.js](../frontend/assets/js/api/auth-api.js) | 會員／後台 auth 路徑封裝，讓頁面以 login／me／forgot／change 等方法呼叫。 |
 | [api/admin-api.js](../frontend/assets/js/api/admin-api.js) | 管理員列表／CRUD、角色／catalog／矩陣 API 封裝。 |
 | [core/api-client.js](../frontend/assets/js/core/api-client.js) | 共用 fetch、15 秒逾時、同來源 Cookie、CSRF 記憶體快取與一次刷新重試、ApiError／Retry-After。 |
-| [core/session.js](../frontend/assets/js/core/session.js) | me 驗證、已登入頁導向、首登限制、module/action 判斷、會員導覽、登入逾時及安全 returnTo。 |
+| [core/session.js](../frontend/assets/js/core/session.js) | me 驗證、已登入頁導向、module/action 判斷、會員導覽、登入逾時及安全 returnTo。 |
 | [core/ui.js](../frontend/assets/js/core/ui.js) | 共用 DOM 建立、文字／狀態、欄位錯誤與焦點、提交鎖與限速等待、未保存提示、選單操作。 |
 | [core/password-policy.js](../frontend/assets/js/core/password-policy.js) | 前端共用密碼長度檢查；伺服器仍獨立驗證，不能只信前端。 |
 | [components/dialog.js](../frontend/assets/js/components/dialog.js) | 共用非同步確認對話框：確認／取消、鍵盤與焦點返回。 |
@@ -259,7 +307,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [pages/admin-list.js](../frontend/assets/js/pages/admin-list.js) | 真實管理員清單：搜尋／狀態／分頁與網址、root 保護、版本刪除確認與錯誤。 |
 | [pages/admin-form.js](../frontend/assets/js/pages/admin-form.js) | 新增／編輯共用：載入版本、角色模板、草稿確認、保存、衝突／欄位錯誤、重載清除舊錯誤與唯讀狀態。 |
 | [pages/permissions.js](../frontend/assets/js/pages/permissions.js) | 對象選擇、40 格矩陣、範本套用、版本保存、換人／重載確認、拒絕越級與唯讀 UI。 |
-| [pages/public-details.js](../frontend/assets/js/pages/public-details.js) | 公開快照的景點／電影／消息／優惠詳情、站內連結與前後篇；尚未接正式內容 API。 |
+| [pages/public-details.js](../frontend/assets/js/pages/public-details.js) | 未完成模組的電影／消息／優惠原型詳情與前後篇；managed 景點頁由發布器提供，避免原型覆蓋。 |
 | [data/prototype.js](../frontend/assets/js/data/prototype.js) | 原始交付的 6 地點、4 電影、5 消息／活動、3 優惠、2 路線及 3 站行程快照與固定詳情網址。不是 MariaDB 匯出。 |
 
 ### 前端測試：`frontend/tests/`
@@ -267,7 +315,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [admin-state.test.mjs](../frontend/tests/admin-state.test.mjs) | 以受控 DOM／API 回應驗證管理員與矩陣的重載、保存、草稿、舊回應、欄位錯誤與唯讀狀態。 |
-| [auth-navigation.test.mjs](../frontend/tests/auth-navigation.test.mjs) | 認證頁登入狀態、返回導向、首登／登出、提交互斥、載入失敗與遲到回應。 |
+| [auth-navigation.test.mjs](../frontend/tests/auth-navigation.test.mjs) | 認證頁登入狀態、返回導向、登出、提交互斥、載入失敗與遲到回應。 |
 | [menu-state.test.mjs](../frontend/tests/menu-state.test.mjs) | 共用選單的鍵盤操作、展開狀態及避免重複綁定。 |
 | [password-policy.test.mjs](../frontend/tests/password-policy.test.mjs) | 共用 Unicode 密碼長度與允許字元的邊界。 |
 | [return-to.test.mjs](../frontend/tests/return-to.test.mjs) | 站內路由白名單、會員／後台命名空間及不安全重新導向拒絕。 |
@@ -282,7 +330,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 | HTML 來源 | 用途 | 入口 | 目前狀態 |
 | --- | --- | --- | --- |
-| [admin/change-password.html](../frontend/pages/admin/change-password.html) | 管理員本人／首登改密碼、登出切換帳號 | `auth.js` | API 已串接 |
+| [admin/change-password.html](../frontend/pages/admin/change-password.html) | 管理員本人改密碼、登出切換帳號 | `auth.js` | API 已串接 |
 | [admin/forgot-password.html](../frontend/pages/admin/forgot-password.html) | 一般管理員申請重設；固定 root 走 CLI 復原 | `auth.js` | API 已串接 |
 | [admin/login.html](../frontend/pages/admin/login.html) | 管理員登入 | `auth.js` | API 已串接 |
 | [admin/reset-password.html](../frontend/pages/admin/reset-password.html) | 一般管理員憑連結重設 | `auth.js` | API 已串接 |
@@ -301,7 +349,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [admin/admins.html](../frontend/pages/admin/admins.html) | 搜尋／分頁／刪除管理員 | `admin.js` | API 已串接 |
 | [admin/permissions.html](../frontend/pages/admin/permissions.html) | 逐人權限矩陣與角色範本 | `admin.js` | API 已串接 |
 
-#### 其餘後台：18 頁
+#### 景點與其餘後台：18 頁（3 已串接、15 待開放）
 
 | HTML 來源 | 用途 | 入口 | 目前狀態 |
 | --- | --- | --- | --- |
@@ -316,9 +364,9 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [admin/offer-add.html](../frontend/pages/admin/offer-add.html) | 新增店家優惠；guard 要求 `offers.create` | `admin.js` | 待開放 |
 | [admin/offer-edit.html](../frontend/pages/admin/offer-edit.html) | 編輯店家優惠；guard 要求 `offers.edit` | `admin.js` | 待開放 |
 | [admin/offers.html](../frontend/pages/admin/offers.html) | 店家優惠；guard 要求 `offers.view` | `admin.js` | 待開放 |
-| [admin/place-add.html](../frontend/pages/admin/place-add.html) | 新增景點；guard 要求 `attractions.create` | `admin.js` | 待開放 |
-| [admin/place-edit.html](../frontend/pages/admin/place-edit.html) | 編輯景點；guard 要求 `attractions.edit` | `admin.js` | 待開放 |
-| [admin/places.html](../frontend/pages/admin/places.html) | 景點與店家；guard 要求 `attractions.view` | `admin.js` | 待開放 |
+| [admin/place-add.html](../frontend/pages/admin/place-add.html) | 新增景點；guard 要求 `attractions.create` | `admin.js` | 階段三 API 已串接 |
+| [admin/place-edit.html](../frontend/pages/admin/place-edit.html) | 編輯景點；guard 要求 `attractions.edit` | `admin.js` | 階段三 API 已串接 |
+| [admin/places.html](../frontend/pages/admin/places.html) | 景點與店家；guard 要求 `attractions.view` | `admin.js` | 階段三 API 已串接 |
 | [admin/route-add.html](../frontend/pages/admin/route-add.html) | 建立推薦行程；guard 要求 `routes.create` | `admin.js` | 待開放 |
 | [admin/route-edit.html](../frontend/pages/admin/route-edit.html) | 編輯推薦行程；guard 要求 `routes.edit` | `admin.js` | 待開放 |
 | [admin/routes.html](../frontend/pages/admin/routes.html) | 推薦行程；guard 要求 `routes.view` | `admin.js` | 待開放 |
@@ -332,15 +380,15 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [cinema.html](../frontend/pages/cinema.html) | 本週映演與示意場次 | `public.js` | 展示快照 |
 | [city-news.html](../frontend/pages/city-news.html) | 城市消息分類列表 | `public.js` | 展示快照 |
 | [events.html](../frontend/pages/events.html) | 消息與活動總覽 | `public.js` | 展示快照 |
-| [explore.html](../frontend/pages/explore.html) | 景點與店家探索、分類／地區／關鍵字篩選 | `public.js` | 展示快照 |
+| [explore.html](../frontend/pages/explore.html) | 景點與店家探索、分類／地區／關鍵字篩選 | `public.js`＋`attractions.js` | 階段三 DB／公開版本 |
 | [film-detail.html](../frontend/pages/film-detail.html) | 依 query id 顯示快照的通用電影詳情 | `public.js` | 展示快照 |
 | [films/island-slow.html](../frontend/pages/films/island-slow.html) | 島嶼的慢鏡頭的固定詳情／文章 | `public.js` | 展示快照 |
 | [films/shape-of-light.html](../frontend/pages/films/shape-of-light.html) | 光的形狀的固定詳情／文章 | `public.js` | 展示快照 |
 | [films/wind-city.html](../frontend/pages/films/wind-city.html) | 風從城裡來的固定詳情／文章 | `public.js` | 展示快照 |
 | [films/window-sunday.html](../frontend/pages/films/window-sunday.html) | 窗邊的星期天的固定詳情／文章 | `public.js` | 展示快照 |
-| [food.html](../frontend/pages/food.html) | 美食與在地店家分類 | `public.js` | 展示快照 |
-| [index.html](../frontend/pages/index.html) | 首頁、推薦內容與映演摘要 | `public.js` | 展示快照 |
-| [museum.html](../frontend/pages/museum.html) | 新竹市影像博物館的固定詳情 | `public.js` | 展示快照 |
+| [food.html](../frontend/pages/food.html) | 美食與在地店家分類 | `public.js`＋`attractions.js` | 階段三 DB／公開版本 |
+| [index.html](../frontend/pages/index.html) | 首頁、推薦內容與映演摘要 | `public.js` | 景點精選已串接；其他快照 |
+| [museum.html](../frontend/pages/museum.html) | 新竹市影像博物館的發布詳情 | `public.js`＋`attractions.js` | 階段三 DB／公開版本 |
 | [news-detail.html](../frontend/pages/news-detail.html) | 依 query id 顯示快照的通用消息詳情 | `public.js` | 展示快照 |
 | [news/coffee-walk.html](../frontend/pages/news/coffee-walk.html) | 秋日咖啡散步地圖上線的固定詳情／文章 | `public.js` | 展示快照 |
 | [news/old-town-notice.html](../frontend/pages/news/old-town-notice.html) | 舊城街區步行環境改善公告的固定詳情／文章 | `public.js` | 展示快照 |
@@ -352,12 +400,12 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [offers/autumn-coffee.html](../frontend/pages/offers/autumn-coffee.html) | 秋日咖啡散步地圖限定的固定詳情／文章 | `public.js` | 展示快照 |
 | [offers/or-crafts.html](../frontend/pages/offers/or-crafts.html) | 或者工藝櫥窗的固定詳情／文章 | `public.js` | 展示快照 |
 | [offers/shanfang.html](../frontend/pages/offers/shanfang.html) | 山房選物所的固定詳情／文章 | `public.js` | 展示快照 |
-| [place-detail.html](../frontend/pages/place-detail.html) | 依 query id 顯示快照的通用景點詳情 | `public.js` | 展示快照 |
-| [places/dongmen-market.html](../frontend/pages/places/dongmen-market.html) | 東門市場的固定詳情／文章 | `public.js` | 展示快照 |
-| [places/hsinchu-park.html](../frontend/pages/places/hsinchu-park.html) | 新竹公園・麗池的固定詳情／文章 | `public.js` | 展示快照 |
-| [places/or-arts.html](../frontend/pages/places/or-arts.html) | 或者工藝櫥窗的固定詳情／文章 | `public.js` | 展示快照 |
-| [places/or-coffee.html](../frontend/pages/places/or-coffee.html) | 或者咖啡的固定詳情／文章 | `public.js` | 展示快照 |
-| [places/shanfang.html](../frontend/pages/places/shanfang.html) | 山房選物所的固定詳情／文章 | `public.js` | 展示快照 |
+| [place-detail.html](../frontend/pages/place-detail.html) | legacy_id 解析至發布網址 | `public.js` | 301／404 對照 |
+| [places/dongmen-market.html](../frontend/pages/places/dongmen-market.html) | 東門市場的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
+| [places/hsinchu-park.html](../frontend/pages/places/hsinchu-park.html) | 新竹公園・麗池的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
+| [places/or-arts.html](../frontend/pages/places/or-arts.html) | 或者工藝櫥窗的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
+| [places/or-coffee.html](../frontend/pages/places/or-coffee.html) | 或者咖啡的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
+| [places/shanfang.html](../frontend/pages/places/shanfang.html) | 山房選物所的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
 | [planner.html](../frontend/pages/planner.html) | 需真實會員登入；只顯示三站行程示意，保存／排序／移除尚未開放 | `public.js` | 登入已串接；行程為示意 |
 | [routes.html](../frontend/pages/routes.html) | 兩條推薦路線示意 | `public.js` | 展示快照 |
 | [search.html](../frontend/pages/search.html) | 在展示快照中搜尋，不是全站搜尋 API | `public.js` | 展示快照 |
@@ -382,14 +430,14 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 MariaDB 沒有映射宿主機 port，Windows 上不能直接把 localhost:3306 當成目前容器的資料庫。資料存在 Docker volume `yinghua_db_data` 的 `/var/lib/mysql`；不是 backend/ 下的 SQL 或 JSON 檔。開發／測試使用同一個 MariaDB 容器中的不同 database，測試程式及 fixture 有指定庫名防護。
 
-資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以兩支 migration 為準。
+資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以十支 migration 為準；004 增加週表，005–007 校正帳號、選填／操作者及核准的認證政策，008 強化固定身分文字的逐位元組保護，009 新增選填 phone，皆不增加業務表。
 
-### 13 張業務表＋1 張 migration 紀錄
+### 20 張業務表＋1 張 migration 紀錄
 
 | 資料表 | 保存內容與主要關聯 | 主要讀寫位置 |
 | --- | --- | --- |
 | `members` | 會員 Email、名稱、password_hash、狀態與登入時間 | AccountRepository |
-| `admin_users` | 管理員 account、Email、角色、狀態、root／首登旗標；version 與 permissions_version 分開 | AccountRepository |
+| `admin_users` | 管理員 account、Email、角色、狀態、root 旗標及停用的舊首登相容欄；version 與 permissions_version 分開 | AccountRepository |
 | `roles` | 四種角色名稱、系統角色標記 | IdentitySeeder、PermissionRepository |
 | `permissions` | 十個模組 × view/create/edit/delete，共 40 個唯一定義 | IdentitySeeder、PermissionRepository |
 | `role_permissions` | role_id＋permission_id 對應的起始 allowed | IdentitySeeder、PermissionRepository |
@@ -427,15 +475,15 @@ erDiagram
 
 `db:migrate` 按 SQL 檔執行；DDL 在 MariaDB 會自動提交，SchemaMigrator 用 checksum、具冪等性的 statement 與進度紀錄支援重跑。已有 migration 不改內容，新增結構另加新檔。`db:seed` 只補缺角色／權限定義與起始值，不重置已保存的權限。
 
-一般業務交易由 Service 透過 Transactions 協調，多個 Repository 共用同一 PDO。管理員／矩陣異動和 audit 一起提交；稽核失敗則整筆回滾。帳號建立後 account 固定、軟刪除、本人管理權保護屬 E-09／E-10 工程政策；帳號固定不是原型原有的限制。root 的額外約束與 audit 的 UPDATE／DELETE 保護也由資料庫 CHECK／trigger 執行；完整規則見 migration 與管理員指南。
+一般業務交易由 Service 透過 Transactions 協調，多個 Repository 共用同一 PDO。管理員／矩陣異動和 audit 一起提交；稽核失敗則整筆回滾。一般帳號可改名；軟刪除及防越級仍保留。U-13 允許具權限的一般管理員自我操作，最後管理權由固定 root 保護。root 的額外約束與 audit 的 UPDATE／DELETE 保護也由資料庫 CHECK／trigger 執行；完整規則見 migration 與管理員指南。
 
 密碼只存 Argon2id；session／reset／challenge token 存雜湊，挑戰答案存用途分離 HMAC。audit 中帳號／Email／名稱轉為 HMAC，保留安全狀態與權限變更；原始 Cookie、密碼或 token 不寫入這些業務紀錄。原始 token 只在必要的 Cookie 或本機重設郵件流程傳遞。
 
-公開的景點、電影、消息、優惠、路線、收藏與行程目前**沒有對應的正式業務資料表實作**，畫面資料主要在 prototype.js 與 HTML。後續表的規劃見 PHASE-2-PLAN.md／IMPLEMENTATION-PLAN.md，不把規劃表當現存 schema。
+景點／店家與媒體已有正式業務表、API 及公開 HTML 發布，博物館與首頁景點精選也讀真實景點資料。電影、消息、優惠、收藏與行程尚無正式業務表；routes／route_attractions 只供引用保護，並非路線管理。這些後續畫面仍以 prototype.js／HTML 展示，規劃見 IMPLEMENTATION-PLAN.md。
 
 ## Docker、環境變數與資料位置
 
-### 七個服務
+### 八個服務
 
 | Compose service | 職責／主要版本 | 容器內與宿主機位置 | 啟動方式 |
 | --- | --- | --- | --- |
@@ -576,6 +624,10 @@ docker compose exec -T app-test php tests/account_persistence.php
 python backend/tests/response_contract.py
 python backend/tests/mail_failure.py
 python backend/tests/origin_redirect.py
+
+# 獨立契約檢查：執行上述隔離整合套件，請勿與其他 fixture 測試並行
+python -m pip install --target artifacts/audit-jsonschema -r backend/tests/requirements.txt
+python backend/tests/openapi_contracts.py --dependency-path artifacts/audit-jsonschema
 ```
 
 這些是操作命令，不代表讀到本文件時全部已執行。測試 root 密碼會由 fixture 重設，舊測試 session 也會撤銷；不要與 8081 的人工操作並行。mail_failure 會暫停／恢復本機 Mailpit。前端 Node 測試是受控 DOM／API 行為驗證，不等於真實瀏覽器或手機畫面通過。當次測試數與觀察請讀驗收紀錄，不在這裡固定為永久保證。
@@ -589,8 +641,8 @@ python backend/tests/origin_redirect.py
 | 改頁面沒反應 | 是否改 frontend 來源、是否重建 dist、Nginx 是否掛載該 dist；website 是原始參考 |
 | 登入後又回登入／CSRF 錯誤 | APP_URL／HTTP_PORT、標準 Host、是否混用 8080／8081、Cookie 期限及對應 namespace 的 me |
 | ADMIN_INITIAL_PASSWORD 改了仍無法登入 | 該值只供初次建立；已有密碼由 DB hash 決定，查認證指南的本人更改／CLI 復原 |
-| 管理員頁顯示尚未開放 | 本階段只完成認證／管理員／權限，不是 API 載入失敗；先看頁面狀態表 |
-| 403／無法存取／唯讀 | 是否缺 module/action、首登未改密碼、正在 root 模擬，查 API code 與 requestId |
+| 管理員頁顯示尚未開放 | 本階段已完成認證／管理員／權限及景點；其他業務待後續，不是 API 載入失敗；先看頁面狀態表 |
+| 403／無法存取／唯讀 | 是否缺 module/action、正在 root 模擬，查 API code 與 requestId |
 | Email 驗證／重設信沒到外部信箱 | 本機 SMTP 預設 Mailpit，先看 8025 與 mailpit 健康狀態；正式 SMTP 尚待另外設定與驗收 |
 | migration checksum 不符 | 是否改了已套用 SQL；依新 migration 升級，不靠清庫掩蓋差異 |
 | Composer／工具缺類別 | 應用／工具的 vendor volume 與各自 lock 是否一致；用 Docker Composer 安裝，不能把未安裝當通過 |
@@ -608,18 +660,176 @@ python backend/tests/origin_redirect.py
 | 修改密碼政策／期限 | PasswordHasher／相關 Input、前端 password-policy.js、.env.example／compose／Config 使用處；同步契約、文件與失敗測試 |
 | 新增 API | OpenAPI＋routes＋Controller＋DTO＋Service＋必要 Repository；加真實授權／失敗驗證與中文指南 |
 | 新增資料表／欄位 | 新 migration → Repository／Model／DTO → 對應 Service／測試；不修改已套用 migration |
-| 修改公開景點／電影等正式資料 | 先依後續階段建立內容 API／schema／發布流程；目前 prototype.js 只是展示資料，不能冒充 CMS 保存 |
+| 修改公開景點／電影等正式資料 | 景點看 AttractionManagement／ContentPublication／publish.mjs；電影等仍待後續，prototype.js 只是展示資料 |
 | 修改容器／環境 | compose.yaml、docker/、.env.example 與初始化 scripts；注意已有 named volumes 的資料生命週期 |
 | 查驗收或原型差異 | PHASE-2-ACCEPTANCE.md、WEBSITE-COMPARISON-REVIEW.md；不要用檔案存在推定功能完成 |
 
 上表的簡寫路徑分別以 backend/ 或 frontend/ 為根；完整可點選位置在前面的檔案清單。新業務必須同時考慮前端、API 契約、交易／權限、資料庫與驗證，不能只新增畫面或只新增一個 PHP endpoint。
 
+
+## 階段三新增檔案與執行能力
+
+此節是上面各層清單的增量，新增檔案逐一列出。64 個 pages 仍是固定來源數；`/places/{slug}.html` 等實際服務內容來自 publication volume，數量隨已發布資料改變，不能以 dist 中原型詳情推定已發布。
+
+### 新增後端檔案
+
+| 檔案（backend/ 下） | 功能 |
+| --- | --- |
+| [database/migrations/003_attraction_review.sql](../backend/database/migrations/003_attraction_review.sql) | 增加各景點圖片說明／推薦文案欄位，補正座標雙 NULL／雙非 NULL 約束；不修改既有 002。 |
+| [database/migrations/002_attractions.sql](../backend/database/migrations/002_attractions.sql) | 七張新表、外鍵、發布／管理／媒體分頁索引及最小路線引用保護。 |
+| [resources/attractions-demo.json](../backend/resources/attractions-demo.json) | 原始六筆受控示範 seed，網站不直接讀取，不覆寫既有內容。 |
+| [src/Adapters/AttractionSeeder.php](../backend/src/Adapters/AttractionSeeder.php) | CLI 明確匯入原始示範內容及 legacy_id，不自動執行；另提供受控標籤補入的預覽／套用，套用須固定管理員並在交易內留下稽核。 |
+| [src/Adapters/CurlGoogleHttp.php](../backend/src/Adapters/CurlGoogleHttp.php) | 固定主機、公開 IP、TLS／逾時／大小限制的 Google HTTP adapter。 |
+| [src/Adapters/LocalImageStorage.php](../backend/src/Adapters/LocalImageStorage.php) | 圖片真實解碼、重新編碼、隨機儲存與失敗清理。 |
+| [src/Adapters/NodeContentRenderer.php](../backend/src/Adapters/NodeContentRenderer.php) | 無 shell 呼叫前端 HTML 產生器、模板版本、current 快照與發布鎖。 |
+| [src/Contracts/ContentRenderer.php](../backend/src/Contracts/ContentRenderer.php) | 公開版本讀取、產生、版本及排他鎖介面。 |
+| [src/Contracts/GoogleHttp.php](../backend/src/Contracts/GoogleHttp.php) | 可替換的 Google HTTP 介面，單元測試不耗真實配額。 |
+| [src/Contracts/ImageStorage.php](../backend/src/Contracts/ImageStorage.php) | 媒體保存與失敗清理介面。 |
+| [src/Controllers/AttractionController.php](../backend/src/Controllers/AttractionController.php) | 管理列表、單筆、寫入、刪除及發布重試 HTTP 轉接。 |
+| [src/Controllers/MapController.php](../backend/src/Controllers/MapController.php) | 地圖網址／action 輸入與候選輸出。 |
+| [src/Controllers/MediaController.php](../backend/src/Controllers/MediaController.php) | multipart 上傳、分頁與 Nginx 媒體存取檢查。 |
+| [src/Controllers/PublicAttractionController.php](../backend/src/Controllers/PublicAttractionController.php) | 公開列表／詳情／博物館、版本存取檢查與歷史網址轉向。 |
+| [src/DTO/Attraction.php](../backend/src/DTO/Attraction.php) | Repository 的內容快照，區分管理與公開欄位。 |
+| [src/DTO/AttractionInput.php](../backend/src/DTO/AttractionInput.php) | 欄位白名單、slug、座標、網址、發布時間與版本校驗。 |
+| [src/DTO/AttractionPage.php](../backend/src/DTO/AttractionPage.php) | 管理列表的 typed 分頁結果。 |
+| [src/DTO/AttractionWriteResult.php](../backend/src/DTO/AttractionWriteResult.php) | 已保存內容與公開同步狀態分別輸出。 |
+| [src/DTO/MediaAsset.php](../backend/src/DTO/MediaAsset.php) | 媒體 ID、URL、格式、尺寸、alt、來源與授權。 |
+| [src/DTO/RemoteResponse.php](../backend/src/DTO/RemoteResponse.php) | 外部 HTTP status、body、headers。 |
+| [src/DTO/UploadedImage.php](../backend/src/DTO/UploadedImage.php) | PHP 上傳暫存路徑、error、size。 |
+| [src/Exceptions/ContentConflict.php](../backend/src/Exceptions/ContentConflict.php) | 內容 slug／歷史路徑唯一衝突的儲存例外。 |
+| [src/Models/ContentStatus.php](../backend/src/Models/ContentStatus.php) | draft／published／archived backed enum。 |
+| [src/Policies/GoogleUrlPolicy.php](../backend/src/Policies/GoogleUrlPolicy.php) | Google 網域／路徑與公開 IPv4 的允許規則。 |
+| [src/Repositories/AttractionRepository.php](../backend/src/Repositories/AttractionRepository.php) | 內容 SQL、排序／搜尋／分頁、merchants、alias、引用及公開投影。 |
+| [src/Repositories/MediaRepository.php](../backend/src/Repositories/MediaRepository.php) | 媒體寫入與模組分頁。 |
+| [src/Repositories/PublicationRepository.php](../backend/src/Repositories/PublicationRepository.php) | 公開版本 pending／succeeded／failed 紀錄。 |
+| [src/Services/AttractionManagement.php](../backend/src/Services/AttractionManagement.php) | 權限、交易、版本、媒體、博物館、引用、稽核及同步發布。 |
+| [src/Services/ContentPublication.php](../backend/src/Services/ContentPublication.php) | 建立公開投影、版本比較、發布／重試與排程 tick。 |
+| [src/Services/MapResolver.php](../backend/src/Services/MapResolver.php) | 地圖展開、Places Details／Text Search、限速與候選映射，不保存資料。 |
+| [src/Services/MediaAccess.php](../backend/src/Services/MediaAccess.php) | 匿名只讀已發布媒體，管理員讀取依有效身分與模組權限。 |
+| [src/Services/MediaManagement.php](../backend/src/Services/MediaManagement.php) | 媒體授權、儲存、交易／稽核與失敗檔案清理。 |
+| [src/Services/PublicAttractions.php](../backend/src/Services/PublicAttractions.php) | 只讀成功發布快照，分類／行政區／搜尋與公開單筆。 |
+| [tests/Unit/AttractionInputTest.php](../backend/tests/Unit/AttractionInputTest.php) | 圖片說明的省略／清除／型別與推薦文案長度邊界。 |
+| [tests/attraction_corrections.py](../backend/tests/attraction_corrections.py) | 真實 HTTP 驗證說明保存、共用資產隔離、替換、越權及原型標籤／順序。 |
+| [tests/attraction_constraints.php](../backend/tests/attraction_constraints.php) | 隔離 MariaDB 直接驗證八組座標 CHECK，結束回滾。 |
+| [tests/Unit/MapResolverTest.php](../backend/tests/Unit/MapResolverTest.php) | 重導向、循環、無效 JSON、配額、缺金鑰及私有 IP 測試。 |
+| [tests/attractions_integration.py](../backend/tests/attractions_integration.py) | 真實上傳／MariaDB／HTTP／發布故障及越權；選用 live-map。 |
+| [tests/content_contract.py](../backend/tests/content_contract.py) | 實際 Router／OpenAPI 操作一致及內容回應欄位契約。 |
+| [tests/content_persistence.py](../backend/tests/content_persistence.py) | 隔離 app／web 重啟後，資料、HTML、圖片與刪除存取驗證。 |
+| [tests/content-fixture.php](../backend/tests/content-fixture.php) | 只允許隔離測試 volume 的發布失敗／恢復注入，無 HTTP 後門。 |
+
+既有檔案的本階段擴充：Composition 組裝新能力；routes 登記新增操作；Request 增 multipart；Route 支援 slug；Kernel 增發布／外部服務錯誤轉譯；EventRepository 增內容稽核；console 增內容命令；OpenAPI 描述累計 45 操作。其他階段二類別責任維持原清單。
+
+### 新增前端檔案
+
+| 檔案（frontend/ 下） | 功能 |
+| --- | --- |
+| [scripts/publish.mjs](../frontend/scripts/publish.mjs) | 公開投影 → 原型模板、正文及 SEO；不可變 generation 與原子啟用。 |
+| [assets/js/api/attractions-api.js](../frontend/assets/js/api/attractions-api.js) | 景點、媒體、地圖與重試共用 API 呼叫。 |
+| [assets/js/pages/attraction-list.js](../frontend/assets/js/pages/attraction-list.js) | 後台列表、搜尋、狀態、分頁、刪除、重試及權限控制。 |
+| [assets/js/pages/attraction-form.js](../frontend/assets/js/pages/attraction-form.js) | 新增／編輯共用、載入／保存、圖片、候選確認與未存提醒。 |
+| [assets/js/pages/attractions.js](../frontend/assets/js/pages/attractions.js) | 公開列表 API 篩選、分類鍵盤操作、分頁、錯誤／替代圖。 |
+| [assets/css/phase3.css](../frontend/assets/css/phase3.css) | 沿用原型的表格溢出容器、圖片預覽、地圖候選及分頁補充。 |
+| [assets/image-placeholder.svg](../frontend/assets/image-placeholder.svg) | 本機圖片失敗替代圖。 |
+| [tests/attraction-form.test.mjs](../frontend/tests/attraction-form.test.mjs) | 九項實際表單模組行為：圖說保存、載入／衝突／唯讀／202／上傳與重複送出。 |
+| [tests/attraction-publication.test.mjs](../frontend/tests/attraction-publication.test.mjs) | 真實 Node 產物、XSS 編碼、canonical、台北日期及失敗不切換。 |
+
+既有 admin.js 分派景點頁；api-client.js 支援 FormData；ui.js 允許指定表單狀態節點；session.js 接受嚴格的公開景點 returnTo；content-cards.js 優先使用伺服器 URL；public.js／public-details.js 在 managed 頁停止原型覆蓋。三個 admin place HTML 已串接；return-to.test.mjs 新增動態 slug 返回驗證。原型 CSS 未改版。
+
+### 新增表、volume 與操作
+
+| 表 | 用途 | 主要讀寫位置 |
+| --- | --- | --- |
+| attractions | 內容、分類、座標、媒體 FK、slug、SEO、發布時間／狀態／版本／軟刪除 | AttractionRepository |
+| merchants | 美食及店家標記，FK attractions | AttractionRepository |
+| media_assets | 圖片 metadata、儲存鍵、來源／授權、模組與管理員 FK | MediaRepository |
+| attraction_aliases | 歷史路徑至景點，不重用他筆保留路徑 | AttractionRepository |
+| content_publications | 版本產生及失敗／重試紀錄 | PublicationRepository |
+| routes | 目前僅刪除保護最小參照，不代表路線管理完成 | AttractionRepository（引用查詢） |
+| route_attractions | 路線與景點 FK／順序／反查索引 | AttractionRepository（引用查詢） |
+
+第八個服務 publisher 使用 app image、www-data 及 `content:watch`；沒有對外 port。app image 增加和建置環境相同的 Node 24 binary；不需主機安裝 Node。app／publisher 掛載前端來源只讀、publication／media 可寫；web 只讀同一對 volumes。測試服務另用 publication_test_data／media_test_data，不與正式媒體混用。
+
+新增環境值：GOOGLE_PLACES_API_KEY 放忽略的 .env，只給 PHP；PUBLICATION_PATH=/var/www/publication、MEDIA_PATH=/var/www/media、FRONTEND_SOURCE_PATH=/var/www/frontend-source 由 Compose 注入。變更 .env 後需重建 app／publisher 才讀到新值，不列印金鑰。
+
+初始化：先 db:migrate，再依需要以 www-data 執行 content:seed-demo（原始六筆、可重跑不覆寫），或 content:publish（空／既有正式資料）。一般更新先重建 frontend；publisher 會偵測模板版本，亦可手動 content:publish。首次 migrate 前短暫不健康不能當成正式上線完成。
+
+完整能力、API／表／頁面與閱讀順序見 [階段三計畫](PHASE-3-PLAN.md)、[景點指南](modules/attractions.md)、[媒體指南](modules/media.md)、[地圖指南](modules/maps-import.md)；當次測試見 [階段三驗收](PHASE-3-ACCEPTANCE.md)。其餘未實作模組維持待開放，收藏／加入行程保存仍留階段六。
+
+### 階段三修正的資料與部署操作
+
+attractions.image_alt／image_source／image_license 是各景點的圖片使用說明，NULL 表示沿用 media_assets 或原始外部圖片說明；省略 API 欄位保留既有值，空白／null 清除覆寫。共用媒體的原始 alt／source／license 不會被其他景點改寫。recommendation_label 保存原型文案，空白才顯示「在地推薦」，不是數值評分。
+
+既有六筆展示資料的標籤可由 `content:backfill-demo-labels` 預覽，再明確加 `--apply` 套用；只補名稱／原圖仍符合受控來源且標籤為空的筆數。不覆寫人工標籤或其他內容。套用與版本／稽核同交易，發布結果仍獨立檢查；一般 seed 依舊跳過既有內容。
+
+PHP 常駐 publisher 在啟動時載入類別；更新 PHP 程式後必須 `docker compose restart publisher`，否則舊程序可能產生與 FPM 不同的投影。更新流程：備份 DB／volumes → 檢查既存座標 → db:migrate → 重建 frontend → 重啟 publisher → content:publish → 視需要預覽／套用受控標籤。測試環境沒有常駐 publisher，更新模板後需手動 content:publish。
+
+## 階段三新增：共用營業時間（U-09）
+
+人工及 Google 匯入使用相同週表。新增／編輯頁使用原生每週編輯器，支援未知、公休、全天、每日最多四段及次日結束。後端 OpeningHours DTO 統一驗證七天、型別、時間與全週重疊，GoogleOpeningHours 只負責外部格式轉換。Controller／Service／Repository 架構不變，依原授權／版本／稽核交易保存並發布。
+
+attractions.opening_hours 是 nullable JSON；舊 hours 保留原文／新摘要，不推測舊文字適用七天。首次人工保存時舊文字進備註；所有新前端保存都送 openingHours。舊客戶端省略週表時不覆蓋既有 JSON 或其摘要。API 仍44操作、業務表仍20；確切新增 schema 見 OpenAPI。
+
+公開列表和後台清單使用短摘要，詳情由前端 renderer 產生七天與備註。共用 opening-hours.js 也納入 NodeContentRenderer 的版本雜湊，變更顯示規則不重用過期 HTML。新增欄位以 migration 升級，執行前備份，更新後建置 frontend、restart publisher，再以 www-data content:publish；無須重建或清空資料庫。
+
+| 新檔案 | 功能 |
+| --- | --- |
+| [004_opening_hours.sql](../backend/database/migrations/004_opening_hours.sql) | 增加 nullable JSON，不改舊時間文字 |
+| [OpeningDayStatus.php](../backend/src/Models/OpeningDayStatus.php) | 未知、公休、全天、自訂時段 enum |
+| [OpeningPeriod.php](../backend/src/DTO/OpeningPeriod.php) | 開始／結束、次日與24小時邊界 |
+| [OpeningDay.php](../backend/src/DTO/OpeningDay.php) | 星期、狀態、最多四段與排序 |
+| [OpeningHours.php](../backend/src/DTO/OpeningHours.php) | 七天驗證、跨日／跨週重疊與摘要 |
+| [GoogleOpeningHours.php](../backend/src/Adapters/GoogleOpeningHours.php) | 外部常態 periods 轉為相同 DTO，缺值不視為公休 |
+| [opening-hours.js](../frontend/assets/js/core/opening-hours.js) | 空週表、星期文字與公開完整時間顯示 |
+| [opening-hours-editor.js](../frontend/assets/js/components/opening-hours-editor.js) | 手動／匯入／重載共用表單與唯讀 |
+| [OpeningHoursTest.php](../backend/tests/Unit/OpeningHoursTest.php) | DTO、提供者及整合輸入單元案例；MapResolverTest 亦驗證候選與 FieldMask |
+| [opening_hours_integration.py](../backend/tests/opening_hours_integration.py) | 真實 MariaDB／HTTP／SSR 及失敗／越權回歸 |
+| [opening-hours.test.mjs](../frontend/tests/opening-hours.test.mjs) | 舊文字、每日狀態與星期順序 |
+| [opening-hours-editor.test.mjs](../frontend/tests/opening-hours-editor.test.mjs) | 真正編輯器的多段、跨日、唯讀、隱藏必填與焦點 |
+| [OPENING-HOURS-PLAN.md](OPENING-HOURS-PLAN.md) | 本次要求、設計、其他匯入欄位缺口與驗收狀態 |
+| [opening-hours.md](modules/opening-hours.md) | 欄位例子、分層資料流、相容邏輯及環境操作 |
+
+共用 ui.js 的 formErrors 增 data-field-name 複合欄位支援，讓週表具體錯誤可讀且可取得焦點；其餘表單維持原有 namedItem 路徑。既有 attraction-form／publication 測試同步週表，HTTP 列表測試使用唯一名稱避免歷次 fixture 相互干擾。
+
+## 階段三新增：地圖候選與關聯（U-10）
+
+Google候選以GooglePlaceMapper轉為MapCandidate DTO，不直接信任外部JSON。行政區需確認新竹市及東區／北區／香山區，否則清空並要求管理員選擇，人工新增也沒有預設北區。官網HTTP／HTTPS保留原協定、不含帳密且伺服器不抓取；mapUrl與Google安全HTTP Adapter仍HTTPS。
+
+Google簡介依使用者選擇只作原文參考，選中後的獨立區塊放在列表摘要上方，讓摘要與景點介紹連續排列。候選及參考區都有Google Maps及提供者來源，沒有簡介時明示。網站摘要／介紹不被覆蓋，參考區不進保存請求、DB、公開投影或瀏覽器儲存，重載清除。FieldMask增加addressComponents、editorialSummary及attributions，沒有照片／評價匯入。
+
+Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳細資訊切換同列對齊，展開內容固定在下方，避免擠壓狀態文字。人工未關聯不顯示，Place ID／解除按鈕收進「關聯詳細資訊」。名稱／地址／座標改動後才顯示確認操作，解除後聚焦景點名稱。AttractionInput接收嚴格boolean的googleLinkConfirmed命令，AttractionManagement先做授權／版本，再由GooglePlaceLinkPolicy比對資料；省略前端同樣拒絕未確認的變更。這是管理員核對，不是Google簽章。API仍44操作、表仍20、此 U-10 交付當時 migration 為五支；該次至 008 的校正仍無新表或端點；本輪 009 與 samples 端點見上方更新。
+
+| 新檔 | 功能 |
+| --- | --- |
+| [GooglePlaceMapper.php](../backend/src/Adapters/GooglePlaceMapper.php) | 外部欄位驗證、地址結構／協定及簡介原文映射 |
+| [MapCandidate.php](../backend/src/DTO/MapCandidate.php) | Typed候選及統一輸出 |
+| [GooglePlaceLinkPolicy.php](../backend/src/Policies/GooglePlaceLinkPolicy.php) | DB既有地點與新輸入比對，要求人工確認或解除 |
+| [GooglePlaceMapperTest.php](../backend/tests/Unit/GooglePlaceMapperTest.php) | 候選型別、行政區、URL與原文邊界 |
+| [GooglePlaceLinkPolicyTest.php](../backend/tests/Unit/GooglePlaceLinkPolicyTest.php) | 新增／更換／未改／解除／嚴格布林 |
+| [map_fields_integration.py](../backend/tests/map_fields_integration.py) | HTTP官網與行政區、公開外連及錯誤不改資料 |
+| [google_link_integration.py](../backend/tests/google_link_integration.py) | 真實DB／HTTP的未確認變更、越權／唯讀／409與解除 |
+| [place-candidate.js](../frontend/assets/js/core/place-candidate.js) | 單一候選套用流程，不猜行政區、不覆蓋網站介紹 |
+| [place-reference.js](../frontend/assets/js/components/place-reference.js) | Google原文、來源與提供者的暫時參考區 |
+| [google-place-link.js](../frontend/assets/js/components/google-place-link.js) | 條件顯示的緊湊關聯、詳細資訊、核對／解除、唯讀與確認競態 |
+| [place-candidate.test.mjs](../frontend/tests/place-candidate.test.mjs) | 候選套用與缺值保留界線 |
+| [google-place-link.test.mjs](../frontend/tests/google-place-link.test.mjs) | 真正元件與原文參考、錯誤焦點、唯讀及等待期間變更 |
+| [MAP-IMPORT-IMPROVEMENTS.md](MAP-IMPORT-IMPROVEMENTS.md) | U-10計畫與實際結果 |
+| [google-place-fields.md](modules/google-place-fields.md) | API命令語意、資料流、檔案用途、Google限制及操作 |
+
+共用ui.formErrors優先聚焦可見複合群組，避免Place ID驗證失敗時落在隱藏欄位。完整實際測試及UI結果見階段三驗收；工程新增選擇以E-21標記。
+
 ## 文件索引與維護方式
+
+2026-10-18 再次檢查的 R3-01／02／04 已修正，R3-03 已增加九項景點表單行為測試；新增真實 HTTP／MariaDB 回歸 21 項及資料庫約束 8 項通過。歷史發現、採用設計、測試與畫面驗收界線見 [階段三複查計畫](PHASE-3-REVIEW-PLAN.md)，其餘階段仍依原計畫。
 
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
+| [PHASE-2-3-OWNER-ALIGNMENT.md](PHASE-2-3-OWNER-ALIGNMENT.md) | Excel逐條來源、實作與驗證；範例試填／電話補齊及正式交付界線。 |
+| [FULL-RECHECK-20261019.md](FULL-RECHECK-20261019.md) | 最新完整檢查、七項修正、獨立契約驗證、資料庫升級及驗收界線。 |
 | [PROJECT-GUIDE.md](../docs/PROJECT-GUIDE.md) | 本文件：全站執行架構、現有檔案用途、資料庫、環境及閱讀入口。 |
-| [IMPLEMENTATION-PLAN.md](../docs/IMPLEMENTATION-PLAN.md) | 整體八階段的功能與交付條件；包含尚未開始的後續規劃。 |
+| [IMPLEMENTATION-PLAN.md](../docs/IMPLEMENTATION-PLAN.md) | 共用準備及 P0（2–8）／P1（9–12）／P2（13–15）的功能、驗收界線與新舊階段對照。 |
+| [SPECIFICATION-BASELINE-REVIEW-20261018.md](../docs/SPECIFICATION-BASELINE-REVIEW-20261018.md) | 以 Excel 為基準回溯階段二／三的必填、操作與發布限制；差異、來源、33 項隔離觀察及尚未實作的校正順序。 |
+| [DATABASE-SPECIFICATION-MAP.md](DATABASE-SPECIFICATION-MAP.md) | 逐表及逐欄對照 Excel、工程補充／後續表、十份 migration 與操作命令。 |
+| [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md) | 規格校正交付、使用者安全選擇、資料保留及本輪實際驗收。 |
 | [REQUIREMENTS-MAP.md](../docs/REQUIREMENTS-MAP.md) | 原始規格功能來源與網站頁面需求對照。 |
 | [PHASE-2-PLAN.md](../docs/PHASE-2-PLAN.md) | 階段二細設、API／表／頁面及工程補充對照。 |
 | [ARCHITECTURE.md](../docs/ARCHITECTURE.md) | 設計原則、採用做法與參考、API-only／SEO 發布的目標架構；含後續規劃，實際檔案以本導讀為準。 |
@@ -637,13 +847,34 @@ python backend/tests/origin_redirect.py
 
 `.agents/skills/php-modernization/`、`security-audit/`、`mariadb-query-optimization/`、`web-design-guidelines/` 分別是 PHP、安全、查詢與介面審查的開發資源；使用時讀各自 SKILL.md。第三方參考內容不是應用程式，也不因存在就代表工具或驗收已執行。
 
-本文件清單涵蓋目前自行維護的 backend／frontend、環境、工具 manifest、初始化腳本與工程文件；原始 website、第三方資源及本機產物按用途說明。此次新增的是文件，沒有修改程式、schema 或執行初始化／密碼變更。
+本文件清單涵蓋目前自行維護的 backend／frontend、環境、工具 manifest、初始化腳本與工程文件；原始 website、第三方資源及本機產物按用途說明。階段三已更新程式、schema、發布環境與本導讀；原始 website 與 Excel 保留。
 
 **每完成一個階段，必須在宣告完成及合併 main 前更新本文件。** 更新日期與該階段實際完成範圍，核對架構、檔案用途與清單、頁面／API 狀態、資料表／migration、Docker／環境設定及啟動／驗證命令，並檢查連結。即使沒有新增檔案，也要核對既有說明並更新階段摘要；後續未實作功能仍標為待開放。此要求同步記在 AGENTS.md 與 DEVELOPMENT-WORKFLOW.md。
 
 功能開發期間新增、移動或刪除檔案，也應在同一功能提交同步維護本導讀；新增 API／表另更新 OpenAPI、來源表與模組指南。狀態只記實際完成，驗收結果放驗收文件，秘密仍只放本機被忽略的設定。
 
 
-## 本功能歷史校正同步說明
+## 階段三補充：摘要／介紹選填（U-11／E-22）
 
-U-13／U-15：八字密碼、確認必填且一致、無首登強制；一般管理員可改名，具權限時可自我停用／軟刪除／降權。固定 root、最後管理權與防越級仍保護。005 修正一般帳號字元集與 root trigger，007 清除相容首登旗標；已套用的舊 migration 不改。上述說明取代本快照舊段落中的相反政策。
+新增／編輯頁移除兩欄 required 與星號，明示選填。AttractionInput 共用 optional 驗證，允許留空／省略，字數500／20000上限、文字型別及空字元防護保留；API 契約同步允許空字串，回應仍固定帶兩欄。PUT 省略這兩欄會清空，並非部分更新。資料表、migration、API端點數及環境變數不變，PHP 仍只提供 API。
+
+| 檔案 | 用途 |
+| --- | --- |
+| [optional_content_integration.py](../backend/tests/optional_content_integration.py) | 真實隔離 HTTP／MariaDB 選填保存、失敗不改資料、越權／唯讀、公開發布及重讀；可用 --keep-for-browser 保留自有草稿供瀏覽器驗收 |
+| [AttractionInputTest.php](../backend/tests/Unit/AttractionInputTest.php) | 補充空白／省略、型別與 Unicode 字數邊界 |
+
+自動補位仍依前述計畫，不能把選填交付寫成 Google 內容已自動帶入。
+
+## 2026-10-18 規格校正後的閱讀入口
+
+本輪依 Excel／原型與 U-13／U-14 校正，而非新增階段。Input 提供 optionalText／password／confirmedPassword 共用邊界；一般帳號可改名並使用 Unicode；Kernel／前端已撤除首登門檻。AttractionInput 可選地址／行政區／slug／週表，Service 產生或保留唯一 slug；Repository 以真實操作者 UUID 寫 created_by／updated_by。圖片選填，source／license 可空白，alt與內容檢查保留。當次資料庫八份 migration、20張業務表＋工具表；主／測試庫均已套用，主庫20表筆數核對保留，Docker服務與環境變數無新增。完整資料表、原文來源及355項整合結果分見本文件上方兩份新指南。
+
+U-15本次驗證：認證108項＋校正50項真實HTTP／MariaDB，PHP37項／182斷言、前端67項及64頁建置通過；細節與先前驗收界線見[SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md#u-15確認密碼必填更正2026-10-18)。Input.confirmedPassword為註冊／重設／更改共用；確認值不落DB，當次資料表與八份migration均無變更；目前十份見本文件上方更新。
+
+### 2026-10-19：範例試填與電話（S E20／G6，E-24）
+
+新增頁先以 GET /api/v1/admin/attractions/samples 讀取 DB 原始六筆中可公開的基本資料；新增權限可讀，但不開放一般列表。確認後才帶入，不寫 DB；保留圖片、slug與發布設定，解除舊Google關聯；後續仍按一般新增API儲存。編輯頁沒有試填入口。
+
+新增／編輯都可填電話；phone選填，phoneUrl是後端衍生的唯讀撥號連結。Controller／Service／Repository責任不變，PhoneNumber DTO負責格式，009 migration只新增phone。公開詳情與博物館使用相同安全輸出。沒有增加Google欄位或查詢配額。格式與來源、備份／migration及正式驗收差項見上述業主要求對照。
+
+E34／G34可讀性補充：phase2.css局部加深muted、標題說明與表單提示文字；新增頁實測提示文字對比由3.46提升至5.62，版型及website原檔不變。這不是完整WCAG／讀屏認證。

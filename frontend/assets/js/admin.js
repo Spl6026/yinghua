@@ -5,6 +5,8 @@ import { initializeAdmins } from './pages/admin-list.js';
 import { initializeAdminForm } from './pages/admin-form.js';
 import { initializePermissions } from './pages/permissions.js';
 import { initializeAdminPreview } from './components/admin-preview.js';
+import { initializeAttractionList } from './pages/attraction-list.js';
+import { initializeAttractionForm } from './pages/attraction-form.js';
 
 initializeMenus();
 const main = document.querySelector('.admin-content');
@@ -41,6 +43,8 @@ try {
     } else if (page === 'admins') await initializeAdmins(identity);
     else if (page === 'admin-add' || page === 'admin-edit') await initializeAdminForm(identity, page);
     else if (page === 'permissions') await initializePermissions(identity);
+    else if (page === 'places') await initializeAttractionList(identity);
+    else if (page === 'place-add' || page === 'place-edit') await initializeAttractionForm(identity, page);
   }
 } catch (error) { status(message, error.message, true); message.focus(); }
 finally { main.removeAttribute('aria-busy'); }

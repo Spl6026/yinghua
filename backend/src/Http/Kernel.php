@@ -87,7 +87,7 @@ class Kernel
             'UNSUPPORTED_MEDIA_TYPE' => 415,
             'VALIDATION_FAILED' => 422,
             'RATE_LIMITED' => 429,
-            'MAIL_UNAVAILABLE' => 503,
+            'MAIL_UNAVAILABLE', 'PUBLICATION_PENDING', 'MAP_UNAVAILABLE' => 503,
             default => 500,
         };
         $headers = [];

@@ -3,7 +3,7 @@ import { element } from '../core/ui.js';
 import { places, films, detailLinks } from '../data/prototype.js';
 
 export function detailHref(item, fallback) {
-  return detailLinks[item.name || item.title] || fallback;
+  return item.url || detailLinks[item.name || item.title] || fallback;
 }
 
 export function imageBlock(className, image, label, gradient) {
@@ -23,7 +23,10 @@ export function placeCard(item) {
   actions.append(element('a', { href: detailHref(item, '/place-detail.html?id=' + item.id) }, '看介紹 ↗'),
     element('button', { type: 'button', 'data-add-stop': item.id }, '＋ 行程'));
   details.append(element('span', {}, '◷ ' + item.hours), actions);
-  body.append(element('span', { className: 'place-area' }, item.area + '　/　' + item.rating), element('h3', {}, item.name), element('p', {}, item.desc), details);
+  // [U-11／E-18] 選填內容留空時省略空段落及分隔符號，不自動補入介紹。
+  body.append(element('span', { className: 'place-area' }, [item.area, item.rating].filter(Boolean).join('　/　')), element('h3', {}, item.name));
+  if (item.desc) body.append(element('p', {}, item.desc));
+  body.append(details);
   card.append(image, body);
   return card;
 }

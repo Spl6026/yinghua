@@ -1,6 +1,6 @@
 # API 與前端分離的架構設計
 
-設計日期：2026-10-13；階段二分層改善更新：2026-10-17。
+設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18。
 
 使用者指定 PHP 對網站只提供 API，前端使用原生 JavaScript／jQuery。採 MVC 的責任分工，另外拆出 Service 與 Repository，使業務流程和 SQL 能重用。這是本專案的工程選擇，Excel 並未指定 MVC、框架或 design pattern。
 
@@ -18,7 +18,7 @@
 | Model／Policy | 這個網站的規則 | 帳號狀態、root 保護、有效權限、發布條件 | 不依賴 HTTP 或 PDO；簡單規則不硬拆成大量類別 |
 | Repository | 資料庫窗口 | 用 PDO 查帳號、寫入 session、保存矩陣、取得安全資料 | 不寄信、不做 HTTP 回應；不自行提交 Service 的交易 |
 | HTTP 共用管線（Kernel） | 每個 API 共用的檢查 | requestId、錯誤轉換、登入身分、CSRF、限速、module/action | 通過後才進 Controller；業務內的重要不變條件仍由 Service／Policy 保護 |
-| Adapter | 隔離外部套件 | PHPMailer SMTP；後續媒體儲存、Maps HTTP | Service 依賴明確介面，套件細節集中在實作 |
+| Adapter | 隔離外部套件 | PHPMailer SMTP、LocalImageStorage、CurlGoogleHttp、NodeContentRenderer | Service 依賴明確介面，套件細節集中在實作 |
 
 MVC 的 Model 在此包含資料與業務規則，並非單指一張資料表。API 用 JSON 傳結果；網頁 View 在 PHP 外。
 
@@ -76,7 +76,7 @@ project/
 
 每頁仍保有獨立 HTML 網址，不改成 SPA。新增／編輯管理員的頁面各自存在，共用 admin-form.js，透過明確的 create／edit 模式使用同一表單元件。頁面只載入需要的模組，避免新的單一巨大 app.js。
 
-frontend/dist/ 為忽略的產物，由 Docker Node 24 建置；HTML 來源、共用模板及建置腳本納入 Git。Node 只用於前端建置，網站互動仍是原生 JS／jQuery，不因此引入 React 或 Vue。
+frontend/dist/ 為忽略的產物，由 Docker Node 24 建置；HTML 來源、共用模板及建置腳本納入 Git。Node 用於固定頁建置、內容 HTML 產生與測試，網站互動仍是原生 JS／jQuery，不因此引入 React 或 Vue。
 
 ## 3. 採用哪些成熟做法，解決什麼問題
 
@@ -139,7 +139,7 @@ Service 的示意則表達業務次序：
 1. 類別與方法說明用途，如 revokeAllForAdmin、findActiveByEmail；避免 handleData、doProcess 等不明名稱。每個方法只表達一個主要目的。
 2. PHP 使用 strict_types、具體參數／回傳型別。DTO 的欄位清楚；有限狀態用 enum；readonly 僅用於適合不可變的資料。資料庫與外部 JSON 的值要先驗證。
 3. 業務規則旁用繁體中文解釋「為什麼」，附來源 ID；一般變數指定不逐行加註。例：`[S-026] 固定 admin 不可由管理員 CRUD 修改，避免繞過 UI 保護。`
-4. `[E-07] 首次登入改密碼` 等工程補充不能標成規格原文。來源 ID 定義見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。
+4. `[E-07] 本人改密碼` 等工程補充不能標成規格原文；首登強制已依 U-13 取消。來源 ID 定義見 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)。
 5. 每個完成模組在 docs/modules/ 增加簡短閱讀指南：功能 → 頁面 → API → Controller → Service → Repository → 資料表，列出主要錯誤與一次操作例子。只列實際存在的檔案。
 6. 前端同樣按用途拆分：頁面入口、API 封裝、共用元件。資料顯示預設 textContent／jQuery .text()；需 HTML 的內容走既定清理策略。
 7. 分層規則由 PHPat 檢查：Service 不依賴 Controller／Http；Repository 不依賴 Controller／Service；Model／Policy 不依賴 PDO／Http；Controller 不直接依賴 PDO／Repository。組裝位置是明確例外。四條規則已在 backend/tests/ArchitectureTest.php 與 phpstan.neon 建立並驗證。
@@ -157,13 +157,13 @@ Nginx 提供前端 HTML／CSS／JS／公開圖片，只有 /api/v1/* 轉給 PHP 
 
 **[S-SEO-17]** Excel「SEO規格」C17／F17 要求正式 head 不只靠瀏覽器 JS，不執行 JS 仍讀到正確 title／meta／canonical。使用者 **[U-02]** 指定 PHP 只作 API，因此正式 HTML 由前端建置／內容產生工具提供。
 
-**[E-12] 工程方案：前端預先產生公開 HTML。** 使用獨立的前端建置工具（建議 Node），由公開內容 API 取得已發布資料，組合共用模板並產生列表／詳情與 SEO head，交給 Nginx。頁面中的互動與個人資料再呼叫 API。Google 說明伺服器渲染或預先渲染仍有益，且不是所有機器人都會執行 JS，見 [Google JavaScript SEO](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics)。這是本案根據來源所選的方案，Node 並非 Excel 要求。
+**[E-12] 工程方案：前端預先產生公開 HTML。** 階段三已由 ContentPublication 建立和公開 API 相同的資料投影，經 NodeContentRenderer 傳入 frontend/scripts/publish.mjs，組合共用模板及列表／詳情／SEO head，交給 Nginx。PHP 只提供 JSON 與呼叫前端產生器，HTML View 不進 PHP。頁面中的互動與個人資料再呼叫 API。Google 說明伺服器渲染或預先渲染仍有益，且不是所有機器人都會執行 JS，見 [Google JavaScript SEO](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics)。這是本案根據來源所選的方案，Node 並非 Excel 要求。
 
-階段二先建立固定頁面的前端建置；階段三景點發布即須串接內容產生，不能等到階段七才補。階段七擴展全站設定、頁面覆寫、JSON-LD、robots 與 sitemap。
+依 2026-10-17 重排：階段二已建立固定頁面建置；P0 階段三景點發布即串接公開 HTML／SEO，P0 階段七完成 SEO 設定、頁面覆寫與已交付公開頁 head。P1 階段十二才擴展 JSON-LD、動態 robots／sitemap 及索引驗收；後續新增頁沿用 P0 SEO 規則。
 
-公開內容發布／下架、排程與 SEO 設定變更都觸發受影響頁面、列表與 sitemap 更新。產生使用一致的內容版本，輸出先寫暫存再原子切換；流程要有可觀察的完成／失敗狀態與重試。前端只有在發布版本可讀時才顯示發布完成，不把 API 寫入成功等同 HTML 已同步。
+公開內容發布／下架、排程與 SEO 設定變更都觸發受影響頁面與列表更新；P1 加入 sitemap 後，同一流程也必須同步 sitemap。產生使用一致的內容版本，輸出先寫暫存再原子切換；流程要有可觀察的完成／失敗狀態與重試。前端只有在發布版本可讀時才顯示發布完成，不把 API 寫入成功等同 HTML 已同步。
 
-下架須使公開 API 和靜態頁都停止提供該內容，且驗收失敗／重試／並行發布／容器重啟情境。具體工作佇列、發布狀態與儲存結構在階段三另作細設，不在階段二的五張新表中偷偷加入。無法完成上述同步時，SEO 與發布驗收仍未完成。
+下架須使公開 API 和靜態頁都停止提供該內容，且驗收失敗／重試／並行發布／容器重啟情境。階段三已採 content_publications、不可變 generation 目錄、current symlink 原子切換、全域發布鎖與 publisher 每 10 秒檢查排程。失敗保存回 202，API／HTML 版本不一致回 503，授權者可重試；必要資料是新 migration，不改階段二成果。詳見 modules/attractions.md。
 
 只產生公開可索引的內容；後台、重設 token、個人行程不進靜態資料。真實新增內容自動產生 /places/{slug}.html 等網址；原型陣列索引不能直接當新 ID。分享預覽讀同一份 HTML，不依 User-Agent 回傳不同內容。
 

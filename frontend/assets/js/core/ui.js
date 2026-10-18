@@ -28,7 +28,8 @@ export function formErrors(form, error) {
   form.querySelectorAll('[aria-invalid]').forEach(node => { node.removeAttribute('aria-invalid'); node.removeAttribute('aria-describedby'); });
   let first;
   for (const [name, message] of Object.entries(error.fieldErrors || {})) {
-    const input = form.elements.namedItem(name);
+    // [U-09／E-20] 複合表單（例如整週營業時間）也須顯示具體錯誤並可取得焦點。
+    const input = [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) || form.elements.namedItem(name);
     if (!(input instanceof HTMLElement)) continue;
     input.setAttribute('aria-invalid', 'true');
     const hint = element('span', { className: 'field-error', id: `${input.id}-error` }, message);
@@ -40,8 +41,8 @@ export function formErrors(form, error) {
   return Boolean(first);
 }
 
-export async function submitForm(form, action, { canSubmit = () => true, onError } = {}) {
-  const message = form.querySelector('.form-status');
+export async function submitForm(form, action, { canSubmit = () => true, onError, statusNode } = {}) {
+  const message = statusNode || form.querySelector('.form-status');
   const button = form.querySelector('[type="submit"]');
   let retryAfter = 0;
   button.disabled = true;
