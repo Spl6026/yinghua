@@ -1,6 +1,6 @@
 # 電影與放映場次閱讀指南
 
-更新：2026-10-19。階段四實作中，目前完成資料層準備（4A）；電影 API、介面與公開發布尚未接入，不能據此宣告可在網站管理電影。
+更新：2026-10-19。階段四實作中，已完成資料層準備（4A）及公開電影／片單／首頁發布（4B）；管理 API 與編輯介面尚未接入。
 
 ## 已建立的資料層
 
@@ -23,5 +23,13 @@
 `screenings` 省略代表保留，明確空陣列代表移除；父電影的 version 是整組更新的版本。同名電影可以存在，不能用名稱定位。場次保存必須由未來 Service 在共同發布寫入鎖及同一交易內呼叫，不把 Repository 的一次預查當成完整並行保護。
 
 ## 實際驗證
+
+4B 新增 `GET /api/v1/films`、`/films/{slug}`、`/films/resolve-url`，目前共 48 API。`PublicFilmController` 只轉 HTTP，`PublicFilms` 讀成功快照並分頁，`FilmQuery`／`ScreeningWindow` 定義台北週一至下週一的半開區間。`ContentPublication` 將電影、景點與週界線納入同一 generation；`NodeContentRenderer` 的版本雜湊包含所有電影模板與共用 renderer。
+
+`frontend/assets/js/core/film-view.js` 共用電影卡、片單行、詳情與日期／週標示；`scripts/publish.mjs` 產生無 JS 可讀的首頁、cinema 與 `/films/{slug}.html`，`pages/films.js` 處理片單分頁、週標示更新與海報失敗替代。`assets/css/films.css` 沿用原型版型並處理封面裁切／長文字；新電影網址可安全返回登入前頁面。Nginx 禁止退回原型固定電影頁；改名與 `/film-detail.html?id=...` 透過公開快照轉址，草稿／刪除回 404。
+
+`FilmSeeder` 與 `resources/films-demo.json` 由 `php bin/console.php film:seed-demo` 受控匯入原型四部片的文案、海報與固定網址；不猜放映年份、不建立場次、不覆寫已匯入資料。主庫已匯入四筆，尚未排場次的片單顯示空狀態。
+
+4B：PHPStan／PHPat 通過，PHPUnit 54 項／232 斷言；真正 Node 發布器 5 項（景點 3、電影 2）驗證跨年週期、安全編碼、原子發布及下架。公開 HTTP／MariaDB 驗證命令：`python backend/tests/films_public_integration.py`；結果隨階段驗收彙整。
 
 4A：主庫／測試庫新增兩份 migration 並重跑成功，事前備份留在被忽略的 artifacts。Docker PHPStan level 10／PHPat 通過；PHPUnit 52 項／227 斷言；隔離 MariaDB 資料層 8 項通過並回滾。目前不新增電影公開／管理路由，既有 45 個 API 不變。

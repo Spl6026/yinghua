@@ -23,7 +23,8 @@ class NodeContentRenderer implements ContentRenderer
     {
         $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
         $files = [$source . '/scripts/publish.mjs', $source . '/assets/js/core/opening-hours.js', ...glob($source . '/templates/*.html') ?: [],
-            $source . '/pages/index.html',$source . '/pages/explore.html',$source . '/pages/food.html',$source . '/pages/museum.html'];
+            $source . '/pages/index.html',$source . '/pages/explore.html',$source . '/pages/food.html',$source . '/pages/museum.html',
+            $source . '/assets/js/core/film-view.js',$source . '/pages/cinema.html',...glob($source . '/pages/films/*.html') ?: []];
         $hash = hash_init('sha256');
         foreach ($files as $path) {
             if (!hash_update_file($hash, $path)) {

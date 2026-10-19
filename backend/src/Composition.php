@@ -88,10 +88,11 @@ readonly class Composition
         $mediaController = new MediaController(new MediaManagement(new MediaRepository($database), new LocalImageStorage($this->config), $authorization, $transactions, $events), new MediaAccess($publication, $authentication, $authorization));
         $mapPolicy = new GoogleUrlPolicy();
         $mapController = new MapController(new MapResolver(new CurlGoogleHttp($mapPolicy), $mapPolicy, $this->config, $authorization, $limiter, new \Yinghua\Adapters\GooglePlaceMapper(new \Yinghua\Adapters\GoogleOpeningHours())));
+        $filmController = new \Yinghua\Controllers\PublicFilmController(new \Yinghua\Services\PublicFilms($publication), $clock);
         $router = new Router();
-        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController):void $routes */
+        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes($router, $authController, $adminController, $permissionController, $attractionController, $publicAttractions, $mediaController, $mapController);
+        $routes($router, $authController, $adminController, $permissionController, $attractionController, $publicAttractions, $mediaController, $mapController, $filmController);
 
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
@@ -100,6 +101,6 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config);
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock());
     }
 }

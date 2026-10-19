@@ -7,8 +7,8 @@ export function returnTo(kind, fallback = kind === 'admin' ? '/admin/index.html'
   const value = new URLSearchParams(location.search).get('returnTo');
   if (!value || !value.startsWith('/') || value.startsWith('//') || /[\\\x00-\x1f]/.test(value)) return fallback;
   const url = new URL(value, location.origin);
-  const publishedPlacePath = kind === 'member' && /^\/places\/[a-z0-9]+(?:-[a-z0-9]+)*\.html$/.test(url.pathname);
-  if (url.origin !== location.origin || (!routes.has(url.pathname) && !publishedPlacePath) || /\/(login|register|forgot-password|reset-password|change-password)\.html$/.test(url.pathname)) return fallback;
+  const publishedContentPath = kind === 'member' && /^\/(?:places|films)\/[a-z0-9]+(?:-[a-z0-9]+)*\.html$/.test(url.pathname);
+  if (url.origin !== location.origin || (!routes.has(url.pathname) && !publishedContentPath) || /\/(login|register|forgot-password|reset-password|change-password)\.html$/.test(url.pathname)) return fallback;
   if ((kind === 'admin') !== url.pathname.startsWith('/admin/')) return fallback;
   return url.pathname + url.search;
 }

@@ -26,7 +26,7 @@ readonly class Route
     public function match(string $path): ?array
     {
         $expression = str_replace(preg_quote('{id}', '~'), '(?P<id>[a-f0-9-]{36})', preg_quote($this->path, '~'));
-        $expression = str_replace(preg_quote('{slug}', '~'), '(?P<slug>[a-z0-9][a-z0-9-]{0,119})', $expression);
+        $expression = str_replace(preg_quote('{slug}', '~'), '(?P<slug>[a-z0-9][a-z0-9-]{0,159})', $expression);
         if (!preg_match('~^' . $expression . '$~D', $path, $matches)) {
             return null;
         }
