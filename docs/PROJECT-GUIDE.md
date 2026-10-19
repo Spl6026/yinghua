@@ -1,6 +1,6 @@
 # 全站架構與檔案功能導讀
 
-2026-10-19 階段四規劃已整理：[電影／場次細部計畫](PHASE-4-PLAN.md)。包含 Excel 儲存格、原型頁面、預計 API／資料表與驗收；U-16 只檢查日期及開始時間重複，結束時間後續再議。本次只新增工程文件，階段四尚未實作，以下現有 API／資料表及完成範圍不增加。
+2026-10-19 階段四實作中：4A 已建立電影／場次／歷史網址三表及 DTO、Repository、開始時間政策，主庫與測試庫套用 010／011 後為十二份 migration、24 表；尚未接入電影 API／介面，既有 45 API 不變。新檔用途及實際資料層驗證見 [電影指南](modules/films.md)，後續順序見 [階段四計畫](PHASE-4-PLAN.md)。U-16 只檢查日期及開始時間重複，結束時間後續再議。以下較早日期的 21 表／十份 migration 是當時紀錄。
 
 2026-10-19 業主要求校正：補回 Excel E20 的既有範例景點試填與 G6 電話流程。最新逐條來源、實作／驗證及正式交付差項見 [階段二、三業主要求對照](PHASE-2-3-OWNER-ALIGNMENT.md)。本輪 14 組整合共460項、PHP44項／213斷言、Node73項及獨立契約零差異；原先完整檢查沒有覆蓋這兩個漏項，不能當成全面符合 Excel 的證明。現在45個API操作、十份migration、21表181欄。
 
@@ -835,6 +835,7 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 | [REQUIREMENTS-MAP.md](../docs/REQUIREMENTS-MAP.md) | 原始規格功能來源與網站頁面需求對照。 |
 | [PHASE-2-PLAN.md](../docs/PHASE-2-PLAN.md) | 階段二細設、API／表／頁面及工程補充對照。 |
 | [PHASE-4-PLAN.md](PHASE-4-PLAN.md) | 階段四電影／場次的欄位來源、九個預計 API、三張預計表、原型頁面、分層、U-16 與驗收；僅規劃。 |
+| [modules/films.md](modules/films.md) | 階段四實際完成範圍、新檔案用途、資料流與驗證；持續隨功能更新。 |
 | [ARCHITECTURE.md](../docs/ARCHITECTURE.md) | 設計原則、採用做法與參考、API-only／SEO 發布的目標架構；含後續規劃，實際檔案以本導讀為準。 |
 | [DESIGN-TRACEABILITY.md](../docs/DESIGN-TRACEABILITY.md) | S／D／U／E 來源 ID 與工程政策，區分原始需求和新增選擇。 |
 | [DEVELOPMENT-WORKFLOW.md](../docs/DEVELOPMENT-WORKFLOW.md) | 開發步驟、技能選用、品質／安全／UI 檢查及交付約定。 |
