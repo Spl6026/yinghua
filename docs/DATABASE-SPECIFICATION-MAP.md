@@ -1,8 +1,8 @@
 # 資料表與原始 Excel 對照
 
-更新日期：2026-10-19。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。
+更新日期：2026-10-20。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。
 
-目前 **20 張業務表＋1 張 migration 工具表**。五份校正 migration 不新增表；隔離 MariaDB 12.3.3 實際檢查為 21 表、181 欄、10 份已完成 migration。主庫也已套用並核對 20 張業務表筆數保留；完整驗收另見 [校正交付](SPECIFICATION-ALIGNMENT.md)，不以隔離結果代替主庫結果。
+目前 **23 張業務表＋1 張 migration 工具表，共 24 表、211 欄、12 份 migration**。階段四的 010／011 新增電影、場次及歷史網址三表；既有 001–009（含兩份 002）的內容與 checksum 不改。主庫／測試庫均已套用；空庫與保留舊會員／景點的升級亦在新建隨機測試庫驗證並重跑。先前階段的數字保留於各日期紀錄；階段四結果見 [驗收](PHASE-4-ACCEPTANCE.md)。
 
 ## 原始建議已有對應的資料表
 
@@ -15,6 +15,8 @@
 | 資料表建議 9 | admin_role_permissions | admin_id、permission_id、allowed、updated_by、updated_at 與個人唯一鍵對應；實際授權使用個人矩陣，不只依範本 |
 | 資料表建議 10 | attractions | 內容、唯一 slug、分類、行政區、介紹、地址、座標、週表、Google 關聯、發布狀態、版本與時間欄位對應。006 補 created_by／updated_by，皆為 admin_users 外鍵；HTTP 不能傳入冒名。既有歷史記錄無回填，允許 NULL；新管理寫入由驗證身分填入 |
 | 資料表建議 11 | media_assets | storage_key 唯一；mime_type、尺寸及 created_at 同名。byte_size 對應 size_bytes、alt 對應 alt_text、source 對應 credit、uploaded_by 對應 created_by。public_url 不另存：由受控 storage_key 組成 /media 路徑，避免 URL 與儲存鍵不同步。source／license 可空白；圖片 alt 仍必填 |
+| 資料表建議 A12–D12 | films | id、slug、title、genre、synopsis、poster_media_id、status、操作者、version 及時間對應。publish_at 表示預定公開時間，不冒稱首次發布時間；SEO、網址海報、用途說明、電影預設票務、legacy_id／deleted_at 為 E-25。欄位清單不等於必填；片名依原型 required，有圖有效 alt 依 G7／G21 |
+| 資料表建議 A13–D13 | film_screenings | id、film_id、starts_at、ticket_url、時間欄對應；starts_at 存 UTC。U-16 只比開始日期與時間，所以本階段沒有 ends_at／venue；場次公開性依父電影狀態，不自創獨立取消狀態。零場次可保存／發布 |
 | 資料表建議 15 | merchants | 階段三僅 attraction_id FK＋created_at，作美食／店家標記；名稱、行政區、地址與官網由關聯 attractions 取得，不建立兩份會失去同步的資料。此表尚非完整優惠合作店家管理，phone／店家生命週期等留對應業務階段，不冒稱已完成整列建議 |
 | 資料表建議 17 | routes | 僅 id／title／status／version，為刪除引用保護所需的最小標頭；完整 slug、theme、summary、duration 等於 P1 路線階段擴充 |
 | 資料表建議 18 | route_attractions | route_id、attraction_id、sort_order 與順序／重複引用唯一性對應；suggested_time、note 尚未實作，不因此提前建立完整路線功能 |
@@ -48,14 +50,15 @@
 | password_reset_tokens | E-03：串接總覽 B9 要密碼重設；只保存 token 摘要、用途、期限與使用狀態 |
 | member_consents | E-05／API草案 G17：保存會員同意的條款版本及時間 |
 | attraction_aliases | E-18：唯一 slug 的歷史路徑對應，保留舊網址導向及碰撞保護 |
-| content_publications | E-18：公開 HTML 與 API 的 generation、成功／失敗及重試狀態，避免保存失敗卻顯示已發布 |
+| content_publications | E-18／E-25：景點／電影共同公開 HTML 與 API 的 generation、成功／失敗及重試狀態，避免保存失敗卻顯示已發布 |
+| film_aliases | E-25：電影歷史 slug 路徑對應 UUID；保留舊網址及碰撞保護 |
 | schema_migrations | 工具表，不是業務功能：紀錄 migration checksum、已套用 statement 與完成時間，支援中斷後續跑 |
 
 007_approved_authentication_policy.sql 依 U-13 清除舊旗標、改預設 0；不修改原始已套用 migration。
 
 ## Excel 建議但尚未開始的業務表
 
-films／film_screenings（列 12／13）、news_posts（14）、offers（16）、itineraries／itinerary_items（19／20）、favorites（21）、site_settings／content_seo（24／25）尚未實作。依 [實作計畫](IMPLEMENTATION-PLAN.md) 在相應 P0／P1／P2 階段建立，不因本次資料庫核對提前建立空業務或宣告串接完成。
+news_posts（14）、offers（16）、itineraries／itinerary_items（19／20）、favorites（21）、site_settings／content_seo（24／25）尚未實作。依 [實作計畫](IMPLEMENTATION-PLAN.md) 在相應 P0／P1／P2 階段建立，不因本次資料庫核對提前建立空業務或宣告串接完成。
 
 ## Migration 與操作
 
@@ -85,3 +88,17 @@ DDL 參照 [MariaDB ALTER TABLE 官方語法](https://mariadb.com/docs/server/re
 [009_attraction_phone.sql](../backend/database/migrations/009_attraction_phone.sql) 僅增加 attractions.phone VARCHAR(80) NOT NULL DEFAULT ''；電話選填，原有內容預設空字串，不猜電話。phoneUrl由程式衍生，不是重複儲存欄。001–008保持原內容。樣本查詢使用legacy_id唯一欄位、狀態／時間與soft delete條件，沒有新增索引或業務表。
 
 兩庫已先備份至被忽略的before-owner-phone-*-20261019.sql再升級；還原主庫舊備份後逐筆比較六筆景點全部原有欄位，完全一致。空庫十份migration、重跑、seed、固定管理員初始化與六筆範例亦通過；臨時庫及專用授權已移除。MariaDB12.3.3實際EXPLAIN選用attraction_admin索引、估計六筆；小型固定範例的filesort不構成新增索引理由。performance_schema仍OFF，沒有為此重啟資料庫或宣稱效能壓測通過。
+
+## 2026-10-19 階段四：電影與場次（U-16／E-25）
+
+010 建立 films（22 欄）與 film_screenings（6 欄），011 建立 film_aliases（2 欄）；合計新增 30 欄。原始 Excel 仍是建模草案，欄位省略／空值與 API 規則見 [電影計畫](PHASE-4-PLAN.md) 的逐欄來源。
+
+- films：title 必須非空由 DTO 驗證；synopsis／genre／poster_url／ticket_url／SEO 可為空字串，媒體 FK 與用途覆寫以 NULL 表示未選／繼承。NOT NULL 不自動等於業務必填。poster_media_id 與非空 poster_url 不能並用；媒體存在由 FK，所屬 films 模組與有效 alt 由服務政策驗證。
+- film_screenings：film_id FK，UNIQUE(film_id,starts_at) 防同片重複。跨電影比較依 U-16 在共享寫入鎖及交易內執行；草稿占用、下架釋放，故不把 starts_at 單獨做全域唯一鍵。這個狀態策略及分鐘精度是 E-25，不冒稱 Excel 明文。
+- 既有場次 ID 只能屬於同電影；集合更新保留 ID／created_at，updated_at 依本次寫入更新。父電影 version 防止不同人互相覆蓋整組場次，場次及稽核故障皆回滾。
+- film_aliases：path 主鍵、film_id FK；新舊 slug 都保留，只有目前已發布電影可解析為站內 canonical。legacy_id 使用原型 0-based 對照，不用陣列位置替代 UUID。
+- 仍沒有 ends_at、venue 或電影／場次另套權限表。每場票務空白沿用電影預設，只做外連；D13 的結束大於開始與白名單仍是草案，未擅自增加發布必填或營運網域白名單。
+
+MariaDB 12.3.3 實際 EXPLAIN：管理排序選 film_admin；公開查詢選 film_admin 並有 filesort；場次批次選 film_start 的 range；當次開始時間碰撞查詢以 film_admin＋film_start 查找。樣本小，不把估計 1–2 筆當成大資料效能證明，未另增索引或壓測宣稱；screening_start 保留開始時間索引用途。performance_schema 為 OFF，沒有為此重啟共用資料庫。
+
+升級前主／測試庫備份：被 Git 忽略的 artifacts/phase4-before-migrations-20261019.sql。`film_schema_upgrade.py` 新建隨機 fresh／upgrade 測試庫，驗證 24 表／12 migration、重跑、最少電影、FK／同片唯一及舊會員／景點保留；最後清除自有測試庫與暫時授權，沒有 DROP 使用者主庫／固定測試庫。正常升級沿用 db:migrate，完整命令見驗收與全站導讀。

@@ -1,10 +1,10 @@
 # Git 階段分支與功能提交
 
-更新日期：2026-10-19。依使用者指定：一個階段一條分支、完整功能分開提交、自身錯誤併回原功能。此次整理實際收整提交與分支拓樸，沒有新增業務功能。
+更新日期：2026-10-20。依使用者指定：一個階段一條分支、完整功能分開提交、自身錯誤併回原功能。階段四交付依同一規則；下方另保留 10 月 19 日先前三階段整理的歷史紀錄。
 
 ## 目前歷史
 
-`main` 保留原始交付與三個階段合併點；本機只保留 `main` 和三條階段分支。
+階段四驗收交付後，`main` 保留原始交付、階段四規劃及四個階段合併點；本機保留 `main` 和四條階段分支。未開始的階段五以後不提前建立分支。
 
 ```text
 原始交付
@@ -13,7 +13,10 @@
        ├─ phase/02-auth-permissions：認證、密碼、管理員、權限與唯讀模擬
        └─ merge 階段二
             ├─ phase/03-attractions-media：優先級規劃、景點、媒體、地圖與驗收
-            └─ merge 階段三 → main
+            └─ merge 階段三
+                 ├─ 階段四規劃（實際規劃提交，保留）
+                 ├─ phase/04-films-screenings：資料層、公開電影、管理／海報、多場次及驗收
+                 └─ merge 階段四 → main
 ```
 
 | 階段 | 分支 | 提交與實際範圍 |
@@ -21,6 +24,7 @@
 | 1：共用準備 | `phase/01-project-setup` | 7 筆規劃／安裝／環境提交；保持不變 |
 | 2：認證與權限 | `phase/02-auth-permissions` | 18 筆前置、完整功能、驗證與全站導讀；保持不變 |
 | 3：景點與圖片 | `phase/03-attractions-media` | 12 筆規劃、功能、驗證與最終文件；已完成本機驗收，P0 尚未完成 |
+| 4：電影與場次 | `phase/04-films-screenings` | 5 筆資料層準備、公開電影、電影／海報管理、多場次、整合驗收與導讀；已完成本機驗收，P0 尚未完成 |
 
 原始第一提交 `56733e5c566009b02fb8d23c8949eec0c61f80c6` 固定不改。`website/` 與原始 Excel 的 69 檔完整保留。
 
@@ -41,11 +45,20 @@
 
 後續追加功能各自保留完整功能提交；重複複查、基準校正及自身錯誤不再各開一條文件分支／合併節點。報告檔案保留原本內容與日期，收在相應功能及驗收交付中。
 
+階段四五筆依序為：
+
+1. `build(films): prepare typed film and screening persistence`：三表、DTO／Repository、型別及資料層檢查。
+2. `feat(films-public): publish weekly listings and film detail pages`：公開 API、HTML／SEO、舊網址、分頁及受控 metadata seed。
+3. `feat(films-admin): manage films and poster media`：六個管理 API、電影資訊／海報表單與媒體分權。
+4. `feat(film-screenings): edit screening starts without duplicates`：動態場次、U-16、整組交易、衝突／並行與票務。
+5. `test(phase-04): accept films and document delivered architecture`：跨模組完整回歸、空庫／保留資料升級、容器重建持久化、桌面／手機及導讀。
+
+開發期間的日期邊界、公開換頁／安全編碼、海報預覽與僅新增權限修正併回相應功能，不留下 fixup 或額外進度提交。階段四具體結果見 [驗收](PHASE-4-ACCEPTANCE.md)。
+
 ## 後續階段
 
 | 階段 | 優先級 | 預定分支 | 狀態 |
 | --- | --- | --- | --- |
-| 4：電影與場次 | P0 | `phase/04-films-screenings` | 未開始 |
 | 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 未開始 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 未開始 |
 | 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 未開始 |
@@ -70,9 +83,9 @@
 - 完成階段前更新 [PROJECT-GUIDE.md](PROJECT-GUIDE.md)，對齊實際頁面、API、資料表、環境、檔案用途與驗收狀態。
 - 合併只表示紀錄中實際通過的範圍，不代表正式 SMTP、HTTPS 或其他正式環境待驗項已完成。
 
-## 本次收整與備份
+## 2026-10-19 先前三階段收整與備份
 
-原本 16 個 merge commit 收為三個階段合併點；14 條本機分支收為四條。階段一、二與原始交付提交保持不變。優先級規劃保留為階段三分支的第一筆規劃提交；其餘功能依相依順序排列，沒有把後續階段列為完成。
+當時原本 16 個 merge commit 收為三個階段合併點；14 條本機分支收為四條。階段一、二與原始交付提交保持不變。優先級規劃保留為階段三分支的第一筆規劃提交；其餘功能依相依順序排列，沒有把後續階段列為完成。
 
 整理前以 `artifacts/history-before-stage-compaction-20261019.bundle` 備份全部 refs 並驗證；舊的文件分支及每輪提交均可由備份復原。已合併的十條 `docs/` 分支不留在目前分支圖。
 
@@ -81,3 +94,9 @@
 原始 69 檔、最終應用程式內容、階段分支、merge 父子關係及備份完整性須核對；不修改 `.env`、資料庫、遠端 refs，也不推送遠端。
 
 查看階段主線：`git log --first-parent --oneline main`。查看某階段的功能：`git log --oneline phase/02-auth-permissions..phase/03-attractions-media`。
+
+## 階段四歷史保護
+
+開發中已建立並驗證 `artifacts/phase4-before-history-20261019.bundle`。最終 autosquash 前另保存全部 refs 的 `artifacts/phase4-before-autosquash-20261020.bundle`；合併前再保存 `artifacts/phase4-before-merge-20261020.bundle`。均為本機忽略檔，不提交大型備份或任何憑證。
+
+只收整從 `74b881f8148c7e42c0d0a9738dcee77f59f6b312` 起的本機階段四提交，不改階段一至三、第一提交或遠端 refs。比較 autosquash 前後整棵 tree，再以 `--no-ff` 合併並保留 `phase/04-films-screenings`；核對 main／階段分支 tree 相同、原始 69 檔完整及工作目錄乾淨。系統的 `refs/codex/` 復原紀錄不當成專案進度分支，也不刪除。
