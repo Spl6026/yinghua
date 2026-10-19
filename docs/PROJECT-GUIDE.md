@@ -432,7 +432,11 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 以 compose.yaml 的設定為準：MariaDB **12.3**，服務名稱 `db`、容器內 port **3306**；PHP 的 `DB_HOST=db`。開發庫預設 **yinghua**，技術資料庫使用者預設 **spl**，隔離測試庫固定 **yinghua_test**。網站固定管理員登入 account 是 **admin**，與 DB 使用者是不同概念。
 
-MariaDB 沒有映射宿主機 port，Windows 上不能直接把 localhost:3306 當成目前容器的資料庫。資料存在 Docker volume `yinghua_db_data` 的 `/var/lib/mysql`；不是 backend/ 下的 SQL 或 JSON 檔。開發／測試使用同一個 MariaDB 容器中的不同 database，測試程式及 fixture 有指定庫名防護。
+2026-10-20 依 U-17 開放本機 DBeaver：宿主機 `127.0.0.1:${DB_FORWARD_PORT:-3306}` 映射容器 3306，預設連線為 `127.0.0.1:3306`。使用 MariaDB driver，database／username 預設 `yinghua`／`spl`，密碼取忽略的 `.env` 中 `DB_PASSWORD`，不是網站 admin 密碼。映射僅綁 loopback；PHP 仍用 `db:3306`。資料存在 Docker volume `yinghua_db_data` 的 `/var/lib/mysql`；不是 backend/ 下的 SQL 或 JSON 檔。開發／測試使用同一個 MariaDB 容器中的不同 database，測試程式及 fixture 有指定庫名防護。
+
+本次已從 Windows 經上述 port 實際登入並執行唯讀查詢：MariaDB 12.3.3、24 表、12 份 migration、四部原型電影保留，網站與公開電影 API 回 200。重建 db 容器沿用原 volume，未變更密碼或資料表；本機連線驗證產物放忽略的 artifacts。修改本機 port 後使用 `docker compose up -d --no-deps --wait db` 套用，詳見 [DBeaver 操作](../README.md#dbeaver-查看資料庫)。
+
+使用者實際以 Docker 內的 CloudBeaver 連線：Host 改用 `host.docker.internal`，其餘設定相同。已直接從 `dbeaver` 容器驗證該主機 3306 可連；容器內 `127.0.0.1` 是容器自己，不是 Windows。未更動其 Docker 網路或擴大 DB 的 port 綁定。
 
 資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以十二支 migration 為準；004 增加週表，005–007 校正帳號、選填／操作者及核准的認證政策，008 強化固定身分文字的逐位元組保護，009 新增選填 phone，皆不增加業務表。
 
@@ -504,7 +508,7 @@ erDiagram
 | `frontend` | Node 24，執行 build.mjs 一次 | `frontend/` → `/frontend` | 預設；完成後正常 Exit 0 |
 | `web` | Nginx，靜態檔與 FastCGI 轉送 | dist → `/var/www/frontend`；127.0.0.1:8080 → 80 | 預設，等 app 健康及前端建置完成 |
 | `app` | PHP 8.5-FPM、Composer、應用與品質工具 | backend → `/var/www/app`；內網 9000，未公開 port | 預設，等 db 健康 |
-| `db` | MariaDB 12.3 | `/var/lib/mysql`；內網 3306，未公開 port | 預設 |
+| `db` | MariaDB 12.3 | `/var/lib/mysql`；127.0.0.1:DB_FORWARD_PORT（預設 3306）→ 3306 | 預設 |
 | `publisher` | 共用 app image，以 www-data 執行 `content:watch`，定期同步排程及公開版本 | 前端來源唯讀；publication／media volumes；無對外 port | 預設，等 app／db 健康 |
 | `mailpit` | 本機 SMTP 收信器與閱信介面 | 內網 1025；127.0.0.1:8025 → 8025 | `--profile mail` |
 | `app-test` | 與 app 相同責任，但 APP_ENV=test、DB=yinghua_test、APP_URL=localhost:8081 | 共用應用來源與套件 volume | `--profile test` |
@@ -551,6 +555,7 @@ Compose project 名稱是 `yinghua`。Nginx／MariaDB／Node／Mailpit 與 Docke
 | `HTTP_PORT` | web 宿主機 port，預設 8080；若修改，APP_URL 也要相符 |
 | `APP_KEY` | HMAC／簽章用秘密，setup-env 隨機產生；不是資料庫密碼 |
 | `DB_DATABASE`、`DB_USERNAME` | yinghua、spl |
+| `DB_FORWARD_PORT` | MariaDB 的宿主機 loopback port，預設 3306；只改本機 DBeaver 入口，不改容器內 DB_PORT |
 | `DB_PASSWORD`、`DB_ROOT_PASSWORD` | 應用 DB user 與 DB root 的秘密，初始化時分別產生 |
 | `SESSION_SECURE` | 本機 HTTP 為 false；production 設定校驗要求 HTTPS 與 true |
 | `AUTH_SESSION_SECONDS`、`AUTH_IDLE_SECONDS` | 43200／1800 秒：登入最長 12 小時／閒置 30 分鐘 |

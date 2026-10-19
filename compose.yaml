@@ -109,6 +109,9 @@ services:
 
   db:
     image: mariadb:12.3@sha256:2bdff1534a7e569fecaf4b10b66ad0d410806e382d9db29ba305448addda97c4
+    # [U-17／E] 本機 DBeaver 連線；只綁定 loopback，容器內仍用 db:3306。
+    ports:
+      - "127.0.0.1:${DB_FORWARD_PORT:-3306}:3306"
     environment:
       MARIADB_DATABASE: ${DB_DATABASE:-yinghua}
       MARIADB_USER: ${DB_USERNAME:-spl}

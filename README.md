@@ -34,6 +34,22 @@ docker compose exec -u www-data -T app php bin/console.php film:seed-demo
 
 固定後台帳號是規格指定的 `admin`；技術帳號／MariaDB 使用者是 `spl`，資料庫是 `yinghua`。固定管理員 Email 已在本機依使用者提供設定；密碼只在 `.env`。`admin:init` 重跑不改已建立的帳號密碼；更改 `.env` 不會自動變更已建立的資料庫帳號。復原方式見認證指南。
 
+### DBeaver 查看資料庫
+
+依使用者指定（U-17），MariaDB 開放本機連線。在 DBeaver 建立 **MariaDB** 連線：
+
+| 欄位 | 設定 |
+| --- | --- |
+| Host | Windows 桌面版用 `127.0.0.1`；Docker 裡的 CloudBeaver 用 `host.docker.internal` |
+| Port | `.env` 的 `DB_FORWARD_PORT`，預設 `3306` |
+| Database | `yinghua`，或 `.env` 的 `DB_DATABASE` |
+| Username | `spl`，或 `.env` 的 `DB_USERNAME` |
+| Password | `.env` 的 `DB_PASSWORD`，不是網站登入密碼 |
+
+只綁定本機 `127.0.0.1`。若 3306 已被其他程式使用，可在 `.env` 將 `DB_FORWARD_PORT` 改為 `3307`，再執行 `docker compose up -d --no-deps --wait db`；既有 volume 與帳號保留。PHP 容器仍使用 `db:3306`，不需要更改應用連線設定。
+
+Docker 工具中的 `127.0.0.1` 指向工具容器本身，會連錯位置。本機 `dbeaver` 容器已實測可連 `host.docker.internal:3306`，不需要擴大為對外綁定。`db` 主機名稱只適用於加入本專案 Docker 網路的容器。
+
 既有環境升級至階段四時，先備份資料再執行 db:migrate、重建 frontend，重啟常駐 publisher 並讓 web 重新載入 Nginx 模板：
 
 ```powershell
