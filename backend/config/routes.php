@@ -14,7 +14,7 @@ use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
 /** [S-016／17／26／27；S：功能規格 6/13/19/20；E-18] 路由只宣告 HTTP、身分與授權。 */
-return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media, MapController $maps, \Yinghua\Controllers\PublicFilmController $films): void {
+return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media, MapController $maps, \Yinghua\Controllers\PublicFilmController $films, \Yinghua\Controllers\FilmController $filmAdmin): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
         $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...), allowPreviewControl: true));
@@ -48,8 +48,14 @@ return static function (Router $router, AuthController $auth, AdminController $a
     $router->add(new Route('PUT', '/api/v1/admin/attractions/{id}', $kind, $attractions->update(...), true, 'attractions', 'edit'));
     $router->add(new Route('DELETE', '/api/v1/admin/attractions/{id}', $kind, $attractions->delete(...), true, 'attractions', 'delete'));
     $router->add(new Route('POST', '/api/v1/admin/attractions/publish-retry', $kind, $attractions->retry(...), true, 'attractions', 'edit'));
+    $router->add(new Route('GET', '/api/v1/admin/films', $kind, $filmAdmin->listing(...), true, 'films', 'view'));
+    $router->add(new Route('GET', '/api/v1/admin/films/{id}', $kind, $filmAdmin->get(...), true, 'films', 'view'));
+    $router->add(new Route('POST', '/api/v1/admin/films', $kind, $filmAdmin->create(...), true, 'films', 'create'));
+    $router->add(new Route('PUT', '/api/v1/admin/films/{id}', $kind, $filmAdmin->update(...), true, 'films', 'edit'));
+    $router->add(new Route('DELETE', '/api/v1/admin/films/{id}', $kind, $filmAdmin->delete(...), true, 'films', 'delete'));
+    $router->add(new Route('POST', '/api/v1/admin/films/publish-retry', $kind, $filmAdmin->retry(...), true, 'films', 'edit'));
     $router->add(new Route('POST', '/api/v1/admin/media', $kind, $media->upload(...), true));
-    $router->add(new Route('GET', '/api/v1/admin/media', $kind, $media->listing(...), true, 'attractions', 'view'));
+    $router->add(new Route('GET', '/api/v1/admin/media', $kind, $media->listing(...), true));
     $router->add(new Route('GET', '/api/v1/admin/media/access', $kind, $media->access(...)));
     $router->add(new Route('POST', '/api/v1/admin/places/resolve-map-url', $kind, $maps->resolve(...), true));
     $kind = IdentityKind::Member;

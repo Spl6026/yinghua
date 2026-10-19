@@ -1,3 +1,5 @@
+import { initializeFilmList } from './pages/film-list.js';
+import { initializeFilmForm } from './pages/film-form.js';
 import { authApi } from './api/auth-api.js';
 import { requireSession, hasPermission, handleAdminError, adminNavigation, adminDestination } from './core/session.js';
 import { initializeMenus, status, element } from './core/ui.js';
@@ -43,6 +45,8 @@ try {
     } else if (page === 'admins') await initializeAdmins(identity);
     else if (page === 'admin-add' || page === 'admin-edit') await initializeAdminForm(identity, page);
     else if (page === 'permissions') await initializePermissions(identity);
+    else if (page === 'films') await initializeFilmList(identity);
+    else if (page === 'film-add' || page === 'film-edit') await initializeFilmForm(identity, page);
     else if (page === 'places') await initializeAttractionList(identity);
     else if (page === 'place-add' || page === 'place-edit') await initializeAttractionForm(identity, page);
   }

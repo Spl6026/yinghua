@@ -9,16 +9,29 @@
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/phase2.css">
+<link rel="stylesheet" href="/assets/css/phase3.css">
+<link rel="stylesheet" href="/assets/css/phase4.css">
 </head>
 <body data-module="films" data-action="edit" data-page="film-edit">
-<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
-<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / FILMS</p><h1>編輯映演場次</h1><p>此功能將於後續階段提供。</p></div></div>
-<section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
-</section>
-</div>
-</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
-<script type="module" src="/assets/js/admin.js"></script></body>
-</html>
+<a class="skip-link" href="#main-content">跳到主要內容</a>
+<div class="site-shell"><main id="main-content" tabindex="-1">
+<div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT / FILMS</p><h1>編輯映演場次</h1><p>編輯上映電影與放映資訊。</p></div><button type="button" id="reload-film" class="button button-outline">重新載入</button></div>
+<section class="admin-panel"><form id="film-form" autocomplete="off"><p class="form-status" id="film-form-status" role="status" tabindex="-1"></p><div class="admin-form-grid">
+<div class="admin-field"><label for="film-title">電影名稱 *</label><input id="film-title" name="title" type="text" maxlength="255" required autocomplete="off"></div>
+<div class="admin-field"><label for="film-genre">電影類型</label><input id="film-genre" name="genre" type="text" maxlength="255" ></div>
+<div class="admin-field full"><h2>放映場次</h2><div id="film-screenings" class="film-screenings"><p>尚未安排放映場次。</p></div></div>
+<div class="admin-field full"><label for="film-posterMode">海報來源</label><select id="film-posterMode" name="posterMode"><option value="url">圖片網址</option><option value="upload">上傳圖片</option></select><p class="helper-text">切換來源會清除另一來源的選擇。</p></div>
+<div class="admin-field full" id="film-url-fields"><label for="film-posterUrl">電影海報圖片網址</label><input id="film-posterUrl" name="posterUrl" type="url" maxlength="2000" placeholder="https://example.com/poster.jpg"><p class="helper-text">輸入可公開讀取的圖片網址，會即時預覽。</p></div>
+<div class="admin-field full" id="film-upload-fields" data-field-name="posterMediaId" tabindex="-1" hidden><label for="film-image">上傳電影海報</label><input id="film-image" name="image" type="file" accept="image/jpeg,image/png,image/webp"><input name="posterMediaId" type="hidden"><button type="button" data-write id="upload-film-image" class="button button-outline">上傳海報</button><p class="helper-text">JPEG／PNG／WebP，最多 8 MiB；邊長最多 6000、總像素最多 1200 萬。圖片會檢查、解碼並重新編碼。</p></div>
+<div class="admin-field full"><img id="film-image-preview" hidden class="admin-film-preview" width="360" height="260" loading="lazy" src="/assets/image-placeholder.svg" alt="電影海報預覽"><p id="film-media-status" class="form-status" role="status" tabindex="-1"></p></div>
+<div class="admin-field"><label for="film-posterAlt">海報替代文字（有圖片時必填）</label><input id="film-posterAlt" name="posterAlt" type="text" maxlength="255" ></div>
+<div class="admin-field"><label for="film-posterSource">海報來源（選填）</label><input id="film-posterSource" name="posterSource" type="text" maxlength="255" ></div>
+<div class="admin-field"><label for="film-posterLicense">海報授權（選填）</label><input id="film-posterLicense" name="posterLicense" type="text" maxlength="255" ></div>
+<div class="admin-field full"><label for="film-synopsis">電影介紹（選填）</label><textarea id="film-synopsis" name="synopsis" maxlength="20000"></textarea></div>
+<div class="admin-field"><label for="film-ticketUrl">售票連結（選填）</label><input id="film-ticketUrl" name="ticketUrl" type="url" maxlength="2000" ></div>
+<div class="admin-field"><label for="film-status">發布狀態</label><select id="film-status" name="status"><option value="draft">草稿</option><option value="published">已發布／排程</option><option value="archived">已下架</option></select></div><div class="admin-field"><label for="film-publishAt">發布時間（台北時間，留空立即發布）</label><input id="film-publishAt" name="publishAt" type="datetime-local" maxlength="30" step="1"></div>
+<div class="admin-field"><label for="film-slug">網址識別（選填，留空自動產生）</label><input id="film-slug" name="slug" type="text" maxlength="160" ></div>
+<div class="admin-field"><label for="film-seoTitle">SEO 標題（選填）</label><input id="film-seoTitle" name="seoTitle" type="text" maxlength="160" ></div>
+<div class="admin-field full"><label for="film-seoDescription">SEO 描述（選填）</label><textarea id="film-seoDescription" name="seoDescription" maxlength="500"></textarea></div>
+</div><div class="admin-form-actions"><a id="film-cancel" class="button button-outline" href="/admin/films.html">取消</a><a id="film-another" class="button button-outline" href="/admin/film-add.html" hidden>再新增電影 ↗</a><button type="submit" class="button button-dark">儲存變更 ↗</button><button type="button" id="retry-film-publication" class="button button-outline" hidden>重試公開頁面同步</button></div></form></section></div></div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div><script type="module" src="/assets/js/admin.js"></script></body></html>

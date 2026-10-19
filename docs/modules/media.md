@@ -1,8 +1,8 @@
 # 圖片上傳與存取閱讀指南
 
-更新：2026-10-18。功能規格的圖片／alt／管理授權要求為 S；8 MiB、6000 邊長、1200 萬像素、重新編碼與 volume 拆分為 E-18 工程選擇。
+更新：2026-10-19。功能規格的圖片／alt／管理授權要求為 S；8 MiB、6000 邊長、1200 萬像素、重新編碼與 volume 拆分為 E-18 工程選擇；階段四依 E-25 增加電影模組隔離。
 
-入口為 MediaController：multipart 轉 UploadedImage，讀取 action、alt 與選填 source／license，再交 MediaManagement。Service 先依 attractions create／edit 驗權；LocalImageStorage 驗證真實 PHP 上傳、檔案大小、finfo、尺寸及 GD 解碼，只接受 JPEG／PNG／WebP。重新編碼去除原始中繼資料，使用隨機 UUID 檔名及固定副檔名，以暫存檔 rename 保存。
+入口為 MediaController：multipart 轉 UploadedImage，讀取 action、alt、選填 source／license 及 module，再交 MediaManagement。Service 依 module 的 create／edit 驗權；省略 module 仍為 attractions。LocalImageStorage 驗證真實 PHP 上傳、檔案大小、finfo、尺寸及 GD 解碼，只接受 JPEG／PNG／WebP。重新編碼去除原始中繼資料，使用隨機 UUID 檔名及固定副檔名，以暫存檔 rename 保存。
 
 MediaManagement 在資料庫交易內再次確認管理員權限，透過 MediaRepository 保存 media_assets 及稽核。若 DB 保存失敗則移除剛建立的檔案，不留下成功假象。source／license 可省略／空白，是管理員填寫的來源紀錄，不代表系統替內容取得法律授權。
 
@@ -27,3 +27,9 @@ R3-02：recommendationLabel 是原型的「城市記憶／巷弄探索」等文�
 ## U-14 的掃描範圍
 
 使用者明確選擇維持圖檔內容檢查：MIME、尺寸／大小、實際解碼與重新編碼。沒有獨立病毒掃描服務，不宣稱已做病毒掃描。圖片本身選填；上傳時 alt 必填，來源與授權說明不作非空門檻。
+
+## 階段四的電影海報共用（E-25）
+
+POST /api/v1/admin/media 可提供 `module=films`；省略仍預設 attractions。MediaModule enum 與 MediaManagement 依所選模組及 action=create/edit 授權；GET 清單驗相應模組 view，草稿 /media 預覽依資產實際 module 驗 view/create/edit。匿名僅可讀當前成功快照中的景點／電影引用圖片，不因有景點權限就開放電影草稿。
+
+圖片格式、尺寸、8 MiB 與內容檢查仍沿用原機制，掃描範圍維持 U-14，不新增病毒掃描服務。電影用途 alt／來源／授權在 films 覆寫，不改共用資產；外部海報 URL 只交給瀏覽器，不由 PHP 任意下載。完整檔案與驗證見 [電影指南](films.md)。

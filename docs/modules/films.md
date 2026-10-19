@@ -1,6 +1,6 @@
 # 電影與放映場次閱讀指南
 
-更新：2026-10-19。階段四實作中，已完成資料層準備（4A）及公開電影／片單／首頁發布（4B）；管理 API 與編輯介面尚未接入。
+更新：2026-10-19。階段四實作中，已完成資料層準備（4A）、公開電影／片單／首頁發布（4B）及電影資訊／海報管理（4C）；多場次編輯尚未啟用，既有場次目前只讀。
 
 ## 已建立的資料層
 
@@ -23,6 +23,14 @@
 `screenings` 省略代表保留，明確空陣列代表移除；父電影的 version 是整組更新的版本。同名電影可以存在，不能用名稱定位。場次保存必須由未來 Service 在共同發布寫入鎖及同一交易內呼叫，不把 Repository 的一次預查當成完整並行保護。
 
 ## 實際驗證
+
+4C 管理 `FilmController → FilmManagement → FilmRepository`；`FilmPosterPolicy` 保護單一來源與有圖 alt。服務在共同寫入鎖及 transaction 中重新授權、檢查 version、保留歷史 slug、寫電影與稽核；DB commit 後同步發布，失敗明確回 202。新增／讀取／列表／編輯／刪除及 publish-retry 六個管理端點已接入，現在共 54 API。
+
+`MediaModule` 區分 attractions／films；既有上傳端點省略 module 維持 attractions，指定 films 時依 films.create/edit 授權；媒體清單依相應 view，`MediaAccess` 依資產實際 module 判斷草稿預覽。匿名僅可讀成功快照仍引用的本地圖片。海報用途說明只改電影，不改共用資產。
+
+`frontend/pages/admin/films.html`、`film-add.html`、`film-edit.html` 及 `pages/film-list.js`／`film-form.js` 使用原型表格、表單網格、海報網址即時預覽／取消。`api/films-api.js` 共用既有 CSRF／session 客戶端；新增網址／上傳擇一、狀態／排程／SEO 欄位及衝突／202 提示；`phase4.css` 僅補充海報與場次樣式。唯讀模擬禁用寫入，讀取失敗不能覆寫，只有新增權限在 202 後不能重複新增。
+
+4C：真實管理 HTTP／MariaDB 61 項；Node 表單 6 項；PHPStan／PHPat、PHPUnit 54 項／232 斷言通過；實際路由與契約共 54 操作一致。`films_admin_integration.py` 包含四動作分權、跨模組海報、防止 CSRF／越權、並行版本、公開失敗及重試。完整桌面／手機驗收在 4E 彙整。
 
 4B 新增 `GET /api/v1/films`、`/films/{slug}`、`/films/resolve-url`，目前共 48 API。`PublicFilmController` 只轉 HTTP，`PublicFilms` 讀成功快照並分頁，`FilmQuery`／`ScreeningWindow` 定義台北週一至下週一的半開區間。`ContentPublication` 將電影、景點與週界線納入同一 generation；`NodeContentRenderer` 的版本雜湊包含所有電影模板與共用 renderer。
 

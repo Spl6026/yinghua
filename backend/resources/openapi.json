@@ -6097,7 +6097,7 @@
     "/api/v1/admin/media": {
       "get": {
         "operationId": "get_admin_media",
-        "summary": "可用景點圖片",
+        "summary": "查詢模組圖片",
         "tags": [
           "attractions"
         ],
@@ -6256,7 +6256,7 @@
             }
           }
         },
-        "description": "attractions.view",
+        "description": "依 module 判斷 view 或 action=create/edit 權限；省略 module 預設 attractions。圖片檢查規則不變。",
         "parameters": [
           {
             "name": "page",
@@ -6275,12 +6275,25 @@
               "minimum": 1,
               "maximum": 100
             }
+          },
+          {
+            "name": "module",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "attractions",
+                "films"
+              ],
+              "default": "attractions",
+              "description": "E-25：依所選模組檢查相應權限；省略相容既有景點用戶端。"
+            }
           }
         ]
       },
       "post": {
         "operationId": "post_admin_media",
-        "summary": "上傳並重新編碼景點圖片",
+        "summary": "上傳並重新編碼模組圖片",
         "tags": [
           "attractions"
         ],
@@ -6440,7 +6453,7 @@
             }
           }
         },
-        "description": "action=create 需 attractions.create，action=edit 需 attractions.edit。拒絕 SVG、假圖片、過大像素；最多 8 MiB。",
+        "description": "依 module 判斷 view 或 action=create/edit 權限；省略 module 預設 attractions。圖片檢查規則不變。",
         "requestBody": {
           "required": true,
           "content": {
@@ -8070,6 +8083,1131 @@
           }
         },
         "description": "Nginx 內部 X-Original-URI；只允許本站已發布電影的固定對照。"
+      }
+    },
+    "/api/v1/admin/films": {
+      "get": {
+        "operationId": "get_admin_films",
+        "summary": "電影列表",
+        "tags": [
+          "films"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 21／G7；U-16；E-25",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmList"
+                }
+              }
+            }
+          }
+        },
+        "description": "films.view；電影名稱搜尋、狀態及穩定分頁。",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ]
+      },
+      "post": {
+        "operationId": "post_admin_films",
+        "summary": "新增電影",
+        "tags": [
+          "films"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 21／G7；U-16；E-25",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmWriteResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "資料已儲存；公開產生失敗，必須重試",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmWriteResult"
+                }
+              }
+            }
+          }
+        },
+        "description": "films.create；片名必填，其他業務欄位依原型；海報擇一且有圖需有效 alt。DB 已存、同步失敗回 202。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilmCreate"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/films/{id}": {
+      "get": {
+        "operationId": "get_admin_films_id",
+        "summary": "讀取電影編輯資料",
+        "tags": [
+          "films"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 21／G7；U-16；E-25",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmRecord"
+                }
+              }
+            }
+          }
+        },
+        "description": "films.view；電影名稱搜尋、狀態及穩定分頁。",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "put": {
+        "operationId": "put_admin_films_id",
+        "summary": "更新電影",
+        "tags": [
+          "films"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 21／G7；U-16；E-25",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmWriteResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "資料已儲存；公開產生失敗，必須重試",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmWriteResult"
+                }
+              }
+            }
+          }
+        },
+        "description": "films.edit；title/version 必填，省略的選填欄位與既有場次保留。歷史 slug 保留。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilmUpdate"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      },
+      "delete": {
+        "operationId": "delete_admin_films_id",
+        "summary": "刪除電影",
+        "tags": [
+          "films"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 21／G7；U-16；E-25",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmWriteResult"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "資料已儲存；公開產生失敗，必須重試",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilmWriteResult"
+                }
+              }
+            }
+          }
+        },
+        "description": "films.delete；版本防護與 soft delete，公開電影／場次同步下架。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilmDelete"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/admin/films/publish-retry": {
+      "post": {
+        "operationId": "post_admin_films_publish_retry",
+        "summary": "重試公開頁面同步",
+        "tags": [
+          "films"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 21／G7；U-16；E-25",
+        "security": [
+          {
+            "adminSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicationRetry"
+                }
+              }
+            }
+          }
+        },
+        "description": "films.edit；共同發布版本重試，不重複新增電影。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Empty"
+              }
+            }
+          }
+        }
       }
     }
   },
@@ -10149,6 +11287,15 @@
             "type": "string",
             "minLength": 0,
             "description": "U-12：選填，省略或空白保存空字串。"
+          },
+          "module": {
+            "type": "string",
+            "enum": [
+              "attractions",
+              "films"
+            ],
+            "default": "attractions",
+            "description": "E-25：依所選模組檢查相應權限；省略相容既有景點用戶端。"
           }
         },
         "required": [
@@ -10751,6 +11898,417 @@
           "film",
           "generation",
           "requestId"
+        ]
+      },
+      "Film": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "genre": {
+            "type": "string"
+          },
+          "synopsis": {
+            "type": "string"
+          },
+          "posterUrl": {
+            "type": "string"
+          },
+          "ticketUrl": {
+            "type": "string"
+          },
+          "seoTitle": {
+            "type": "string"
+          },
+          "seoDescription": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "imageAlt": {
+            "type": "string"
+          },
+          "posterAlt": {
+            "type": "string"
+          },
+          "publishAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "legacyId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "screenings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FilmScreening"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ]
+          },
+          "deletedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "posterMediaId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "posterSource": {
+            "type": "string"
+          },
+          "posterLicense": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "genre",
+          "synopsis",
+          "posterUrl",
+          "ticketUrl",
+          "seoTitle",
+          "seoDescription",
+          "image",
+          "imageAlt",
+          "posterAlt",
+          "publishAt",
+          "updatedAt",
+          "url",
+          "version",
+          "legacyId",
+          "screenings",
+          "status",
+          "deletedAt",
+          "posterMediaId",
+          "posterSource",
+          "posterLicense"
+        ]
+      },
+      "FilmRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "film": {
+            "$ref": "#/components/schemas/Film"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "film",
+          "requestId"
+        ]
+      },
+      "FilmList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Film"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "requestId"
+        ]
+      },
+      "FilmWriteResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "publication": {
+            "$ref": "#/components/schemas/PublicationResult"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "film": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Film"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "film",
+          "publication",
+          "requestId"
+        ]
+      },
+      "FilmCreate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "genre": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "synopsis": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "posterUrl": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "ticketUrl": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "seoTitle": {
+            "type": "string",
+            "maxLength": 160,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "seoDescription": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+            "description": "選填；新增留空自動產生，編輯留空沿用；resolve-url 保留。"
+          },
+          "posterMediaId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 36,
+            "description": "僅 films 模組媒體；空字串／null 清除，與 posterUrl 擇一。"
+          },
+          "posterAlt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此電影用途覆寫；空白／null 恢復原資產值，省略保留。有效海報 alt 不得空白；來源／授權選填。"
+          },
+          "posterSource": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此電影用途覆寫；空白／null 恢復原資產值，省略保留。有效海報 alt 不得空白；來源／授權選填。"
+          },
+          "posterLicense": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此電影用途覆寫；空白／null 恢復原資產值，省略保留。有效海報 alt 不得空白；來源／授權選填。"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ],
+            "description": "新增省略為 draft，編輯省略保留。"
+          },
+          "publishAt": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "含秒與時區的 ISO 8601；省略於新增為現在、編輯保留，空字串設現在。"
+          },
+          "screenings": {
+            "type": "array",
+            "maxItems": 0,
+            "description": "4C 僅容許空清單；多場次編輯由 4D 啟用。"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "FilmUpdate": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "genre": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "synopsis": {
+            "type": "string",
+            "maxLength": 20000,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "posterUrl": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "ticketUrl": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "seoTitle": {
+            "type": "string",
+            "maxLength": 160,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "seoDescription": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "選填；新增省略使用空字串，編輯省略保留既有值。"
+          },
+          "slug": {
+            "type": "string",
+            "maxLength": 160,
+            "pattern": "^(?:[a-z0-9]+(?:-[a-z0-9]+)*)?$",
+            "description": "選填；新增留空自動產生，編輯留空沿用；resolve-url 保留。"
+          },
+          "posterMediaId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 36,
+            "description": "僅 films 模組媒體；空字串／null 清除，與 posterUrl 擇一。"
+          },
+          "posterAlt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此電影用途覆寫；空白／null 恢復原資產值，省略保留。有效海報 alt 不得空白；來源／授權選填。"
+          },
+          "posterSource": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此電影用途覆寫；空白／null 恢復原資產值，省略保留。有效海報 alt 不得空白；來源／授權選填。"
+          },
+          "posterLicense": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "maxLength": 255,
+            "description": "此電影用途覆寫；空白／null 恢復原資產值，省略保留。有效海報 alt 不得空白；來源／授權選填。"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "published",
+              "archived"
+            ],
+            "description": "新增省略為 draft，編輯省略保留。"
+          },
+          "publishAt": {
+            "type": "string",
+            "maxLength": 30,
+            "description": "含秒與時區的 ISO 8601；省略於新增為現在、編輯保留，空字串設現在。"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "title",
+          "version"
+        ]
+      },
+      "FilmDelete": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "version"
         ]
       }
     },
