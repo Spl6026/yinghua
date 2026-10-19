@@ -89,7 +89,8 @@ readonly class Composition
         $mapPolicy = new GoogleUrlPolicy();
         $mapController = new MapController(new MapResolver(new CurlGoogleHttp($mapPolicy), $mapPolicy, $this->config, $authorization, $limiter, new \Yinghua\Adapters\GooglePlaceMapper(new \Yinghua\Adapters\GoogleOpeningHours())));
         $filmController = new \Yinghua\Controllers\PublicFilmController(new \Yinghua\Services\PublicFilms($publication), $clock);
-        $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy()));
+        $filmScreens = new \Yinghua\Repositories\FilmScreeningRepository($database);
+        $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, $filmScreens), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy(), $filmScreens, new \Yinghua\Policies\ScreeningStartPolicy()));
         $router = new Router();
         /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';

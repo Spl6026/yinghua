@@ -8815,7 +8815,7 @@
             }
           }
         },
-        "description": "films.edit；title/version 必填，省略的選填欄位與既有場次保留。歷史 slug 保留。",
+        "description": "films.edit；title/version 必填，省略的選填欄位與場次保留。電影／場次／稽核同交易，跨電影開始時間在共同鎖內比對；草稿占用、下架釋放，恢復必須重驗。歷史 slug 保留。",
         "requestBody": {
           "required": true,
           "content": {
@@ -12189,8 +12189,10 @@
           },
           "screenings": {
             "type": "array",
-            "maxItems": 0,
-            "description": "4C 僅容許空清單；多場次編輯由 4D 啟用。"
+            "items": {
+              "$ref": "#/components/schemas/ScreeningInput"
+            },
+            "description": "新增省略為零場次；編輯省略保留、空清單移除全部。日期＋開始時間同片／跨非下架電影不可重複，父 version 保護整組。"
           }
         },
         "required": [
@@ -12291,6 +12293,13 @@
           "version": {
             "type": "integer",
             "minimum": 1
+          },
+          "screenings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScreeningInput"
+            },
+            "description": "新增省略為零場次；編輯省略保留、空清單移除全部。日期＋開始時間同片／跨非下架電影不可重複，父 version 保護整組。"
           }
         },
         "required": [
@@ -12309,6 +12318,31 @@
         },
         "required": [
           "version"
+        ]
+      },
+      "ScreeningInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "編輯既有場次時提供，只能屬於本電影；新增省略。"
+          },
+          "startsAt": {
+            "type": "string",
+            "description": "有效日期、含秒與時區；秒須 00，以 UTC 同一開始分鐘比較；不計結束時間。"
+          },
+          "ticketUrl": {
+            "type": "string",
+            "maxLength": 2000,
+            "description": "選填 HTTP/HTTPS；留空沿用電影售票連結。"
+          }
+        },
+        "required": [
+          "startsAt"
         ]
       }
     },

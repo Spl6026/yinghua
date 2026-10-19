@@ -1,8 +1,8 @@
 import { filmsApi } from '../api/films-api.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
-import { element, status, submitForm, unsavedChanges, formErrors } from '../core/ui.js';
+import { status, submitForm, unsavedChanges, formErrors } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
-import { screeningDate } from '../core/film-view.js';
+import { screeningEditor } from '../components/screening-editor.js';
 
 const fields=['title','genre','synopsis','posterUrl','posterMediaId','posterAlt','posterSource','posterLicense','ticketUrl','slug','status','seoTitle','seoDescription'];
 
@@ -15,6 +15,7 @@ export async function initializeFilmForm(identity,page) {
   let id=creating?null:new URLSearchParams(location.search).get('id');
   let version,loaded=creating,busy=false,dirty=false,completed=false,generation=0;
   const preview=document.querySelector('#film-image-preview'),mediaMessage=document.querySelector('#film-media-status');
+  const screenings=screeningEditor(document.querySelector('#film-screenings'),()=>{dirty=true;});
   const writeAllowed=()=>!identity.preview?.active&&hasPermission(identity,'films',id?'edit':'create');
   const available=()=>writeAllowed()&&loaded&&!busy&&!completed;
   const uploadMode=()=>form.elements.posterMode.value==='upload';
@@ -28,6 +29,7 @@ export async function initializeFilmForm(identity,page) {
     document.querySelector('#reload-film').disabled=busy||completed;
     document.querySelector('#retry-film-publication').disabled=busy||!writeAllowed()||!hasPermission(identity,'films','edit');
     form.elements.posterAlt.required=Boolean(form.elements.posterUrl.value.trim()||form.elements.posterMediaId.value||form.elements.image.files.length);
+    screenings.setDisabled(!available());
   }
   function photo(url) {
     preview.hidden=!url;preview.src=url||'/assets/image-placeholder.svg';preview.alt=form.elements.posterAlt.value||'電影海報預覽';
@@ -52,9 +54,7 @@ export async function initializeFilmForm(identity,page) {
       form.elements.image.value='';
       const date=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(film.publishAt));
       form.elements.publishAt.value=date.replace(' ','T');
-      const rows=document.querySelector('#film-screenings');rows.replaceChildren();
-      for(const row of film.screenings){const date=screeningDate(row.startsAt);rows.append(element('p',{},`${date.full}　${date.time}`));}
-      if(!film.screenings.length)rows.append(element('p',{},'尚未安排放映場次。'));
+      screenings.load(film.screenings);
       version=film.version;loaded=true;dirty=false;photo(film.image);formErrors(form,{fieldErrors:{}});status(message,'資料已載入。');
     }catch(error){if(request===generation)handleAdminError(error,message);}
     finally{if(request===generation){busy=false;controls();}}
@@ -91,6 +91,7 @@ export async function initializeFilmForm(identity,page) {
     void submitForm(form,async()=>{
       busy=true;controls();
       try{
+        body.screenings=screenings.read();
         const result=await filmsApi.save(id,body);id=result.film.id;version=result.film.version;dirty=false;
         if(result.publication.status==='succeeded'){
           completed=true;

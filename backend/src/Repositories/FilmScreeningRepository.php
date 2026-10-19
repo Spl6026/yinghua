@@ -54,16 +54,21 @@ class FilmScreeningRepository
     public function replace(string $filmId, array $items): void
     {
         // 先驗歸屬，再刪／寫；挪用另一電影的 ID 不能改變任何資料。
+        $created = [];
         foreach ($items as $index => $item) {
-            if ($item->id !== null && $this->database->row('SELECT id FROM film_screenings WHERE id=:id AND film_id=:film', ['id' => $item->id,'film' => $filmId]) === null) {
-                throw ApplicationError::invalid('screenings.' . $index . '.id', '找不到屬於此電影的場次。');
+            if ($item->id !== null) {
+                $existing = $this->database->row('SELECT created_at FROM film_screenings WHERE id=:id AND film_id=:film', ['id' => $item->id,'film' => $filmId]);
+                if ($existing === null) {
+                    throw ApplicationError::invalid('screenings.' . $index . '.id', '找不到屬於此電影的場次。');
+                }
+                $created[$item->id] = (new Row($existing))->string('created_at');
             }
         }
         $this->database->execute('DELETE FROM film_screenings WHERE film_id=:film', ['film' => $filmId]);
         foreach ($items as $item) {
             $this->database->execute(
-                'INSERT INTO film_screenings (id,film_id,starts_at,ticket_url) VALUES (:id,:film,:starts,:ticket)',
-                ['id' => $item->id ?? Secrets::uuid(),'film' => $filmId,'starts' => $item->startsAt->format('Y-m-d H:i:s'),'ticket' => $item->ticketUrl],
+                'INSERT INTO film_screenings (id,film_id,starts_at,ticket_url,created_at) VALUES (:id,:film,:starts,:ticket,COALESCE(:created,UTC_TIMESTAMP()))',
+                ['id' => $item->id ?? Secrets::uuid(),'film' => $filmId,'starts' => $item->startsAt->format('Y-m-d H:i:s'),'ticket' => $item->ticketUrl,'created' => $item->id === null ? null : $created[$item->id]],
             );
         }
     }

@@ -1,6 +1,8 @@
 # 電影與放映場次閱讀指南
 
-更新：2026-10-19。階段四實作中，已完成資料層準備（4A）、公開電影／片單／首頁發布（4B）及電影資訊／海報管理（4C）；多場次編輯尚未啟用，既有場次目前只讀。
+更新：2026-10-19。階段四實作中，4A–4D 已交付資料層、公開發布、電影資訊／海報管理及多場次編輯；尚待 4E 完整回歸與桌面／手機驗收。
+
+2026-10-23 手機複驗補充（U-05／E-25）：`frontend/assets/css/phase4.css` 讓編輯頁標題旁 `#reload-film` 不縮成逐字直排。只補充實際新增的操作按鈕，不修改原型 style.css、欄位限制或 API；390 CSS px 的按鈕單行及頁面無水平溢出已實測。
 
 ## 已建立的資料層
 
@@ -23,6 +25,12 @@
 `screenings` 省略代表保留，明確空陣列代表移除；父電影的 version 是整組更新的版本。同名電影可以存在，不能用名稱定位。場次保存必須由未來 Service 在共同發布寫入鎖及同一交易內呼叫，不把 Repository 的一次預查當成完整並行保護。
 
 ## 實際驗證
+
+4D：`FilmManagement` 在同一發布寫入鎖與交易內套用 `ScreeningStartPolicy`、跨電影開始時間查詢及整組場次替換，稽核成功才 commit。修改／刪除子場次使用父電影 version；既有 ID 必須屬於同電影，重新排列保留 ID 與 created_at。草稿占用時間，下架釋放；恢復時即使未提供 screenings 也重新比較。相同日期 14:00／14:15 可並存，不推算結束時間。
+
+`components/screening-editor.js` 提供動態列、移除確認、錯誤定位、焦點及唯讀禁用；`core/screening-time.js` 將台北日期／時間轉明確 +08:00，不依電腦時區推測。零列可保存；新增尚未填完的列需補齊或移除，新增／移除只有按電影保存才落 DB。`screenings` 省略保留、`[]` 移除全部，每場 ticketUrl 留空沿用電影預設。
+
+4D：`films_screenings_integration.py` 真實 HTTP／MariaDB 42 項，包括同片／跨片、offset 同時、ID 歸屬、並行搶場、稽核／子表故障全交易回滾、移除釋放、下架／恢復、101 場無暗加筆數限制與排程發布；PHPStan／PHPat、PHPUnit 54 項／232 斷言通過；電影表單／場次 Node 9 項通過。
 
 4C 管理 `FilmController → FilmManagement → FilmRepository`；`FilmPosterPolicy` 保護單一來源與有圖 alt。服務在共同寫入鎖及 transaction 中重新授權、檢查 version、保留歷史 slug、寫電影與稽核；DB commit 後同步發布，失敗明確回 202。新增／讀取／列表／編輯／刪除及 publish-retry 六個管理端點已接入，現在共 54 API。
 

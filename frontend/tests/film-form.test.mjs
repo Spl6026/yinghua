@@ -25,6 +25,7 @@ function fixture({creating=false,preview=false,edit=true,view=true}={}) {
   const item={id:'a',title:'原電影',genre:'紀錄片',synopsis:'介紹',slug:'test',status:'draft',posterMediaId:null,posterUrl:'https://example.test/a.jpg',posterAlt:'原海報說明',posterSource:'',posterLicense:'',image:'https://example.test/a.jpg',ticketUrl:'',seoTitle:'',seoDescription:'',publishAt:'2026-10-19T00:00:00+08:00',version:1,screenings:[]};
   const state={saves:[],uploads:[],assignments:[],gets:0,confirm:true};
   const sandbox={URLSearchParams,HTMLElement:Node,passwordError:()=>'',
+    screeningEditor:()=>({load:rows=>{state.screenings=rows;},read:()=>state.screenings||[],setDisabled:value=>{state.screeningsDisabled=value;}}),
     document:{querySelector:id=>node(id),createElement:tag=>new Node(tag)},
     location:{search:'?id=a',protocol:'http:',assign:url=>state.assignments.push(url)},history:{replaceState(){}},
     window:{addEventListener(){},setTimeout(){}},FormData:class extends Map{},confirmAction:async()=>state.confirm,

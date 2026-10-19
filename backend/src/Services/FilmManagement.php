@@ -10,14 +10,18 @@ use Yinghua\DTO\Film;
 use Yinghua\DTO\FilmInput;
 use Yinghua\DTO\FilmPage;
 use Yinghua\DTO\FilmWriteResult;
+use Yinghua\DTO\FilmScreening;
+use Yinghua\DTO\ScreeningInput;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Exceptions\ContentConflict;
 use Yinghua\Models\Account;
 use Yinghua\Models\ContentStatus;
 use Yinghua\Models\MediaModule;
 use Yinghua\Policies\FilmPosterPolicy;
+use Yinghua\Policies\ScreeningStartPolicy;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\FilmRepository;
+use Yinghua\Repositories\FilmScreeningRepository;
 use Yinghua\Repositories\MediaRepository;
 use Yinghua\Support\Secrets;
 
@@ -32,6 +36,8 @@ class FilmManagement
         private readonly EventRepository $events,
         private readonly ContentPublication $publication,
         private readonly FilmPosterPolicy $posters,
+        private readonly FilmScreeningRepository $screenings,
+        private readonly ScreeningStartPolicy $starts,
     ) {}
 
     public function listing(Account $actor, string $q, string $status, int $page, int $size): FilmPage
@@ -51,10 +57,6 @@ class FilmManagement
 
     public function save(Account $actor, ?string $id, FilmInput $input, ClientContext $client): FilmWriteResult
     {
-        // 4C 只交付電影資訊；4D 才開放多場次寫入，不靜默丟棄輸入。
-        if ($input->screenings !== null && ($id !== null || $input->screenings !== [])) {
-            throw ApplicationError::invalid('screenings', '場次編輯尚未開放。');
-        }
         return $this->publication->exclusive(function () use ($actor, $id, $input, $client): FilmWriteResult {
             $creating = $id === null;
             $targetId = $id ?? Secrets::uuid();
@@ -69,7 +71,18 @@ class FilmManagement
                     $posterId = array_key_exists('poster_media_id', $input->fields) ? $input->fields['poster_media_id'] : ($before?->values['posterMediaId'] ?? null);
                     $poster = is_string($posterId) ? $this->media->find($posterId, MediaModule::Films) : null;
                     $this->posters->assertValid($before, $input, $poster);
+                    // [U-16／E-25] 草稿占用開始時間；下架釋放。恢復發布即使省略場次也須重新比較。
+                    $existingRows = $before === null ? [] : $before->screenings;
+                    $rows = $input->screenings ?? array_map(static fn(FilmScreening $row): ScreeningInput => ScreeningInput::fromArray(['id' => $row->id,'startsAt' => $row->startsAt,'ticketUrl' => $row->ticketUrl]), $existingRows);
+                    $this->starts->assertDistinct($rows);
+                    $status = $input->status === null ? ($before === null ? ContentStatus::Draft->value : $before->status) : $input->status->value;
+                    if ($status !== ContentStatus::Archived->value) {
+                        $this->screenings->assertAvailable($targetId, $rows);
+                    }
                     $this->films->save($targetId, $input, $creating, $fresh->id);
+                    if ($input->screenings !== null) {
+                        $this->screenings->replace($targetId, $rows);
+                    }
                     $updated = $this->target($targetId);
                     $this->events->content($fresh->id, 'film-' . ($creating ? 'create' : 'update'), 'film', $targetId, $before?->version, $updated->version, $updated->status, $client);
                     return $updated;
