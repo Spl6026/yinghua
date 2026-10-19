@@ -44,6 +44,8 @@ PermissionPolicy 是不依賴 PDO 的共用規則：操作者須為有效管理�
 
 ## 如何確認分層
 
+2026-10-21 導覽修正（Excel 功能規格 E27／E-14）：檢視與新增權限獨立。`core/session.js` 的 `adminNavigation`／`adminDestination`／`adminReturnTo` 統一判斷側欄、登入返回與表單離開位置；只有新增權限時直接進新增頁，不導向無權限清單。管理員新增成功後保留成功狀態與「再新增管理員」，停用重複提交；API 不因此增加檢視權限。`admin-navigation.test.mjs` 與 `admin-state.test.mjs` 覆蓋這些分支。
+
 `backend/tests/ArchitectureTest.php` 以 PHPat 檢查五條相依規則，增加 Service 不依賴 PDO／PDOException／PDOStatement。`Composition.php` 明確組裝各層，沒有通用 BaseService、Singleton 或全域服務容器。
 
 `AdminController → AdminManagement` 處理帳號 CRUD；`PermissionController → PermissionManagement` 處理個人矩陣與 catalog，角色清單使用共用 `RoleTemplates`。權限寫入、版本與稽核仍在同一交易。完整責任與閱讀順序見 [PHP 分層閱讀指南](backend-layering.md)。

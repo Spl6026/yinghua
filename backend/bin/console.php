@@ -58,6 +58,23 @@ try {
     } elseif ($command === 'db:seed') {
         (new IdentitySeeder($database))->seed(dirname(__DIR__) . '/resources/role-templates.json');
         fwrite(STDOUT, "Role templates initialized without overwriting existing values.\n");
+    } elseif ($command === 'film:seed-demo') {
+        $actor = (new AccountRepository($database))->byLogin(IdentityKind::Admin, 'admin');
+        if ($actor === null || !$actor->isRoot || !$actor->isActive()) {
+            throw new RuntimeException('Initialize the active fixed administrator before importing films.');
+        }
+        $secrets = new Secrets($config);
+        $client = new ClientContext('cli', $secrets->keyed('ip', 'cli'), $secrets->keyed('agent', 'film-demo'), bin2hex(random_bytes(16)));
+        $publication = (new Composition($config))->publication($database);
+        $publication->exclusive(function () use ($database, $publication, $actor, $secrets, $client): void {
+            $screenings = new \Yinghua\Repositories\FilmScreeningRepository($database);
+            (new \Yinghua\Adapters\FilmSeeder($database, new \Yinghua\Repositories\FilmRepository($database, $screenings), new PdoTransactions($database), new EventRepository($database, $secrets)))
+                ->seed(dirname(__DIR__) . '/resources/films-demo.json', $actor->id, $client);
+            if (!$publication->synchronize()) {
+                throw new RuntimeException('Films saved; publication pending.');
+            }
+        });
+        fwrite(STDOUT, "Original film metadata imported without inventing screening years. Existing content was not overwritten.\n");
     } elseif ($command === 'content:seed-demo') {
         $publication = (new Composition($config))->publication($database);
         $publication->exclusive(function () use ($database, $publication): void {
@@ -129,7 +146,7 @@ try {
             fwrite(STDOUT, "Fixed admin password recovered; previous sessions revoked.\n");
         }
     } else {
-        fwrite(STDOUT, "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch\n");
+        fwrite(STDOUT, "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, film:seed-demo, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch\n");
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Command failed (' . $error::class . "). Check configuration and the documented input requirements.\n");

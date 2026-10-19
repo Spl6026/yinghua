@@ -26,3 +26,9 @@ test('會員登入可回到發布的景點網址，仍拒絕非 slug 與跨站�
     assert.equal(returnTo('member'), '/index.html');
   }
 });
+
+test('新電影詳情登入後可返回，拒絕跨站、非法 slug 與後台身分',()=>{
+  globalThis.location={origin:'http://localhost:8080',search:'?returnTo='+encodeURIComponent('/films/new-movie.html?from=cinema')};
+  assert.equal(returnTo('member'),'/films/new-movie.html?from=cinema');assert.equal(returnTo('admin'),'/admin/index.html');
+  for(const value of ['/films/bad_name.html','//attacker.test/films/movie.html','/films/test.php']){globalThis.location.search='?returnTo='+encodeURIComponent(value);assert.equal(returnTo('member'),'/index.html');}
+});

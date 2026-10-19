@@ -19,6 +19,8 @@ class ContentPublication
         private readonly PublicationRepository $publications,
         private readonly ContentRenderer $renderer,
         private readonly Config $config,
+        private readonly ?\Yinghua\Repositories\FilmRepository $films = null,
+        private readonly ?\Yinghua\Contracts\Clock $clock = null,
     ) {}
 
     /** @template T
@@ -92,6 +94,12 @@ class ContentPublication
         $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),
             'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published()),
             'aliases' => $this->attractions->aliases()];
+        // [E-25] 景點與電影共享 generation；本週邊界使無編輯的換週也會發布。
+        if ($this->films !== null) {
+            $data['films'] = array_map(static fn(\Yinghua\DTO\Film $film): array => $film->publicArray(), $this->films->published());
+            $data['filmAliases'] = $this->films->aliases();
+            $data['filmPeriod'] = \Yinghua\DTO\ScreeningWindow::current($this->clock?->now() ?? time())->toArray();
+        }
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 
         return $data;

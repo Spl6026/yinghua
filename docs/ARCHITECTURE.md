@@ -1,6 +1,6 @@
 # API 與前端分離的架構設計
 
-設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18。
+設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18；階段四電影／場次：2026-10-20。
 
 使用者指定 PHP 對網站只提供 API，前端使用原生 JavaScript／jQuery。採 MVC 的責任分工，另外拆出 Service 與 Repository，使業務流程和 SQL 能重用。這是本專案的工程選擇，Excel 並未指定 MVC、框架或 design pattern。
 
@@ -175,3 +175,9 @@ Nginx 提供前端 HTML／CSS／JS／公開圖片，只有 /api/v1/* 轉給 PHP 
 4. 每次交付核對規格／使用者指定／工程補充標記、API 契約、實際頁面及測試證據。原始 website 與第一筆提交保持完整。
 
 參考來源查閱於 2026-10-13。引用目的是交代設計依據；具體目錄、類別命名、前端產生與實作步驟均為本案設計。工具已安裝不代表架構已完成，後續實作遵循 [DEVELOPMENT-WORKFLOW.md](DEVELOPMENT-WORKFLOW.md)。
+
+## 階段四實際套用（2026-10-20）
+
+電影沿用 Controller → Service → Repository 與 DTO／Policy：FilmController 處理 HTTP，FilmManagement 在共同發布鎖及單一交易內重查授權、驗證 version、檢查開始時間、保存電影／場次與稽核，再交 ContentPublication 同版發布。公開端 PublicFilms 讀成功快照；NodeContentRenderer 是 PHP 與前端 publish.mjs 間的 Adapter，HTML 仍屬 frontend。FilmPosterPolicy 與既有模組媒體服務重用圖片規則，不建立萬用 CRUD 基底或額外框架。
+
+電影與場次構成同一保存單位，子列沿用父電影版本；只依 U-16 比較日期及開始時間，沒有結束／場地模型。具體檔案、來源與實際測試見 [電影指南](modules/films.md)、[全站導讀](PROJECT-GUIDE.md#階段四新增檔案與電影資料流) 及 [階段四驗收](PHASE-4-ACCEPTANCE.md)。

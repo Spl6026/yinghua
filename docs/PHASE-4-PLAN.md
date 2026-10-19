@@ -1,6 +1,6 @@
 # 階段四：電影、放映場次與本週片單實作計畫
 
-日期：2026-10-19。狀態：**僅規劃，尚未實作或驗收**。階段四屬 P0，須另獲實作指示後才從當時最新 main 建立 `phase/04-films-screenings`。原始 Excel 與 website/ 保持不變。
+設計日期：2026-10-19；更新：2026-10-20。狀態：**4A–4E 已完成本機實作與驗收**。階段分支為 `phase/04-films-screenings`，從當時最新 main 建立。原始 Excel 與 website/ 保持不變；實際檔案見 [電影閱讀指南](modules/films.md)，測試與交付界線見 [階段四驗收](PHASE-4-ACCEPTANCE.md)。下文保留設計與驗收基準。
 
 本計畫依 [總計畫](IMPLEMENTATION-PLAN.md)、[規格基準](DEVELOPMENT-WORKFLOW.md#規格基準u-122026-10-18) 及 [架構](ARCHITECTURE.md)。S 是 Excel 明文要求，D 是 Excel 草案，U 是使用者指定，E 是具體工程設計。欄位被列在 F 欄不等於必填。
 
@@ -86,7 +86,7 @@ API 收到未知的 `endsAt`／`venue` 不能悄悄忽略或假裝保存；依�
 
 ## 4. 預計資料表與 migration
 
-現況是 21 表、十份 migration；以下是設計，**尚未新增或套用**。預計新增兩張業務表、一張網址對照表，完成後才會成為 24 表；不改已套用的 001–009。
+規劃起點是 21 表、十份 migration。4A 已建立並套用下列兩份 migration、三張表，現在共 24 表、十二份 migration；不改已套用的 001–009。電影 API／介面仍待後續步驟。
 
 | 預計 migration | 資料表 | 欄位／關係 | 來源 |
 | --- | --- | --- | --- |
@@ -94,7 +94,7 @@ API 收到未知的 `endsAt`／`venue` 不能悄悄忽略或假裝保存；依�
 | 同上 | `film_screenings` | UUID PK、film_id FK、starts_at UTC DATETIME、ticket_url、created_at／updated_at；不新增 ends_at 或 venue；不重複保存電影名稱、介紹、海報 | D A13–D13 經 U-16 調整；父電影狀態決定公開性，初版不自創獨立取消場次業務 |
 | `011_film_aliases.sql` | `film_aliases` | path ASCII PK、film_id FK；保存改 slug 前的固定網址，配合 legacy_id 查舊 query 入口 | S 直接網址一致；E-25，沿用 attraction_aliases 模式 |
 
-`synopsis` 的 SQL 型別須容納設定的多位元文字上限；不要只按字數假設 TEXT 容量。媒體外鍵只接受有效 films 模組資產；海報有效 alt 的條件同時在 Service／公開 DTO 檢查，不用 SQL 把「所有電影必須有圖」寫死。
+`synopsis` 的 SQL 型別須容納設定的多位元文字上限；不要只按字數假設 TEXT 容量。媒體外鍵只接受有效 films 模組資產；海報有效 alt 的條件在 Service 驗證，公開 DTO 輸出有效替代文字，不用 SQL 把「所有電影必須有圖」寫死。
 
 候選索引：films 的 slug／legacy_id 唯一索引、`(status,deleted_at,publish_at,id)` 公開投影、`(deleted_at,updated_at,id)` 管理排序；film_screenings 的 `(film_id,starts_at,id)` 與 `(starts_at,film_id,id)`；同電影同時間可加唯一 `(film_id,starts_at)`。實作時依 MariaDB 12.3 的 EXPLAIN 與實際查詢保留必要索引，不預先聲稱全部索引有效。
 
@@ -169,7 +169,7 @@ Service 的保存次序：先取得現有共同發布鎖 → DB transaction 內�
 
 ### 7.2 本週與自動換週
 
-本週採 Asia/Taipei 星期一 00:00 至下星期一 00:00，結束邊界不包含；這是 **E-25 週界線提案，Excel 未定義週起點**。資料庫維持 UTC。查詢用 starts_at 範圍與穩定第二排序鍵；電影及場次批次讀取，避免每張卡再查一次。
+本週採 Asia/Taipei 星期一 00:00 至下星期一 00:00，結束邊界不包含；這是 **E-25 週界線提案，Excel 未定義週起點**。資料庫維持 UTC。公開期間在成功快照依 startsAt 半開區間篩選，電影與場次先批次讀取，避免每張卡再查一次；SQL 使用開始時間碰撞與批次關聯索引，分頁採穩定第二排序鍵。這與需要全部公開場次的基本詳情共享同一投影，不冒稱公開分頁另執行 SQL range query。
 
 generation 須納入本週起訖，使週一即使沒人編輯電影，現有 publisher 的 tick 也會更新首頁／cinema。投影保留全部公開電影與場次供詳情／明確日期查詢，current week 只限制片單；不因一場已過期就把電影整頁下架。測試時間由可替換 clock／明確查詢時間注入，不修改系統時間。
 
@@ -183,7 +183,7 @@ generation 須納入本週起訖，使週一即使沒人編輯電影，現有 pu
 
 ## 8. 實作次序與功能提交
 
-目前不建立階段四分支、migration 或應用程式。獲授權後從最新 main 開始，依下列邊界提交；每筆包含其相關契約、測試與指南，自己造成的失誤併回原功能。
+已獲授權並完成 4A–4E；下列五個功能邊界各自提交。每筆包含相關契約、測試與指南，自己造成的失誤併回原功能。
 
 | 步驟／擬定提交 | 完成範圍與驗證 |
 | --- | --- |
@@ -197,7 +197,7 @@ generation 須納入本週起訖，使週一即使沒人編輯電影，現有 pu
 
 ## 9. 驗收清單
 
-所有下列項目都是**待執行**；本文件不把規劃或先前階段的測試數量算成階段四通過。
+下列保留驗收基準；實際執行結果、數量及範圍另記 PHASE-4-ACCEPTANCE.md，不把規劃或先前階段數字冒充本次通過。
 
 | 範圍 | 必須驗證的情境 |
 | --- | --- |
@@ -214,7 +214,7 @@ generation 須納入本週起訖，使週一即使沒人編輯電影，現有 pu
 
 PHP／Composer／PHPStan level 10／PHPat／PHPUnit／PER-CS／Rector dry-run 依既有 Docker 環境；新增 Node 行為／發布測試與真實 MariaDB／HTTP 套件。管理 API 完成後使用 security-audit；UI 實作後使用 web-design-guidelines 的當時規則及 browser；索引依 mariadb-query-optimization 與 12.3 實際 EXPLAIN 驗證。缺少工具或環境時標未執行，不記成通過。
 
-預計提供 `docs/modules/films.md`、`docs/PHASE-4-ACCEPTANCE.md` 及必要測試入口；現在不建立空驗收報告或空程式檔。完成階段前更新全站導讀、資料庫對照、需求對照與真實 API 清單；Docker 冷啟動、升級備份、重啟後電影／圖片／場次保留及階段二／三回歸有實際結果後，才宣告階段四完成。
+已提供 `docs/modules/films.md`、`docs/PHASE-4-ACCEPTANCE.md` 及必要測試入口，並同步全站導讀、資料庫對照、需求對照與 54 個 API 操作。實際完成空庫／保留資料升級、隔離 app-test／web-test 重建後持久化及階段二／三回歸；未以本次驗收冒稱重啟 Docker Desktop、刪除 volume 或正式部署完成。
 
 ## 10. 決定、待提供與設計依據
 

@@ -5,22 +5,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<title>本週映演｜映畫竹塹</title>
-<meta name="description" content="映畫竹塹｜新竹城市影像與旅行指南。">
-<meta name="theme-color" content="#f5f0e6">
+<title>本週映演｜映畫竹塹後台</title>
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/phase2.css">
+<link rel="stylesheet" href="/assets/css/phase3.css">
 </head>
 <body data-module="films" data-action="view" data-page="films">
-<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
-<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / FILMS</p><h1>本週映演</h1><p>此功能將於後續階段提供。</p></div></div>
+<a class="skip-link" href="#main-content">跳到主要內容</a>
+<div class="site-shell"><main id="main-content" tabindex="-1">
+<div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
+<div class="admin-content">
+<div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT</p><h1>本週映演</h1><p>管理電影海報、片名、場次與詳情；儲存後同步顯示於前台首頁與本週片單。</p></div><a id="add-film" class="button button-dark" href="/admin/film-add.html">＋ 新增場次</a></div>
 <section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
-</section>
+<div class="admin-panel-heading"><h3>映演清單</h3><span id="film-total" aria-live="polite"></span></div>
+<div class="admin-toolbar">
+<div class="admin-field"><label for="admin-film-search">搜尋電影</label><input id="admin-film-search" type="search" placeholder="電影名稱" maxlength="80"></div>
+<div class="admin-field"><label for="film-status-filter">發布狀態</label><select id="film-status-filter"><option value="">全部狀態</option><option value="draft">草稿</option><option value="published">已發布／排程</option><option value="archived">已下架</option></select></div>
+<button type="button" class="button button-outline" id="reload-films">重新載入</button>
+<button type="button" class="button button-outline" id="retry-publication">重試公開頁面同步</button>
 </div>
-</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
-<script type="module" src="/assets/js/admin.js"></script></body>
-</html>
+<p id="film-list-status" class="form-status" role="status" tabindex="-1"></p>
+<div class="table-scroll"><table class="admin-table"><caption class="sr-only">本週映演列表</caption><thead><tr><th scope="col">海報</th><th scope="col">日期（最早場次）</th><th scope="col">片名</th><th scope="col">類型</th><th scope="col">時間</th><th scope="col">場次數</th><th scope="col">狀態</th><th scope="col">操作</th></tr></thead><tbody id="film-rows"></tbody></table></div>
+<div class="admin-form-actions"><button type="button" class="button button-outline" id="film-previous" disabled>上一頁</button><span id="film-page" aria-live="polite"></span><button type="button" class="button button-outline" id="film-next" disabled>下一頁</button></div>
+</section>
+</div></div></div></main>{{DIALOG}}
+<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+<script type="module" src="/assets/js/admin.js"></script>
+</body></html>

@@ -10,6 +10,7 @@ import argparse
 from importlib.metadata import version
 parser = argparse.ArgumentParser(description='Isolated integration suites plus independent OpenAPI schema checks')
 parser.add_argument('--dependency-path', help='Optional pip --target directory for test dependencies')
+parser.add_argument('--include-films', action='store_true', help='Include phase-four film/public/screening suites')
 options = parser.parse_args()
 if options.dependency_path:
     sys.path.insert(0, str(Path(options.dependency_path).resolve()))
@@ -68,7 +69,26 @@ def audited(self, method, path, body=None, csrf=True, extra=None):
         break
     return result
 Client.call = audited
+if options.include_films:
+    # 上傳測試使用 multipart helper，並非 Client.call；也驗證真正 HTTP 回傳的 schema。
+    import attractions_integration as media_http
+    original_upload = media_http.upload
+    def audited_upload(*args, **kwargs):
+        status, payload = original_upload(*args, **kwargs)
+        route = '/api/v1/admin/media'
+        observed.add('POST ' + route)
+        response = spec['paths'][route]['post']['responses'].get(str(status))
+        if response:
+            schema = dereference(response).get('content', {}).get('application/json', {}).get('schema')
+            if schema:
+                validate(schema, payload, 'response', route, status)
+                counts['responses'] += 1
+        return status, payload
+    media_http.upload = audited_upload
 names = ['api_integration', 'admin_preview', 'attractions_integration', 'content_contract', 'optional_content_integration', 'attraction_corrections', 'opening_hours_integration', 'map_fields_integration', 'google_link_integration', 'specification_alignment', 'response_contract', 'origin_redirect', 'review_regressions', 'owner_requirements']
+if options.include_films:
+    names += ['films_public_integration', 'films_admin_integration', 'films_screenings_integration',
+              'films_seed_integration', 'films_content_persistence', 'films_pagination_integration', 'publication_failures']
 completed = []
 for name in names:
     module = importlib.import_module(name)

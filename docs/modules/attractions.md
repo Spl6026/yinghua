@@ -56,6 +56,8 @@ docker compose exec -u www-data -T app php bin/console.php content:publish
 
 ## 圖片說明及原型資料的修正
 
+2026-10-21 修正：只有 attractions.create 時，保存成功停留結果並提供「再新增景點」，不導往需要 view 的清單；停用再次提交，避免重複新增。公開同步失敗仍保留已保存的 ID／版本與 202 提示。共用 `ContentPublication.synchronize` 將投影、建立及完成發布紀錄納入錯誤邊界；即使失敗紀錄也無法寫入，仍向呼叫端回報同步失敗，不把已提交的內容誤報為未保存。這是 E-18 的失敗處理，沒有改變 Excel 的欄位限制。
+
 R3-01：既有 POST／PUT attractions 現在接收 imageAlt／imageSource／imageLicense。欄位保存到各景點自己的欄位，未提供時保留，空白或 null 回到原資產說明；不改共用 media_assets。新增及編輯表單的說明可直接保存，不需要重新上傳圖片。上傳成功後帶入伺服器的正規化說明，和 mediaId 一起保存。
 
 R3-02：recommendationLabel 是原型的「城市記憶／巷弄探索」等文案。資料庫、SSR 與 JS 卡片讀同一欄位；預設空白才顯示在地推薦。公開排序使用 publish_at DESC、id ASC，同一時間的六筆受控 seed 保持原型順序；後台清單恢復營業時間欄。

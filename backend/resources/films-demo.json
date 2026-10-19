@@ -1,0 +1,30 @@
+[
+  {
+    "title": "島嶼的慢鏡頭",
+    "slug": "island-slow",
+    "genre": "紀錄片・映後座談",
+    "synopsis": "在潮聲與風之間，找一種靠近土地的方式。",
+    "posterUrl": "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
+    "title": "窗邊的星期天",
+    "slug": "window-sunday",
+    "genre": "劇情長片",
+    "synopsis": "一扇窗，看見三個人的日常。",
+    "posterUrl": "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
+    "title": "風從城裡來",
+    "slug": "wind-city",
+    "genre": "台灣經典修復",
+    "synopsis": "一封寄不出去的信，與一座記得人的城。",
+    "posterUrl": "https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?auto=format&fit=crop&w=1000&q=80"
+  },
+  {
+    "title": "光的形狀",
+    "slug": "shape-of-light",
+    "genre": "短片選集",
+    "synopsis": "四位創作者，四種觀看世界的方式。",
+    "posterUrl": "https://images.unsplash.com/photo-1478720568477-152d9b164e26?auto=format&fit=crop&w=1000&q=80"
+  }
+]
