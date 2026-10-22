@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-22 PHP 安全維護：基底更新為官方 php:8.5.12-fpm-bookworm 並固定 digest，詳見 [來源與驗證紀錄](PHP-SECURITY-UPDATE-20261021.md)。官方 amd64 映像已發布，臨時原始碼編譯配方及輔助工具已移除；原專案擴充／runtime／development 階段保留。這是環境維護，階段五仍未開始。
+
 2026-10-21 修正補充：已處理發布紀錄故障的 202 回應、僅新增權限的登入／側欄／保存後狀態及電影介紹原型對齊；沒有新增 API、資料表、migration 或階段。最新證據與保留差異見 [規劃與實作複查的修正紀錄](REVIEW-PLAN-IMPLEMENTATION-20261020.md#2026-10-21-修正與驗證)。新增 `backend/tests/publication_failures.py` 負責隔離發布故障回歸；`frontend/tests/admin-navigation.test.mjs` 驗證權限導向。`core/session.js` 集中 `adminNavigation`／`adminDestination`／`adminReturnTo`，各表單共用。階段五以後仍未開始。
 
 2026-10-20 階段四完成本機實作與驗收：電影／場次／歷史網址三表、公開電影 API／片單／詳情／首頁同版發布、後台電影／海報 CRUD 與多場次編輯。主庫與測試庫現為十二份 migration、24 表／211 欄、54 個 API 操作。10 月 19 日最終驗證：整合 619 項、PHP 55 項／233 斷言、Node 88 項，獨立契約零差異，桌面／手機及隔離容器重建持久化已驗。實際證據與界線見 [階段四驗收](PHASE-4-ACCEPTANCE.md)，新檔用途及操作見 [電影指南](modules/films.md)。U-16 只檢查日期及開始時間重複，結束時間後續再議。主庫四部原型電影沒有完整放映年份，未猜測或建立場次。以下較早日期的 21 表／十份 migration 是當時紀錄。
@@ -14,7 +16,7 @@
 
 **2026-10-18 修正補充：** 已修正圖片說明保存、原型順序／文案標籤、營業時間欄及座標約束，並補齊景點表單失敗／競態測試。修正結果及驗收界線見 [PHASE-3-REVIEW-PLAN.md](PHASE-3-REVIEW-PLAN.md)。
 
-更新日期：2026-10-21。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
+更新日期：2026-10-22。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
 
 2026-10-18先前完整複查（當次紀錄）：[階段二、三完整複查報告](FULL-REVIEW-20261018.md)。PHP37項／182斷言、前端64項及396項整合檢查通過；64頁路由／資產／imports與桌面／手機Google原文流程已核對。該次複查未新增業務功能、API、表或migration；本輪基準校正則新增005–007，詳見上方校正交付。環境復原及仍未實作的內容補位見該次報告。
 
@@ -520,7 +522,7 @@ Compose project 名稱是 `yinghua`。Nginx／MariaDB／Node／Mailpit 與 Docke
 
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
-| [docker/php/Dockerfile](../docker/php/Dockerfile) | 多階段 PHP image：Composer binary、PHP／extension 基底、品質工具與應用依賴、runtime、development；development 額外安裝品質工具 dev 依賴。 |
+| [docker/php/Dockerfile](../docker/php/Dockerfile) | 多階段 PHP image：Composer／Node binary、固定 digest 的官方 PHP 8.5.12 基底與實際版本檢查、專案擴充、品質工具與應用依賴、runtime、development；development 額外安裝品質工具 dev 依賴。 |
 | [docker/php/php.ini](../docker/php/php.ini) | PHP 時區、錯誤輸出／log、128M 記憶體、上傳 8M／POST 10M 與 PHP 原生 session 安全預設。上傳限制存在不代表媒體上傳 API 已完成。 |
 | [docker/php/www.conf](../docker/php/www.conf) | FPM pool 保留 Docker 環境變數、收集 worker 輸出並交由容器 log。 |
 | [docker/nginx/default.conf](../docker/nginx/default.conf) | 靜態根目錄、固定入口的 /api/ FastCGI、標準 Host 轉向、私有副檔名／隱藏檔拒絕與回應 headers。 |
