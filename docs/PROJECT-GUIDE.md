@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-22 Compose 整理：保留單一 compose.yaml，使用 x-php-common／x-web-common 統一共用設定，FPM 健康檢查只套用 app／app-test；publisher 以 CLI running 狀態啟動。測試資料庫／媒體／發布位置仍明確分開。設定展開比對、完整啟動與隔離驗證見下方「Compose 閱讀與啟動」；沒有新增業務功能或 migration。
+
 2026-10-22 PHP 安全維護：基底更新為官方 php:8.5.12-fpm-bookworm 並固定 digest，詳見 [來源與驗證紀錄](PHP-SECURITY-UPDATE-20261021.md)。官方 amd64 映像已發布，臨時原始碼編譯配方及輔助工具已移除；原專案擴充／runtime／development 階段保留。這是環境維護，階段五仍未開始。
 
 2026-10-21 修正補充：已處理發布紀錄故障的 202 回應、僅新增權限的登入／側欄／保存後狀態及電影介紹原型對齊；沒有新增 API、資料表、migration 或階段。最新證據與保留差異見 [規劃與實作複查的修正紀錄](REVIEW-PLAN-IMPLEMENTATION-20261020.md#2026-10-21-修正與驗證)。新增 `backend/tests/publication_failures.py` 負責隔離發布故障回歸；`frontend/tests/admin-navigation.test.mjs` 驗證權限導向。`core/session.js` 集中 `adminNavigation`／`adminDestination`／`adminReturnTo`，各表單共用。階段五以後仍未開始。
@@ -502,6 +504,36 @@ erDiagram
 景點／店家與媒體已有正式業務表、API 及公開 HTML 發布，博物館與首頁景點精選也讀真實景點資料。電影已有 films／film_screenings／film_aliases、管理與公開 API、首頁片單及基本詳情。消息、優惠、收藏與行程尚無正式業務表；routes／route_attractions 只供引用保護，並非路線管理。尚未實作的後續畫面仍以 prototype.js／HTML 展示，規劃見 IMPLEMENTATION-PLAN.md。
 
 ## Docker、環境變數與資料位置
+
+### Compose 閱讀與啟動
+
+[compose.yaml](../compose.yaml) 依「共用區塊 → 實際服務 → 測試服務 → volumes」閱讀。使用 Docker 官方支援的 [extensions](https://docs.docker.com/reference/compose-file/extension/) 與 [YAML fragments](https://docs.docker.com/reference/compose-file/fragments/)，共用片段不會建立額外容器。這些為 E-12 工程整理，並非 Excel 新增的業務限制。
+
+| 區塊／引用 | 用途 |
+| --- | --- |
+| `x-php-common`／`*php-common` | 共用本機 image `yinghua-app`、Dockerfile build、PHP 環境、程式／套件掛載、等待 db 健康與重啟政策；app／publisher／app-test 使用同一設定 |
+| `*php-environment` | PHP 環境 mapping；app-test 先引用再覆寫 APP_ENV、APP_URL、DB_DATABASE，保留必要的共用設定 |
+| `x-fpm-healthcheck`／`*fpm-healthcheck` | 只給 app／app-test，檢查 FPM 9000 連接埠；CLI publisher 沒有此連接埠 |
+| `x-web-common`／`*web-common` | 共用 Nginx 映像、主站預設環境、Host 正確的健康檢查與重啟政策；web／web-test 各自宣告 ports、volumes、依賴 |
+| `*web-environment` | web-test 引用後覆寫 API_UPSTREAM 與 CANONICAL_ORIGIN，保留 NGINX_ENVSUBST_FILTER |
+
+`&名稱` 定義片段、`*名稱` 引用、`<<` 合併 mapping。YAML merge 不會自動深入合併 environment，也不合併 volumes／ports 的列表；因此環境 mapping 額外引用對應片段，測試掛載與 ports 則整份列出。舊的服務 extends／!override 已移除，避免讀設定時還需追查服務繼承規則。
+
+app-test 僅依賴 db；web-test 僅依賴 app-test／frontend。測試庫仍為 yinghua_test，媒體／發布仍用 media_test_data／publication_test_data；主站使用原本資料位置。各個 port 仍只綁 loopback，DBeaver 仍可使用 DB_FORWARD_PORT。
+
+已有資料庫與 migrations 的環境，日常可用：
+
+```powershell
+docker compose --profile mail up -d --wait
+# 同時啟動隔離測試環境：
+docker compose --profile mail --profile test up -d --wait
+# 僅檢查模型有效性，不列印 .env 中的秘密：
+docker compose --profile mail --profile test config --quiet
+```
+
+首次空庫仍依 README 啟動、migrate／seed 與初始化，完成後再等待 web 健康；本次未更改初始化流程。frontend 成功結束為 Exit 0，publisher 沒有 healthcheck、狀態為 running；兩者均屬正常。移除 publisher 誤繼承且已停用的 FPM healthcheck 後，完整 up --wait 可正常完成；沒有新增假健康檢查。
+
+2026-10-22 驗證：8 服務／8 volumes 的展開模型比對通過，包含環境值但不印出秘密；只允許 app 明確宣告原本的本機 image 名稱、publisher 移除不適用的 healthcheck 兩項差異。完整 `up -d --build --wait`、108 項登入／權限整合、8 項電影／場次／海報／HTML 重建持久化檢查通過；主站與測試站六個 HTTP 端點均回 200。共用 db 容器 ID／啟動時間不變，沒有清除 volumes。證據在本機忽略的 artifacts/compose-cleanup-*；本次只重跑受影響的 Compose 與整合流程，不冒稱重新執行全部階段驗收。
 
 ### 八個服務
 
