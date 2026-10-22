@@ -1,6 +1,6 @@
 # 公開消息、優惠與首頁：程式閱讀指南
 
-更新：2026-10-22。**5A–5D 已接入：資料層、消息、優惠／店家／原型匯入及首頁；整合驗收進行中。** 完整範圍與 S／D／U／E 來源見 [階段五計畫](../PHASE-5-PLAN.md)。
+更新：2026-10-22。**5A–5E 完成本機實作與驗收：資料層、消息、優惠／店家／原型匯入及首頁。** 完整範圍與 S／D／U／E 來源見 [階段五計畫](../PHASE-5-PLAN.md)，最終結果見 [階段五驗收](../PHASE-5-ACCEPTANCE.md)。
 
 ## 目前資料流
 
@@ -98,3 +98,21 @@ CLI exit：0 成功／預覽／unchanged，2 驗證失敗，3 衝突，4 saved_p
 原型 `.event-list` 三列保留。日期有活動開始時間時顯示活動日期；沒有時顯示發布日期，無障礙名稱會明確區分，沒有推測活動時間。消息排序由實際發布時間決定，所以不強制保持靜態原型文章順序。
 
 5D 已驗證：首頁整合 21 項，含七個公開來源同版、前三筆消息／三部電影、直接 HTML、詳情連結、renderer 故障時 API／HTML 都 503、保存後重試及下架。PHPUnit 64 項／263 斷言、PHPStan／PHPat、格式檢查與兩項首頁 Node 檢查通過；跨日 12 項回歸通過。全階段桌面／手機、安全及容器重建驗收仍進行中。
+
+## 5E：最終驗收與排查入口
+
+前面 5A–5D 保留各功能交付當時的檢查；最終結果：PHPUnit 64 項／263 斷言、Node 101 項、PHPStan／PHPat／格式通過，應用及工具 Composer audit 無 advisories。Rector dry-run 有 29 檔建議（exit 2），檢視後未批次套用。消息／優惠／首頁整合分別 40／40／21 項，跨日與電影換週擴至 20 項；既有 21 組回歸的 788 個 HTTP 回應契約零差異。完整命令與畫面差異見驗收文件，不能以歷史數字代替本次結果。
+
+| 檔案 | 用途 |
+| --- | --- |
+| [public_content_security.py](../../backend/tests/public_content_security.py) | 新模組 27 項 HTTP／真實 DB 越權及 CLI 邊界；本輪帳號經正常 API 軟刪／撤銷 session |
+| [public_content_restart.py](../../backend/tests/public_content_restart.py) | 9 項隔離容器重建，驗證資料／圖片／HTML 位元組與 generation；保留 volumes／主庫 |
+| [public_content_seed_fresh.py](../../backend/tests/public_content_seed_fresh.py) | 隨機空庫完整初始化的 10 項檢查，既有 profile 重用及 demo 不覆寫編輯／停用 |
+| [public_content_queries.php](../../backend/tests/public_content_queries.php) | 實際發布 SQL 的唯讀 EXPLAIN／ANALYZE，不自動新增索引或重啟資料庫 |
+| [public_content_browser_fixture.py](../../backend/tests/public_content_browser_fixture.py) | 隔離 21 篇消息／21 項優惠，用於深分頁、長字與缺圖；完成須 --cleanup |
+| [ImageOriginTest.php](../../backend/tests/Unit/ImageOriginTest.php)／[PublicContentInputTest.php](../../backend/tests/Unit/PublicContentInputTest.php) | 上傳來源防偽、圖片內容、安全正文、欄位與日期規則 |
+| [film_schema_upgrade.py](../../backend/tests/film_schema_upgrade.py) | 舊工具固定階段四 migration 集，繼續驗證當時 24 表／12 份；最新結構改由階段五工具驗證 |
+
+桌面／手機實測 1440×900／390×844，包括原型對照、分類／URL／返回、深頁重整、圖片替代、長字、空資料、錯誤重試及首頁連結。原型 CSS 未改，消息卡片日期也沿用原型格式；資料排序、過期提示、基本詳情／前後篇界線明載於驗收，不宣稱所有內容與原型逐像素相同。缺少尺寸的外部正文圖片仍可能載入後改變段落高度；可提供 width／height，後端不為猜尺寸下載外站。
+
+本機操作依賴 Docker 的同一份 .env，沒有新增變數。主站 localhost:8080，隔離測試 localhost:8081／yinghua_test；不要平行跑會重置測試 root 或注入發布故障的 suites。CLI／schema、主流程、全部新增檔案與來源均由本指南連結，未開始的完整管理、收藏／行程與設定維持原階段界線。

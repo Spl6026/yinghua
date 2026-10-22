@@ -4,7 +4,7 @@
 
 ## 目前歷史
 
-2026-10-22 階段五細節計畫作為 main 的規劃提交，沿用階段四先規劃、後開實作分支的方式。本次只有工程文件；`phase/05-public-content-home` 待使用者授權實作後才由最新 main 建立，不把規劃記成完成實作。
+2026-10-22 階段五細節計畫作為 main 的規劃提交，沿用階段四先規劃、後開實作分支的方式。該規劃提交當時只有工程文件；其後依使用者授權從最新 main 建立 `phase/05-public-content-home`，完成以下五筆功能與驗收。
 
 2026-10-22 Compose 整理使用 `maintenance/compose-cleanup`，將設定、隔離／啟動驗證與閱讀說明作為一筆完整維護提交；驗證及備份後以 merge commit 回 main，保留分支。沒有改寫 PHP 安全更新或既有階段歷史。
 
@@ -65,7 +65,7 @@
 
 | 階段 | 優先級 | 預定分支 | 狀態 |
 | --- | --- | --- | --- |
-| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已授權，5A–5D 資料層／消息／優惠／店家／首頁已接入，整合驗收進行中 |
+| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已完成本機驗收；五筆功能／驗收提交，P0 尚未完成 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 未開始 |
 | 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 未開始 |
 | 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 未開始 |
@@ -106,3 +106,19 @@
 開發中已建立並驗證 `artifacts/phase4-before-history-20261019.bundle`。最終 autosquash 前另保存全部 refs 的 `artifacts/phase4-before-autosquash-20261020.bundle`；合併前再保存 `artifacts/phase4-before-merge-20261020.bundle`。均為本機忽略檔，不提交大型備份或任何憑證。
 
 只收整從 `74b881f8148c7e42c0d0a9738dcee77f59f6b312` 起的本機階段四提交，不改階段一至三、第一提交或遠端 refs。比較 autosquash 前後整棵 tree，再以 `--no-ff` 合併並保留 `phase/04-films-screenings`；核對 main／階段分支 tree 相同、原始 69 檔完整及工作目錄乾淨。系統的 `refs/codex/` 復原紀錄不當成專案進度分支，也不刪除。
+
+## 階段五歷史保護
+
+2026-10-22：以 `phase/05-public-content-home` 交付五筆：資料層／店家相容準備、公開消息與 CLI、公開優惠／店家與原型匯入、首頁同版整合、跨模組驗收與導讀。日期排版與測試來源的自身修正併回原功能，不保留 fixup 進度。
+
+合併前保留並驗證本機忽略檔 `artifacts/phase5-before-history-20261022.bundle`，只收整本階段未分享的提交，不改 main 的既有歷史、第一提交或其他階段分支。收整前後完整 tree 必須相同；另備份 `artifacts/phase5-before-merge-20261022.bundle`，以 --no-ff 合併，保留階段分支並比較 main／階段 tree。
+
+防毒隔離的 security-audit 參考檔刪除不納入功能，亦不為收整還原該檔；保留這項已說明的工作樹差異。原型 69 檔、migration 舊檔及 .env 忽略狀態仍須核對。沒有推送或修改遠端 refs。
+
+## 2026-10-23：階段一至五複驗的自身修正
+
+複驗不建立額外進度分支／合併點。手機頂列顯示歸回階段二後台存取、選填內容顯示及產物測試歸回階段三選填內容、電影按鈕歸回階段四多場次介面，閱讀指南隨所屬功能；跨階段實測報告及當前狀態校正併入階段五驗收。既有階段合併父子關係與功能筆數保持。
+
+本機修改 refs 前以 `artifacts/review-phases1-5-before-history-20261023.bundle` 備份並驗證；另保留前一天的同名 20261022 備份。重建受影響的本機提交及下游父節點，先比對最終完整 tree，再一次更新 refs，不改遠端。第一提交、階段一、原型 69 檔、既有 migration、`.env` 忽略及防毒隔離差異均保持；沒有額外的修錯進度提交。
+
+同日固定清單複驗的選檔重載修正、行為回歸與閱讀指南歸回階段三景點管理功能；完整性工具、固定清單與本輪結果歸回階段五驗收。更新前另備份並驗證 `artifacts/verification-closure-20261023-before-history.bundle`，不覆寫較早備份；維持原有功能筆數、分支／合併關係與遠端 refs，核對完整 tree 及原始 69 檔。

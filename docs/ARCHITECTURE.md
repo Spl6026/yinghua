@@ -1,6 +1,6 @@
 # API 與前端分離的架構設計
 
-設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18；階段四電影／場次：2026-10-20。
+設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18；階段四電影／場次：2026-10-20；階段五公開內容／首頁：2026-10-22。
 
 使用者指定 PHP 對網站只提供 API，前端使用原生 JavaScript／jQuery。採 MVC 的責任分工，另外拆出 Service 與 Repository，使業務流程和 SQL 能重用。這是本專案的工程選擇，Excel 並未指定 MVC、框架或 design pattern。
 
@@ -181,3 +181,15 @@ Nginx 提供前端 HTML／CSS／JS／公開圖片，只有 /api/v1/* 轉給 PHP 
 電影沿用 Controller → Service → Repository 與 DTO／Policy：FilmController 處理 HTTP，FilmManagement 在共同發布鎖及單一交易內重查授權、驗證 version、檢查開始時間、保存電影／場次與稽核，再交 ContentPublication 同版發布。公開端 PublicFilms 讀成功快照；NodeContentRenderer 是 PHP 與前端 publish.mjs 間的 Adapter，HTML 仍屬 frontend。FilmPosterPolicy 與既有模組媒體服務重用圖片規則，不建立萬用 CRUD 基底或額外框架。
 
 電影與場次構成同一保存單位，子列沿用父電影版本；只依 U-16 比較日期及開始時間，沒有結束／場地模型。具體檔案、來源與實際測試見 [電影指南](modules/films.md)、[全站導讀](PROJECT-GUIDE.md#階段四新增檔案與電影資料流) 及 [階段四驗收](PHASE-4-ACCEPTANCE.md)。
+
+## 9. 階段五的公開內容分層
+
+2026-10-22：公開消息／優惠與首頁沿用本架構，實際檔案逐一見 [公開內容閱讀指南](modules/public-content.md)。沒有加入 PHP View、框架或第二套發布程序。
+
+- PublicNewsController／PublicOfferController／PublicHomeController 只處理 HTTP、查詢 DTO、JSON 與安全轉址。PublicNews／PublicOffers／PublicHome 只讀成功快照。
+- 受信維運 CLI 由 PublicContentCommands 解析選項，ContentImporter 協調整批驗證、同 PDO 交易及提交後發布。NewsManagement／OfferManagement／MerchantManagement 共用 ContentImportService，維持各自主題規則；未提供完整管理 HTTP CRUD。
+- DTO 負責輸入格式與型別，ContentCover／BodyImages／OfferValidity／ImportVersion 是可重用規則。安全正文以 RichTextSanitizer 介面注入 HTML Purifier Adapter，沒有自製正規表示式 sanitizer。
+- NewsRepository／OfferRepository／MerchantRepository 集中 SQL 與公開欄位映射。merchants 是獨立 profile，可選填連結景點；沒有要求優惠店家一定上架成景點。
+- ContentPublication 一次取時刻，將公開來源及 HomeSelection 的結果放入同一 generation。HomeContent 是首頁 DTO；WeeklyFilmSelection 同時供首頁與電影 API 使用。Node 使用相同 home 投影生成 HTML，原生 JS 的 news／offers 共用列表控制器與主題 view。
+
+設計沿用 [Fowler Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html)／[Repository](https://martinfowler.com/eaaCatalog/repository.html) 的責任區分，具體類別與發布快照為本案 E-26；Excel 的資料表／API 草案維持 D，不冒稱 Spring Boot 或 Excel 指定 PHP 目錄。

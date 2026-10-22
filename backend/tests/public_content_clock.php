@@ -94,6 +94,34 @@ try {
     $generation = $publication->read()['generation'];
     $clock->value++;
     $check($publication->tick() && $publication->read()['generation'] === $generation);
+    // [S：功能規格 5／7；E-26] 台北週一切換，首頁只使用新週的場次。
+    $screenings = new FilmScreeningRepository($db);
+    $films = new FilmRepository($db, $screenings);
+    $filmId = Secrets::uuid();
+    $oldFilmId = Secrets::uuid();
+    foreach ([$filmId => '換週保留電影',$oldFilmId => '換週移除電影'] as $id => $title) {
+        $films->save($id, \Yinghua\DTO\FilmInput::fromArray(['title' => $title,'slug' => 'clock-' . $id,'status' => 'published','publishAt' => '2026-10-01T00:00:00+08:00'], true), true, $actor->id);
+        $rows = [\Yinghua\DTO\ScreeningInput::fromArray(['startsAt' => '2026-10-25T23:30:00+08:00'])];
+        if ($id === $filmId) {
+            $rows[] = \Yinghua\DTO\ScreeningInput::fromArray(['startsAt' => '2026-10-26T00:00:00+08:00']);
+        }
+        $screenings->replace($id, $rows);
+    }
+    $clock->value = (int) strtotime('2026-10-25T23:59:59+08:00');
+    $check($publication->synchronize());
+    $home = (new \Yinghua\Services\PublicHome($publication))->get();
+    $first = array_find($home['films'], static fn(array $item): bool => $item['id'] === $filmId);
+    $check($first !== null && count($first['screenings']) === 1);
+    $check(array_any($home['films'], static fn(array $item): bool => $item['id'] === $oldFilmId));
+    $generation = $home['generation'];
+    $clock->value++;
+    $check(!$publication->ready());
+    $check($publication->tick());
+    $home = (new \Yinghua\Services\PublicHome($publication))->get();
+    $check($home['period']['from'] === '2026-10-25T16:00:00+00:00');
+    $first = array_find($home['films'], static fn(array $item): bool => $item['id'] === $filmId);
+    $check($first !== null && count($first['screenings']) === 1 && $first['screenings'][0]['startsAt'] === '2026-10-25T16:00:00+00:00');
+    $check(!array_any($home['films'], static fn(array $item): bool => $item['id'] === $oldFilmId) && $home['generation'] !== $generation);
     echo json_encode(['publicationClockChecks' => $checks,'rolledBack' => true,'isolatedPublicationDirectory' => true], JSON_THROW_ON_ERROR) . "\n";
 } finally {
     $db->pdo->rollBack();

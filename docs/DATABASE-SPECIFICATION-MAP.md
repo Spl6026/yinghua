@@ -1,8 +1,8 @@
 # 資料表與原始 Excel 對照
 
-更新日期：2026-10-20。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。
+更新日期：2026-10-22。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。
 
-目前 **27 張業務表＋1 張 migration 工具表，共 28 表、276 欄、15 份 migration**。2026-10-22 階段五 5A 新增 012–014：擴充 merchants、新增 news_posts／offers 及兩張 alias 表；API／CLI／畫面尚未接入。主庫／測試庫已套用，原 migration checksum 不改，空庫與保留會員／景點／店家的升級已重跑驗證；細節見[公開內容指南](modules/public-content.md)。階段四當時為 24 表／211 欄／12 份 migration，結果見 [驗收](PHASE-4-ACCEPTANCE.md)。
+目前 **27 張業務表＋1 張 migration 工具表，共 28 表、276 欄、15 份 migration**。2026-10-22 階段五 5A 新增 012–014：擴充 merchants、新增 news_posts／offers 及兩張 alias 表；公開 API／CLI／畫面已接入並完成本機驗收。主庫／測試庫已套用，原 migration checksum 不改，空庫與保留會員／景點／店家的升級已重跑驗證；細節見[公開內容指南](modules/public-content.md)。階段四當時為 24 表／211 欄／12 份 migration，結果見 [驗收](PHASE-4-ACCEPTANCE.md)。
 
 ## 原始建議已有對應的資料表
 
@@ -17,7 +17,9 @@
 | 資料表建議 11 | media_assets | storage_key 唯一；mime_type、尺寸及 created_at 同名。byte_size 對應 size_bytes、alt 對應 alt_text、source 對應 credit、uploaded_by 對應 created_by。public_url 不另存：由受控 storage_key 組成 /media 路徑，避免 URL 與儲存鍵不同步。source／license 可空白；圖片 alt 仍必填 |
 | 資料表建議 A12–D12 | films | id、slug、title、genre、synopsis、poster_media_id、status、操作者、version 及時間對應。publish_at 表示預定公開時間，不冒稱首次發布時間；SEO、網址海報、用途說明、電影預設票務、legacy_id／deleted_at 為 E-25。欄位清單不等於必填；片名依原型 required，有圖有效 alt 依 G7／G21 |
 | 資料表建議 A13–D13 | film_screenings | id、film_id、starts_at、ticket_url、時間欄對應；starts_at 存 UTC。U-16 只比開始日期與時間，所以本階段沒有 ends_at／venue；場次公開性依父電影狀態，不自創獨立取消狀態。零場次可保存／發布 |
+| 資料表建議 A14–D14 | news_posts | C14 的 slug、event／city、標題／摘要／正文、cover_media_id、可空活動起迄、狀態、publish_at、操作者、版本、時間及軟刪除均對應。D14 的 enum／排程查詢與優惠分表已採用；legacy_id、外連封面／用途說明、活動標籤／地點、SEO 為原型與 E-26。正文由 Service 淨化，不在 SQL 偽稱能檢查所有 HTML |
 | 資料表建議 15 | merchants | 012 升級為獨立 profile，id PK、可空唯一 attraction_id FK、name／district／address／phone／website／status／version／timestamps／deleted_at。原連結／建立時間保留，一次回填後明確區分優惠聯絡資料與景點；完整管理介面仍在 P1 |
+| 資料表建議 A16–D16 | offers | C16 的 slug、merchant_id、title、discount_text／description／terms、cover_media_id、可空 valid_from／valid_to、狀態及軟刪除均對應；G23 條款／店家與 D16 有雙端日期時的順序檢查已落實。published_at 採共用排程欄 publish_at；legacy_id、外連封面／用途、SEO、操作者／版本為 E-26。D16 日期索引是建議；目前投影保留已發布歷史詳情，實際查詢採公開狀態／發布索引，沒有建立未使用的日期索引 |
 | 資料表建議 17 | routes | 僅 id／title／status／version，為刪除引用保護所需的最小標頭；完整 slug、theme、summary、duration 等於 P1 路線階段擴充 |
 | 資料表建議 18 | route_attractions | route_id、attraction_id、sort_order 與順序／重複引用唯一性對應；suggested_time、note 尚未實作，不因此提前建立完整路線功能 |
 | 資料表建議 22 | sessions | member_id／admin_id 擇一、token_hash、期限、撤銷、建立時間與雜湊化來源對應。idle_expires_at、last_seen_at 為期限實作；preview_admin_id 來自 U-06 唯讀模擬 |
@@ -50,15 +52,16 @@
 | password_reset_tokens | E-03：串接總覽 B9 要密碼重設；只保存 token 摘要、用途、期限與使用狀態 |
 | member_consents | E-05／API草案 G17：保存會員同意的條款版本及時間 |
 | attraction_aliases | E-18：唯一 slug 的歷史路徑對應，保留舊網址導向及碰撞保護 |
-| content_publications | E-18／E-25：景點／電影共同公開 HTML 與 API 的 generation、成功／失敗及重試狀態，避免保存失敗卻顯示已發布 |
+| content_publications | E-18／E-25／E-26：景點／電影／消息／優惠與首頁共同公開 HTML／API 的 generation、成功／失敗及重試狀態，避免保存失敗卻顯示已發布 |
 | film_aliases | E-25：電影歷史 slug 路徑對應 UUID；保留舊網址及碰撞保護 |
+| news_aliases／offer_aliases | E-26：兩主題各自歷史網址與 owner FK，包含單一 coffee-walk 相容入口；不藉此將優惠寫入消息表 |
 | schema_migrations | 工具表，不是業務功能：紀錄 migration checksum、已套用 statement 與完成時間，支援中斷後續跑 |
 
 007_approved_authentication_policy.sql 依 U-13 清除舊旗標、改預設 0；不修改原始已套用 migration。
 
 ## Excel 建議但尚未開始的業務表
 
-news_posts（14）、offers（16）已於階段五 5A 建立資料層；欄位逐項來源、選填日期／條款限制與 alias 工程欄位見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md#4-預計資料表及升級) 及閱讀指南，尚未宣告公開功能完成。itineraries／itinerary_items（19／20）、favorites（21）、site_settings／content_seo（24／25）尚未實作，仍依 [實作計畫](IMPLEMENTATION-PLAN.md) 處理。
+news_posts（14）、offers（16）已於階段五 5A 建立資料層；欄位逐項來源、選填日期／條款限制與 alias 工程欄位見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md#4-預計資料表及升級) 及閱讀指南，公開消息／優惠／首頁已接入；正式完成狀態依階段五驗收文件。itineraries／itinerary_items（19／20）、favorites（21）、site_settings／content_seo（24／25）尚未實作，仍依 [實作計畫](IMPLEMENTATION-PLAN.md) 處理。
 
 ## Migration 與操作
 
