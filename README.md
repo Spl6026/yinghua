@@ -12,6 +12,8 @@ Google匯入另依U-10改善行政區、HTTP官網與可見地點關聯；Google
 
 ## 本機啟動
 
+PHP 已更新為固定 digest 的官方 8.5.12 映像，來源與驗證見 [更新紀錄](docs/PHP-SECURITY-UPDATE-20261021.md)。
+
 需要 Docker Desktop（Linux containers），不需要主機 PHP、Composer、Node 或 MariaDB。
 
 ```powershell

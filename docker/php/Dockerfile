@@ -3,7 +3,10 @@ FROM composer:2.10.3@sha256:af98f42dfff7c68ba8d53c2164fd9fde1087b7d449514baa38c4
 # [E-12／E-18] 僅執行前端內容產生工具，版本與 frontend 服務相同。
 FROM node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20 AS node-bin
 
-FROM php:8.5-fpm-bookworm@sha256:dd198c828c224e479bdaa184cdcf04a28c73d186bf5a885493bf9cc78d7196ef AS php-base
+FROM php:8.5.12-fpm-bookworm@sha256:d3db5340c7ecfb1e3a26af5d3d9de8b4e160cdd75692a830b5cb74b0b85db2cf AS php-base
+
+# [E-12 / 2026-10-22] Fail the build if the pinned security release is not running.
+RUN test "$(php -r 'echo PHP_VERSION;')" = '8.5.12' && php-fpm -v
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends libicu-dev libonig-dev libpng-dev libjpeg62-turbo-dev libfreetype6-dev libzip-dev \
