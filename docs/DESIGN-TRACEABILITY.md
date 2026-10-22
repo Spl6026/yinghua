@@ -57,7 +57,7 @@ U-17（2026-10-20）：使用者要求開放 Docker 資料庫 port，使用自�
 
 | ID | 工程補充 | 理由／規格關係 | 計畫狀態 |
 | --- | --- | --- | --- |
-| E-26 | 階段五消息／優惠 DTO、店家 profile 相容、受控匯入與重跑、日期空值／到期邊界、公開聚合／排序、媒體與安全正文、舊網址及技術上限 | S 功能規格 5／9／11 的公開功能；沿用 G23 的條款必填／店家存在作共用寫入規則。D 資料表 14–16／API 5／10–13 是建議；具體 schema、日期算法、CLI、相容與上限非 Excel 硬性設定 | 已建立 5A 資料層，其餘進行中；見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md) |
+| E-26 | 階段五消息／優惠 DTO、店家 profile 相容、受控匯入與重跑、日期空值／到期邊界、公開聚合／排序、媒體與安全正文、舊網址及技術上限 | S 功能規格 5／9／11 的公開功能；沿用 G23 的條款必填／店家存在作共用寫入規則。D 資料表 14–16／API 5／10–13 是建議；具體 schema、日期算法、CLI、相容與上限非 Excel 硬性設定 | 已接入 5A 資料層及 5B 消息／CLI，其餘進行中；見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md) |
 | E-25 | 階段四電影／場次 DTO 與 aggregate、同開始時間交易／並行檢查、模組媒體、共同發布、舊網址及本週／技術上限策略 | 功能依 S7／21／5／30／34、D 資料表 12／13／API 8／9／30；開始時間政策依 U-16。週一界線、分鐘精度、草稿保留／下架釋放、票務預設及 SQL／API 具體形式是工程設計 | 已實作並完成本機驗收；見 PHASE-4-PLAN.md／PHASE-4-ACCEPTANCE.md |
 | E-01 | Controller／Service／Repository、輸入／回應 DTO、建構子 DI、Adapter／Middleware、儲存例外轉譯及帳號／權限服務拆分 | 落實 U-02；Excel 沒有指定這些 pattern | 階段二已實作，見 ARCHITECTURE／modules/backend-layering.md |
 | E-02 | 會員／後台獨立 auth namespace、Cookie 與 CSRF API | 實現 S-SEC-09／14 的身分邊界，確切端點是提案 | 基礎方案 |
@@ -76,7 +76,7 @@ U-17（2026-10-20）：使用者要求開放 Docker 資料庫 port，使用自�
 | E-24 | 原始DB範例試填白名單／確認／create授權及電話格式、80字上限、phoneUrl、安全HTML與009升級 | 功能依 S E20／G6；端點、型別、上限與允許的電話寫法是工程設定，電話與範例不必填 | 已實作，見 PHASE-2-3-OWNER-ALIGNMENT.md |
 | E-23 | 固定身分文字採逐位元組不可變保護，008 trigger 與真實 DB 回滾探測 | 落實 S-026 固定 root；MariaDB CI collation 不足以驗證字面未變，不限制一般帳號改名 | 已實作，見 FULL-RECHECK-20261019.md |
 | E-16 | 模擬採 owner／effective 雙身分、session target 欄位、token 輪替、交易稽核與 Kernel 唯讀限制 | 落實 U-06；參考 Symfony original user／退出機制與 OWASP session 管理，具體 API／欄位為工程設計 | 已實作，見 modules/admin-preview.md |
-| E-17 | P0 公開消息／優惠用真實資料及受控 CLI 匯入，先提供必要基本閱讀頁、共用關聯保護與部署驗收；完整管理／前後篇仍留 P1 | 解決公開列表 P0 與管理 P1 的相依；CLI 重用 Service／驗證／稽核／發布，不是 Excel 指定的工具或額外 CMS | 計畫，尚未實作；階段五細設見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md)，優先級界線見 IMPLEMENTATION-PLAN.md |
+| E-17 | P0 公開消息／優惠用真實資料及受控 CLI 匯入，先提供必要基本閱讀頁、共用關聯保護與部署驗收；完整管理／前後篇仍留 P1 | 解決公開列表 P0 與管理 P1 的相依；CLI 重用 Service／驗證／稽核／發布，不是 Excel 指定的工具或額外 CMS | 階段五進行中，消息／受控匯入已接入，優惠與首頁未完成；細設見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md)，優先級界線見 IMPLEMENTATION-PLAN.md |
 
 ## 4. 階段二 API 的來源
 

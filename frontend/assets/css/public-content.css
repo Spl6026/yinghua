@@ -1,0 +1,14 @@
+/* [E-26] 保留原型卡片與詳情；只補分頁、狀態及安全正文需要的樣式。 */
+.public-content-pager{display:flex;align-items:center;justify-content:center;gap:1rem;flex-wrap:wrap;margin:2rem 0}
+.public-content-status:empty{display:none}
+.public-content-controls{padding-top:0;padding-bottom:0}
+.public-content-status{margin:1rem 0}
+.public-content-filter{display:flex;align-items:center;gap:.75rem}
+.public-article-body{overflow-wrap:anywhere}
+.public-article-body img{max-width:100%;height:auto}
+.public-article-body h2,.public-article-body h3,.public-article-body h4{margin:1.5em 0 .6em}
+.public-article-body ul,.public-article-body ol{padding-left:1.5em}
+.public-article-body a{text-decoration:underline;text-underline-offset:.2em}
+.offer-validity-note{padding:1rem;border:1px solid currentColor;margin:1rem 0}
+body[data-managed-news] :is(.news-feature>div,.news-card-body,.detail-body,.event-row>strong,.event-location),body[data-managed-offers] .place-body{min-width:0;overflow-wrap:anywhere}
+@media(max-width:600px){.public-content-filter{flex-wrap:wrap}.public-content-pager .button{padding:.7rem 1rem}}

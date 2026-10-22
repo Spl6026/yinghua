@@ -59,6 +59,7 @@ placeSearch?.addEventListener('input', renderPlaces);
 areaFilter?.addEventListener('change', renderPlaces);
 
 function renderNews() {
+  if(document.body.dataset.managedNews)return;
   const type = newsFilter?.value || (path === '/activities.html' ? '活動' : path === '/city-news.html' ? '城市消息' : 'all');
   render('#news-list', news.filter(item => type === 'all' || item.type === type), item => newsCard(item, news.indexOf(item)), '目前沒有符合分類的消息。');
   reveal();

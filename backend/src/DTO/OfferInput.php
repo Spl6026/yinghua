@@ -29,6 +29,6 @@ readonly class OfferInput
         if ($fields['valid_from'] !== null && $fields['valid_to'] !== null && $fields['valid_to'] < $fields['valid_from']) {
             throw ApplicationError::invalid('validTo', '結束日期不可早於開始日期。');
         }
-        return new self($fields, $creating ? null : $input->positiveInt('version'));
+        return new self($fields, $creating || !array_key_exists('version', $values) ? null : $input->positiveInt('version'));
     }
 }

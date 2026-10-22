@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "階段五受控消息匯入",
+  "description": "E-26；DTO／Service 另外檢查日期、條件式圖片 alt、歷史網址、授權與更新版本。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "items"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "items": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "$ref": "#/$defs/News"
+      }
+    }
+  },
+  "$defs": {
+    "News": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "coverUrl": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "coverAlt": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "coverSource": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "coverLicense": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "publishAt": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "seoTitle": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "seoDescription": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "body": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "eventStartAt": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "eventEndAt": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "eventLabel": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "eventLocation": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "coverMediaId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "published",
+            "archived"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "event",
+            "city"
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "type"
+      ]
+    }
+  }
+}

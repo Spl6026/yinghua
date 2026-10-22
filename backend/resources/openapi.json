@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "映畫竹塹階段二／三 API",
-    "version": "3.0.0",
+    "title": "映畫竹塹 API（階段二至五）",
+    "version": "5.0.0",
     "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。"
   },
   "servers": [
@@ -6283,7 +6283,8 @@
               "type": "string",
               "enum": [
                 "attractions",
-                "films"
+                "films",
+                "news"
               ],
               "default": "attractions",
               "description": "E-25：依所選模組檢查相應權限；省略相容既有景點用戶端。"
@@ -9209,6 +9210,558 @@
           }
         }
       }
+    },
+    "/api/v1/news": {
+      "get": {
+        "operationId": "get_news",
+        "summary": "公開活動與城市消息列表",
+        "tags": [
+          "news"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 E9–L9；E-17／26",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicNewsList"
+                }
+              }
+            }
+          }
+        },
+        "description": "P0 公開功能，僅成功發布快照；完整後台及前後篇仍留 P1。",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "event",
+                "city"
+              ]
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 255
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/news/{slug}": {
+      "get": {
+        "operationId": "get_news_slug",
+        "summary": "公開消息基本閱讀內容",
+        "tags": [
+          "news"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 E9–L9；E-17／26",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicNewsRecord"
+                }
+              }
+            }
+          }
+        },
+        "description": "P0 公開功能，僅成功發布快照；完整後台及前後篇仍留 P1。",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "maxLength": 160
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/news/resolve-url": {
+      "get": {
+        "operationId": "get_news_resolve_url",
+        "summary": "消息歷史網址與舊 query 轉址",
+        "tags": [
+          "news"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 E9–L9；E-17／26",
+        "security": [],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "301": {
+            "description": "成功",
+            "headers": {
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "同站已發布消息 canonical；無效或不公開目標 404。"
+              }
+            }
+          }
+        },
+        "description": "P0 公開功能，僅成功發布快照；完整後台及前後篇仍留 P1。",
+        "parameters": [
+          {
+            "name": "path",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 1000
+            }
+          },
+          {
+            "name": "id",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -11292,7 +11845,8 @@
             "type": "string",
             "enum": [
               "attractions",
-              "films"
+              "films",
+              "news"
             ],
             "default": "attractions",
             "description": "E-25：依所選模組檢查相應權限；省略相容既有景點用戶端。"
@@ -12343,6 +12897,173 @@
         },
         "required": [
           "startsAt"
+        ]
+      },
+      "PublicNews": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "publishAt": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string"
+          },
+          "imageAlt": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "seoTitle": {
+            "type": "string"
+          },
+          "seoDescription": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "eventLabel": {
+            "type": "string"
+          },
+          "eventLocation": {
+            "type": "string"
+          },
+          "legacyId": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "event",
+              "city"
+            ]
+          },
+          "eventStartAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "eventEndAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bodyImages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "publishAt",
+          "image",
+          "imageAlt",
+          "url",
+          "seoTitle",
+          "seoDescription",
+          "summary",
+          "body",
+          "eventLabel",
+          "eventLocation",
+          "legacyId",
+          "type",
+          "eventStartAt",
+          "eventEndAt",
+          "bodyImages"
+        ]
+      },
+      "PublicNewsList": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicNews"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "generation": {
+            "type": "string"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          },
+          "featured": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicNews"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "generation",
+          "requestId",
+          "featured"
+        ]
+      },
+      "PublicNewsRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "article": {
+            "$ref": "#/components/schemas/PublicNews"
+          },
+          "generation": {
+            "type": "string"
+          },
+          "requestId": {
+            "$ref": "#/components/schemas/RequestId"
+          }
+        },
+        "required": [
+          "article",
+          "generation",
+          "requestId"
         ]
       }
     },

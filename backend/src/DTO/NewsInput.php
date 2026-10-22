@@ -27,6 +27,6 @@ readonly class NewsInput
         if ($fields['event_starts_at'] !== null && $fields['event_ends_at'] !== null && $fields['event_ends_at'] < $fields['event_starts_at']) {
             throw ApplicationError::invalid('eventEndAt', '結束時間不可早於開始時間。');
         }
-        return new self($fields, $creating ? null : $input->positiveInt('version'));
+        return new self($fields, $creating || !array_key_exists('version', $values) ? null : $input->positiveInt('version'));
     }
 }

@@ -19,6 +19,7 @@ class HtmlPurifierSanitizer implements RichTextSanitizer
         $config->set('HTML.Allowed', 'p,br,h2,h3,h4,ul,ol,li,strong,em,b,i,blockquote,a[href|title],img[src|alt|width|height]');
         $config->set('URI.AllowedSchemes', ['http' => true, 'https' => true]);
         $config->set('Cache.DefinitionImpl', null);
+        $config->set('Attr.DefaultImageAlt', '');
         $this->purifier = new HTMLPurifier($config);
     }
 

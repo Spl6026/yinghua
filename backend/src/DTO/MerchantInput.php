@@ -33,6 +33,6 @@ readonly class MerchantInput
         if ($status !== '') {
             $fields['status'] = $status;
         }
-        return new self($fields, $creating ? null : $input->positiveInt('version'));
+        return new self($fields, $creating || !array_key_exists('version', $values) ? null : $input->positiveInt('version'));
     }
 }

@@ -61,6 +61,16 @@ class NewsRepository
         $this->database->execute('INSERT IGNORE INTO news_aliases (path,news_post_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
     }
 
+    public function assertSlugAvailable(string $slug, string $id): void
+    {
+        $path = '/news/' . $slug . '.html';
+        $alias = $this->database->row('SELECT news_post_id FROM news_aliases WHERE path=:path', ['path' => $path]);
+        $other = $this->database->row('SELECT id FROM news_posts WHERE slug=:slug AND id<>:id', ['slug' => $slug,'id' => $id]);
+        if ($slug === 'coffee-walk' || ($alias !== null && (new Row($alias))->string('news_post_id') !== $id) || $other !== null) {
+            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此消息網址已被使用或保留。');
+        }
+    }
+
     /** @return array<string,string> */
     public function aliases(int $now): array
     {
@@ -79,6 +89,7 @@ class NewsRepository
         $fields = ContentMapping::fields($values, [...ContentMapping::sharedKeys(),'type','summary','body','event_starts_at','event_ends_at','event_label','event_location']);
         $public = [...ContentMapping::common($values, 'news'),
             'type' => $row->string('type'),'summary' => $row->string('summary'),'body' => $row->string('body'),
+            'bodyImages' => \Yinghua\Policies\BodyImages::paths($row->string('body')),
             'eventStartAt' => ContentMapping::iso(is_string($values['event_starts_at'] ?? null) ? $values['event_starts_at'] : null),
             'eventEndAt' => ContentMapping::iso(is_string($values['event_ends_at'] ?? null) ? $values['event_ends_at'] : null),
             'eventLabel' => $row->string('event_label'),'eventLocation' => $row->string('event_location')];

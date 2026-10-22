@@ -21,6 +21,7 @@ class ContentPublication
         private readonly Config $config,
         private readonly ?\Yinghua\Repositories\FilmRepository $films = null,
         private readonly ?\Yinghua\Contracts\Clock $clock = null,
+        private readonly ?\Yinghua\Repositories\NewsRepository $news = null,
     ) {}
 
     /** @template T
@@ -99,6 +100,11 @@ class ContentPublication
             $data['films'] = array_map(static fn(\Yinghua\DTO\Film $film): array => $film->publicArray(), $this->films->published());
             $data['filmAliases'] = $this->films->aliases();
             $data['filmPeriod'] = \Yinghua\DTO\ScreeningWindow::current($this->clock?->now() ?? time())->toArray();
+        }
+        if ($this->news !== null) {
+            $now = $this->clock?->now() ?? time();
+            $data['news'] = array_map(static fn(\Yinghua\DTO\NewsPost $post): array => $post->publicArray(), $this->news->published($now));
+            $data['newsAliases'] = $this->news->aliases($now);
         }
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 
