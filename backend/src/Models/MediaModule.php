@@ -12,6 +12,7 @@ enum MediaModule: string
     case Attractions = 'attractions';
     case Films = 'films';
     case News = 'news';
+    case Offers = 'offers';
 
     public static function parse(string $value): self
     {

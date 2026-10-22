@@ -28,6 +28,19 @@ class MerchantRepository
         return $this->database->row('SELECT id FROM attractions WHERE id=:id AND deleted_at IS NULL', ['id' => $id]) !== null;
     }
 
+    public function forAttractionLegacy(int $legacy): ?\Yinghua\DTO\Merchant
+    {
+        $value = $this->database->row('SELECT m.id FROM merchants m JOIN attractions a ON a.id=m.attraction_id WHERE a.legacy_id=:legacy', ['legacy' => $legacy]);
+        return $value === null ? null : $this->find((new Row($value))->string('id'), true);
+    }
+
+    public function assertLinkAvailable(string $attraction, string $merchant): void
+    {
+        if ($this->database->row('SELECT id FROM merchants WHERE attraction_id=:attraction AND id<>:id', ['attraction' => $attraction,'id' => $merchant]) !== null) {
+            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此景點已連結其他店家 profile。');
+        }
+    }
+
     public function save(string $id, MerchantInput $input, bool $creating): void
     {
         $fields = $input->fields;

@@ -27,7 +27,9 @@ class NodeContentRenderer implements ContentRenderer
             $source . '/assets/js/core/film-view.js',$source . '/pages/cinema.html',...glob($source . '/pages/films/*.html') ?: [],
             $source . '/scripts/public-news.mjs',$source . '/assets/js/core/content-view.js',$source . '/assets/js/core/news-view.js',
             $source . '/pages/events.html',$source . '/pages/activities.html',$source . '/pages/city-news.html',
-            ...glob($source . '/pages/news/*.html') ?: []];
+            ...glob($source . '/pages/news/*.html') ?: [],
+            $source . '/scripts/public-offers.mjs',$source . '/assets/js/core/offer-view.js',
+            $source . '/pages/offers.html',...glob($source . '/pages/offers/*.html') ?: []];
         $hash = hash_init('sha256');
         foreach ($files as $path) {
             if (!hash_update_file($hash, $path)) {

@@ -92,7 +92,7 @@ readonly class Composition
         $filmScreens = new \Yinghua\Repositories\FilmScreeningRepository($database);
         $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, $filmScreens), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy(), $filmScreens, new \Yinghua\Policies\ScreeningStartPolicy()));
         $router = new Router();
-        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController):void $routes */
+        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController,\Yinghua\Controllers\PublicOfferController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
         $routes(
             $router,
@@ -106,6 +106,7 @@ readonly class Composition
             $filmController,
             $filmAdmin,
             new \Yinghua\Controllers\PublicNewsController(new \Yinghua\Services\PublicNews($publication)),
+            new \Yinghua\Controllers\PublicOfferController(new \Yinghua\Services\PublicOffers($publication)),
         );
 
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
@@ -115,7 +116,7 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database));
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database));
     }
 
     public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands
@@ -134,12 +135,35 @@ readonly class Composition
             new \Yinghua\Policies\ContentCover(),
             new SystemClock(),
         );
+        $merchants = new \Yinghua\Repositories\MerchantRepository($database);
+        $offers = new \Yinghua\Services\OfferManagement(
+            new \Yinghua\Repositories\OfferRepository($database),
+            $merchants,
+            $media,
+            $authorization,
+            $events,
+            new \Yinghua\Policies\ContentCover(),
+            new SystemClock(),
+        );
+        $merchantService = new \Yinghua\Services\MerchantManagement($merchants, $authorization, $events);
         return new \Yinghua\Adapters\PublicContentCommands(
             $accounts,
             new \Yinghua\Services\ContentImporter(new PdoTransactions($database), $this->publication($database)),
             $news,
             new MediaManagement($media, new LocalImageStorage($this->config), $authorization, new PdoTransactions($database), $events),
             $secrets,
+            $offers,
+            $merchantService,
+            new \Yinghua\Adapters\PublicContentSeeder(
+                $merchants,
+                new \Yinghua\Repositories\NewsRepository($database),
+                new \Yinghua\Repositories\OfferRepository($database),
+                $merchantService,
+                $news,
+                $offers,
+                new PdoTransactions($database),
+                $this->publication($database),
+            ),
         );
     }
 }

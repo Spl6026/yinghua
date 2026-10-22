@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "階段五受控消息匯入",
+  "title": "階段五受控消息／優惠／店家匯入",
   "description": "E-26；DTO／Service 另外檢查日期、條件式圖片 alt、歷史網址、授權與更新版本。",
   "type": "object",
   "additionalProperties": false,
@@ -16,7 +16,17 @@
       "type": "array",
       "maxItems": 500,
       "items": {
-        "$ref": "#/$defs/News"
+        "oneOf": [
+          {
+            "$ref": "#/$defs/News"
+          },
+          {
+            "$ref": "#/$defs/Offer"
+          },
+          {
+            "$ref": "#/$defs/Merchant"
+          }
+        ]
       }
     }
   },
@@ -119,6 +129,155 @@
       "required": [
         "title",
         "type"
+      ]
+    },
+    "Offer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "coverUrl": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "coverAlt": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "coverSource": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "coverLicense": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "publishAt": {
+          "type": "string",
+          "maxLength": 30
+        },
+        "seoTitle": {
+          "type": "string",
+          "maxLength": 160
+        },
+        "seoDescription": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "coverMediaId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "published",
+            "archived"
+          ]
+        },
+        "merchantId": {
+          "type": "string",
+          "maxLength": 36,
+          "format": "uuid"
+        },
+        "discount": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 20000
+        },
+        "terms": {
+          "type": "string",
+          "maxLength": 20000,
+          "minLength": 1
+        },
+        "validFrom": {
+          "type": "string",
+          "maxLength": 10
+        },
+        "validTo": {
+          "type": "string",
+          "maxLength": 10
+        }
+      },
+      "required": [
+        "title",
+        "merchantId",
+        "discount",
+        "terms"
+      ]
+    },
+    "Merchant": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 255,
+          "minLength": 1
+        },
+        "district": {
+          "type": "string",
+          "maxLength": 20
+        },
+        "address": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 80
+        },
+        "website": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "version": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "attractionId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "inactive"
+          ]
+        }
+      },
+      "required": [
+        "name"
       ]
     }
   }

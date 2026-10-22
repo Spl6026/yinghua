@@ -18,7 +18,7 @@ export function pageHref(path, type, page) {
 export function contentPager(total, page, path, type = '', pageSize = 20) {
   const pages = Math.max(1,Math.ceil(total/pageSize));
   if (pages <= 1) return '';
-  return `<nav class="pagination-controls public-content-pager" aria-label="文章分頁">${page>1?`<a class="button button-outline" data-content-page href="${escapeHtml(pageHref(path,type,page-1))}">上一頁</a>`:''}<span aria-live="polite">第 ${page}／${pages} 頁，共 ${total} 筆</span>${page<pages?`<a class="button button-outline" data-content-page href="${escapeHtml(pageHref(path,type,page+1))}">下一頁</a>`:''}</nav>`;
+  return `<nav class="pagination-controls public-content-pager" aria-label="內容分頁">${page>1?`<a class="button button-outline" data-content-page href="${escapeHtml(pageHref(path,type,page-1))}">上一頁</a>`:''}<span aria-live="polite">第 ${page}／${pages} 頁，共 ${total} 筆</span>${page<pages?`<a class="button button-outline" data-content-page href="${escapeHtml(pageHref(path,type,page+1))}">下一頁</a>`:''}</nav>`;
 }
 export function fallbackContentImages(root = document) {
   root.querySelectorAll('[data-image-url]').forEach(node=>{

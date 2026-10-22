@@ -13,10 +13,13 @@ use Yinghua\Exceptions\ContentConflict;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Models\MediaModule;
+use Yinghua\Models\ImageOrigin;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Services\ContentImporter;
 use Yinghua\Services\MediaManagement;
 use Yinghua\Services\NewsManagement;
+use Yinghua\Services\OfferManagement;
+use Yinghua\Services\MerchantManagement;
 use Yinghua\Support\Secrets;
 
 /** [E-17／26] 受信 Docker 維運 CLI；不建立可公開呼叫的 HTTP 匯入入口。 */
@@ -28,6 +31,9 @@ class PublicContentCommands
         private readonly NewsManagement $news,
         private readonly MediaManagement $media,
         private readonly Secrets $secrets,
+        private readonly OfferManagement $offers,
+        private readonly MerchantManagement $merchants,
+        private readonly PublicContentSeeder $seeder,
     ) {}
 
     /** @param list<string> $arguments */
@@ -38,27 +44,38 @@ class PublicContentCommands
         try {
             $actor = $this->root();
             $command = $arguments[1] ?? '';
+            if ($command === 'content:seed-public-demo') {
+                if (count($arguments) !== 2) {
+                    throw ApplicationError::invalid('options', '受控示範命令不接受額外參數。');
+                }
+                $result = $this->seeder->seed($actor, $client);
+                fwrite(STDOUT, json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
+                return ($result['status'] ?? '') === 'saved_publication_pending' ? 4 : 0;
+            }
             $options = $this->options(array_slice($arguments, 2), $command === 'media:import'
                 ? ['module','file','alt','source','license'] : ['module','file','apply','dry-run']);
             $module = $options['module'] ?? '';
-            if ($module !== 'news') {
-                throw ApplicationError::invalid('module', '目前此入口支援 news。');
+            if (!in_array($module, ['news','offers','merchants'], true)) {
+                throw ApplicationError::invalid('module', '請選擇 news／offers／merchants。');
             }
             $path = $this->localFile($options['file'] ?? '');
             if ($command === 'media:import') {
+                if ($module === 'merchants') {
+                    throw ApplicationError::invalid('module', '圖片匯入僅支援 news／offers。');
+                }
                 $size = filesize($path);
                 if ($size === false) {
                     throw ApplicationError::invalid('file', '無法讀取檔案。');
                 }
                 $asset = $this->media->upload(
                     $actor,
-                    new UploadedImage($path, UPLOAD_ERR_OK, $size),
+                    new UploadedImage($path, UPLOAD_ERR_OK, $size, ImageOrigin::LocalCli),
                     'create',
                     $options['alt'] ?? '',
                     $options['source'] ?? '',
                     $options['license'] ?? '',
                     $client,
-                    MediaModule::News,
+                    MediaModule::parse($module),
                 );
                 $result = ['status' => 'stored','requestId' => $requestId,'media' => $asset->toArray()];
             } else {
@@ -70,7 +87,10 @@ class PublicContentCommands
                     throw ApplicationError::invalid('file', '無法讀取 JSON。');
                 }
                 $text = str_starts_with($text, "\xEF\xBB\xBF") ? substr($text, 3) : $text;
-                $result = $this->importer->run($actor, ImportEnvelope::fromJson($text), $this->news, isset($options['apply']), $client);
+                $service = match ($module) {
+                    'news' => $this->news,'offers' => $this->offers,'merchants' => $this->merchants,
+                };
+                $result = $this->importer->run($actor, ImportEnvelope::fromJson($text), $service, isset($options['apply']), $client);
             }
             fwrite(STDOUT, json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
             return ($result['status'] ?? '') === 'saved_publication_pending' ? 4 : 0;

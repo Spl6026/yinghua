@@ -61,6 +61,20 @@ class OfferRepository
         $this->database->execute('INSERT IGNORE INTO offer_aliases (path,offer_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
     }
 
+    public function assertSlugAvailable(string $slug, string $id): void
+    {
+        $alias = $this->database->row('SELECT offer_id FROM offer_aliases WHERE path=:path', ['path' => '/offers/' . $slug . '.html']);
+        $other = $this->database->row('SELECT id FROM offers WHERE slug=:slug AND id<>:id', ['slug' => $slug,'id' => $id]);
+        if (($alias !== null && (new Row($alias))->string('offer_id') !== $id) || $other !== null) {
+            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此優惠網址已被使用或保留。');
+        }
+    }
+
+    public function demoIdentity(string $id, int $legacy): void
+    {
+        $this->database->execute('UPDATE offers SET legacy_id=:legacy WHERE id=:id AND legacy_id IS NULL', ['legacy' => $legacy,'id' => $id]);
+    }
+
     /** @return array<string,string> */
     public function aliases(int $now): array
     {

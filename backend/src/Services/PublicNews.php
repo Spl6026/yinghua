@@ -38,6 +38,14 @@ class PublicNews
     {
         $snapshot = $this->publication->read();
         $path = parse_url($original, PHP_URL_PATH);
+        // [E-26] 唯一跨主題相容入口；不把舊優惠頁偽裝成 city 文章。
+        if ($path === '/news/coffee-walk.html') {
+            $offerAliases = $snapshot['offerAliases'] ?? [];
+            $offer = is_array($offerAliases) ? ($offerAliases[$path] ?? null) : null;
+            if (is_string($offer) && preg_match('~^/offers/[a-z0-9-]+\.html$~D', $offer)) {
+                return $offer;
+            }
+        }
         $aliases = $snapshot['newsAliases'] ?? [];
         $target = is_array($aliases) && is_string($path) ? ($aliases[$path] ?? null) : null;
         if ($path === '/news-detail.html') {

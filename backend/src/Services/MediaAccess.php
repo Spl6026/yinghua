@@ -23,7 +23,8 @@ class MediaAccess
             $places = $snapshot['items'] ?? [];
             $films = $snapshot['films'] ?? [];
             $news = $snapshot['news'] ?? [];
-            $items = [...(is_array($places) ? $places : []), ...(is_array($films) ? $films : []), ...(is_array($news) ? $news : [])];
+            $offers = $snapshot['offers'] ?? [];
+            $items = [...(is_array($places) ? $places : []), ...(is_array($films) ? $films : []), ...(is_array($news) ? $news : []), ...(is_array($offers) ? $offers : [])];
             foreach ($items as $item) {
                 if (is_array($item) && ($item['image'] ?? null) === $path) {
                     return true;

@@ -14,7 +14,7 @@ use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
 /** [S-016／17／26／27；S：功能規格 6/13/19/20；E-18] 路由只宣告 HTTP、身分與授權。 */
-return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media, MapController $maps, \Yinghua\Controllers\PublicFilmController $films, \Yinghua\Controllers\FilmController $filmAdmin, \Yinghua\Controllers\PublicNewsController $news): void {
+return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media, MapController $maps, \Yinghua\Controllers\PublicFilmController $films, \Yinghua\Controllers\FilmController $filmAdmin, \Yinghua\Controllers\PublicNewsController $news, \Yinghua\Controllers\PublicOfferController $offers): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
         $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...), allowPreviewControl: true));
@@ -70,4 +70,7 @@ return static function (Router $router, AuthController $auth, AdminController $a
     $router->add(new Route('GET', '/api/v1/news/resolve-url', $kind, $news->resolve(...)));
     $router->add(new Route('GET', '/api/v1/news', $kind, $news->listing(...)));
     $router->add(new Route('GET', '/api/v1/news/{slug}', $kind, $news->get(...)));
+    $router->add(new Route('GET', '/api/v1/offers/resolve-url', $kind, $offers->resolve(...)));
+    $router->add(new Route('GET', '/api/v1/offers', $kind, $offers->listing(...)));
+    $router->add(new Route('GET', '/api/v1/offers/{slug}', $kind, $offers->get(...)));
 };

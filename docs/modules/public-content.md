@@ -1,10 +1,10 @@
 # 公開消息、優惠與首頁：程式閱讀指南
 
-更新：2026-10-22。**5A 資料層與 5B 消息公開／CLI 已接入；優惠公開與首頁整合尚未完成。** 完整範圍與 S／D／U／E 來源見 [階段五計畫](../PHASE-5-PLAN.md)。
+更新：2026-10-22。**5A 資料層、5B 消息與 5C 優惠／店家／原型匯入已接入；首頁整合尚未完成。** 完整範圍與 S／D／U／E 來源見 [階段五計畫](../PHASE-5-PLAN.md)。
 
 ## 目前資料流
 
-輸入 → NewsInput／OfferInput／MerchantInput → 明確欄位 → 各 Repository → 同一 PDO 交易。後續管理 Service、匯入與公開輸出會接在這層上；Repository 不呼叫 Service 或產生 HTML。
+CLI 輸入 → ImportEnvelope → 各 Management Service／DTO → Repository → 同一 PDO 交易 → ContentPublication → Node 前端生成 HTML。公開 Controller → PublicNews／PublicOffers → 同一成功快照；Repository 不呼叫 Service 或產生 HTML。
 
 | 檔案 | 用途 |
 | --- | --- |
@@ -19,7 +19,7 @@
 | [MerchantRepository.php](../../backend/src/Repositories/MerchantRepository.php) | 獨立店家 profile 查找／保存及景點連結檢查 |
 | [ContentMapping.php](../../backend/src/Repositories/ContentMapping.php) | 共用型別、日期及公開封面欄位映射，不接受外部表名／欄名 |
 | [OfferValidity.php](../../backend/src/Policies/OfferValidity.php) | 台北日期的 upcoming／active／expired，截止日整天有效、空日期不限制該端 |
-| [RichTextSanitizer.php](../../backend/src/Contracts/RichTextSanitizer.php)／[HtmlPurifierSanitizer.php](../../backend/src/Adapters/HtmlPurifierSanitizer.php) | HTML Purifier 4.19.1 Adapter；保留安全正文格式，移除危險標記／屬性；媒體引用仍待寫入 Service 接入 |
+| [RichTextSanitizer.php](../../backend/src/Contracts/RichTextSanitizer.php)／[HtmlPurifierSanitizer.php](../../backend/src/Adapters/HtmlPurifierSanitizer.php) | HTML Purifier 4.19.1 Adapter；保留安全正文格式，移除危險標記／屬性；寫入 Service 接續驗證圖片 alt／模組引用 |
 | [AttractionRepository.php](../../backend/src/Repositories/AttractionRepository.php)／[AttractionManagement.php](../../backend/src/Services/AttractionManagement.php) | 景點寫入相容新店家表，改分類保留有優惠的店家、刪除檢查優惠引用，錯誤提示含兩種引用 |
 
 店家 profile 一次從原景點回填，之後景點改名不自動覆寫優惠聯絡資料。草稿景點首次建立 inactive profile，後續由受控維護明確啟用；不在公開查詢 JOIN 草稿景點。改回景點時，有優惠歷史的店家保留並解除連結；刪除景點仍檢查未刪優惠引用。
@@ -61,3 +61,23 @@ CLI exit：0 成功／預覽／unchanged，2 驗證失敗，3 衝突，4 saved_p
 5B 已執行：消息 CLI→真實 MariaDB→HTML／HTTP 共 40 項，獨立 JSON Schema 驗證 12 個 API 回應；包含深分頁無 JS 內容、safe body、整批 rollback、重跑、版本衝突、隱藏草稿／未到期發布、下架後 alias、renderer 故障回 exit 4 及重試。fixture UUID 最後清理。Node 新增兩項真實發布／編碼／跨年檢查通過；PHP 60 項／247 斷言通過。這些尚非整個階段或全站畫面驗收。
 
 介面程式依 web-design-guidelines 檢查本次新增 view／CSS／控制項，維持 label、真實分頁連結、鍵盤與 live status；完整桌面／手機瀏覽器比較留階段五整合驗收。security-audit 已讀主文件並檢查正文、URL、路徑、參數化 SQL、模組媒體及 CLI 權限；Windows 防毒隔離了該 skill 的 file-upload-security.md 範例參考檔，未停用防毒或把刪除併入專案功能。
+
+## 5C：店家、優惠及原型示範匯入
+
+`content:import --module=merchants|offers --file=/tmp/content.json` 使用同一 envelope／預覽、版本、交易與發布流程。店家最小資料為 name；attractionId 可空。優惠需 title、merchantId、discount、terms；日期、說明與圖片不強制填寫。terms 必須含實際非空白文字，不能只放空 HTML。店家必須存在，inactive 可維護優惠但暫不公開，dry-run 會提示。
+
+公開 GET `/api/v1/offers`、`/offers/{slug}`、`/offers/resolve-url` 已加入，合計 60 操作。預設列表只含當日有效優惠；`active=false` 可查仍發布的已過期／尚未開始內容，仍排除草稿、未到發布時間、下架及停用店家。日期按台北日曆，截止日全天有效、空白起迄不限制該端。歷史詳情仍可讀，明確顯示未開始／已結束；原型優惠 article／卡片版型保留。
+
+| 新增／修改檔案 | 用途 |
+| --- | --- |
+| [OfferManagement.php](../../backend/src/Services/OfferManagement.php)／[MerchantManagement.php](../../backend/src/Services/MerchantManagement.php) | 優惠／店家共用匯入介面，檢查權限、引用、slug、版本及稽核，不新增完整後台 CRUD |
+| [PublicOfferController.php](../../backend/src/Controllers/PublicOfferController.php)／[PublicOffers.php](../../backend/src/Services/PublicOffers.php)／[OfferQuery.php](../../backend/src/DTO/OfferQuery.php) | 公開查詢、有效期／行政區／關鍵字／分頁、基本詳情與 legacy URL |
+| [PublicContentSeeder.php](../../backend/src/Adapters/PublicContentSeeder.php)／[public-news-demo.json](../../backend/resources/public-news-demo.json)／[public-merchants-demo.json](../../backend/resources/public-merchants-demo.json)／[public-offers-demo.json](../../backend/resources/public-offers-demo.json) | 固定 UUID 原型示範，缺少才建立，已有內容／編輯／停用狀態保留；正式內容與圖權仍須確認 |
+| [ImageOrigin.php](../../backend/src/Models/ImageOrigin.php)／[UploadedImage.php](../../backend/src/DTO/UploadedImage.php)／[LocalImageStorage.php](../../backend/src/Adapters/LocalImageStorage.php)／[MediaManagement.php](../../backend/src/Services/MediaManagement.php) | 明確分開 HTTP 真正上傳與 CLI /tmp 本機檔案；HTTP 不能指定來源，兩者共用格式、解碼重編碼、尺寸及 alt 驗證 |
+| [offer-view.js](../../frontend/assets/js/core/offer-view.js)／[public-offers.mjs](../../frontend/scripts/public-offers.mjs) | 優惠卡、原型詳情殼、有效期提示及全部深頁生成 |
+| [public-list-controller.js](../../frontend/assets/js/core/public-list-controller.js)／[offers-api.js](../../frontend/assets/js/api/offers-api.js)／[pages/offers.js](../../frontend/assets/js/pages/offers.js) | 消息與優惠共用 URL／history／競態／重試／焦點操作，主題 view 各自負責內容 |
+| [offers_public_integration.py](../../backend/tests/offers_public_integration.py)／[public_content_clock.php](../../backend/tests/public_content_clock.php)／[public_demo_integration.py](../../backend/tests/public_demo_integration.py)／[offers-publication.test.mjs](../../frontend/tests/offers-publication.test.mjs) | 真實 DB／HTTP、跨日同版發布、原型示範保留與轉址、前端生成及下架檢查 |
+
+初始化原型：`docker compose exec -T --user www-data app php bin/console.php content:seed-public-demo`。這是明確的本機示範，不會自動隨 migration、容器啟動或正式匯入執行。沿用原型四篇消息／三項優惠，原型明確列出的發布年採 2026；沒有猜活動時間或優惠發布時間。原店家可連結時沿用既有 profile，沒有時建立獨立店家；不覆寫後續維護。coffee-walk 舊消息網址只導向咖啡優惠，不冒充城市消息。完整後台管理與前後篇留階段九。
+
+5C 已驗證：優惠整合 40 項／8 個獨立契約回應；跨台北午夜 12 項，含定時消息到點、優惠到期、切換前 gate 503、切換後 API／HTML 同版及無變更不重產；demo 10 項，包含已編輯內容保留及四種原網址。消息 40 項／12 個契約回歸通過；消息＋優惠 Node 共 4 項。PHPUnit 60 項／247 斷言、PHPStan／PHPat 通過，仍待整階段安全／UI／持久化驗收。

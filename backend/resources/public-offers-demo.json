@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "05000000-0000-4000-8300-000000000101",
+      "legacyId": 101,
+      "originalAttractionLegacy": 3,
+      "title": "或者工藝櫥窗｜散步小禮",
+      "slug": "or-crafts",
+      "discount": "出示映畫竹塹頁面，贈限定小禮",
+      "description": "在街角老屋裡，看見工藝與地方生活交會的樣子。散步到店出示本頁，即可領取店家準備的小禮。",
+      "terms": "每人限領一份，數量有限，送完為止。",
+      "validFrom": "2026-10-01",
+      "validTo": "2026-12-31",
+      "coverUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80",
+      "coverAlt": "或者工藝櫥窗優惠圖片",
+      "coverSource": "原始 website defaultOffers 示範圖片",
+      "coverLicense": "示範；正式上線前確認或替換",
+      "status": "published"
+    },
+    {
+      "id": "05000000-0000-4000-8300-000000000102",
+      "legacyId": 102,
+      "originalAttractionLegacy": 6,
+      "title": "山房選物所｜生活選物 9 折",
+      "slug": "shanfang",
+      "discount": "消費滿額享 9 折",
+      "description": "從生活器物開始，收藏一點竹塹的手感與溫度。單筆消費滿額即可享優惠。",
+      "terms": "優惠品項與消費門檻依店家現場公告。",
+      "validFrom": "2026-10-01",
+      "validTo": "2026-11-30",
+      "coverUrl": "https://images.unsplash.com/photo-1490312278390-ab64016e0aa9?auto=format&fit=crop&w=900&q=80",
+      "coverAlt": "山房選物所優惠圖片",
+      "coverSource": "原始 website defaultOffers 示範圖片",
+      "coverLicense": "示範；正式上線前確認或替換",
+      "status": "published"
+    },
+    {
+      "id": "05000000-0000-4000-8300-000000000103",
+      "legacyId": 103,
+      "originalAttractionLegacy": 5,
+      "title": "秋日咖啡散步地圖限定",
+      "slug": "autumn-coffee",
+      "discount": "出示活動頁面享季節飲品小驚喜",
+      "description": "沿著舊城散步地圖走進咖啡香，點一杯季節限定飲品，讓旅行多一段慢下來的時間。",
+      "terms": "每人每次消費限兌換一次。",
+      "validFrom": "2026-10-10",
+      "validTo": "2026-11-15",
+      "coverUrl": "https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=900&q=80",
+      "coverAlt": "或者咖啡優惠圖片",
+      "coverSource": "原始 website defaultOffers 示範圖片",
+      "coverLicense": "示範；正式上線前確認或替換",
+      "status": "published"
+    }
+  ]
+}

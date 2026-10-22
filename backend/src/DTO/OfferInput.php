@@ -18,7 +18,7 @@ readonly class OfferInput
         $input = new Input($values);
         $input->only([...ContentFields::keys(),'merchantId','discount','description','terms','validFrom','validTo']);
         $terms = $input->text('terms', 1, 20000);
-        if (trim(html_entity_decode(strip_tags($terms), ENT_QUOTES | ENT_HTML5, 'UTF-8')) === '') {
+        if (preg_match('/[^\s\p{Z}]/u', html_entity_decode(strip_tags($terms), ENT_QUOTES | ENT_HTML5, 'UTF-8')) !== 1) {
             throw ApplicationError::invalid('terms', '請填寫實際使用條款。');
         }
         $fields = [...ContentFields::shared($values, $creating, $now),

@@ -22,6 +22,11 @@ class MediaManagement
     public function upload(Account $actor, UploadedImage $file, string $action, string $alt, string $source, string $license, ClientContext $client, MediaModule $module = MediaModule::Attractions): MediaAsset
     {
         $this->authorization->require($actor, $module->value, $action);
+        // [S：串接總覽 B12；E-26] HTTP 與 CLI 共用同一 alt／來源邊界。
+        $input = new \Yinghua\DTO\Input(['alt' => $alt,'source' => $source,'license' => $license]);
+        $alt = $input->text('alt');
+        $source = $input->optionalText('source');
+        $license = $input->optionalText('license');
         $asset = $this->storage->store($file, $alt, $source, $license);
         try {
             $this->transactions->run(function () use ($actor, $asset, $action, $client, $module): void {

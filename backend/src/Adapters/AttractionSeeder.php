@@ -46,6 +46,8 @@ class AttractionSeeder
                     "UPDATE attractions SET legacy_id=:legacy,external_image_url=:image,external_image_alt=:alt,status='published' WHERE id=:id",
                     ['id' => $id,'legacy' => $legacy,'image' => $item['image'],'alt' => $item['imageAlt']],
                 );
+                // [E-26] 只有本次新建的原型店家跟著受控發布；不重新啟用已有停用 profile。
+                $this->database->execute("UPDATE merchants SET status='active' WHERE attraction_id=:id AND version=1", ['id' => $id]);
             }
         });
     }

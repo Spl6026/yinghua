@@ -10,6 +10,7 @@ use Yinghua\DTO\MediaAsset;
 use Yinghua\DTO\UploadedImage;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Support\Secrets;
+use Yinghua\Models\ImageOrigin;
 
 /** [S：功能規格 G20/G29；E-18] 本地 volume adapter；驗證真實圖片並重新編碼。 */
 class LocalImageStorage implements ImageStorage
@@ -21,7 +22,9 @@ class LocalImageStorage implements ImageStorage
         if (in_array($upload->error, [UPLOAD_ERR_INI_SIZE,UPLOAD_ERR_FORM_SIZE], true) || $upload->size > 8 * 1024 * 1024) {
             throw new ApplicationError('PAYLOAD_TOO_LARGE', '圖片不可超過 8 MiB。');
         }
-        if ($upload->error !== UPLOAD_ERR_OK || !is_uploaded_file($upload->temporaryPath)) {
+        $local = $upload->origin === ImageOrigin::LocalCli && PHP_SAPI === 'cli'
+            && is_file($upload->temporaryPath) && str_starts_with(realpath($upload->temporaryPath) ?: '', '/tmp/');
+        if ($upload->error !== UPLOAD_ERR_OK || ($upload->origin === ImageOrigin::HttpUpload ? !is_uploaded_file($upload->temporaryPath) : !$local)) {
             throw ApplicationError::invalid('image', '請選擇可完整上傳的圖片。');
         }
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($upload->temporaryPath);

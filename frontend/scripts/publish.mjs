@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { openingHoursLines } from '../assets/js/core/opening-hours.js';
 import { weeklyFilms, filmRows, filmCards, filmDetail, screeningPeriodLabel } from '../assets/js/core/film-view.js';
 import { publishNews } from './public-news.mjs';
+import { publishOffers } from './public-offers.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -27,6 +28,7 @@ const card = item => `<article class="place-card reveal in-view">${image(item, '
 const templates = Object.fromEntries(await Promise.all(['site-header','site-footer','admin-sidebar','admin-topbar','dialog'].map(async name => [name.replaceAll('-','_').toUpperCase(),await readFile(join(source,'templates',name+'.html'),'utf8')])));
 const filmEnabled = Array.isArray(snapshot.films);
 const newsEnabled = Array.isArray(snapshot.news);
+const offersEnabled = Array.isArray(snapshot.offers);
 const filmItems = weeklyFilms(snapshot.films || [], snapshot.filmPeriod);
 const weekLabel = snapshot.filmPeriod ? screeningPeriodLabel(snapshot.filmPeriod) : '';
 const root = join(output, 'generations', snapshot.generation);
@@ -41,11 +43,12 @@ async function page(path, html, title, description, item, canonicalPath = path) 
   html = html.replace(/<title>[\s\S]*?<\/title>/, '').replace(/<meta\b[^>]*(?:name="(?:description|keywords|robots|googlebot|twitter:[^"]+)"|property="og:[^"]+")[^>]*>/g,'')
     .replace(/<link\b[^>]*rel="canonical"[^>]*>/g,'').replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'');
   html = html.replace('</head>', () => `<title>${e(title)}</title><meta name="description" content="${e(description)}"><meta name="keywords" content="新竹,映畫竹塹,${e(item?.category || '城市指南')}"><meta name="robots" content="index,follow"><link rel="canonical" href="${e(canonical)}"><meta property="og:title" content="${e(title)}"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${e(canonical)}"><meta property="og:type" content="${item ? 'article' : 'website'}"><meta property="og:site_name" content="映畫竹塹"><meta property="og:locale" content="zh_TW"><meta property="og:image" content="${e(imageUrl)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${e(title)}"><meta name="twitter:description" content="${e(description)}"><meta name="twitter:image" content="${e(imageUrl)}"><noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>`);
-  html = html.replace('<body>', `<body data-managed-attractions="true"${filmEnabled?' data-managed-films="true"':''}${newsEnabled?' data-managed-news="true"':''}>`);
+  html = html.replace('<body>', `<body data-managed-attractions="true"${filmEnabled?' data-managed-films="true"':''}${newsEnabled?' data-managed-news="true"':''}${offersEnabled?' data-managed-offers="true"':''}>`);
   html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"></head>');
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_,name) => {
     const template = templates[name];
     if (template === undefined) throw new Error('Unknown template');
+    if (name === 'SITE_HEADER' && (canonicalPath.startsWith('/offers.html') || canonicalPath.startsWith('/offers/'))) return template.replace('href="/offers.html"','class="active" aria-current="page" href="/offers.html"');
     if (name === 'SITE_HEADER' && (/^\/(?:events|activities|city-news)\.html/.test(canonicalPath) || canonicalPath.startsWith('/news/'))) return template.replace('href="/events.html"','class="active" aria-current="page" href="/events.html"');
     if (name === 'SITE_HEADER' && (path === '/cinema.html' || path.startsWith('/films/'))) return template.replace('href="/cinema.html"','class="active" aria-current="page" href="/cinema.html"');
     return name === 'SITE_HEADER' && path !== '/index.html' && path !== '/food.html' ? template.replace('href="/explore.html"','class="active" aria-current="page" href="/explore.html"') : template;
@@ -110,6 +113,7 @@ if (!existing) {
     }
   }
   if(newsEnabled) await publishNews(source,snapshot,page);
+  if(offersEnabled) await publishOffers(source,snapshot,page);
   await page('/index.html',home,'映畫竹塹｜新竹城市影像與旅行指南','從新竹市影像博物館出發，探索城市散策、在地美食與新竹旅行。',featured);
   // 寫完所有頁面最後才放快照，避免半成品被當成可重用版本。
   await writeFile(join(root,'.snapshot.json'),JSON.stringify(snapshot));

@@ -71,6 +71,11 @@ class NewsRepository
         }
     }
 
+    public function demoIdentity(string $id, int $legacy): void
+    {
+        $this->database->execute('UPDATE news_posts SET legacy_id=:legacy WHERE id=:id AND legacy_id IS NULL', ['legacy' => $legacy,'id' => $id]);
+    }
+
     /** @return array<string,string> */
     public function aliases(int $now): array
     {

@@ -22,6 +22,7 @@ class ContentPublication
         private readonly ?\Yinghua\Repositories\FilmRepository $films = null,
         private readonly ?\Yinghua\Contracts\Clock $clock = null,
         private readonly ?\Yinghua\Repositories\NewsRepository $news = null,
+        private readonly ?\Yinghua\Repositories\OfferRepository $offers = null,
     ) {}
 
     /** @template T
@@ -105,6 +106,19 @@ class ContentPublication
             $now = $this->clock?->now() ?? time();
             $data['news'] = array_map(static fn(\Yinghua\DTO\NewsPost $post): array => $post->publicArray(), $this->news->published($now));
             $data['newsAliases'] = $this->news->aliases($now);
+        }
+        if ($this->offers !== null) {
+            $now = $this->clock?->now() ?? time();
+            $today = \Yinghua\Policies\OfferValidity::day($now);
+            $data['offerDate'] = $today;
+            $data['offers'] = array_map(static function (\Yinghua\DTO\Offer $offer) use ($today): array {
+                $item = $offer->publicArray();
+                $from = is_string($item['validFrom'] ?? null) ? $item['validFrom'] : null;
+                $to = is_string($item['validTo'] ?? null) ? $item['validTo'] : null;
+                $state = \Yinghua\Policies\OfferValidity::state($from, $to, $today);
+                return [...$item,'validity' => $state,'active' => $state === 'active'];
+            }, $this->offers->published($now));
+            $data['offerAliases'] = $this->offers->aliases($now);
         }
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 
