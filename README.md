@@ -32,6 +32,8 @@ docker compose exec -u www-data -T app php bin/console.php film:seed-demo
 
 網站：http://localhost:8080/；後台：http://localhost:8080/admin/login.html；本機郵件：http://localhost:8025/。固定來源由 Docker Node 建置；景點與電影公開 HTML 由前端 publish.mjs 產生到 publication volume，publisher 每 10 秒檢查排程及重試。Nginx 提供畫面並把 `/api/` 交給 PHP-FPM。
 
+資料庫已完成初始化後，日常啟動可用 `docker compose --profile mail up -d --wait`。Compose 共用片段、測試隔離與狀態說明見 [全站導讀的 Docker 章節](docs/PROJECT-GUIDE.md#compose-閱讀與啟動)；frontend 成功 Exit 0、publisher running 均為正常狀態。
+
 `.env` 是本機設定檔，被 `.gitignore` 排除；`.env.example` 只保留設定欄位與非秘密預設值。初始化腳本不覆蓋已有 `.env`，不列印密碼。Docker 注入環境變數給 PHP；PHP 不自行讀取 dotenv 檔案，也不把設定回傳給前端。
 
 固定後台帳號是規格指定的 `admin`；技術帳號／MariaDB 使用者是 `spl`，資料庫是 `yinghua`。固定管理員 Email 已在本機依使用者提供設定；密碼只在 `.env`。`admin:init` 重跑不改已建立的帳號密碼；更改 `.env` 不會自動變更已建立的資料庫帳號。復原方式見認證指南。
