@@ -92,7 +92,7 @@ readonly class Composition
         $filmScreens = new \Yinghua\Repositories\FilmScreeningRepository($database);
         $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, $filmScreens), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy(), $filmScreens, new \Yinghua\Policies\ScreeningStartPolicy()));
         $router = new Router();
-        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController,\Yinghua\Controllers\PublicOfferController):void $routes */
+        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController,\Yinghua\Controllers\PublicOfferController,\Yinghua\Controllers\PublicHomeController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
         $routes(
             $router,
@@ -107,6 +107,7 @@ readonly class Composition
             $filmAdmin,
             new \Yinghua\Controllers\PublicNewsController(new \Yinghua\Services\PublicNews($publication)),
             new \Yinghua\Controllers\PublicOfferController(new \Yinghua\Services\PublicOffers($publication)),
+            new \Yinghua\Controllers\PublicHomeController(new \Yinghua\Services\PublicHome($publication)),
         );
 
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);

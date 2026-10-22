@@ -93,22 +93,22 @@ class ContentPublication
     /** @return array<string,mixed> */
     private function projection(): array
     {
+        $now = $this->clock?->now() ?? time();
+        $window = \Yinghua\DTO\ScreeningWindow::current($now);
         $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),
-            'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published()),
-            'aliases' => $this->attractions->aliases()];
+            'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published($now)),
+            'aliases' => $this->attractions->aliases($now)];
         // [E-25] 景點與電影共享 generation；本週邊界使無編輯的換週也會發布。
         if ($this->films !== null) {
-            $data['films'] = array_map(static fn(\Yinghua\DTO\Film $film): array => $film->publicArray(), $this->films->published());
-            $data['filmAliases'] = $this->films->aliases();
-            $data['filmPeriod'] = \Yinghua\DTO\ScreeningWindow::current($this->clock?->now() ?? time())->toArray();
+            $data['films'] = array_map(static fn(\Yinghua\DTO\Film $film): array => $film->publicArray(), $this->films->published($now));
+            $data['filmAliases'] = $this->films->aliases($now);
+            $data['filmPeriod'] = $window->toArray();
         }
         if ($this->news !== null) {
-            $now = $this->clock?->now() ?? time();
             $data['news'] = array_map(static fn(\Yinghua\DTO\NewsPost $post): array => $post->publicArray(), $this->news->published($now));
             $data['newsAliases'] = $this->news->aliases($now);
         }
         if ($this->offers !== null) {
-            $now = $this->clock?->now() ?? time();
             $today = \Yinghua\Policies\OfferValidity::day($now);
             $data['offerDate'] = $today;
             $data['offers'] = array_map(static function (\Yinghua\DTO\Offer $offer) use ($today): array {
@@ -120,6 +120,7 @@ class ContentPublication
             }, $this->offers->published($now));
             $data['offerAliases'] = $this->offers->aliases($now);
         }
+        $data['home'] = \Yinghua\Policies\HomeSelection::fromSnapshot($data, $window)->toArray();
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 
         return $data;

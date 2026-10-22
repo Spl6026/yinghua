@@ -65,7 +65,7 @@
 
 | 階段 | 優先級 | 預定分支 | 狀態 |
 | --- | --- | --- | --- |
-| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已授權，5A 資料層、5B 消息與 5C 優惠／店家／原型匯入已接入，首頁與整合驗收進行中 |
+| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已授權，5A–5D 資料層／消息／優惠／店家／首頁已接入，整合驗收進行中 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 未開始 |
 | 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 未開始 |
 | 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 未開始 |

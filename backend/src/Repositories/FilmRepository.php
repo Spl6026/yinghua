@@ -43,9 +43,9 @@ class FilmRepository
     }
 
     /** @return list<Film> */
-    public function published(): array
+    public function published(?int $now = null): array
     {
-        return $this->map($this->database->rows(self::SELECT . " WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=UTC_TIMESTAMP() ORDER BY f.publish_at DESC,f.id"));
+        return $this->map($this->database->rows(self::SELECT . " WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=:now ORDER BY f.publish_at DESC,f.id", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]));
     }
 
     public function save(string $id, FilmInput $input, bool $creating, ?string $actorId): void
@@ -87,10 +87,10 @@ class FilmRepository
     }
 
     /** @return array<string,string> */
-    public function aliases(): array
+    public function aliases(?int $now = null): array
     {
         $result = [];
-        foreach ($this->database->rows("SELECT a.path,f.slug FROM film_aliases a JOIN films f ON f.id=a.film_id WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=UTC_TIMESTAMP()") as $values) {
+        foreach ($this->database->rows("SELECT a.path,f.slug FROM film_aliases a JOIN films f ON f.id=a.film_id WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=:now", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = '/films/' . $row->string('slug') . '.html';
         }

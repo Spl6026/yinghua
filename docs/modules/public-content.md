@@ -1,6 +1,6 @@
 # 公開消息、優惠與首頁：程式閱讀指南
 
-更新：2026-10-22。**5A 資料層、5B 消息與 5C 優惠／店家／原型匯入已接入；首頁整合尚未完成。** 完整範圍與 S／D／U／E 來源見 [階段五計畫](../PHASE-5-PLAN.md)。
+更新：2026-10-22。**5A–5D 已接入：資料層、消息、優惠／店家／原型匯入及首頁；整合驗收進行中。** 完整範圍與 S／D／U／E 來源見 [階段五計畫](../PHASE-5-PLAN.md)。
 
 ## 目前資料流
 
@@ -81,3 +81,20 @@ CLI exit：0 成功／預覽／unchanged，2 驗證失敗，3 衝突，4 saved_p
 初始化原型：`docker compose exec -T --user www-data app php bin/console.php content:seed-public-demo`。這是明確的本機示範，不會自動隨 migration、容器啟動或正式匯入執行。沿用原型四篇消息／三項優惠，原型明確列出的發布年採 2026；沒有猜活動時間或優惠發布時間。原店家可連結時沿用既有 profile，沒有時建立獨立店家；不覆寫後續維護。coffee-walk 舊消息網址只導向咖啡優惠，不冒充城市消息。完整後台管理與前後篇留階段九。
 
 5C 已驗證：優惠整合 40 項／8 個獨立契約回應；跨台北午夜 12 項，含定時消息到點、優惠到期、切換前 gate 503、切換後 API／HTML 同版及無變更不重產；demo 10 項，包含已編輯內容保留及四種原網址。消息 40 項／12 個契約回歸通過；消息＋優惠 Node 共 4 項。PHPUnit 60 項／247 斷言、PHPStan／PHPat 通過，仍待整階段安全／UI／持久化驗收。
+
+## 5D：首頁同版整合
+
+新增 GET `/api/v1/home`，目前共 61 操作。首頁博物館與精選景點沿用既有選取，本週電影最多三部、不重複電影，依第一場排序，消息取發布時間排序前三篇。沒有資料顯示空區塊；沒有新增首頁表、設定後台或優惠卡片區。優惠保留原型首頁下方目錄入口。
+
+| 檔案 | 用途 |
+| --- | --- |
+| [HomeContent.php](../../backend/src/DTO/HomeContent.php)／[HomeSelection.php](../../backend/src/Policies/HomeSelection.php) | typed 首頁資料與單一選取規則，含 museum／featured／films／filmTotal／period／news |
+| [WeeklyFilmSelection.php](../../backend/src/Policies/WeeklyFilmSelection.php)／[PublicFilms.php](../../backend/src/Services/PublicFilms.php) | 首頁與電影 API 共用本週範圍、去重電影及場次排序 |
+| [PublicHomeController.php](../../backend/src/Controllers/PublicHomeController.php)／[PublicHome.php](../../backend/src/Services/PublicHome.php) | HTTP 只回 JSON，Service 只讀一次成功快照，不依次查多個 API 拼湊不同版本 |
+| [ContentPublication.php](../../backend/src/Services/ContentPublication.php)／[AttractionRepository.php](../../backend/src/Repositories/AttractionRepository.php)／[FilmRepository.php](../../backend/src/Repositories/FilmRepository.php) | 一次取得時刻，交給各公開列表及 aliases；產生 home 投影後再計算共同 generation |
+| [home-view.js](../../frontend/assets/js/core/home-view.js)／[publish.mjs](../../frontend/scripts/publish.mjs)／[film-view.js](../../frontend/assets/js/core/film-view.js) | 原型首頁消息列、台北日期／星期、電影數量；SSR 直接使用 home 選取，嵌入相同 JSON 供核對，不再次抓資料覆寫 |
+| [HomeSelectionTest.php](../../backend/tests/Unit/HomeSelectionTest.php)／[home-publication.test.mjs](../../frontend/tests/home-publication.test.mjs)／[home_public_integration.py](../../backend/tests/home_public_integration.py) | 選取／排序／邊界、跨年日期、空資料、真實 HTTP／HTML／API 同版及發布失敗後重試 |
+
+原型 `.event-list` 三列保留。日期有活動開始時間時顯示活動日期；沒有時顯示發布日期，無障礙名稱會明確區分，沒有推測活動時間。消息排序由實際發布時間決定，所以不強制保持靜態原型文章順序。
+
+5D 已驗證：首頁整合 21 項，含七個公開來源同版、前三筆消息／三部電影、直接 HTML、詳情連結、renderer 故障時 API／HTML 都 503、保存後重試及下架。PHPUnit 64 項／263 斷言、PHPStan／PHPat、格式檢查與兩項首頁 Node 檢查通過；跨日 12 項回歸通過。全階段桌面／手機、安全及容器重建驗收仍進行中。

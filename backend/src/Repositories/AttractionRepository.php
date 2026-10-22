@@ -132,17 +132,17 @@ class AttractionRepository
     }
 
     /** @return list<Attraction> */
-    public function published(): array
+    public function published(?int $now = null): array
     {
         // [U-05／R3-02] 發布時間優先；同時發布的受控 seed ID 按原型順序，其他 ID 亦有穩定次排序。
-        return array_map($this->map(...), $this->database->rows(self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.publish_at DESC,a.id ASC"));
+        return array_map($this->map(...), $this->database->rows(self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now ORDER BY a.publish_at DESC,a.id ASC", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]));
     }
 
     /** @return array<string,string> */
-    public function aliases(): array
+    public function aliases(?int $now = null): array
     {
         $result = [];
-        foreach ($this->database->rows("SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP()") as $values) {
+        foreach ($this->database->rows("SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = $row->integer('is_museum') === 1 ? '/museum.html' : '/places/' . $row->string('slug') . '.html';
         }

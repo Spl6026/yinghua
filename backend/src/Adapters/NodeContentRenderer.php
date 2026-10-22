@@ -23,7 +23,7 @@ class NodeContentRenderer implements ContentRenderer
     {
         $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
         $files = [$source . '/scripts/publish.mjs', $source . '/assets/js/core/opening-hours.js', ...glob($source . '/templates/*.html') ?: [],
-            $source . '/pages/index.html',$source . '/pages/explore.html',$source . '/pages/food.html',$source . '/pages/museum.html',
+            $source . '/pages/index.html',$source . '/assets/js/core/home-view.js',$source . '/pages/explore.html',$source . '/pages/food.html',$source . '/pages/museum.html',
             $source . '/assets/js/core/film-view.js',$source . '/pages/cinema.html',...glob($source . '/pages/films/*.html') ?: [],
             $source . '/scripts/public-news.mjs',$source . '/assets/js/core/content-view.js',$source . '/assets/js/core/news-view.js',
             $source . '/pages/events.html',$source . '/pages/activities.html',$source . '/pages/city-news.html',

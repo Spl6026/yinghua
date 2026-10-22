@@ -7,6 +7,7 @@ import { openingHoursLines } from '../assets/js/core/opening-hours.js';
 import { weeklyFilms, filmRows, filmCards, filmDetail, screeningPeriodLabel } from '../assets/js/core/film-view.js';
 import { publishNews } from './public-news.mjs';
 import { publishOffers } from './public-offers.mjs';
+import { homeNewsRows } from '../assets/js/core/home-view.js';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -83,8 +84,8 @@ if (!existing) {
     await page('/museum.html',detailTemplate.replace(/<section class="section-pad detail-page">[\s\S]*?<\/section>/,'<section class="section-pad detail-page"><h1>博物館資訊更新中</h1><p>目前沒有已發布的博物館介紹。</p><a href="/explore.html">回到城市散策</a></section>'),'博物館資訊更新中｜映畫竹塹','博物館介紹目前更新中。');
   }
   let home = await readFile(join(source,'pages','index.html'),'utf8');
-  const museum = snapshot.items.find(item=>item.isMuseum);
-  const featured = snapshot.items.find(item=>item.featured) || museum;
+  const museum = snapshot.home ? snapshot.home.museum : snapshot.items.find(item=>item.isMuseum);
+  const featured = snapshot.home ? snapshot.home.featured : snapshot.items.find(item=>item.featured) || museum;
   if (museum) home = home.replace(/(<div class="intro-copy reveal">)[\s\S]*?(<div class="museum-facts">)/,(_,open,close)=>open+`<p>${e(museum.summary)}</p><p>${e(museum.description)}</p>`+close);
   if (featured) {
     home = home.replace(/<a class="museum-feature image-reveal"[^>]*>/,()=>`<a class="museum-feature image-reveal" href="${e(url(featured))}" aria-label="${e(featured.name)}">`)
@@ -95,7 +96,7 @@ if (!existing) {
   }
   if (!museum) home = home.replace(/<div class="intro-copy reveal">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/,'<div class="intro-copy reveal"><p>博物館參觀資訊更新中，請稍後再訪。</p></div>');
   if (filmEnabled) {
-    home = home.replace(/(<div class="screening-grid">)[\s\S]*?(<\/div>\s*<p class="demo-note">)/, (_,open,close) => open + filmCards(filmItems) + close)
+    home = home.replace(/(<div class="screening-grid">)[\s\S]*?(<\/div>\s*<p class="demo-note">)/, (_,open,close) => open + filmCards(snapshot.home?.films || filmItems,snapshot.home?.filmTotal ?? filmItems.length) + close)
       .replace('10.10 — 10.16', weekLabel)
       .replace('映演內容為示意資料，實際場次請以影像博物館公告為準。', '實際放映資訊請以影像博物館最新公告為準。');
     let cinema = await readFile(join(source,'pages/cinema.html'),'utf8');
@@ -112,8 +113,12 @@ if (!existing) {
       await page(film.url,html,film.seoTitle || `${film.title}｜映畫竹塹`,description,{...film,category:'電影'});
     }
   }
-  if(newsEnabled) await publishNews(source,snapshot,page);
+  if(newsEnabled) {
+    home = home.replace(/(<div class="event-list">)[\s\S]*?<\/div>/,(_,open)=>open+homeNewsRows(snapshot.home?.news || snapshot.news.slice(0,3))+'</div>');
+    await publishNews(source,snapshot,page);
+  }
   if(offersEnabled) await publishOffers(source,snapshot,page);
+  if(snapshot.home) home=home.replace('</body>',()=>`<script type="application/json" id="home-publication">${json({...snapshot.home,generation:snapshot.generation})}</script></body>`);
   await page('/index.html',home,'映畫竹塹｜新竹城市影像與旅行指南','從新竹市影像博物館出發，探索城市散策、在地美食與新竹旅行。',featured);
   // 寫完所有頁面最後才放快照，避免半成品被當成可重用版本。
   await writeFile(join(root,'.snapshot.json'),JSON.stringify(snapshot));
