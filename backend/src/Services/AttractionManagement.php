@@ -112,7 +112,7 @@ class AttractionManagement
                     throw new ApplicationError('CONFLICT', '資料已變更，請重新載入。');
                 }
                 if ($this->attractions->referenced($id)) {
-                    throw new ApplicationError('CONFLICT', '此景點仍被推薦路線引用，請先調整路線再刪除。');
+                    throw new ApplicationError('CONFLICT', '此景點仍被推薦路線或店家優惠引用，請先調整關聯再刪除。');
                 }
                 $this->attractions->delete($id);
                 $this->events->content($fresh->id, 'attraction-delete', 'attraction', $id, $version, $version + 1, 'archived', $client);

@@ -16,28 +16,9 @@ class PublicFilms
     public function listing(FilmQuery $query): array
     {
         $snapshot = $this->publication->read();
-        $items = [];
-        foreach ($this->items($snapshot) as $film) {
-            $rows = $film['screenings'] ?? [];
-            $matches = [];
-            $firstStart = '';
-            if (is_array($rows)) {
-                foreach ($rows as $row) {
-                    if (is_array($row) && is_string($row['startsAt'] ?? null) && $query->window->contains($row['startsAt'])) {
-                        $matches[] = $row;
-                        if ($firstStart === '') {
-                            $firstStart = $row['startsAt'];
-                        }
-                    }
-                }
-            }
-            if ($matches !== []) {
-                $items[] = ['film' => [...$film,'screenings' => $matches],'start' => $firstStart,'id' => is_string($film['id'] ?? null) ? $film['id'] : ''];
-            }
-        }
-        usort($items, static fn(array $a, array $b): int => [$a['start'], $a['id']] <=> [$b['start'], $b['id']]);
+        $items = \Yinghua\Policies\WeeklyFilmSelection::select($this->items($snapshot), $query->window);
 
-        return ['items' => array_map(static fn(array $entry): array => $entry['film'], array_slice($items, ($query->page - 1) * $query->pageSize, $query->pageSize)),
+        return ['items' => array_slice($items, ($query->page - 1) * $query->pageSize, $query->pageSize),
             'total' => count($items),'page' => $query->page,'pageSize' => $query->pageSize,
             'period' => $query->window->toArray(),'generation' => $snapshot['generation']];
     }

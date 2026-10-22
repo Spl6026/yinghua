@@ -1,6 +1,12 @@
 # 全站架構與檔案功能導讀
 
-2026-10-22 階段五已完成[公開消息／優惠與首頁細節計畫](PHASE-5-PLAN.md)，**實作尚未開始**。計畫列出原型頁面、欄位來源、七個預計公開 API、四張預計新表與既有店家表擴充、CLI 維護、分層及驗收；這次只有文件變更。目前仍為 54 個 API 操作、24 表、十二份 migration，沒有新增內容管理介面或變更運作環境。
+2026-10-23 固定清單複驗：結果見 [本輪紀錄](RECHECK-PHASES-1-5-20261023.md)，後續依 [V01–V18 清單](VERIFICATION-CHECKLIST.md) 記錄狀態。修正景點編輯確認重載後仍保留待上傳圖片的問題，新增取消／成功／失敗重試的行為回歸；前端目前 104 項通過。`backend/tests/frontend_integrity.py` 以 Python 標準函式庫檢查建置後各頁的 main／ID／label、資產與靜態模組引用，選用 `--base-url` 做本機唯讀 HTTP 驗證；它不驗證後續功能或逐像素顯示。執行 `docker compose run --rm --no-deps frontend` 後，再執行 `python backend/tests/frontend_integrity.py --base-url http://localhost:8080`。本輪沒有新增 API、資料表、migration、環境變數或階段；PHP／資料庫架構維持既定分層。
+
+2026-10-23 階段一至五複驗：已重驗認證／權限、景點／媒體／地圖、電影／場次、公開消息／優惠／首頁及環境；代表頁桌面／手機原型對照與實際表單操作見 [複驗紀錄](REVIEW-PHASES-1-5-20261023.md)。修正選填空值的公開排版、手機電影重載按鈕及頂列連結斷行。無新增 API、資料表、migration 或環境變數；仍為 61 個操作／28 表／十五份 migration，階段六起未開始。`content-cards.js`／`scripts/publish.mjs` 負責瀏覽器／預先產生卡片與空值顯示，`phase2.css`／`phase4.css` 補充實際操作狀態，`attraction-publication.test.mjs` 驗證真實 HTML 產物。更新後執行前端建置與 `content:publish`，不手改 dist。
+
+2026-10-22 階段五完成本機實作與驗收：**公開消息、優惠／店家受控維護及首頁同版整合**。目前 28 表／276 欄、十五份 migration、61 個 API 操作。首頁與消息／優惠的分類、有效期、分頁及基本閱讀頁讀真實資料；受控 CLI 支援預覽、保存、圖片匯入與故障重試。本機已明確匯入原型四篇消息／三項優惠，正式內容與圖片權利仍待確認。結果及界線見[階段五驗收](PHASE-5-ACCEPTANCE.md)，逐檔用途見[公開內容閱讀指南](modules/public-content.md)。
+
+2026-10-22 先前規劃紀錄：[公開消息／優惠與首頁細節計畫](PHASE-5-PLAN.md) 列出原型頁面、欄位來源、七個預計公開 API、四張新表與既有店家表擴充、CLI 維護、分層及驗收。規劃提交當時只有文件，為 54 個 API／24 表／十二份 migration；實作後最新狀態見上方進度。
 
 2026-10-22 Compose 整理：保留單一 compose.yaml，使用 x-php-common／x-web-common 統一共用設定，FPM 健康檢查只套用 app／app-test；publisher 以 CLI running 狀態啟動。測試資料庫／媒體／發布位置仍明確分開。設定展開比對、完整啟動與隔離驗證見下方「Compose 閱讀與啟動」；沒有新增業務功能或 migration。
 
@@ -28,7 +34,7 @@
 
 內容補位進度：[景點摘要與介紹自動補位計畫](ATTRACTION-CONTENT-FALLBACK-PLAN.md)（U-11／E-22）。兩欄已完成選填，可留空新增／編輯／發布，空值以空字串保存；自動補位（自家介紹摘錄、預覽及 Google 即時原文備援）依使用者2026-10-18指示延後，保留計畫待後續安排；Google 仍僅供後台參考。
 
-**目前完成階段二至四：認證／權限／唯讀模擬，景點／店家、圖片、地圖候選匯入，以及電影／多場次與公開 HTML 發布。** 景點、博物館、電影片單／詳情與首頁對應精選讀真實資料；其他未實作業務仍為展示快照或待開放。頁面存在不代表該模組已串接資料庫。完整階段規劃見 [實作計畫](IMPLEMENTATION-PLAN.md)，實際驗證見 [階段二驗收](PHASE-2-ACCEPTANCE.md) 、[階段三驗收](PHASE-3-ACCEPTANCE.md) 與 [階段四驗收](PHASE-4-ACCEPTANCE.md)。
+**目前完成階段二至五：認證／權限／唯讀模擬、景點／店家、圖片／地圖、電影／多場次、公開消息／優惠及首頁同版發布。** 景點、博物館、電影、消息／優惠與首頁對應區塊讀真實資料；其他未實作業務仍為展示快照或待開放。頁面存在不代表該模組已串接資料庫。完整階段規劃見 [實作計畫](IMPLEMENTATION-PLAN.md)，實際驗證見 [階段二驗收](PHASE-2-ACCEPTANCE.md) 、[階段三驗收](PHASE-3-ACCEPTANCE.md) 與 [階段四驗收](PHASE-4-ACCEPTANCE.md)。
 
 來源標記沿用 [設計來源表](DESIGN-TRACEABILITY.md)：S 是規格要求，D 是規格中的建議草案，U 是使用者指定，E 是工程補充。本案 PHP＋MariaDB＋Docker、原生 JS／可用 jQuery 來自 U-01；API-only、易讀分層及參考 Spring Boot 來自 U-02。以下目錄、類別、工具與容器拆法屬工程實作，不冒稱 Excel 指定。
 
@@ -37,7 +43,7 @@
 | 範圍 | 階段與界線 | 實際狀態 |
 | --- | --- | --- |
 | 共用準備 | 1 | 已完成 |
-| P0 | 2–8；8 為整合驗收 | 2–4 已完成本機驗收，5–8 未開始，P0 尚未完成 |
+| P0 | 2–8；8 為整合驗收 | 2–5 已完成本機驗收，6–8 未開始，P0 尚未完成 |
 | P1 | 9–12；12 為整合驗收 | 未開始；完整內容管理、前後篇、路線、完整旅程、JSON-LD／索引 |
 | P2 | 13–15；15 為全站交付 | 未開始；搜尋、會員查詢、一般設定／營運與最終交付 |
 
@@ -122,12 +128,12 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [public/index.php](../backend/public/index.php) | 唯一網站 PHP 入口：載入 Composer、擷取 Request、組裝 Kernel、處理並輸出 Response；入口本身的失敗也轉成安全 JSON。 |
-| [config/routes.php](../backend/config/routes.php) | 登記 54 個 API 的 HTTP 方法、路徑、會員／管理員身分、module/action 與模擬例外旗標（舊首登旗標已停用）。 |
+| [config/routes.php](../backend/config/routes.php) | 登記 61 個 API 的 HTTP 方法、路徑、會員／管理員身分、module/action 與模擬例外旗標（舊首登旗標已停用）。 |
 | [src/Composition.php](../backend/src/Composition.php) | 依賴組裝位置：建立共用連線、Repositories、Adapters、Services、Controllers，再接路由與 Kernel。 |
 | [src/Config.php](../backend/src/Config.php) | 讀取容器環境變數，校驗數值、APP_KEY、APP_URL 與正式環境 HTTPS／Secure cookie 條件；不解析 .env 檔。 |
 | [composer.json](../backend/composer.json) | 應用程式的 PHP／extension／PHPMailer 依賴及 Yinghua 命名空間的 PSR-4 載入設定。 |
 | [composer.lock](../backend/composer.lock) | 應用依賴的確切版本；安裝時依鎖定版本還原。 |
-| [resources/openapi.json](../backend/resources/openapi.json) | 54 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
+| [resources/openapi.json](../backend/resources/openapi.json) | 61 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
 | [resources/role-templates.json](../backend/resources/role-templates.json) | 原始 Excel 四種角色、十個模組、四個動作的起始權限；供 seed 使用，不是每次請求直接查閱的個人權限。 |
 | [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover、content:seed-demo／backfill-demo-labels／publish／tick／watch。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |
 | [phpstan.neon](../backend/phpstan.neon) | PHPStan level 10 與 PHPat 架構規則的分析範圍、autoload 及快取設定。 |
@@ -317,7 +323,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [pages/admin-list.js](../frontend/assets/js/pages/admin-list.js) | 真實管理員清單：搜尋／狀態／分頁與網址、root 保護、版本刪除確認與錯誤。 |
 | [pages/admin-form.js](../frontend/assets/js/pages/admin-form.js) | 新增／編輯共用：載入版本、角色模板、草稿確認、保存、衝突／欄位錯誤、重載清除舊錯誤與唯讀狀態。 |
 | [pages/permissions.js](../frontend/assets/js/pages/permissions.js) | 對象選擇、40 格矩陣、範本套用、版本保存、換人／重載確認、拒絕越級與唯讀 UI。 |
-| [pages/public-details.js](../frontend/assets/js/pages/public-details.js) | 未完成消息／優惠模組的原型詳情與前後篇；managed 正式發布的景點／電影頁跳過原型覆寫。 |
+| [pages/public-details.js](../frontend/assets/js/pages/public-details.js) | 未接入頁面的原型詳情與前後篇；managed 正式發布的景點／電影／消息／優惠頁跳過原型覆寫。 |
 | [data/prototype.js](../frontend/assets/js/data/prototype.js) | 原始交付的 6 地點、4 電影、5 消息／活動、3 優惠、2 路線及 3 站行程快照與固定詳情網址。不是 MariaDB 匯出。 |
 
 ### 前端測試：`frontend/tests/`
@@ -386,10 +392,10 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 | HTML 來源 | 用途 | 入口 | 目前狀態 |
 | --- | --- | --- | --- |
-| [activities.html](../frontend/pages/activities.html) | 活動分類列表 | `public.js` | 展示快照 |
+| [activities.html](../frontend/pages/activities.html) | 活動分類列表 | `news.js` | 同版公開 HTML／API、深分頁 |
 | [cinema.html](../frontend/pages/cinema.html) | 本週真實電影／場次、海報、分頁 | `public.js`＋`films.js` | 同版公開 HTML／API |
-| [city-news.html](../frontend/pages/city-news.html) | 城市消息分類列表 | `public.js` | 展示快照 |
-| [events.html](../frontend/pages/events.html) | 消息與活動總覽 | `public.js` | 展示快照 |
+| [city-news.html](../frontend/pages/city-news.html) | 城市消息分類列表 | `news.js` | 同版公開 HTML／API、深分頁 |
+| [events.html](../frontend/pages/events.html) | 消息與活動總覽、推薦與全篇 | `news.js` | 同版公開 HTML／API、分類與深分頁 |
 | [explore.html](../frontend/pages/explore.html) | 景點與店家探索、分類／地區／關鍵字篩選 | `public.js`＋`attractions.js` | 階段三 DB／公開版本 |
 | [film-detail.html](../frontend/pages/film-detail.html) | 依原型 0–3 或 UUID 查已發布電影 | Nginx＋公開 API | 301 canonical；無效／未公開 404 |
 | [films/island-slow.html](../frontend/pages/films/island-slow.html) | 島嶼的慢鏡頭的固定電影網址 | Node 發布器 | 真實資料；P1 前後篇未開放 |
@@ -397,19 +403,19 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [films/wind-city.html](../frontend/pages/films/wind-city.html) | 風從城裡來的固定電影網址 | Node 發布器 | 真實資料；P1 前後篇未開放 |
 | [films/window-sunday.html](../frontend/pages/films/window-sunday.html) | 窗邊的星期天的固定電影網址 | Node 發布器 | 真實資料；P1 前後篇未開放 |
 | [food.html](../frontend/pages/food.html) | 美食與在地店家分類 | `public.js`＋`attractions.js` | 階段三 DB／公開版本 |
-| [index.html](../frontend/pages/index.html) | 首頁、推薦內容與映演摘要 | `public.js`；發布器共用 `film-view.js` | 景點精選及三部不同電影已串接；消息等仍為快照 |
+| [index.html](../frontend/pages/index.html) | 首頁博物館／精選／本週電影／三則消息 | 發布器共用 `home-view.js`／`film-view.js` | 同版公開 HTML／home API；無假資料補滿 |
 | [museum.html](../frontend/pages/museum.html) | 新竹市影像博物館的發布詳情 | `public.js`＋`attractions.js` | 階段三 DB／公開版本 |
-| [news-detail.html](../frontend/pages/news-detail.html) | 依 query id 顯示快照的通用消息詳情 | `public.js` | 展示快照 |
-| [news/coffee-walk.html](../frontend/pages/news/coffee-walk.html) | 秋日咖啡散步地圖上線的固定詳情／文章 | `public.js` | 展示快照 |
-| [news/old-town-notice.html](../frontend/pages/news/old-town-notice.html) | 舊城街區步行環境改善公告的固定詳情／文章 | `public.js` | 展示快照 |
-| [news/park-concert.html](../frontend/pages/news/park-concert.html) | 風的聲音的固定詳情／文章 | `public.js` | 展示快照 |
-| [news/slow-market.html](../frontend/pages/news/slow-market.html) | 風城慢慢市集的固定詳情／文章 | `public.js` | 展示快照 |
-| [news/street-photo.html](../frontend/pages/news/street-photo.html) | 在城市裡收集光的固定詳情／文章 | `public.js` | 展示快照 |
-| [offer-detail.html](../frontend/pages/offer-detail.html) | 依 query id 顯示快照的通用優惠詳情 | `public.js` | 展示快照 |
-| [offers.html](../frontend/pages/offers.html) | 優惠列表 | `public.js` | 展示快照 |
-| [offers/autumn-coffee.html](../frontend/pages/offers/autumn-coffee.html) | 秋日咖啡散步地圖限定的固定詳情／文章 | `public.js` | 展示快照 |
-| [offers/or-crafts.html](../frontend/pages/offers/or-crafts.html) | 或者工藝櫥窗的固定詳情／文章 | `public.js` | 展示快照 |
-| [offers/shanfang.html](../frontend/pages/offers/shanfang.html) | 山房選物所的固定詳情／文章 | `public.js` | 展示快照 |
+| [news-detail.html](../frontend/pages/news-detail.html) | 原型 legacy id／UUID 解析 | Nginx＋公開 API | 301 canonical；無效／未公開 404 |
+| [news/coffee-walk.html](../frontend/pages/news/coffee-walk.html) | 舊咖啡優惠入口 | Nginx＋公開 API | 301 至仍公開的 offers/autumn-coffee.html；不混入消息 |
+| [news/old-town-notice.html](../frontend/pages/news/old-town-notice.html) | 舊城街區步行環境改善公告的固定詳情／文章 | Node 發布器 | 真實基本閱讀頁；前後篇留 P1 |
+| [news/park-concert.html](../frontend/pages/news/park-concert.html) | 風的聲音的固定詳情／文章 | Node 發布器 | 真實基本閱讀頁；前後篇留 P1 |
+| [news/slow-market.html](../frontend/pages/news/slow-market.html) | 風城慢慢市集的固定詳情／文章 | Node 發布器 | 真實基本閱讀頁；前後篇留 P1 |
+| [news/street-photo.html](../frontend/pages/news/street-photo.html) | 在城市裡收集光的固定詳情／文章 | Node 發布器 | 真實基本閱讀頁；前後篇留 P1 |
+| [offer-detail.html](../frontend/pages/offer-detail.html) | 原型 legacy id／UUID 解析 | Nginx＋公開 API | 301 canonical；無效／未公開 404 |
+| [offers.html](../frontend/pages/offers.html) | 有效優惠列表 | `offers.js` | 同版公開 HTML／API、深分頁 |
+| [offers/autumn-coffee.html](../frontend/pages/offers/autumn-coffee.html) | 秋日咖啡散步地圖限定的固定詳情／文章 | Node 發布器 | 真實基本閱讀頁及到期提示；前後篇留 P1 |
+| [offers/or-crafts.html](../frontend/pages/offers/or-crafts.html) | 或者工藝櫥窗的固定詳情／文章 | Node 發布器 | 真實基本閱讀頁及到期提示；前後篇留 P1 |
+| [offers/shanfang.html](../frontend/pages/offers/shanfang.html) | 山房選物所的固定詳情／文章 | Node 發布器 | 真實基本閱讀頁及到期提示；前後篇留 P1 |
 | [place-detail.html](../frontend/pages/place-detail.html) | legacy_id 解析至發布網址 | `public.js` | 301／404 對照 |
 | [places/dongmen-market.html](../frontend/pages/places/dongmen-market.html) | 東門市場的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
 | [places/hsinchu-park.html](../frontend/pages/places/hsinchu-park.html) | 新竹公園・麗池的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
@@ -446,7 +452,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 資料採 InnoDB、utf8mb4／utf8mb4_unicode_ci；帳號／session 等主鍵多為 UUID，權限定義與事件表另使用自增整數。PDO 連線的時間設為 UTC，API 期限以 UTC 表達；PHP 顯示時區設定為 Asia/Taipei。欄位與外鍵的確切定義以十二支 migration 為準；004 增加週表，005–007 校正帳號、選填／操作者及核准的認證政策，008 強化固定身分文字的逐位元組保護，009 新增選填 phone，皆不增加業務表。
 
-### 23 張業務表＋1 張 migration 紀錄
+### 27 張業務表＋1 張 migration 紀錄
 
 | 資料表 | 保存內容與主要關聯 | 主要讀寫位置 |
 | --- | --- | --- |
@@ -465,14 +471,18 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | `member_consents` | 會員、文件版本、同意時間與來源 | ConsentRepository |
 | `attractions` | 景點／美食／在地店家、週表、Google 關聯及發布 | AttractionRepository |
 | `media_assets` | 重新編碼圖片、尺寸、替代文字／來源、module、上傳者 | MediaRepository |
-| `merchants` | 景點所屬店家最小標記；完整優惠管理未完成 | AttractionRepository |
+| `merchants` | 獨立店家 profile、選填景點連結、聯絡資料與啟用狀態／版本 | MerchantRepository、AttractionRepository |
 | `routes` | 路線最小標頭，供引用刪除保護；完整路線管理待後續 | AttractionRepository |
 | `route_attractions` | 路線／景點引用與順序 | AttractionRepository |
 | `attraction_aliases` | 景點歷史網址對應 | AttractionRepository |
-| `content_publications` | 景點／電影共同公開版本與成功／失敗／重試紀錄 | PublicationRepository |
+| `content_publications` | 景點／電影／消息／優惠／首頁共同公開版本與成功／失敗／重試紀錄 | PublicationRepository |
 | `films` | 片名／介紹／海報／票務、狀態、發布時間、版本、操作者及軟刪除 | FilmRepository |
 | `film_screenings` | film_id、開始時間、每場票務及時間欄；無結束時間／場地 | FilmScreeningRepository |
 | `film_aliases` | 電影歷史 slug 路徑與目標 UUID | FilmRepository |
+| `news_posts` | event／city 消息、淨化正文／封面、選填活動時間、發布／SEO／版本 | NewsRepository |
+| `news_aliases` | 消息歷史網址對應 | NewsRepository |
+| `offers` | 店家 FK、優惠內容／必填條款、選填日期、封面及發布／版本 | OfferRepository |
+| `offer_aliases` | 優惠歷史網址，含受控 coffee-walk 相容入口 | OfferRepository |
 | `schema_migrations` | version、checksum、已套用 statement 數與完成時間；由 SchemaMigrator 建立 | SchemaMigrator |
 
 ```mermaid
@@ -503,7 +513,25 @@ erDiagram
 
 密碼只存 Argon2id；session／reset／challenge token 存雜湊，挑戰答案存用途分離 HMAC。audit 中帳號／Email／名稱轉為 HMAC，保留安全狀態與權限變更；原始 Cookie、密碼或 token 不寫入這些業務紀錄。原始 token 只在必要的 Cookie 或本機重設郵件流程傳遞。
 
-景點／店家與媒體已有正式業務表、API 及公開 HTML 發布，博物館與首頁景點精選也讀真實景點資料。電影已有 films／film_screenings／film_aliases、管理與公開 API、首頁片單及基本詳情。消息、優惠、收藏與行程尚無正式業務表；routes／route_attractions 只供引用保護，並非路線管理。尚未實作的後續畫面仍以 prototype.js／HTML 展示，規劃見 IMPLEMENTATION-PLAN.md。
+景點／店家與媒體已有正式業務表、API 及公開 HTML 發布，博物館與首頁景點精選也讀真實景點資料。電影已有 films／film_screenings／film_aliases、管理與公開 API、首頁片單及基本詳情。消息與優惠已有正式表、受控維護與公開 API／HTML；收藏與行程尚無正式業務表；routes／route_attractions 只供引用保護，並非路線管理。尚未實作的後續畫面仍以 prototype.js／HTML 展示，規劃見 IMPLEMENTATION-PLAN.md。
+
+### 階段五新增資料與公開 API
+
+012 擴充 merchants 為獨立 profile；013 建 news_posts／news_aliases；014 建 offers／offer_aliases。主／測試庫已套用十五份 migration，28 表／276 欄。欄位來源與資料庫限制見 [資料表對照](DATABASE-SPECIFICATION-MAP.md)／[階段五設計](PHASE-5-PLAN.md)；完整新增類別及前端資產逐檔說明見 [公開內容閱讀指南](modules/public-content.md)。
+
+| GET 路徑（皆加 /api/v1） | 責任 |
+| --- | --- |
+| /home | 一次讀取同一 generation 的 museum、featured、三部電影、週期及三則消息 |
+| /news、/news/{slug}、/news/resolve-url | 分類／關鍵字／分頁、淨化正文與基本閱讀、受控舊網址轉址 |
+| /offers、/offers/{slug}、/offers/resolve-url | 有效優惠／店家篩選、條款／過期狀態與基本閱讀、受控舊網址轉址 |
+
+新增 DTO／Policy／Service／Repository 都由 Composition 注入；PHP HTTP 仍只回 JSON 或轉址。PublicHome 不拼接多次 API 回應，Node 直接使用相同 home 投影生成原型 HTML。首頁沒有增加優惠卡區，保留目錄連結。
+
+維護先複製 UTF-8 JSON 到容器 /tmp，再執行 `docker compose exec -T --user www-data app php bin/console.php content:import --module=news --file=/tmp/news.json` 預覽，確認後加 `--apply`；另有 merchants／offers 模組。`media:import --module=news|offers --file=/tmp/image.png --alt=圖片說明` 匯入本機圖片，重用 HTTP 的檢查與模組隔離。新資料未帶 id 時，先保存 dry-run 回傳的 manifest 再 apply。更新不同內容需 id／version；相同正規化內容可重跑 unchanged，詳細 replacement／錯誤語意見指南。
+
+只有已能存取 Docker 的維運者可執行，CLI 沒有公開 HTTP 入口、不接受 --actor。exit 4 是資料已保存但發布待重試，執行 `content:publish`，不再次新增。排程／跨日有效期由既有 publisher 服務處理；沒有新增環境變數、對外 port 或病毒掃描服務。
+
+原型示範明確執行 `docker compose exec -T --user www-data app php bin/console.php content:seed-public-demo`；已匯入四篇消息／三項優惠，既有店家／編輯／停用狀態不覆寫，正式內容與圖片權利仍待確認。消息／優惠完整後台 CRUD、前後篇留階段九，收藏與行程保存留階段六。
 
 ## Docker、環境變數與資料位置
 
@@ -881,7 +909,7 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 
 ## 階段四新增檔案與電影資料流
 
-目前電影／多場次前後端已接入，完整階段驗收狀態見文件頂端及 [電影指南](modules/films.md)。以下新增檔案均實際存在，不把後續消息／優惠、前後篇或會員旅程算入。
+目前電影／多場次前後端已接入，完整階段驗收狀態見文件頂端及 [電影指南](modules/films.md)。以下為階段四檔案；消息／優惠最新狀態見階段五指南，前後篇及會員旅程仍未開始。
 
 | 檔案 | 用途 |
 | --- | --- |
@@ -937,7 +965,7 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 
 公開資料流：GET films／cinema／首頁／詳情 → 確認目前 generation 對得上資料庫 → 讀成功快照或 Node 已產生的 HTML。API 期間分頁與 SSR 使用同一台北週期；換頁成功也更新週標示。尚未公開或已刪除電影不退回 frontend/dist 的原型頁。
 
-新增表與連線沿用現有 MariaDB／volumes；沒有新增環境變數、Google API 或第三方服務。必填與技術界線、九個電影端點、逐欄來源及操作見電影指南／階段四計畫。訊息／優惠首頁、收藏／旅程及 P1 前後篇依後續階段，尚未完成。
+新增表與連線沿用現有 MariaDB／volumes；沒有新增環境變數、Google API 或第三方服務。必填與技術界線、九個電影端點、逐欄來源及操作見電影指南／階段四計畫。消息／優惠與首頁已於階段五接入；收藏／旅程及 P1 前後篇仍依後續階段，尚未完成。
 
 ## 文件索引與維護方式
 
@@ -955,7 +983,9 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 | [REQUIREMENTS-MAP.md](../docs/REQUIREMENTS-MAP.md) | 原始規格功能來源與網站頁面需求對照。 |
 | [PHASE-2-PLAN.md](../docs/PHASE-2-PLAN.md) | 階段二細設、API／表／頁面及工程補充對照。 |
 | [PHASE-4-PLAN.md](PHASE-4-PLAN.md) | 階段四電影／場次的欄位來源、九個已接入 API、三張新增表、原型頁面、分層、U-16 與驗收邊界；結果另見階段四驗收。 |
-| [PHASE-5-PLAN.md](PHASE-5-PLAN.md) | 階段五尚未實作的消息／優惠／首頁計畫：Excel 儲存格、website 頁面、欄位／店家相容、預計 API／資料表／CLI、功能提交與驗收界線。 |
+| [PHASE-5-ACCEPTANCE.md](PHASE-5-ACCEPTANCE.md) | 階段五本機功能、安全、畫面、持久化、規格差異與正式環境界線。 |
+| [PHASE-5-PLAN.md](PHASE-5-PLAN.md) | 階段五消息／優惠／首頁設計基準與進度：Excel 儲存格、website 頁面、欄位／店家相容、API／資料表／CLI、功能提交與驗收界線。 |
+| [modules/public-content.md](modules/public-content.md) | 階段五完整分層／檔案清單、七個公開 GET、CLI／示範初始化、schema 與驗證。 |
 | [PHASE-4-ACCEPTANCE.md](PHASE-4-ACCEPTANCE.md) | 階段四實際 619 項整合、55 項 PHP、88 項 Node、API 契約、桌面／手機與持久化證據及界線。 |
 | [modules/films.md](modules/films.md) | 階段四實際完成範圍、新檔案用途、資料流與驗證；持續隨功能更新。 |
 | [ARCHITECTURE.md](../docs/ARCHITECTURE.md) | 設計原則、採用做法與參考、API-only／SEO 發布的目標架構；含後續規劃，實際檔案以本導讀為準。 |

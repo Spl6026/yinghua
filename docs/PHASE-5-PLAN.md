@@ -1,8 +1,8 @@
 # 階段五：公開消息、優惠與首頁整合計畫
 
-設計日期：2026-10-22。狀態：**已規劃，尚未實作或驗收**。本次只新增計畫與閱讀入口，不改程式、資料庫、Docker 服務或原始交付。實作授權後，才從最新 main 建立 `phase/05-public-content-home`。
+設計日期：2026-10-22。狀態：**5A–5E 已實作並完成本機驗收，P0 尚未完成**。分支 `phase/05-public-content-home` 從最新 main 建立。下文保留設計與驗收基準；實際檔案／數字及檢查見[公開內容指南](modules/public-content.md)，未完成項目不當成已交付。
 
-依據：[總計畫](IMPLEMENTATION-PLAN.md)、[原始 Excel](../映畫竹塹_後台工程串接功能規格.xlsx)、原始 website、[架構](ARCHITECTURE.md)及[規格基準](DEVELOPMENT-WORKFLOW.md#規格基準u-122026-10-18)。S 是功能明文，D 是資料表／API 建議，U 是使用者指定，E 是工程設計。**欄位被列出不代表必填；下列具體欄位、命令、表與 API 都是待實作設計。**
+依據：[總計畫](IMPLEMENTATION-PLAN.md)、[原始 Excel](../映畫竹塹_後台工程串接功能規格.xlsx)、原始 website、[架構](ARCHITECTURE.md)及[規格基準](DEVELOPMENT-WORKFLOW.md#規格基準u-122026-10-18)。S 是功能明文，D 是資料表／API 建議，U 是使用者指定，E 是工程設計。**欄位被列出不代表必填。下文保留細節設計，實際交付／檢查見 [階段五驗收](PHASE-5-ACCEPTANCE.md)。**
 
 ## 1. 交付範圍與優先級
 
@@ -91,11 +91,11 @@ CLI 的 DTO、Service、Repository 與安全正文處理會供階段九重用；
 
 `body` 預計透過 `RichTextSanitizer` 介面與成熟函式庫 Adapter 處理，候選為 HTML Purifier；不自行用正規表示式移除 script。允許段落、換行、標題 h2–h4、列表、強調與安全連結。正文圖片若提供，必須有 alt 且來源為受控公開媒體／安全外連，並納入該內容的媒體引用與發布授權；不得因 cover 以外的圖片而繞過草稿保護。不允許 script、iframe、表單、事件屬性、任意 style、javascript:／data: 內容。淨化差異在 dry-run／匯入結果回報，淨化後不再次拼入未驗證標記。
 
-實作時才在 Docker PHP 8.5.12 安裝並鎖定可用穩定版本，跑相容性與依賴安全檢查；目前只核對上游 composer 的 PHP 8.5 宣告，沒有安裝或把 master 當正式依賴。圖片內容檢查沿 U-14／既有上傳邊界，不增加病毒掃描服務。
+已在 Docker PHP 8.5.12 安裝並鎖定穩定 4.19.1，實測及 Composer audit 通過，未依賴 master。圖片內容檢查沿 U-14／既有上傳邊界，不增加病毒掃描服務。
 
 ## 4. 預計資料表及升級
 
-目前實際為 **24 表、十二份 migration**，最高編號 011；002 有兩份不同名稱，因此下一份應從 **012** 開始。保留已套用 migration，新增三份升級，預計新增四表、擴充一表，完成後為 28 表、十五份 migration；數字是計畫，現在不變更資料庫。
+規劃開始時為 **24 表、十二份 migration**，最高編號 011；002 有兩份不同名稱，因此下一份應從 **012** 開始。保留已套用 migration，新增三份升級，預計新增四表、擴充一表，完成後為 28 表、十五份 migration；已由 012–014 完成，實際為 28 表／276 欄／十五份 migration。
 
 | 預計檔案／資料表 | 主要欄位與關係 | 依據 |
 | --- | --- | --- |
@@ -129,11 +129,11 @@ SQL 限制與 Service 同步：type 白名單、slug 唯一、實際 FK、兩日
 
 ## 5. 預計新增 API 與頁面
 
-目前實際 54 個 API 操作。本設計新增 **7 個公開 GET**，預計合計 61 個；現在沒有新增路由。路徑來自 D／E，功能來源另列。
+規劃開始時有 54 個 API 操作。本階段已新增 **7 個公開 GET**，合計 61 個，路由與 OpenAPI 均已接入。路徑來自 D／E，功能來源另列。
 
 | 方法／路徑 | 主要輸入／輸出 | 對應頁面／來源 |
 | --- | --- | --- |
-| GET `/api/v1/home` | 無參數；museum／featuredAttraction／films／news、generation 與電影週期；不先輸出未建立的 site_settings 假資料 | index；S H5 允許聚合，D API草案 C5–G5；基礎聚合，階段七再接設定 |
+| GET `/api/v1/home` | 無參數；museum／featured／films／news、generation 與電影週期；不先輸出未建立的 site_settings 假資料 | index；S H5 允許聚合，D API草案 C5–G5；基礎聚合，階段七再接設定 |
 | GET `/api/v1/news` | type 可省略或 event／city、q、page、pageSize；items／total／page／pageSize／generation | events／activities／city-news；S H9，D API草案 C10–G10 |
 | GET `/api/v1/news/{slug}` | 已發布基本文章、封面／有效 alt、日期、正文、canonical；不包含 neighbors | 基本閱讀頁；E-17 對 D C11–G11 的必要 P0 子集 |
 | GET `/api/v1/news/resolve-url` | 受限 path 或舊 id → 站內 canonical；舊 coffee-walk 可查明列優惠 alias | news-detail／舊 slug／舊 coffee-walk；E-26 |
@@ -153,7 +153,7 @@ resolver 在 `{slug}` 路由前註冊；只接受明確站內路徑及固定舊�
 
 ### 6.1 命令與可重跑方式
 
-預計在既有 `backend/bin/console.php` 註冊，解析與流程移入專責 Adapter／Service，避免 console.php 持續累積大型業務分支。以下都是**未建立的預計命令**：
+預計在既有 `backend/bin/console.php` 註冊，解析與流程移入專責 Adapter／Service，避免 console.php 持續累積大型業務分支。以下命令已實作，操作詳見公開內容指南：
 
 | 預計命令 | 責任 |
 | --- | --- |
@@ -166,7 +166,7 @@ resolver 在 `{slug}` 路由前註冊；只接受明確站內路徑及固定舊�
 
 未列在批次中的資料保持；不以「這次沒匯入」推論刪除。下架用明確 archived，更新是完整內容 replacement，選填欄位空值與省略語意由各 DTO schema 清楚定義；版本及 publishAt 的保留規則不能被 replacement 混淆。正式內容不允許利用 demo 命令覆寫。
 
-預計操作範例（實作後才可用）：
+操作範例（已實作）：
 
 ```powershell
 # 將已準備的 JSON 複製到現有 app，無須把內容掛入公開目錄。
@@ -231,7 +231,7 @@ Nginx → 共用 publication gate → 目前 generation 的 HTML／媒體
 
 ## 9. 實作順序與功能提交
 
-本次文件是實際規劃進度，沿階段四先規劃、再授權實作的方式管理；不提前建立階段五實作分支。以下 5A–5E 是預計可獨立驗證的提交，不按副檔名拆散：
+本文件先完成規劃，再依使用者授權建立階段五分支。以下 5A–5E 已按完整功能實作與驗證，不按副檔名拆散：
 
 | 次序 | 完整提交單位 | 隨提交驗證／文件 |
 | --- | --- | --- |
@@ -257,7 +257,7 @@ Nginx → 共用 publication gate → 目前 generation 的 HTML／媒體
 | 真實資料流 | 匯入→發布→第二個瀏覽器讀取→更新→排程→到期／下架→列表／首頁／詳情一致；無 JS 原始 HTML 可讀、深分頁重整／直接網址／新分頁可開、無斷鏈 |
 | 回歸／持久化 | 階段二認證／唯讀模擬／媒體授權、階段三景點／地圖／刪除、階段四電影／海報／場次；隔離庫與測試 volume 重建後資料／圖片／HTML 可恢復，不清主庫或改主庫帳號 |
 
-PHP／Composer／PHPUnit／PHPStan／PHPat／格式檢查／Rector dry-run 在 Docker 執行；Node 針對真正共用 view／互動做必要測試，契約作獨立 HTTP 驗證。實作時依流程套用 php-modernization、security-audit、mariadb-query-optimization、web-design-guidelines，瀏覽器驗收搭配 browser skill；本次計畫沒有執行功能測試，也不宣稱通過。
+PHP／Composer／PHPUnit／PHPStan／PHPat／格式檢查／Rector dry-run 在 Docker 執行；Node 針對真正共用 view／互動做必要測試，契約作獨立 HTTP 驗證。實作時依流程套用 php-modernization、security-audit、mariadb-query-optimization、web-design-guidelines，瀏覽器驗收搭配 browser skill；規劃提交時未執行功能測試；實作後的真實結果另見階段五驗收。
 
 宣告完成前同步更新 OpenAPI、DATABASE-SPECIFICATION-MAP、DESIGN-TRACEABILITY、IMPLEMENTATION-PLAN、PROJECT-GUIDE、中文模組指南與實際驗收文件，核對檔案／連結／表數／API 數。階段五完成後仍未完成 P0；須完成六、七及八的界線驗收。
 
@@ -266,7 +266,7 @@ PHP／Composer／PHPUnit／PHPStan／PHPat／格式檢查／Rector dry-run 在 D
 - [Fowler Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html)：CLI 與未來管理 HTTP 共用交易及業務操作；這是本案套用方式，不是照搬框架。
 - [Fowler Repository](https://martinfowler.com/eaaCatalog/repository.html)：集中資料映射／查詢，避免 Controller、CLI、發布器各寫一套 SQL。
 - [OWASP XSS Prevention](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)：純文字按 context 編碼；需要保留 HTML 的正文另做淨化，CSP 不替代這些處理。
-- [HTML Purifier 官方 composer](https://github.com/ezyang/htmlpurifier/blob/master/composer.json)：截至本次查閱，master 宣告支援 PHP 8.5；穩定版本、實際相容及 lock 仍待實作時驗證。
+- [HTML Purifier 官方 composer](https://github.com/ezyang/htmlpurifier/blob/master/composer.json)：截至本次查閱，master 宣告支援 PHP 8.5；實作已鎖定穩定 4.19.1，Docker PHP 8.5.12 相容性及依賴安全檢查通過。
 - [MariaDB 分頁](https://mariadb.com/docs/server/ha-and-performance/optimization-and-tuning/query-optimizations/pagination-optimization)、[索引設計](https://mariadb.com/docs/server/ha-and-performance/optimization-and-tuning/optimization-and-indexes/building-the-best-index-for-a-given-select)：以本專案 12.3 與實際查詢驗證；公開快照分頁不冒充 DB 索引效能。
 
 尚待正式上線內容／環境提供：實際消息正文、活動時間／地點、合作店家與優惠條款、可使用的圖片與正式網域。這些不阻擋隔離開發，但不能以示範資料代替正式上線驗收。

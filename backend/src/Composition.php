@@ -92,9 +92,23 @@ readonly class Composition
         $filmScreens = new \Yinghua\Repositories\FilmScreeningRepository($database);
         $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, $filmScreens), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy(), $filmScreens, new \Yinghua\Policies\ScreeningStartPolicy()));
         $router = new Router();
-        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController):void $routes */
+        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController,\Yinghua\Controllers\PublicOfferController,\Yinghua\Controllers\PublicHomeController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes($router, $authController, $adminController, $permissionController, $attractionController, $publicAttractions, $mediaController, $mapController, $filmController, $filmAdmin);
+        $routes(
+            $router,
+            $authController,
+            $adminController,
+            $permissionController,
+            $attractionController,
+            $publicAttractions,
+            $mediaController,
+            $mapController,
+            $filmController,
+            $filmAdmin,
+            new \Yinghua\Controllers\PublicNewsController(new \Yinghua\Services\PublicNews($publication)),
+            new \Yinghua\Controllers\PublicOfferController(new \Yinghua\Services\PublicOffers($publication)),
+            new \Yinghua\Controllers\PublicHomeController(new \Yinghua\Services\PublicHome($publication)),
+        );
 
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
@@ -103,6 +117,54 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock());
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database));
+    }
+
+    public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands
+    {
+        $secrets = new Secrets($this->config);
+        $accounts = new AccountRepository($database);
+        $events = new EventRepository($database, $secrets);
+        $authorization = new Authorization($accounts, new PermissionRepository($database), new PermissionPolicy());
+        $media = new MediaRepository($database);
+        $news = new \Yinghua\Services\NewsManagement(
+            new \Yinghua\Repositories\NewsRepository($database),
+            $media,
+            $authorization,
+            $events,
+            new \Yinghua\Adapters\HtmlPurifierSanitizer(),
+            new \Yinghua\Policies\ContentCover(),
+            new SystemClock(),
+        );
+        $merchants = new \Yinghua\Repositories\MerchantRepository($database);
+        $offers = new \Yinghua\Services\OfferManagement(
+            new \Yinghua\Repositories\OfferRepository($database),
+            $merchants,
+            $media,
+            $authorization,
+            $events,
+            new \Yinghua\Policies\ContentCover(),
+            new SystemClock(),
+        );
+        $merchantService = new \Yinghua\Services\MerchantManagement($merchants, $authorization, $events);
+        return new \Yinghua\Adapters\PublicContentCommands(
+            $accounts,
+            new \Yinghua\Services\ContentImporter(new PdoTransactions($database), $this->publication($database)),
+            $news,
+            new MediaManagement($media, new LocalImageStorage($this->config), $authorization, new PdoTransactions($database), $events),
+            $secrets,
+            $offers,
+            $merchantService,
+            new \Yinghua\Adapters\PublicContentSeeder(
+                $merchants,
+                new \Yinghua\Repositories\NewsRepository($database),
+                new \Yinghua\Repositories\OfferRepository($database),
+                $merchantService,
+                $news,
+                $offers,
+                new PdoTransactions($database),
+                $this->publication($database),
+            ),
+        );
     }
 }

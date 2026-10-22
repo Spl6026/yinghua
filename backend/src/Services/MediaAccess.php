@@ -22,9 +22,14 @@ class MediaAccess
             $snapshot = $this->publication->read();
             $places = $snapshot['items'] ?? [];
             $films = $snapshot['films'] ?? [];
-            $items = [...(is_array($places) ? $places : []), ...(is_array($films) ? $films : [])];
+            $news = $snapshot['news'] ?? [];
+            $offers = $snapshot['offers'] ?? [];
+            $items = [...(is_array($places) ? $places : []), ...(is_array($films) ? $films : []), ...(is_array($news) ? $news : []), ...(is_array($offers) ? $offers : [])];
             foreach ($items as $item) {
                 if (is_array($item) && ($item['image'] ?? null) === $path) {
+                    return true;
+                }
+                if (is_array($item) && is_array($item['bodyImages'] ?? null) && in_array($path, $item['bodyImages'], true)) {
                     return true;
                 }
             }

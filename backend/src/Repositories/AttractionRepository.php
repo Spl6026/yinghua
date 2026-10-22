@@ -82,9 +82,14 @@ class AttractionRepository
                 $this->database->execute('UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$fields]);
             }
             if ($input->fields['category'] === '景點') {
-                $this->database->execute('DELETE FROM merchants WHERE attraction_id=:id', ['id' => $id]);
+                // [E-17／26] 分類可修改；保留已被優惠引用的店家 profile，不以硬刪破壞歷史。
+                $this->database->execute('DELETE m FROM merchants m WHERE m.attraction_id=:id AND NOT EXISTS (SELECT 1 FROM offers o WHERE o.merchant_id=m.id)', ['id' => $id]);
+                $this->database->execute('UPDATE merchants SET attraction_id=NULL,version=version+1,updated_at=UTC_TIMESTAMP() WHERE attraction_id=:id', ['id' => $id]);
             } else {
-                $this->database->execute('INSERT IGNORE INTO merchants (attraction_id) VALUES (:id)', ['id' => $id]);
+                // 店家 profile 只在首次建立回填，後續景點編輯不覆寫優惠聯絡資料。
+                $this->database->execute("INSERT IGNORE INTO merchants (id,attraction_id,name,district,address,phone,website,status)
+                    SELECT UUID(),id,name,COALESCE(district,''),address,phone,website_url,
+                    IF(status='published' AND publish_at<=UTC_TIMESTAMP(),'active','inactive') FROM attractions WHERE id=:id", ['id' => $id]);
             }
             $this->alias('/places/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
@@ -111,7 +116,9 @@ class AttractionRepository
 
     public function referenced(string $id): bool
     {
-        return $this->database->row('SELECT attraction_id FROM route_attractions WHERE attraction_id=:id LIMIT 1', ['id' => $id]) !== null;
+        return $this->database->row('SELECT id FROM attractions WHERE id=:id AND
+            (EXISTS (SELECT 1 FROM route_attractions r WHERE r.attraction_id=attractions.id)
+            OR EXISTS (SELECT 1 FROM merchants m JOIN offers o ON o.merchant_id=m.id WHERE m.attraction_id=attractions.id AND o.deleted_at IS NULL))', ['id' => $id]) !== null;
     }
 
     public function hasMuseum(string $exceptId): bool
@@ -125,17 +132,17 @@ class AttractionRepository
     }
 
     /** @return list<Attraction> */
-    public function published(): array
+    public function published(?int $now = null): array
     {
         // [U-05／R3-02] 發布時間優先；同時發布的受控 seed ID 按原型順序，其他 ID 亦有穩定次排序。
-        return array_map($this->map(...), $this->database->rows(self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.publish_at DESC,a.id ASC"));
+        return array_map($this->map(...), $this->database->rows(self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now ORDER BY a.publish_at DESC,a.id ASC", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]));
     }
 
     /** @return array<string,string> */
-    public function aliases(): array
+    public function aliases(?int $now = null): array
     {
         $result = [];
-        foreach ($this->database->rows("SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP()") as $values) {
+        foreach ($this->database->rows("SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = $row->integer('is_museum') === 1 ? '/museum.html' : '/places/' . $row->string('slug') . '.html';
         }

@@ -23,8 +23,10 @@ def main():
     assert re.fullmatch(r'[a-zA-Z][a-zA-Z0-9_]*',user)
     suffix=secrets.token_hex(5);created=[];reports={}
     directory=ROOT/'backend/.build'/('phase4-before-schema-'+suffix);directory.mkdir(parents=True)
+    target=ROOT/'backend/.build'/('phase4-schema-'+suffix);target.mkdir(parents=True)
     for path in (ROOT/'backend/database/migrations').glob('*.sql'):
         if path.name<'010':(directory/path.name).write_bytes(path.read_bytes())
+        if path.name<'012':(target/path.name).write_bytes(path.read_bytes())
     try:
         for mode in ['fresh','upgrade']:
             name='yinghua_p4_'+mode+'_'+suffix
@@ -37,7 +39,7 @@ def main():
                 $db->execute("INSERT INTO members(id,email,display_name,password_hash) VALUES('04000000-0000-4000-8000-000000000001','schema@example.test','升級前會員',:hash)",['hash'=>password_hash('schema-fixture-only',PASSWORD_ARGON2ID)]);
                 $db->execute("INSERT INTO attractions(id,slug,name,category,summary,description,address,publish_at) VALUES('04000000-0000-4000-8000-000000000002','schema-before','升級前景點','景點','原摘要','原介紹','',UTC_TIMESTAMP())");
                 """)
-            for _ in range(2):php(name,"(new Yinghua\\Adapters\\SchemaMigrator($db))->migrate('/var/www/app/database/migrations');")
+            for _ in range(2):php(name,f"(new Yinghua\\Adapters\\SchemaMigrator($db))->migrate('/var/www/app/.build/{target.name}');")
             body=r"""
             $check=static function(bool $value):void {if(!$value)throw new RuntimeException('Schema assertion failed.');};
             $tables=$db->rows('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');$check(count($tables)===24);

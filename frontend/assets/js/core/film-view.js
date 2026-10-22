@@ -28,10 +28,10 @@ export function filmRows(films) {
     return `<article class="cinema-row">${cover(film,'cinema-poster')}<div class="cinema-date">${e(d.date)}<small>${e(d.day)} / ${e(d.month)}</small></div><div class="cinema-info"><span>${e(film.genre || '城市放映')}</span><h3>${e(film.title)}</h3><p>${e(film.synopsis)}</p></div><div class="cinema-time">◷ ${e(d.time)}</div><a class="button button-outline" href="${e(film.url)}">場次介紹 ↗</a></article>`;
   }).join('') || '<p class="empty-results">目前沒有本週映演場次。</p>';
 }
-export function filmCards(films) {
+export function filmCards(films,total=films.length) {
   return films.slice(0,3).map((film,index)=>{
     const d=screeningDate(film.screenings[0].startsAt);
-    return `<article class="film-card${index===0?' film-featured':''} reveal in-view">${cover(film,'film-art')}<div class="film-meta"><span>${index===0?'本週主打　・　':''}${e(film.genre || '城市放映')}</span><span>${String(index+1).padStart(2,'0')} / ${String(films.length).padStart(2,'0')}</span></div><h3>${e(film.title)}</h3><p>${e(film.synopsis)}</p><div class="film-footer"><span>${e(d.date)}　${e(d.time)}</span><a class="round-arrow small" aria-label="開啟${e(film.title)}詳情頁" href="${e(film.url)}">↗</a></div></article>`;
+    return `<article class="film-card${index===0?' film-featured':''} reveal in-view">${cover(film,'film-art')}<div class="film-meta"><span>${index===0?'本週主打　・　':''}${e(film.genre || '城市放映')}</span><span>${String(index+1).padStart(2,'0')} / ${String(total).padStart(2,'0')}</span></div><h3>${e(film.title)}</h3><p>${e(film.synopsis)}</p><div class="film-footer"><span>${e(d.date)}　${e(d.time)}</span><a class="round-arrow small" aria-label="開啟${e(film.title)}詳情頁" href="${e(film.url)}">↗</a></div></article>`;
   }).join('') || '<p class="empty-results">目前沒有本週映演場次。</p>';
 }
 export function filmDetail(film) {

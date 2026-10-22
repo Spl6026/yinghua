@@ -1,14 +1,14 @@
 # 映畫竹塹
 
-階段二至四已實作：PHP API-only、MariaDB、Docker，以及原生 JavaScript 的會員認證、管理員管理、權限矩陣、景點／店家管理、圖片上傳、地圖候選匯入、電影／多場次管理與公開 HTML 發布。原始 `website/` 和 Excel 保留；新頁面在 `frontend/`，PHP 在 `backend/`，工程文件在 `docs/`。
+階段二至五已實作：PHP API-only、MariaDB、Docker，以及原生 JavaScript 的會員認證、管理員管理、權限矩陣、景點／店家管理、圖片上傳、地圖候選匯入、電影／多場次管理、公開消息／優惠及首頁同版發布。原始 `website/` 和 Excel 保留；新頁面在 `frontend/`，PHP 在 `backend/`，工程文件在 `docs/`。
 
-景點、博物館、電影片單／詳情與首頁對應精選已讀真實資料庫，管理新增內容會產生公開 HTML。電影場次只比較日期及開始時間，不填結束時間／場地。消息、優惠、路線、收藏與行程保存留後續階段，其餘後台仍顯示尚未開放。
+景點、博物館、電影、消息／優惠列表與基本詳情及首頁已讀真實資料，維護內容會產生公開 HTML。消息／優惠目前由受控 CLI 維護，完整後台 CRUD 與前後篇留階段九；路線、收藏與行程保存仍待後續。電影場次只比較日期及開始時間，不填結束時間／場地。
 
 營業時間已依使用者新增要求統一為每週表單，手動建立與 Google 候選共用，可填公休、全天、午休多段及跨日。舊文字保留為備註；格式、相容及升級方式見 [營業時間閱讀指南](docs/modules/opening-hours.md)，其他相近匯入缺口見 [欄位檢查與計畫](docs/OPENING-HOURS-PLAN.md)。
 
 Google匯入另依U-10改善行政區、HTTP官網與可見地點關聯；Google簡介僅顯示原文供參考，網站介紹由管理員撰寫。變更地點後須重新確認或解除，前後端都會檢查。見 [地圖改善計畫](docs/MAP-IMPORT-IMPROVEMENTS.md)與[程式指南](docs/modules/google-place-fields.md)。
 
-後續計畫已按 P0（階段 2–8）→ P1（9–12）→ P2（13–15）重排，階段一為共用準備；各級有整合驗收界線，詳見 [實作計畫](docs/IMPLEMENTATION-PLAN.md)。目前階段一至四完成本機驗收，P0 尚未完成。
+後續計畫已按 P0（階段 2–8）→ P1（9–12）→ P2（13–15）重排，階段一為共用準備；各級有整合驗收界線，詳見 [實作計畫](docs/IMPLEMENTATION-PLAN.md)。目前階段一至五完成本機驗收，P0 尚未完成。階段五操作與界線見 [公開內容指南](docs/modules/public-content.md)／[驗收紀錄](docs/PHASE-5-ACCEPTANCE.md)。
 
 ## 本機啟動
 
@@ -27,6 +27,8 @@ docker compose exec -T app php bin/console.php db:seed
 docker compose exec -u www-data -T app php bin/console.php content:seed-demo
 # 選用：管理員初始化後匯入原型四部電影 metadata；不猜年份、不建場次。
 docker compose exec -u www-data -T app php bin/console.php film:seed-demo
+# 選用：原型四篇消息／三項優惠與店家，缺少才建立，不覆寫已有編輯。
+docker compose exec -u www-data -T app php bin/console.php content:seed-public-demo
 # 不匯入展示資料時，可用 content:publish 產生空內容頁。
 ```
 

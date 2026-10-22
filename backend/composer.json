@@ -5,9 +5,10 @@
     "license": "proprietary",
     "require": {
         "php": "~8.5.0",
-        "ext-pdo_mysql": "*",
-        "ext-mbstring": "*",
         "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-pdo_mysql": "*",
+        "ezyang/htmlpurifier": "^4.19",
         "phpmailer/phpmailer": "~7.1.1"
     },
     "autoload": {"psr-4": {"Yinghua\\": "src/"}},

@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "05000000-0000-4000-8200-000000000000",
+      "legacyId": 0,
+      "slug": "slow-market",
+      "type": "event",
+      "title": "風城慢慢市集｜老城散步日",
+      "summary": "市集回到舊城巷弄，手作、老屋與熟悉的風，陪你過一個慢一點的週末。",
+      "body": "<p>活動日期與地點為示意資訊，請以主辦單位公告為準。</p>",
+      "coverUrl": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=900&q=80",
+      "coverAlt": "風城慢慢市集｜老城散步日相關照片",
+      "coverSource": "原始 website 示範圖片",
+      "coverLicense": "示範；正式上線前確認或替換",
+      "status": "published",
+      "publishAt": "2026-10-10T00:00:00+08:00",
+      "eventLabel": "市集・生活",
+      "eventLocation": "東門市場周邊"
+    },
+    {
+      "id": "05000000-0000-4000-8200-000000000001",
+      "legacyId": 1,
+      "slug": "street-photo",
+      "type": "event",
+      "title": "在城市裡收集光｜街拍小展",
+      "summary": "影像博物館二樓展出，免費參觀。展期至 10 月 30 日。",
+      "body": "<p>活動日期、地點及優惠內容均為示意資訊，請以主辦單位或店家公告為準。</p>",
+      "coverUrl": "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1100&q=85",
+      "coverAlt": "在城市裡收集光｜街拍小展相關照片",
+      "coverSource": "原始 website 示範圖片",
+      "coverLicense": "示範；正式上線前確認或替換",
+      "status": "published",
+      "publishAt": "2026-10-11T00:00:00+08:00",
+      "eventLabel": "展覽・免費",
+      "eventLocation": "影像博物館二樓"
+    },
+    {
+      "id": "05000000-0000-4000-8200-000000000002",
+      "legacyId": 2,
+      "slug": "park-concert",
+      "type": "event",
+      "title": "風的聲音｜午後草地音樂會",
+      "summary": "在新竹公園草地聽一場秋日下午的現場演出。",
+      "body": "<p>活動日期、地點及優惠內容均為示意資訊，請以主辦單位或店家公告為準。</p>",
+      "coverUrl": "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?auto=format&fit=crop&w=1100&q=85",
+      "coverAlt": "風的聲音｜午後草地音樂會相關照片",
+      "coverSource": "原始 website 示範圖片",
+      "coverLicense": "示範；正式上線前確認或替換",
+      "status": "published",
+      "publishAt": "2026-10-18T00:00:00+08:00",
+      "eventLabel": "音樂・戶外",
+      "eventLocation": "新竹公園"
+    },
+    {
+      "id": "05000000-0000-4000-8200-000000000003",
+      "legacyId": 3,
+      "slug": "old-town-notice",
+      "type": "city",
+      "title": "舊城街區步行環境改善公告",
+      "summary": "部分路段施工期間請依現場指示通行，散步路線可改走中央路。",
+      "body": "<p>活動日期、地點及優惠內容均為示意資訊，請以主辦單位或店家公告為準。</p>",
+      "coverUrl": "https://images.unsplash.com/photo-1519608487953-e999c86e7455?auto=format&fit=crop&w=1100&q=85",
+      "coverAlt": "舊城街區步行環境改善公告相關照片",
+      "coverSource": "原始 website 示範圖片",
+      "coverLicense": "示範；正式上線前確認或替換",
+      "status": "published",
+      "publishAt": "2026-10-20T00:00:00+08:00",
+      "eventLabel": "",
+      "eventLocation": ""
+    }
+  ]
+}

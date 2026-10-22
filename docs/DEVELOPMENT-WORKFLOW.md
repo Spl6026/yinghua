@@ -2,7 +2,7 @@
 
 設定日期：2026-10-13。適用架構：PHP 8.5、MariaDB 12.3、Docker、原生 JavaScript／jQuery。
 
-本文件定義後續實作如何選擇 skills 及驗證改動。skills 與 Docker／Composer 品質工具環境已完成安裝；階段二認證、階段三景點／媒體／發布及階段四電影／多場次已實作，實際驗收分見 PHASE-2-ACCEPTANCE.md、PHASE-3-ACCEPTANCE.md、PHASE-4-ACCEPTANCE.md。安裝、命令與驗證結果見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。
+本文件定義後續實作如何選擇 skills 及驗證改動。skills 與 Docker／Composer 品質工具環境已完成安裝；階段二認證、階段三景點／媒體／發布、階段四電影／多場次及階段五公開消息／優惠／首頁已實作，實際驗收分見 PHASE-2-ACCEPTANCE.md 至 PHASE-5-ACCEPTANCE.md。安裝、命令與驗證結果見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。
 
 目標架構見 [ARCHITECTURE.md](ARCHITECTURE.md)：前端 HTML View＋PHP API，Controller／Service／Repository 分工。新功能使用 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md) 的 S／D／U／E 標記，並附模組閱讀指南與真實資料流。backend/ 與 frontend/ 於階段二從零建立，沒有後端遷移。
 
@@ -37,7 +37,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 
 ## 2. 當前狀態
 
-已完成環境與階段二：backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前階段一至四完成本機驗收；階段三、四紀錄分見 PHASE-3-ACCEPTANCE.md、PHASE-4-ACCEPTANCE.md，P0 尚未完成。
+backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前階段一至五完成本機驗收；各輪結果見 PHASE-2-ACCEPTANCE.md 至 PHASE-5-ACCEPTANCE.md。階段六起未開始，P0 尚未完成。
 
 工具可執行不代表功能或分析已通過。環境結果見 ENVIRONMENT-SETUP.md；功能驗收以各階段 PHASE-*-ACCEPTANCE.md 的實際結果為準。
 
@@ -77,6 +77,8 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 索引與效能審查以本案 MariaDB 12.3 為準，不能讓 skill 的 11.8 預設覆蓋既有設定。管理員少量分頁可按畫面需求使用 page／offset；大量深頁查詢再評估 cursor，不為 skill 改掉已確認的 API 契約。是否啟用觀測配置依實際診斷需要決定，不自動重啟正式資料庫。
 
 第三方 Bash audit scripts 必須在具備相應依賴的 Linux／Docker 環境使用；Windows 工作流程以 rg、實際 PHP／HTTP 測試及可用工具適配。技能安裝不代表 Semgrep、Trivy、Gitleaks 等 scanner 已安裝或已執行。
+
+階段一至五的後續複驗使用 [固定清單 V01–V18](VERIFICATION-CHECKLIST.md)，依功能、狀態及跨模組流程逐項記錄，並區分當輪重跑與沿用的證據。新增已重現的缺陷須補相應行為回歸；修正後重驗影響範圍，不把工具通過或代表頁通過寫成全站所有情境無誤。建置完整性另用 `python backend/tests/frontend_integrity.py`；可附 `--base-url http://localhost:8080` 做唯讀 HTTP 檢查。
 
 ## 6. 安裝來源與版本記錄
 

@@ -52,7 +52,9 @@ try {
     $database = Database::connect($config);
     $arguments = $argv ?? [];
     $command = $arguments[1] ?? 'help';
-    if ($command === 'db:migrate') {
+    if (in_array($command, ['content:import','media:import','content:seed-public-demo'], true)) {
+        exit((new Composition($config))->publicContentCommands($database)->run($arguments));
+    } elseif ($command === 'db:migrate') {
         (new SchemaMigrator($database))->migrate(dirname(__DIR__) . '/database/migrations');
         fwrite(STDOUT, "Migrations applied.\n");
     } elseif ($command === 'db:seed') {
@@ -146,7 +148,7 @@ try {
             fwrite(STDOUT, "Fixed admin password recovered; previous sessions revoked.\n");
         }
     } else {
-        fwrite(STDOUT, "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, film:seed-demo, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch\n");
+        fwrite(STDOUT, "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, film:seed-demo, content:seed-public-demo, content:import, media:import, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch\n");
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Command failed (' . $error::class . "). Check configuration and the documented input requirements.\n");
