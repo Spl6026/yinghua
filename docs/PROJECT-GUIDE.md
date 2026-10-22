@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-22 階段五已完成[公開消息／優惠與首頁細節計畫](PHASE-5-PLAN.md)，**實作尚未開始**。計畫列出原型頁面、欄位來源、七個預計公開 API、四張預計新表與既有店家表擴充、CLI 維護、分層及驗收；這次只有文件變更。目前仍為 54 個 API 操作、24 表、十二份 migration，沒有新增內容管理介面或變更運作環境。
+
 2026-10-22 Compose 整理：保留單一 compose.yaml，使用 x-php-common／x-web-common 統一共用設定，FPM 健康檢查只套用 app／app-test；publisher 以 CLI running 狀態啟動。測試資料庫／媒體／發布位置仍明確分開。設定展開比對、完整啟動與隔離驗證見下方「Compose 閱讀與啟動」；沒有新增業務功能或 migration。
 
 2026-10-22 PHP 安全維護：基底更新為官方 php:8.5.12-fpm-bookworm 並固定 digest，詳見 [來源與驗證紀錄](PHP-SECURITY-UPDATE-20261021.md)。官方 amd64 映像已發布，臨時原始碼編譯配方及輔助工具已移除；原專案擴充／runtime／development 階段保留。這是環境維護，階段五仍未開始。
@@ -953,6 +955,7 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 | [REQUIREMENTS-MAP.md](../docs/REQUIREMENTS-MAP.md) | 原始規格功能來源與網站頁面需求對照。 |
 | [PHASE-2-PLAN.md](../docs/PHASE-2-PLAN.md) | 階段二細設、API／表／頁面及工程補充對照。 |
 | [PHASE-4-PLAN.md](PHASE-4-PLAN.md) | 階段四電影／場次的欄位來源、九個已接入 API、三張新增表、原型頁面、分層、U-16 與驗收邊界；結果另見階段四驗收。 |
+| [PHASE-5-PLAN.md](PHASE-5-PLAN.md) | 階段五尚未實作的消息／優惠／首頁計畫：Excel 儲存格、website 頁面、欄位／店家相容、預計 API／資料表／CLI、功能提交與驗收界線。 |
 | [PHASE-4-ACCEPTANCE.md](PHASE-4-ACCEPTANCE.md) | 階段四實際 619 項整合、55 項 PHP、88 項 Node、API 契約、桌面／手機與持久化證據及界線。 |
 | [modules/films.md](modules/films.md) | 階段四實際完成範圍、新檔案用途、資料流與驗證；持續隨功能更新。 |
 | [ARCHITECTURE.md](../docs/ARCHITECTURE.md) | 設計原則、採用做法與參考、API-only／SEO 發布的目標架構；含後續規劃，實際檔案以本導讀為準。 |

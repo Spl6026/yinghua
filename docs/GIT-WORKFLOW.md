@@ -4,6 +4,8 @@
 
 ## 目前歷史
 
+2026-10-22 階段五細節計畫作為 main 的規劃提交，沿用階段四先規劃、後開實作分支的方式。本次只有工程文件；`phase/05-public-content-home` 待使用者授權實作後才由最新 main 建立，不把規劃記成完成實作。
+
 2026-10-22 Compose 整理使用 `maintenance/compose-cleanup`，將設定、隔離／啟動驗證與閱讀說明作為一筆完整維護提交；驗證及備份後以 merge commit 回 main，保留分支。沒有改寫 PHP 安全更新或既有階段歷史。
 
 2026-10-21–22 PHP 安全維護使用 `maintenance/php-8.5.12-security`，由最新 main 分出；建置、驗證及環境文件合成一筆安全更新，驗證後以 merge commit 回 main 並保留維護分支。這是新發布漏洞的維護工作，沒有改寫既有階段提交或建立階段五分支。
@@ -63,7 +65,7 @@
 
 | 階段 | 優先級 | 預定分支 | 狀態 |
 | --- | --- | --- | --- |
-| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 未開始 |
+| 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 細節計畫已建立，實作未開始 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 未開始 |
 | 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 未開始 |
 | 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 未開始 |
