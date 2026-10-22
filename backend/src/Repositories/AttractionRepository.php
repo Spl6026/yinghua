@@ -82,9 +82,14 @@ class AttractionRepository
                 $this->database->execute('UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$fields]);
             }
             if ($input->fields['category'] === '景點') {
-                $this->database->execute('DELETE FROM merchants WHERE attraction_id=:id', ['id' => $id]);
+                // [E-17／26] 分類可修改；保留已被優惠引用的店家 profile，不以硬刪破壞歷史。
+                $this->database->execute('DELETE m FROM merchants m WHERE m.attraction_id=:id AND NOT EXISTS (SELECT 1 FROM offers o WHERE o.merchant_id=m.id)', ['id' => $id]);
+                $this->database->execute('UPDATE merchants SET attraction_id=NULL,version=version+1,updated_at=UTC_TIMESTAMP() WHERE attraction_id=:id', ['id' => $id]);
             } else {
-                $this->database->execute('INSERT IGNORE INTO merchants (attraction_id) VALUES (:id)', ['id' => $id]);
+                // 店家 profile 只在首次建立回填，後續景點編輯不覆寫優惠聯絡資料。
+                $this->database->execute("INSERT IGNORE INTO merchants (id,attraction_id,name,district,address,phone,website,status)
+                    SELECT UUID(),id,name,COALESCE(district,''),address,phone,website_url,
+                    IF(status='published' AND publish_at<=UTC_TIMESTAMP(),'active','inactive') FROM attractions WHERE id=:id", ['id' => $id]);
             }
             $this->alias('/places/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
@@ -111,7 +116,9 @@ class AttractionRepository
 
     public function referenced(string $id): bool
     {
-        return $this->database->row('SELECT attraction_id FROM route_attractions WHERE attraction_id=:id LIMIT 1', ['id' => $id]) !== null;
+        return $this->database->row('SELECT id FROM attractions WHERE id=:id AND
+            (EXISTS (SELECT 1 FROM route_attractions r WHERE r.attraction_id=attractions.id)
+            OR EXISTS (SELECT 1 FROM merchants m JOIN offers o ON o.merchant_id=m.id WHERE m.attraction_id=attractions.id AND o.deleted_at IS NULL))', ['id' => $id]) !== null;
     }
 
     public function hasMuseum(string $exceptId): bool

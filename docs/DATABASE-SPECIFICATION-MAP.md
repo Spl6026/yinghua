@@ -2,7 +2,7 @@
 
 更新日期：2026-10-20。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。
 
-目前 **23 張業務表＋1 張 migration 工具表，共 24 表、211 欄、12 份 migration**。階段四的 010／011 新增電影、場次及歷史網址三表；既有 001–009（含兩份 002）的內容與 checksum 不改。主庫／測試庫均已套用；空庫與保留舊會員／景點的升級亦在新建隨機測試庫驗證並重跑。先前階段的數字保留於各日期紀錄；階段四結果見 [驗收](PHASE-4-ACCEPTANCE.md)。
+目前 **27 張業務表＋1 張 migration 工具表，共 28 表、276 欄、15 份 migration**。2026-10-22 階段五 5A 新增 012–014：擴充 merchants、新增 news_posts／offers 及兩張 alias 表；API／CLI／畫面尚未接入。主庫／測試庫已套用，原 migration checksum 不改，空庫與保留會員／景點／店家的升級已重跑驗證；細節見[公開內容指南](modules/public-content.md)。階段四當時為 24 表／211 欄／12 份 migration，結果見 [驗收](PHASE-4-ACCEPTANCE.md)。
 
 ## 原始建議已有對應的資料表
 
@@ -17,7 +17,7 @@
 | 資料表建議 11 | media_assets | storage_key 唯一；mime_type、尺寸及 created_at 同名。byte_size 對應 size_bytes、alt 對應 alt_text、source 對應 credit、uploaded_by 對應 created_by。public_url 不另存：由受控 storage_key 組成 /media 路徑，避免 URL 與儲存鍵不同步。source／license 可空白；圖片 alt 仍必填 |
 | 資料表建議 A12–D12 | films | id、slug、title、genre、synopsis、poster_media_id、status、操作者、version 及時間對應。publish_at 表示預定公開時間，不冒稱首次發布時間；SEO、網址海報、用途說明、電影預設票務、legacy_id／deleted_at 為 E-25。欄位清單不等於必填；片名依原型 required，有圖有效 alt 依 G7／G21 |
 | 資料表建議 A13–D13 | film_screenings | id、film_id、starts_at、ticket_url、時間欄對應；starts_at 存 UTC。U-16 只比開始日期與時間，所以本階段沒有 ends_at／venue；場次公開性依父電影狀態，不自創獨立取消狀態。零場次可保存／發布 |
-| 資料表建議 15 | merchants | 階段三僅 attraction_id FK＋created_at，作美食／店家標記；名稱、行政區、地址與官網由關聯 attractions 取得，不建立兩份會失去同步的資料。此表尚非完整優惠合作店家管理，phone／店家生命週期等留對應業務階段，不冒稱已完成整列建議 |
+| 資料表建議 15 | merchants | 012 升級為獨立 profile，id PK、可空唯一 attraction_id FK、name／district／address／phone／website／status／version／timestamps／deleted_at。原連結／建立時間保留，一次回填後明確區分優惠聯絡資料與景點；完整管理介面仍在 P1 |
 | 資料表建議 17 | routes | 僅 id／title／status／version，為刪除引用保護所需的最小標頭；完整 slug、theme、summary、duration 等於 P1 路線階段擴充 |
 | 資料表建議 18 | route_attractions | route_id、attraction_id、sort_order 與順序／重複引用唯一性對應；suggested_time、note 尚未實作，不因此提前建立完整路線功能 |
 | 資料表建議 22 | sessions | member_id／admin_id 擇一、token_hash、期限、撤銷、建立時間與雜湊化來源對應。idle_expires_at、last_seen_at 為期限實作；preview_admin_id 來自 U-06 唯讀模擬 |
@@ -58,7 +58,7 @@
 
 ## Excel 建議但尚未開始的業務表
 
-news_posts（14）、offers（16）、itineraries／itinerary_items（19／20）、favorites（21）、site_settings／content_seo（24／25）尚未實作。依 [實作計畫](IMPLEMENTATION-PLAN.md) 在相應 P0／P1／P2 階段建立，不因本次資料庫核對提前建立空業務或宣告串接完成。
+news_posts（14）、offers（16）已於階段五 5A 建立資料層；欄位逐項來源、選填日期／條款限制與 alias 工程欄位見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md#4-預計資料表及升級) 及閱讀指南，尚未宣告公開功能完成。itineraries／itinerary_items（19／20）、favorites（21）、site_settings／content_seo（24／25）尚未實作，仍依 [實作計畫](IMPLEMENTATION-PLAN.md) 處理。
 
 ## Migration 與操作
 

@@ -57,7 +57,7 @@ U-17（2026-10-20）：使用者要求開放 Docker 資料庫 port，使用自�
 
 | ID | 工程補充 | 理由／規格關係 | 計畫狀態 |
 | --- | --- | --- | --- |
-| E-26 | 階段五消息／優惠 DTO、店家 profile 相容、受控匯入與重跑、日期空值／到期邊界、公開聚合／排序、媒體與安全正文、舊網址及技術上限 | S 功能規格 5／9／11 的公開功能；沿用 G23 的條款必填／店家存在作共用寫入規則。D 資料表 14–16／API 5／10–13 是建議；具體 schema、日期算法、CLI、相容與上限非 Excel 硬性設定 | 僅規劃，尚未實作；見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md) |
+| E-26 | 階段五消息／優惠 DTO、店家 profile 相容、受控匯入與重跑、日期空值／到期邊界、公開聚合／排序、媒體與安全正文、舊網址及技術上限 | S 功能規格 5／9／11 的公開功能；沿用 G23 的條款必填／店家存在作共用寫入規則。D 資料表 14–16／API 5／10–13 是建議；具體 schema、日期算法、CLI、相容與上限非 Excel 硬性設定 | 已建立 5A 資料層，其餘進行中；見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md) |
 | E-25 | 階段四電影／場次 DTO 與 aggregate、同開始時間交易／並行檢查、模組媒體、共同發布、舊網址及本週／技術上限策略 | 功能依 S7／21／5／30／34、D 資料表 12／13／API 8／9／30；開始時間政策依 U-16。週一界線、分鐘精度、草稿保留／下架釋放、票務預設及 SQL／API 具體形式是工程設計 | 已實作並完成本機驗收；見 PHASE-4-PLAN.md／PHASE-4-ACCEPTANCE.md |
 | E-01 | Controller／Service／Repository、輸入／回應 DTO、建構子 DI、Adapter／Middleware、儲存例外轉譯及帳號／權限服務拆分 | 落實 U-02；Excel 沒有指定這些 pattern | 階段二已實作，見 ARCHITECTURE／modules/backend-layering.md |
 | E-02 | 會員／後台獨立 auth namespace、Cookie 與 CSRF API | 實現 S-SEC-09／14 的身分邊界，確切端點是提案 | 基礎方案 |

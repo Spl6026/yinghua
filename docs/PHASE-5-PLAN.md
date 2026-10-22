@@ -1,6 +1,6 @@
 # 階段五：公開消息、優惠與首頁整合計畫
 
-設計日期：2026-10-22。狀態：**已規劃，尚未實作或驗收**。本次只新增計畫與閱讀入口，不改程式、資料庫、Docker 服務或原始交付。實作授權後，才從最新 main 建立 `phase/05-public-content-home`。
+設計日期：2026-10-22。狀態：**已授權實作，5A 資料層前置已建立，其餘進行中**。分支 `phase/05-public-content-home` 從最新 main 建立。下文保留設計與驗收基準；實際檔案／數字及檢查見[公開內容指南](modules/public-content.md)，未完成項目不當成已交付。
 
 依據：[總計畫](IMPLEMENTATION-PLAN.md)、[原始 Excel](../映畫竹塹_後台工程串接功能規格.xlsx)、原始 website、[架構](ARCHITECTURE.md)及[規格基準](DEVELOPMENT-WORKFLOW.md#規格基準u-122026-10-18)。S 是功能明文，D 是資料表／API 建議，U 是使用者指定，E 是工程設計。**欄位被列出不代表必填；下列具體欄位、命令、表與 API 都是待實作設計。**
 
