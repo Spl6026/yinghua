@@ -9,6 +9,7 @@ parameters:
         - bin/console.php
         - config/routes.php
         - config/member-routes.php
+        - config/seo-routes.php
         - tests/ArchitectureTest.php
     tmpDir: .build/phpstan
     treatPhpDocTypesAsCertain: false

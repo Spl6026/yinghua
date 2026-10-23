@@ -118,6 +118,12 @@ readonly class Composition
         $memberRoutes = require dirname(__DIR__) . '/config/member-routes.php';
         $memberRoutes($router, $favoriteController, $itineraryController);
 
+        $seoCatalog = new \Yinghua\Adapters\SeoCatalog($this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source'));
+        $seoController = new \Yinghua\Controllers\SeoSettingsController(new \Yinghua\Services\SeoSettings(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database), new \Yinghua\Repositories\SeoContentRepository($database), $authorization, $transactions, $events, $publication, $seoCatalog, $this->config), $seoCatalog->policy());
+        /** @var Closure(Router,\Yinghua\Controllers\SeoSettingsController):void $seoRoutes */
+        $seoRoutes = require dirname(__DIR__) . '/config/seo-routes.php';
+        $seoRoutes($router, $seoController);
+
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 
