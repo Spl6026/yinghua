@@ -22,4 +22,5 @@
 - 每完成一個階段，必須在宣告完成及合併 main 前更新 [docs/PROJECT-GUIDE.md](docs/PROJECT-GUIDE.md)：更新日期、實際完成範圍、架構與檔案用途、頁面／API 狀態、資料表／migration、Docker／環境及操作命令；核對檔案清單與連結，不提前標記後續功能。功能開發期間有相關變更亦應隨功能提交同步維護。
 - 計畫依 [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) 分為共用準備 1、P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；依序完成優先級界線驗收後再進入下一級。必要前置能力標明用途，不提前冒充後續功能；重排不等於新增實作或授權。
 - 使用者已授權實作階段三、四；認證／權限、景點／媒體／地圖／發布及電影／多場次已完成本機驗收，實際範圍見各階段驗收文件。階段五已於 2026-10-22 依授權實作並完成本機驗收，見 docs/PHASE-5-ACCEPTANCE.md。階段六已依授權於 phase/06-favorites-basic-itinerary 建立收藏／目前行程，2026-10-24 完成本機驗收，範圍與限制見 docs/PHASE-6-ACCEPTANCE.md；合併前須備份並核對完整內容。階段七以後未開始，依後續授權處理。U-16 只檢查放映日期及開始時間，結束時間延後。狀態與驗收只記錄實際結果。
+- 階段七已於 2026-10-24 依使用者授權在 phase/07-seo-settings-head 實作，7A 資料層已建立，其餘實作與驗收繼續；不因前一條歷史狀態而視為未授權。範圍見 docs/PHASE-7-PLAN.md／docs/modules/seo-settings.md，完成實際驗收前不合併 main。
 - PHP、Composer 與品質檢查工具在 Docker 開發環境執行。缺少工具時先建立或如實記錄，不能把「未安裝／未執行」當成檢查通過。
