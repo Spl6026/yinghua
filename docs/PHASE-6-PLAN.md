@@ -1,6 +1,6 @@
 # 階段六：收藏與基本行程保存計畫
 
-設計日期：2026-10-23。使用者已授權實作，狀態：**6A 共用資料層已建立，6B–6D 進行中，尚未完成階段驗收**。分支 `phase/06-favorites-basic-itinerary` 從最新 main 建立。目前 API 仍為 61；主庫尚未升級、測試庫已套兩份新 migration，為 31 表／17 份 migration。下文保留設計與待驗基準，實際已建立檔案見 [會員資料閱讀指南](modules/member-resources.md)。
+設計日期：2026-10-23。使用者已授權實作，狀態：**6A／6B 已建立，6C–6D 進行中，尚未完成階段驗收**。分支 `phase/06-favorites-basic-itinerary` 從最新 main 建立。目前 API 為 65，主／測試庫皆 31 表／17 份 migration。下文保留設計與待驗基準，實際已建立檔案見 [會員資料閱讀指南](modules/member-resources.md)。
 
 依據：[原始 Excel](../映畫竹塹_後台工程串接功能規格.xlsx)、原始 website、[總計畫](IMPLEMENTATION-PLAN.md)、[分層架構](ARCHITECTURE.md)與 U-08。S＝Excel 功能明文、D＝Excel 建議／草案、U＝使用者指定、E＝工程設計。欄位列出不等於必填；本階段的具體技術決定集中標為 E-27。
 

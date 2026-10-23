@@ -61,6 +61,8 @@
 
 ## Excel 建議但尚未開始的業務表
 
+階段六 6A–6B 實作更新：favorites／itineraries／itinerary_items 已依 015／016 建立，主／測試均 31 表／17 份 migration；收藏已接入、行程服務仍進行中。確切欄位／約束及型別用途見 [會員閱讀指南](modules/member-resources.md)，規格來源為功能規格 G15／資料表建議 C19–D21、工程設計 E-27。以下帶日期的規劃紀錄不代表現在仍未建表；site_settings／content_seo 尚未實作。
+
 2026-10-23 已依 C19–D21 完成 [階段六三表細設](PHASE-6-PLAN.md#4-預計資料表與-migration)：favorites、itineraries、itinerary_items 均仍未建立；current_slot、確切索引／FK、版本／重送及名稱快照為 E-27。預計新增 015／016 兩份 migration，不修改既有檔；實際執行數仍是 15，並未升級資料庫。
 
 news_posts（14）、offers（16）已於階段五 5A 建立資料層；欄位逐項來源、選填日期／條款限制與 alias 工程欄位見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md#4-預計資料表及升級) 及閱讀指南，公開消息／優惠／首頁已接入；正式完成狀態依階段五驗收文件。itineraries／itinerary_items（19／20）、favorites（21）、site_settings／content_seo（24／25）尚未實作，仍依 [實作計畫](IMPLEMENTATION-PLAN.md) 處理。

@@ -1,0 +1,128 @@
+import { authApi } from '../api/auth-api.js';
+import { memberResourcesApi } from '../api/member-resources-api.js';
+import { api } from './api-client.js';
+import { element, status, toast } from './ui.js';
+import { MemberResourceState } from './member-resource-state.js';
+
+// [E-27] 只處理受管景點 UUID；原型陣列索引不直接當正式資料識別。
+export const isAttractionId = id => /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
+export const readMember = async () => {
+  try { return (await authApi().me()).member; }
+  catch (error) { if (error.status === 401) return null; throw error; }
+};
+const state = new MemberResourceState(memberResourcesApi, readMember);
+let bound = false, pendingGeneration = 0;
+const favoriteButtons = () => [...document.querySelectorAll('[data-favorite]')];
+const knownIds = () => favoriteButtons().map(button => button.dataset.favorite).filter(isAttractionId);
+
+function paint() {
+  for (const button of favoriteButtons()) {
+    const id = button.dataset.favorite;
+    if (!isAttractionId(id)) { button.disabled = true; continue; }
+    button.dataset.favoriteLabel ||= button.getAttribute('aria-label') || '收藏此景點';
+    const known = state.statuses.has(id);
+    const saved = state.statuses.get(id) === true;
+    button.disabled = state.busy.has(id);
+    button.classList.toggle('active', known && saved);
+    if (known) button.setAttribute('aria-pressed', String(saved));
+    else button.removeAttribute('aria-pressed');
+    button.setAttribute('aria-label', known ? button.dataset.favoriteLabel : '重新讀取收藏狀態');
+    button.textContent = button.classList.contains('favorite-button') ? (known ? saved ? '♥' : '♡' : '↻') : (known ? saved ? '已收藏 ♥' : '收藏此景點 ♡' : '重新讀取收藏狀態');
+    button.removeAttribute('aria-busy');
+  }
+}
+
+export function loginForMemberAction(kind, id) {
+  const target = new URL(location.href);
+  target.searchParams.set(kind === 'favorite' ? 'pendingFavorite' : 'place', id);
+  location.assign('/login.html?returnTo=' + encodeURIComponent(target.pathname + target.search));
+}
+
+// 舊 planner?place=1..6 與登入待辦才使用公開資料查找；一般卡片狀態走批次本人 API。
+export async function resolvePublicAttraction(id) {
+  if (!isAttractionId(id) && !/^[1-6]$/.test(id || '')) return null;
+  for (let page = 1; ; page++) {
+    const data = await api('/api/v1/attractions?' + new URLSearchParams({page, pageSize:100}));
+    const item = data.items.find(item => item.id === id || String(item.legacyId) === id);
+    if (item) return item;
+    if (page * 100 >= data.total) return null;
+  }
+}
+
+export function clearMemberIntent(name) {
+  const url = new URL(location.href);
+  url.searchParams.delete(name);
+  history.replaceState(null, '', url.pathname + url.search + url.hash);
+}
+
+async function showFavoriteIntent() {
+  const id = new URLSearchParams(location.search).get('pendingFavorite');
+  if (!id || document.querySelector('#member-favorite-intent')) return;
+  const request = ++pendingGeneration;
+  const section = element('section', {id:'member-favorite-intent', className:'member-intent section-pad', 'aria-label':'待確認收藏'});
+  const message = element('p', {role:'status', tabindex:'-1'}, '讀取待收藏地點中…');
+  const cancel = element('button', {type:'button', className:'button button-outline'}, '取消');
+  cancel.addEventListener('click', () => { ++pendingGeneration; clearMemberIntent('pendingFavorite'); section.remove(); });
+  section.append(message, cancel); document.querySelector('main')?.prepend(section);
+  try {
+    const item = await resolvePublicAttraction(id);
+    if (request !== pendingGeneration || !section.isConnected) return;
+    if (!item) { status(message, '原先選擇的地點目前無法收藏。', true); return; }
+    status(message, `是否將「${item.name}」加入收藏？`);
+    const confirm = element('button', {type:'button', className:'button button-dark', 'data-favorite':item.id, 'aria-label':'收藏'+item.name}, '收藏此景點 ♡');
+    section.append(confirm);
+    await refreshFavorites();
+  } catch (error) {
+    status(message, error.message, true);
+    const retry = element('button', {type:'button', className:'button button-outline'}, '重新讀取');
+    retry.addEventListener('click', () => { section.remove(); void showFavoriteIntent(); }); section.append(retry);
+  }
+}
+
+async function refreshFavorites() {
+  const buttons = favoriteButtons();
+  buttons.forEach(button => { button.disabled = true; button.setAttribute('aria-busy', 'true'); });
+  try { if (await state.refresh(knownIds())) paint(); }
+  catch (error) { paint(); toast(error.message); }
+}
+
+async function toggleFavorite(button) {
+  const id = button.dataset.favorite;
+  if (!isAttractionId(id)) return;
+  if (state.member === null) { loginForMemberAction('favorite', id); return; }
+  if (!state.statuses.has(id) || state.member === undefined) { await refreshFavorites(); toast('收藏狀態已重新讀取，請確認後再操作。'); return; }
+  if (new URLSearchParams(location.search).get('pendingFavorite') === id && state.statuses.get(id)) {
+    clearMemberIntent('pendingFavorite'); document.querySelector('#member-favorite-intent')?.remove(); toast('此地點已在收藏中。'); return;
+  }
+  button.disabled = true;
+  try {
+    const result = await state.favorite(id);
+    if (result.login) loginForMemberAction('favorite', id);
+    else if (result.changed) {
+      toast(result.saved ? '已加入收藏。' : '已取消收藏。');
+      if (new URLSearchParams(location.search).get('pendingFavorite') === id) {
+        clearMemberIntent('pendingFavorite'); document.querySelector('#member-favorite-intent')?.remove();
+      }
+      document.dispatchEvent(new CustomEvent('member-favorite-change', {detail:{attractionId:id}}));
+    }
+  } catch (error) {
+    if (error.status === 401) loginForMemberAction('favorite', id);
+    else toast(error.message);
+  } finally { paint(); }
+}
+
+export async function mountMemberActions() {
+  if (!bound) {
+    bound = true;
+    document.addEventListener('click', event => {
+      const button = event.target.closest('[data-favorite]');
+      if (button && !button.disabled) { event.preventDefault(); void toggleFavorite(button); }
+    });
+    const resume = () => { ++state.generation; state.member = undefined; state.statuses.clear(); paint(); void refreshFavorites(); };
+    window.addEventListener('pageshow', event => { if (event.persisted) resume(); });
+    window.addEventListener('focus', resume);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) resume(); });
+  }
+  await refreshFavorites();
+  await showFavoriteIntent();
+}

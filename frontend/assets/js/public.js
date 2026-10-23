@@ -4,6 +4,7 @@ import { element, toast } from './core/ui.js';
 import { places, films, news, offers, routes, itineraryPreview } from './data/prototype.js';
 import { placeCard, cinemaRow, filmCard, newsCard, offerCard, routeCard, searchHit, itineraryStop } from './components/content-cards.js';
 import { initializeDetails } from './pages/public-details.js';
+import { mountMemberActions } from './core/member-actions.js';
 
 void memberNavigation();
 let observer;
@@ -102,7 +103,7 @@ reveal();
 
 // 保留原有按鈕位置；尚未實作的業務不以瀏覽器假資料保存。
 document.addEventListener('click', event => {
-  if (event.target.closest('[data-favorite],[data-add-stop],[data-move],[data-remove],#save-trip,#use-route')) {
+  if (event.target.closest('[data-add-stop],[data-move],[data-remove],#save-trip,#use-route')) {
     event.preventDefault(); toast('收藏與行程功能將於後續階段開放。');
   }
   const navigation = event.target.closest('button[data-page]');
@@ -111,6 +112,7 @@ document.addEventListener('click', event => {
     if (href) { event.preventDefault(); location.assign(href); }
   }
 });
+void mountMemberActions();
 const backdrop = document.querySelector('.hero-backdrop');
 if (backdrop) window.addEventListener('scroll', () => {
   if (innerWidth >= 761 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {

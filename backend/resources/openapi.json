@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "映畫竹塹 API（階段二至五）",
-    "version": "5.0.0",
+    "title": "映畫竹塹 API（階段二至六）",
+    "version": "6.0.0",
     "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。"
   },
   "servers": [
@@ -10486,6 +10486,739 @@
         },
         "description": "P0 公開功能，僅成功發布快照；完整後台及前後篇仍留 P1。"
       }
+    },
+    "/api/v1/me/favorites": {
+      "get": {
+        "operationId": "get_member_favorites",
+        "summary": "本人收藏列表",
+        "tags": [
+          "member-resources"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 E13／G15／L15；U-08；E-27",
+        "security": [
+          {
+            "memberSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Email 驗證碼暫時無法寄送",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoritePage"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "maxLength": 1024
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/me/favorites/status": {
+      "get": {
+        "operationId": "get_member_favorites_status",
+        "summary": "本人收藏批次狀態",
+        "tags": [
+          "member-resources"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 E13／G15／L15；U-08；E-27",
+        "security": [
+          {
+            "memberSession": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Email 驗證碼暫時無法寄送",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteStatuses"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "description": "至多 100 個以逗號分隔的景點 UUID；空清單不查全部收藏",
+            "schema": {
+              "type": "string",
+              "maxLength": 3700
+            }
+          }
+        ]
+      }
+    },
+    "/api/v1/me/favorites/{attractionId}": {
+      "put": {
+        "operationId": "put_member_favorites_attractionId",
+        "summary": "收藏指定景點；重送不反轉",
+        "tags": [
+          "member-resources"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 E13／G15／L15；U-08；E-27",
+        "security": [
+          {
+            "memberSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Email 驗證碼暫時無法寄送",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteWriteResult"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FavoriteWriteResult"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "attractionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyMemberWrite"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete_member_favorites_attractionId",
+        "summary": "取消本人收藏；已不存在仍成功",
+        "tags": [
+          "member-resources"
+        ],
+        "x-status": "implemented",
+        "x-source": "功能規格 E13／G15／L15；U-08；E-27",
+        "security": [
+          {
+            "memberSession": [],
+            "csrfToken": []
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Email 驗證碼暫時無法寄送",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "204": {
+            "description": "成功"
+          }
+        },
+        "parameters": [
+          {
+            "name": "attractionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmptyMemberWrite"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -14039,6 +14772,133 @@
             "$ref": "#/components/schemas/RequestId"
           }
         }
+      },
+      "FavoriteRecord": {
+        "type": "object",
+        "properties": {
+          "attractionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+          },
+          "savedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "availability": {
+            "enum": [
+              "available",
+              "unavailable",
+              "unknown"
+            ]
+          },
+          "attraction": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicAttraction"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "attractionId",
+          "savedAt",
+          "availability",
+          "attraction"
+        ],
+        "additionalProperties": false
+      },
+      "FavoritePage": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FavoriteRecord"
+            }
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "nextCursor",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteStatus": {
+        "type": "object",
+        "properties": {
+          "attractionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+          },
+          "favorited": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "attractionId",
+          "favorited"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteStatuses": {
+        "type": "object",
+        "properties": {
+          "statuses": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {
+              "$ref": "#/components/schemas/FavoriteStatus"
+            }
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statuses",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "FavoriteWriteResult": {
+        "type": "object",
+        "properties": {
+          "attractionId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+          },
+          "favorited": {
+            "const": true
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "attractionId",
+          "favorited",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "EmptyMemberWrite": {
+        "type": "object",
+        "properties": {},
+        "required": [],
+        "additionalProperties": false
       }
     },
     "securitySchemes": {

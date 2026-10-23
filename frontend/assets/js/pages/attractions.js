@@ -1,11 +1,10 @@
 // [S：功能規格 13；E-18] 初次內容由 HTML 提供，篩選與分頁使用公開 API。
 import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
-import { placeCard } from '../components/content-cards.js';
+import { placeCard, attractionCardData as cardData } from '../components/content-cards.js';
+import { mountMemberActions } from '../core/member-actions.js';
 
-export function cardData(item) {
-  return { ...item, area: item.district, type: item.typeLabel || item.category, desc: item.summary, rating: item.recommendationLabel || '在地推薦' };
-}
+export { cardData };
 function imageFallbacks() {
   document.querySelectorAll('[data-image-url]').forEach(node => {
     if (node.dataset.imageChecked) return;
@@ -40,7 +39,9 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
         button.id ||= `attraction-tab-${index}`;
         button.setAttribute('aria-controls', 'place-grid');
         if (active) { grid.setAttribute('role', 'tabpanel'); grid.setAttribute('aria-labelledby', button.id); }
-        if (counts) button.querySelector('span').textContent = String(counts[value || 'all'] || 0).padStart(2, '0');
+        // [E-18] 美食原型的分類沒有數字 span；共用載入不能因此中斷。
+        const count = button.querySelector('span');
+        if (counts && count) count.textContent = String(counts[value || 'all'] || 0).padStart(2, '0');
       });
     }
     async function load() {
@@ -57,7 +58,7 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
           cover.setAttribute('aria-label', item.imageAlt); return card;
         }));
         if (!data.items.length) grid.append(element('p', { className: 'empty-results' }, '找不到符合條件的地點，試試其他關鍵字。'));
-        markTabs(data.counts); imageFallbacks();
+        markTabs(data.counts); imageFallbacks(); void mountMemberActions();
         label.textContent = `第 ${page} 頁，共 ${data.total} 筆`;
         previous.disabled = page <= 1; next.disabled = page * 12 >= data.total;
         status(message, `找到 ${data.total} 筆景點。`);

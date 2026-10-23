@@ -25,14 +25,18 @@ readonly class Route
     /** @return array<string,string>|null */
     public function match(string $path): ?array
     {
-        $expression = str_replace(preg_quote('{id}', '~'), '(?P<id>[a-f0-9-]{36})', preg_quote($this->path, '~'));
-        $expression = str_replace(preg_quote('{slug}', '~'), '(?P<slug>[a-z0-9][a-z0-9-]{0,159})', $expression);
+        // [E-27] 本人資源的 attractionId 與既有 id 採相同路由邊界，完整 UUID 由 DTO 驗證。
+        $patterns = ['id' => '[a-f0-9-]{36}', 'slug' => '[a-z0-9][a-z0-9-]{0,159}', 'attractionId' => '[a-f0-9-]{36}'];
+        $expression = preg_quote($this->path, '~');
+        foreach ($patterns as $name => $pattern) {
+            $expression = str_replace(preg_quote('{' . $name . '}', '~'), '(?P<' . $name . '>' . $pattern . ')', $expression);
+        }
         if (!preg_match('~^' . $expression . '$~D', $path, $matches)) {
             return null;
         }
 
         $parameters = [];
-        foreach (['id','slug'] as $name) {
+        foreach (array_keys($patterns) as $name) {
             if (isset($matches[$name])) {
                 $parameters[$name] = $matches[$name];
             }

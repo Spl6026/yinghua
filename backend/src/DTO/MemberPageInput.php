@@ -52,4 +52,25 @@ readonly class MemberPageInput
     {
         return rtrim(strtr(base64_encode(json_encode($position, JSON_THROW_ON_ERROR)), '+/', '-_'), '=');
     }
+
+    /** @return array{at:string,id:string}|null */
+    public function favoritePosition(): ?array
+    {
+        if ($this->position === []) {
+            return null;
+        }
+        try {
+            $input = new Input($this->position);
+            $input->only(['at', 'id']);
+            $at = $input->text('at', 19, 19);
+            $date = \DateTimeImmutable::createFromFormat('!Y-m-d H:i:s', $at, new \DateTimeZone('UTC'));
+            if ($date === false || $date->format('Y-m-d H:i:s') !== $at) {
+                throw ApplicationError::invalid('cursor', '無效的分頁位置。');
+            }
+
+            return ['at' => $at, 'id' => FavoriteStatusInput::id($input->text('id', 36, 36))];
+        } catch (ApplicationError) {
+            throw ApplicationError::invalid('cursor', '無效的分頁位置。');
+        }
+    }
 }

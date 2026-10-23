@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-23 階段六 6B：四個本人收藏 API、愛心／登入待辦與 favorites.html 已建立，API 共 65；主／測試庫皆 31 表／17 份 migration，固定前端來源 65 頁。`config/member-routes.php` 為會員資源專用路由，PHPStan 已納入分析；`MemberFavorites`／`MemberAttractions` 分別管理本人交易與公開投影，`member-resource-state.js`／`member-actions.js` 共用狀態與操作，`pages/favorites.js` 控制本人列表。完整檔案／命令／驗證見 [會員指南](modules/member-resources.md#6b-收藏-api-與共用愛心)。基本行程與整階段驗收仍在進行，不標階段六完成。
+
 2026-10-23 階段六 6A 共用準備：使用者已授權實作，分支為 `phase/06-favorites-basic-itinerary`。015／016 新建收藏／行程三表與本人唯一約束，`MemberAccess` 重查會員，`FavoriteRepository`／`ItineraryRepository` 集中本人資料 SQL；DTO、檔案用途與命令見 [會員資料閱讀指南](modules/member-resources.md)。測試庫已升級為 31 表／17 份 migration，主庫暫仍 28／15；API 仍 61，尚未接入收藏或行程頁面。空庫／保留資料升級、重跑及 25 項持久層檢查、輸入單元與靜態分析通過，不等於階段六完成。
 
 2026-10-23 階段六僅規劃：新增 [收藏與基本行程細節計畫](PHASE-6-PLAN.md)，包含來源儲存格、預計頁面／七個 API／三張表／兩份 migration、本人所有權、重送與並行、下架資料及待驗清單。僅更新工程文件，backend／frontend／schema／Docker 與目前 61 個 API／28 表／15 份 migration 不變；階段六尚未實作，完整旅程編排仍在階段十一。`PHASE-6-PLAN.md` 是設計，未建立閱讀指南或驗收通過紀錄冒充成果。
@@ -1038,3 +1040,5 @@ U-15本次驗證：認證108項＋校正50項真實HTTP／MariaDB，PHP37項／1
 新增／編輯都可填電話；phone選填，phoneUrl是後端衍生的唯讀撥號連結。Controller／Service／Repository責任不變，PhoneNumber DTO負責格式，009 migration只新增phone。公開詳情與博物館使用相同安全輸出。沒有增加Google欄位或查詢配額。格式與來源、備份／migration及正式驗收差項見上述業主要求對照。
 
 E34／G34可讀性補充：phase2.css局部加深muted、標題說明與表單提示文字；新增頁實測提示文字對比由3.46提升至5.62，版型及website原檔不變。這不是完整WCAG／讀屏認證。
+
+共用入口補充（E-27）：auth.js 登入／註冊互切使用既有 returnTo 白名單保留待辦；attractions.js 支援美食無數字 span 的分類模板，food.html 店家分類使用 API 的在地店家值。content-cards.js／publish.mjs 含愛心的圖片容器使用 group，避免隱藏互動子元素；空營業時間顯示依店家公告，收藏與待辦長文字換行。member-card-accessibility.test.mjs、attraction-food-list.test.mjs 與 auth-navigation.test.mjs 覆蓋這些實際重現情境。

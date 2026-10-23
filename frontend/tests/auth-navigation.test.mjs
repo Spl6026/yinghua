@@ -18,6 +18,7 @@ function fixture({ kind = 'member', mode = 'login', identity, query = '', naviga
   const message = { textContent: '', dataset: {}, focus() {} };
   const link = { href: kind === 'admin' ? '/admin/index.html' : '/index.html', textContent: kind === 'admin' ? '回後台' : '回首頁', hidden: false };
   const logout = { hidden: true, disabled: false, addEventListener(type, callback) { this.listener = callback; } };
+  const switchLink = {href:mode === 'login' ? '/register.html' : '/login.html'};
   const form = {
     elements: { email: { value: 'fixture@example.test', reportValidity: () => true }, answer: { value: '', focus() {} }, acceptTerms: { checked: true } }, attrs: {}, listeners: {},
     querySelector: selector => selector === '[type="submit"]' ? submit : selector === '.form-status' ? message : null,
@@ -35,13 +36,14 @@ function fixture({ kind = 'member', mode = 'login', identity, query = '', naviga
     history: { replaceState() {} },
     document: { body: { dataset: { authKind: kind, authMode: mode } }, querySelector(selector) {
       if (selector === '#auth-form') return form;
+      if (selector === '.account-switch a') return switchLink;
       if (selector === '[data-auth-return]') return mode === 'change-password' ? link : null;
       if (selector === '[data-auth-logout]') return kind === 'admin' && mode === 'change-password' ? logout : null;
       if (selector === '#member-navigation') return node;
       if (captchaNodes.has(selector)) return captchaNodes.get(selector);
       return null;
     } },
-    routes: new Set(['/', '/index.html', '/explore.html', '/admin/index.html', '/admin/admin-edit.html', '/admin/login.html', '/login.html', '/admin/change-password.html']),
+    routes: new Set(['/', '/index.html', '/explore.html', '/planner.html', '/admin/index.html', '/admin/admin-edit.html', '/admin/login.html', '/login.html', '/admin/change-password.html']),
     initializeMenus() {}, toast() {}, status(target, value) { target.textContent = value; },
     async authConfiguration() { return { termsVersion: 'fixture-v1' }; },
     element(tag, attrs, label) { return { tag, ...attrs, textContent: label, addEventListener() {} }; },
@@ -61,8 +63,18 @@ function fixture({ kind = 'member', mode = 'login', identity, query = '', naviga
   vm.runInContext(sessionSource, sandbox);
   const initialize = () => vm.runInContext('(async () => {\n' + authSource + '\n})()', sandbox);
   const send = async () => { form.listeners.submit({ preventDefault() {} }); await settle(); };
-  return { state, sandbox, submit, message, link, logout, form, node, captchaNodes, initialize, send };
+  return { state, sandbox, submit, message, link, switchLink, logout, form, node, captchaNodes, initialize, send };
 }
+
+test('登入與註冊互切保留安全行程待辦，拒絕外站及管理頁目的地',async()=>{
+  for(const mode of ['login','register'])for(const target of ['/planner.html?place=03000000-0000-4000-8000-000000000002','https://attacker.test','/admin/index.html']){
+    const f=fixture({mode,query:'?returnTo='+encodeURIComponent(target)});await f.initialize();
+    const link=new URL(f.switchLink.href,'http://localhost:8080');
+    assert.equal(link.pathname,mode==='login'?'/register.html':'/login.html');
+    assert.equal(link.searchParams.get('returnTo'),target.startsWith('/planner.html')?target:'/index.html');
+    assert.equal(f.state.submits,0);
+  }
+});
 
 test('已登入會員開登入頁返回合法原頁，拒絕跨站目的地', async () => {
   for (const [query, destination] of [['?returnTo=%2Fexplore.html', '/explore.html'], ['?returnTo=https%3A%2F%2Fattacker.test', '/index.html']]) {
