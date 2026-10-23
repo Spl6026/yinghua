@@ -11,15 +11,15 @@
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/phase2.css">
+<link rel="stylesheet" href="/assets/css/phase7.css">
 </head>
 <body data-module="settings" data-action="view" data-page="settings">
 <a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
 <main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / SETTINGS</p><h1>網站設定</h1><p>此功能將於後續階段提供。</p></div></div>
-<section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
-</section>
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT</p><h1>網站設定</h1><p>管理全站 SEO 與頁面覆寫。</p></div><button type="button" class="button button-outline" id="reload-seo">重新讀取設定</button></div>
+<p id="seo-status" class="form-status" role="status" aria-live="polite" tabindex="-1"></p>
+<form id="seo-settings-form" method="post"></form>
+<noscript>此管理頁面需要 JavaScript 操作；公開網站的 SEO 標籤由產頁程序輸出。</noscript>
 </div>
 </div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
 <script type="module" src="/assets/js/admin.js"></script></body>

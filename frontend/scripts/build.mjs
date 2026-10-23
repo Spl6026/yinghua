@@ -2,9 +2,12 @@
 import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { renderSeoHead } from './seo-head.mjs';
+import { renderPolicyVersion } from './policy-pages.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
+const seoCatalog=JSON.parse(await readFile(join(root,'resources/seo-pages.json'),'utf8'));
 if (dirname(output) !== root || output === root) throw new Error('Invalid build output');
 await mkdir(output, { recursive: true });
 const templates = Object.fromEntries(await Promise.all(
@@ -30,7 +33,7 @@ const navigationSections = {
 };
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
-  let html = await readFile(source, 'utf8');
+  let html = renderPolicyVersion(await readFile(source, 'utf8'),process.env.TERMS_VERSION||'local-development-v1');
   if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
   }
@@ -53,6 +56,9 @@ for (const source of await pages(join(root, 'pages'))) {
     });
   }
   html = html.replace(/<input\b[^>]*type="password"[^>]*>/g, match => match.replace(/\s(?:minlength|maxlength)="\d+"/g, ''));
+  // [S：SEO E7/E17；E-28] 固定／保護頁與發布頁共用 head，任何 query 均不含私人資料。
+  html=renderSeoHead(html,{path:'/'+route,title:html.match(/<title>([^<]*)<\/title>/)?.[1],
+    description:html.match(/<meta name="description" content="([^"]*)"/)?.[1],catalog:seoCatalog,origin:process.env.APP_URL||'http://localhost:8080'});
   if (html.includes('{{')) throw new Error(`Unresolved template: ${route}`);
   const target = join(output, route);
   await mkdir(dirname(target), { recursive: true });

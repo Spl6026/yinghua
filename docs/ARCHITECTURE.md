@@ -1,5 +1,7 @@
 # API 與前端分離的架構設計
 
+2026-10-24 階段七（E-28）：SeoSettingsController → SeoSettings → 三個明確 Repository；DTO／enum／policy 限定文件、目標與 URL。Service 組織版本鎖、設定／覆寫／audit 交易；SeoPublication 將公開覆寫加入 ContentPublication，PublicSiteSettings 從成功快照取白名單。前端 resolver／head 共用 build／publish／預覽規則，Nginx gate 避免混版；管理／認證／私人 shell 固定 noindex 且可獨立修復，政策版本也納入 projection。沒有 PHP View、通用 key-value API、額外 ORM／快取服務；見 [SEO 指南](modules/seo-settings.md)／[本機驗收](PHASE-7-ACCEPTANCE.md)。
+
 設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18；階段四電影／場次：2026-10-20；階段五公開內容／首頁：2026-10-22。
 
 使用者指定 PHP 對網站只提供 API，前端使用原生 JavaScript／jQuery。採 MVC 的責任分工，另外拆出 Service 與 Repository，使業務流程和 SQL 能重用。這是本專案的工程選擇，Excel 並未指定 MVC、框架或 design pattern。

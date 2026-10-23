@@ -23,6 +23,7 @@ class ContentPublication
         private readonly ?\Yinghua\Contracts\Clock $clock = null,
         private readonly ?\Yinghua\Repositories\NewsRepository $news = null,
         private readonly ?\Yinghua\Repositories\OfferRepository $offers = null,
+        private readonly ?SeoPublication $seo = null,
     ) {}
 
     /** @template T
@@ -95,7 +96,7 @@ class ContentPublication
     {
         $now = $this->clock?->now() ?? time();
         $window = \Yinghua\DTO\ScreeningWindow::current($now);
-        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),
+        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),'policyVersion' => $this->config->string('TERMS_VERSION', 'local-development-v1'),
             'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published($now)),
             'aliases' => $this->attractions->aliases($now)];
         // [E-25] 景點與電影共享 generation；本週邊界使無編輯的換週也會發布。
@@ -121,6 +122,9 @@ class ContentPublication
             $data['offerAliases'] = $this->offers->aliases($now);
         }
         $data['home'] = \Yinghua\Policies\HomeSelection::fromSnapshot($data, $window)->toArray();
+        if ($this->seo !== null) {
+            $data['seo'] = $this->seo->project($data);
+        }
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 
         return $data;

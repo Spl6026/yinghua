@@ -1,0 +1,45 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Yinghua\Repositories;
+
+use UnexpectedValueException;
+use Yinghua\DTO\SeoDefaults;
+use Yinghua\DTO\SeoSettingsDocument;
+
+/** [D：C24；E-28] 本階段只允許 seo，Repository 不接受外部任意設定 key。 */
+class SiteSettingsRepository
+{
+    public function __construct(private readonly Database $database) {}
+
+    public function read(bool $lock = false, bool $publishedOnly = false): SeoSettingsDocument
+    {
+        $values = $this->database->row("SELECT value_json,version,updated_at FROM site_settings WHERE `key`='seo'" . ($publishedOnly ? ' AND published=1' : '') . ($lock ? ' FOR UPDATE' : ''));
+        if ($values === null) {
+            return new SeoSettingsDocument(0, new SeoDefaults());
+        }
+        $row = new Row($values);
+        $decoded = json_decode($row->string('value_json'), true, 32, JSON_THROW_ON_ERROR);
+        if (!is_array($decoded)) {
+            throw new UnexpectedValueException('Invalid SEO defaults.');
+        }
+        $fields = [];
+        foreach ($decoded as $key => $value) {
+            if (!is_string($key)) {
+                throw new UnexpectedValueException('Invalid SEO key.');
+            }
+            $fields[$key] = $value;
+        }
+
+        return new SeoSettingsDocument($row->integer('version'), SeoDefaults::fromArray($fields), [], $row->string('updated_at'));
+    }
+
+    public function save(SeoDefaults $defaults, int $version, string $actor, bool $creating): void
+    {
+        $fields = ['json' => json_encode($defaults->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),'version' => $version,'actor' => $actor];
+        $sql = $creating ? "INSERT INTO site_settings(`key`,value_json,published,version,updated_by) VALUES('seo',:json,1,:version,:actor)"
+            : "UPDATE site_settings SET value_json=:json,published=1,version=:version,updated_by=:actor,updated_at=UTC_TIMESTAMP() WHERE `key`='seo'";
+        $this->database->execute($sql, $fields);
+    }
+}

@@ -37,7 +37,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 
 ## 2. 當前狀態
 
-backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前階段一至六完成本機驗收；各輪結果與限制見 PHASE-2-ACCEPTANCE.md 至 PHASE-6-ACCEPTANCE.md。階段六於 2026-10-24 補完實際瀏覽器驗收；階段七起未開始，P0 尚未完成。
+backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前階段一至七完成本機範圍；各輪結果與限制見 PHASE-2-ACCEPTANCE.md 至 PHASE-6-ACCEPTANCE.md。階段六於 2026-10-24 補完實際瀏覽器驗收；階段七的實際證據／保留限制見 PHASE-7-ACCEPTANCE.md；階段八起未開始，P0 尚未完成。
 
 工具可執行不代表功能或分析已通過。環境結果見 ENVIRONMENT-SETUP.md；功能驗收以各階段 PHASE-*-ACCEPTANCE.md 的實際結果為準。
 

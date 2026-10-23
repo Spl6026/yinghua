@@ -1,0 +1,194 @@
+[
+  {
+    "path": "/index.html",
+    "label": "首頁",
+    "title": "在城市裡，遇見一場好電影｜映畫竹塹",
+    "description": "從新竹市影像博物館出發，探索本週電影、城市散策、在地美食、店家優惠、活動消息與新竹旅行提案。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/museum.html",
+    "label": "影像博物館",
+    "title": "新竹市影像博物館｜映畫竹塹",
+    "description": "認識新竹市影像博物館的歷史、展覽與參觀資訊，從城市電影記憶開始探索新竹。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/cinema.html",
+    "label": "本週片單",
+    "title": "本週映演｜映畫竹塹",
+    "description": "查看新竹市影像博物館本週上映片單、電影海報、放映日期、場次與電影介紹。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/explore.html",
+    "label": "城市散策",
+    "title": "城市散策｜映畫竹塹",
+    "description": "探索新竹市景點、老城街區、文化場館與巷弄店家，依行政區與類別尋找下一段城市散步。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/food.html",
+    "label": "新竹美食",
+    "title": "新竹美食｜映畫竹塹",
+    "description": "走訪新竹東門市場、巷弄小吃與咖啡店，收藏適合散步途中停留的新竹在地美食。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/events.html",
+    "label": "活動與消息",
+    "title": "新竹現場｜映畫竹塹",
+    "description": "掌握新竹近期活動、市集、展覽與城市現場消息，安排一趟貼近地方生活的旅程。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/activities.html",
+    "label": "活動列表",
+    "title": "新竹活動｜映畫竹塹",
+    "description": "瀏覽新竹市最新活動、市集、展覽與藝文消息，查看活動日期、地點與詳細介紹。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/city-news.html",
+    "label": "新竹消息",
+    "title": "新竹消息｜映畫竹塹",
+    "description": "閱讀新竹城市消息、街區公告與旅遊提醒，出發前掌握竹塹近期生活資訊。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/offers.html",
+    "label": "店家優惠",
+    "title": "店家優惠｜映畫竹塹",
+    "description": "整理新竹在地店家優惠、合作店家與使用方式，探索城市散步途中限定的好康。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/routes.html",
+    "label": "推薦行程",
+    "title": "推薦行程｜映畫竹塹",
+    "description": "參考新竹一日遊與主題散步推薦行程，串聯影像博物館、老城美食與城市景點。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/search.html",
+    "label": "搜尋",
+    "title": "搜尋城市指南｜映畫竹塹",
+    "description": "搜尋映畫竹塹的新竹景點、美食、電影、活動消息與店家優惠。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/planner.html",
+    "label": "會員行程",
+    "title": "旅行計畫｜映畫竹塹",
+    "description": "登入會員後收藏景點、安排新竹旅遊日期與路線，儲存專屬的竹塹旅行計畫。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/favorites.html",
+    "label": "我的收藏",
+    "title": "我的收藏｜映畫竹塹",
+    "description": "查看你收藏的新竹景點、美食與在地店家，加入自己的旅行計畫。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/login.html",
+    "label": "會員登入",
+    "title": "會員登入｜映畫竹塹",
+    "description": "登入映畫竹塹會員，查看收藏景點並繼續編輯已儲存的新竹旅行計畫。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/register.html",
+    "label": "會員註冊",
+    "title": "建立會員帳號｜映畫竹塹",
+    "description": "註冊映畫竹塹會員，收藏新竹景點、規劃旅行行程並接收城市旅遊資訊。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/forgot-password.html",
+    "label": "忘記密碼",
+    "title": "會員寄送重設連結｜映畫竹塹",
+    "description": "映畫竹塹忘記密碼與開發測試適用範圍。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/reset-password.html",
+    "label": "重設密碼",
+    "title": "會員重設密碼｜映畫竹塹",
+    "description": "映畫竹塹重設密碼與開發測試適用範圍。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/change-password.html",
+    "label": "更改密碼",
+    "title": "會員更改密碼｜映畫竹塹",
+    "description": "映畫竹塹更改密碼與開發測試適用範圍。",
+    "protected": true,
+    "template": false
+  },
+  {
+    "path": "/terms.html",
+    "label": "服務條款",
+    "title": "開發測試服務條款｜映畫竹塹",
+    "description": "映畫竹塹本機開發驗收適用說明、條款版本及正式文案待提供狀態。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/privacy.html",
+    "label": "隱私說明",
+    "title": "開發測試隱私說明｜映畫竹塹",
+    "description": "映畫竹塹註冊頁既有的本機開發測試資料用途說明與正式隱私文案狀態。",
+    "protected": false,
+    "template": false
+  },
+  {
+    "path": "/places/*.html",
+    "label": "景點詳情範本",
+    "title": "",
+    "description": "",
+    "protected": false,
+    "template": true
+  },
+  {
+    "path": "/films/*.html",
+    "label": "電影詳情範本",
+    "title": "",
+    "description": "",
+    "protected": false,
+    "template": true
+  },
+  {
+    "path": "/news/*.html",
+    "label": "消息詳情範本",
+    "title": "",
+    "description": "",
+    "protected": false,
+    "template": true
+  },
+  {
+    "path": "/offers/*.html",
+    "label": "優惠詳情範本",
+    "title": "",
+    "description": "",
+    "protected": false,
+    "template": true
+  }
+]

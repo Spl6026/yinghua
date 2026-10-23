@@ -1,5 +1,15 @@
 # 全站架構與檔案功能導讀
 
+2026-10-24 階段七完成本機驗收：**71 API／67 固定頁／33 表／316 欄／18 migration**。SEO 全站／逐頁／範本／單筆設定、公開 head 同版、權限／版本／audit 與開發政策頁已交付；桌面／手機與失敗流程見 [階段七驗收](PHASE-7-ACCEPTANCE.md)。下方 7A–7D 與較早日期保留當時紀錄；最新功能及外部差項以本段和驗收為準，階段八未開始、P0 尚未完成。
+
+2026-10-24 階段七 7D：新增公開開發條款／隱私說明與註冊連結，67 固定頁；仍為 71 API／33 表／18 migration。沿用註冊既有說明與 TERMS_VERSION，不修改歷史同意紀錄；正式文案待業主提供。policy-pages.mjs 處理版本文字輸出，policy.js 共用導覽，ContentPublication 保存同版 policyVersion，Compose frontend 轉傳既有 TERMS_VERSION。用途與驗證命令見 [政策說明指南](modules/seo-settings.md#7d-開發條款與隱私說明)。整階段與實際畫面驗收進行中。
+
+2026-10-24 階段七 7C：公開 settings GET 與同版 SEO head 已建立，合計 71 個操作／33 表／18 migration／65 固定頁。PublicSiteSettings 只回成功 generation 的白名單，SeoPublication 過濾草稿覆寫，ContentPublication／NodeContentRenderer 納入設定與模板；build／publish／管理預覽共用 seo-resolver.js／seo-head.mjs。Nginx 保留公開 gate，管理／認證／私人 shell 不受發布故障阻擋；Compose frontend 僅轉傳既有 APP_URL，沒有新變數或服務。檔案、60 項／12 契約及命令見 [SEO 指南](modules/seo-settings.md#7c-同版公開設定與-html-head)。條款頁與整階段／實際畫面驗收尚未完成，完整 JSON-LD／索引與一般設定仍未開放。
+
+2026-10-24 階段七 7B：管理 SEO GET／PUT、settings 原型表單、版本／權限／同交易 audit 已建立，API 共 70；主庫備份後升級，主／測試均 33 表／18 migration，固定頁仍 65。Controller → SeoSettings → SiteSettingsRepository／ContentSeoRepository；SeoContentRepository 批次目標與權限篩選、SeoSettingsResult 限定輸出；前端 seo-settings-api／seo-fields／seo-settings／phase7.css 分別包 HTTP、欄位、互動與必要樣式。詳細檔案與 74 項／32 契約、5 項表單行為驗證見 [SEO 指南](modules/seo-settings.md#7b-管理設定與原型表單)。公開 GET／head 整合仍在 7C，不把 publicationReady=false 當已完成發布，整階段未驗收。
+
+2026-10-24 階段七 7A：依授權建立 `phase/07-seo-settings-head`。017 新增 site_settings／content_seo，DTO／enum／Repository／URL 與目標規則、共用頁面 catalog 及資料層測試已建立，見 [SEO 閱讀指南](modules/seo-settings.md)。測試庫 33 表／18 migration，主庫暫為 31／17；API 仍 68／固定頁 65，尚無可用 SEO API 或設定 UI。空庫／保留會員內容收藏行程升級、重跑、14 項 rollback 與輸入單元通過。沒有新增 Docker 服務、套件、port 或環境變數，整階段仍在實作。
+
 2026-10-24 階段七規劃：新增 [全站 SEO／HTML head 計畫](PHASE-7-PLAN.md)，含預計頁面、三個 API、site_settings／content_seo、分層／同版發布、欄位來源與固定驗收清單。**尚未實作或建立階段七分支**，因此目前仍為 68 個操作／31 表／17 份 migration／65 頁；沒有安裝或變更 Docker 環境，也沒有新增可用 SEO API。正式網址／文案等外部待辦及 P1／P2 界線見計畫。
 
 2026-10-24 階段六完成本機驗收：68 個 API／31 表／297 欄／17 份 migration／65 個固定頁。Brave 已實測登入返回、收藏與行程分頁／保存／移除／空值／下架／409／換帳號返回，以及桌面 1440×900／手機 390×844／鍵盤；精確證據與未驗情境見 [階段六驗收](PHASE-6-ACCEPTANCE.md#瀏覽器驗收)。修正愛心可及性、美食分類載入、長名稱換行及登入／註冊意圖保留。最後前端 129 項、建置 65 頁／77 個 HTTP 完整性零差異；PHP／MariaDB 未修改，沿用已列明的後端複驗。先前間歇事件仍保留，未宣稱根因消除。無新增服務、套件、port 或環境變數；階段七／十一未開始。下列帶日期段落是當時進度，非當前待辦。
@@ -42,7 +52,7 @@
 
 **2026-10-18 修正補充：** 已修正圖片說明保存、原型順序／文案標籤、營業時間欄及座標約束，並補齊景點表單失敗／競態測試。修正結果及驗收界線見 [PHASE-3-REVIEW-PLAN.md](PHASE-3-REVIEW-PLAN.md)。
 
-更新日期：2026-10-23。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。上方帶日期的段落是各次交付紀錄，以下檔案表維持目前狀態。
+更新日期：2026-10-24。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。上方帶日期的段落是各次交付紀錄，以下檔案表維持目前狀態。
 
 2026-10-18先前完整複查（當次紀錄）：[階段二、三完整複查報告](FULL-REVIEW-20261018.md)。PHP37項／182斷言、前端64項及396項整合檢查通過；64頁路由／資產／imports與桌面／手機Google原文流程已核對。該次複查未新增業務功能、API、表或migration；本輪基準校正則新增005–007，詳見上方校正交付。環境復原及仍未實作的內容補位見該次報告。
 
@@ -59,7 +69,7 @@
 | 範圍 | 階段與界線 | 實際狀態 |
 | --- | --- | --- |
 | 共用準備 | 1 | 已完成 |
-| P0 | 2–8；8 為整合驗收 | 2–6 已完成本機驗收，7–8 未開始，P0 尚未完成 |
+| P0 | 2–8；8 為整合驗收 | 2–7 已完成本機範圍，8 未開始，P0 尚未完成 |
 | P1 | 9–12；12 為整合驗收 | 未開始；完整內容管理、前後篇、路線、完整旅程、JSON-LD／索引 |
 | P2 | 13–15；15 為全站交付 | 未開始；搜尋、會員查詢、一般設定／營運與最終交付 |
 
@@ -136,6 +146,25 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 `website/` 的原始 68 個檔案不由目前 Nginx 提供服務；主要參考入口是 `website/index.html`、`website/admin/`、`website/css/style.css` 與 `website/js/app.js`。全 57 個原始網址及原型差異見 [原始網站對照](WEBSITE-COMPARISON-REVIEW.md)。第三方 skill 參考檔、Composer vendor 及 Git 內部檔案不逐項當成網站程式解釋。
 
 ## Backend：每個檔案做什麼
+
+### 階段七 SEO 的新增檔案
+
+| 檔案／群組 | 用途 |
+| --- | --- |
+| [config/seo-routes.php](../backend/config/seo-routes.php)、Composition | 三操作及建構子依賴；Kernel 沿用管理 session／CSRF |
+| [SeoSettingsController](../backend/src/Controllers/SeoSettingsController.php)、[PublicSiteSettingsController](../backend/src/Controllers/PublicSiteSettingsController.php) | 管理輸入轉換與公開 JSON，不產 HTML |
+| [SeoSettings](../backend/src/Services/SeoSettings.php) | 重查權限、版本鎖、設定／覆寫／audit 同交易，提交後發布 |
+| [PublicSiteSettings](../backend/src/Services/PublicSiteSettings.php)、[SeoPublication](../backend/src/Services/SeoPublication.php) | 成功快照的公開白名單、當次公開內容覆寫篩選 |
+| [SiteSettingsRepository](../backend/src/Repositories/SiteSettingsRepository.php)、[ContentSeoRepository](../backend/src/Repositories/ContentSeoRepository.php)、[SeoContentRepository](../backend/src/Repositories/SeoContentRepository.php) | 文件版本／鎖、批次覆寫及分權目標查詢，不自行 commit |
+| [SeoSettingsInput](../backend/src/DTO/SeoSettingsInput.php)、[SeoDefaults](../backend/src/DTO/SeoDefaults.php)、[SeoOverride](../backend/src/DTO/SeoOverride.php) | 完整文件、全站初值與逐欄繼承，技術型別／資源界線 |
+| [SeoSettingsDocument](../backend/src/DTO/SeoSettingsDocument.php)、[SeoSettingsResult](../backend/src/DTO/SeoSettingsResult.php)、[SeoContentTarget](../backend/src/DTO/SeoContentTarget.php)、[PublicSiteSettingsDocument](../backend/src/DTO/PublicSiteSettingsDocument.php) | 型別化內部文件、管理輸出／選擇器與公開輸出 |
+| [SeoResource](../backend/src/Models/SeoResource.php)、[SeoRobots](../backend/src/Models/SeoRobots.php)、[SeoTargetPolicy](../backend/src/Policies/SeoTargetPolicy.php)、[SeoUrlPolicy](../backend/src/Policies/SeoUrlPolicy.php) | 有限資源／索引值、路徑白名單、canonical 與 HTTPS URL |
+| [SeoCatalog](../backend/src/Adapters/SeoCatalog.php) | 載入共用 JSON catalog，不執行任意使用者 regex |
+| ContentPublication／NodeContentRenderer | generation 納入 SEO／policyVersion／模板雜湊，重用發布鎖與原子切換 |
+| [017_site_seo.sql](../backend/database/migrations/017_site_seo.sql) | 兩張新表；原內容 SEO 欄位與舊 migration 保留 |
+
+測試入口：seo_settings_schema.py／seo_settings_persistence.php、seo_settings_integration.py、seo_publication_integration.py、seo_settings_restart.py、seo_head_inventory.py、policy_pages_integration.py、Unit/SeoInputTest.php；phase7_member_regression.py 沿既有單次 CSRF 更新政策複驗會員功能並記錄拒絕。檔案連結、資料流及命令見 [SEO 指南](modules/seo-settings.md)。
+
 
 ### 階段六會員資料：新增檔案與資料流
 
@@ -319,6 +348,11 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 ## Frontend：每個檔案做什麼
 
+階段七：[seo-settings-api.js](../frontend/assets/js/api/seo-settings-api.js) 包裝管理 HTTP，[seo-fields.js](../frontend/assets/js/components/seo-fields.js) 產生標籤欄位，[seo-settings.js](../frontend/assets/js/pages/seo-settings.js) 處理版本、權限、覆寫／搜尋、預覽、錯誤及待發布。[seo-resolver.js](../frontend/assets/js/core/seo-resolver.js) 為管理預覽／產頁共用純規則，[seo-head.mjs](../frontend/scripts/seo-head.mjs) 安全產生 head，[seo-pages.json](../frontend/resources/seo-pages.json) 共用頁面／範本清單。[phase7.css](../frontend/assets/css/phase7.css) 補原型字體、狀態與長值換行，原 CSS 未改；admin.js 在設定頁啟動模組。
+
+[terms.html](../frontend/pages/terms.html)／[privacy.html](../frontend/pages/privacy.html) 沿既有開發說明；[policy.js](../frontend/assets/js/policy.js) 共用導覽，[policy-pages.mjs](../frontend/scripts/policy-pages.mjs) 輸出同意版本。register.html 另開說明連結，auth.js 讀真實認證版本。build／publish 共用 head 與版本 helper；保護頁使用安全 shell，公開固定／動態頁走 publication gate。SEO head／build／設定頁／政策 Node 測試與實際畫面證據分列於驗收。
+
+
 階段六新增 [member-resources-api.js](../frontend/assets/js/api/member-resources-api.js)、[member-resource-state.js](../frontend/assets/js/core/member-resource-state.js)、[current-trip-state.js](../frontend/assets/js/core/current-trip-state.js)、[member-actions.js](../frontend/assets/js/core/member-actions.js)、[member-itinerary.js](../frontend/assets/js/components/member-itinerary.js)、[favorites.js](../frontend/assets/js/pages/favorites.js)、[planner.js](../frontend/assets/js/pages/planner.js) 及 [phase6.css](../frontend/assets/css/phase6.css)。依序負責 HTTP、收藏狀態、行程狀態、共用操作、站點元件、收藏頁、行程頁與必要狀態樣式；實際資料流見 [會員指南](modules/member-resources.md)。相應測試為 member-resource-state／current-trip-state／member-pages／member-intent；後兩者使用 DOM 邊界替身，不能當成瀏覽器畫面驗收。
 
 ### 來源如何變成網頁
@@ -481,6 +515,9 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 ## 資料庫結構與資料生命週期
 
+2026-10-24 現況：33 表／316 欄／18 migration。site_settings 的 seo JSON 文件保存11項預設、版本／公開旗標／操作者時間；content_seo 保存資源 UUID 或路徑／範本及逐欄覆寫、目標唯一鍵與操作者時間。精確欄位及 D／E 來源見 [逐表對照](DATABASE-SPECIFICATION-MAP.md)／SEO 指南。主／測試均已套017，升級前備份，不清 volume；政策版本沿既有 TERMS_VERSION，member_consents 歷史不變。
+
+
 ### 連線、命名與資料位置
 
 以 compose.yaml 的設定為準：MariaDB **12.3**，服務名稱 `db`、容器內 port **3306**；PHP 的 `DB_HOST=db`。開發庫預設 **yinghua**，技術資料庫使用者預設 **spl**，隔離測試庫固定 **yinghua_test**。網站固定管理員登入 account 是 **admin**，與 DB 使用者是不同概念。
@@ -583,6 +620,9 @@ erDiagram
 原型示範明確執行 `docker compose exec -T --user www-data app php bin/console.php content:seed-public-demo`；已匯入四篇消息／三項優惠，既有店家／編輯／停用狀態不覆寫，正式內容與圖片權利仍待確認。消息／優惠完整後台 CRUD、前後篇留階段九；收藏／基本行程已於階段六接入，完整旅程編排留階段十一。
 
 ## Docker、環境變數與資料位置
+
+階段七沒有新增服務、套件、對外 port 或變數名稱；frontend 建置轉傳既有 APP_URL／TERMS_VERSION。SEO 正式 origin 在設定文件，不覆寫 APP_URL、Cookie 或 Nginx。修改模板／head 後建置 frontend，必要時 restart publisher／web／web-test，再分別以 www-data content:publish；完整命令見 SEO 指南。認證／管理／私人 shell 不依賴公開發布成功；公開 HTML／設定拒絕混版。沿用 no-store，未宣稱外部 CDN purge。
+
 
 ### Compose 閱讀與啟動
 

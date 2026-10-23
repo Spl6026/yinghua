@@ -9,6 +9,7 @@ import { initializePermissions } from './pages/permissions.js';
 import { initializeAdminPreview } from './components/admin-preview.js';
 import { initializeAttractionList } from './pages/attraction-list.js';
 import { initializeAttractionForm } from './pages/attraction-form.js';
+import { initializeSeoSettings } from './pages/seo-settings.js';
 
 initializeMenus();
 const main = document.querySelector('.admin-content');
@@ -49,6 +50,7 @@ try {
     else if (page === 'film-add' || page === 'film-edit') await initializeFilmForm(identity, page);
     else if (page === 'places') await initializeAttractionList(identity);
     else if (page === 'place-add' || page === 'place-edit') await initializeAttractionForm(identity, page);
+    else if (page === 'settings') await initializeSeoSettings(identity);
   }
 } catch (error) { status(message, error.message, true); message.focus(); }
 finally { main.removeAttribute('aria-busy'); }

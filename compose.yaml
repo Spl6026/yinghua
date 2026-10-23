@@ -80,6 +80,10 @@ services:
   frontend:
     image: node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20
     working_dir: /frontend
+    environment:
+      # [E-28] 安全固定頁使用既有運行 origin，不將正式 HTML 寫死 localhost。
+      APP_URL: ${APP_URL:-http://localhost:8080}
+      TERMS_VERSION: ${TERMS_VERSION:-local-development-v1}
     command: ["node", "scripts/build.mjs"]
     volumes:
       - ./frontend:/frontend
