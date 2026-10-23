@@ -1,5 +1,7 @@
 # 映畫竹塹網站完整實作計畫
 
+2026-10-24 階段七僅規劃：新增 [全站 SEO 設定與 HTML head 細節計畫](PHASE-7-PLAN.md)，列出 Excel／原型來源、三個 API、兩張預計新表、覆寫／發布一致性、17 項預定驗收與功能提交。尚未授權實作，未建立階段七分支；目前 API／schema／頁數／Docker 不變。下方帶日期文字保留當時進度，當前完成範圍以最新紀錄為準。
+
 2026-10-24：已依授權於 `phase/06-favorites-basic-itinerary` 完成 P0 收藏／基本行程保存的本機驗收。七個本人 API、三表／兩份 migration、收藏頁與 planner 已接入；目前 68 個 API／31 表／297 欄／17 份 migration。6D 自動化與 Brave 桌面／手機實測結果及限制見 [階段六驗收](PHASE-6-ACCEPTANCE.md)；正式環境與完整旅程不列本次完成範圍。設計見 [階段六計畫](PHASE-6-PLAN.md)，檔案用途見 [會員指南](modules/member-resources.md)。
 
 整理日期：2026-10-13；更新：2026-10-22。依使用者指定重新劃分 P0／P1／P2 與階段界線；階段一、二保留原編號與既有成果，階段三、四已完成本機驗收（見 [階段三驗收](PHASE-3-ACCEPTANCE.md)、[階段四驗收](PHASE-4-ACCEPTANCE.md)），階段五已完成本機實作與驗收（見 [階段五驗收](PHASE-5-ACCEPTANCE.md)）；階段 6–15 尚未實作。階段四細設與來源見 [PHASE-4-PLAN.md](PHASE-4-PLAN.md)；階段五[設計與進度](PHASE-5-PLAN.md)已依使用者授權實作並完成本機驗收。啟動見 README.md，階段二實際驗收見 [PHASE-2-ACCEPTANCE.md](PHASE-2-ACCEPTANCE.md)。
@@ -173,12 +175,14 @@
 
 #### 階段 7：全站 SEO 設定與 P0 頁面 head
 
+2026-10-24 細設見 [PHASE-7-PLAN.md](PHASE-7-PLAN.md)。僅規劃，以下交付尚未實作；來源交疊、正式網域／條款文案與平台待驗另有明列。
+
 相依：階段 3–6 的內容與發布機制。規格：列 30／32、SEO規格 P0 細項；一般網站設定列 28 留 P2。
 
 - [ ] 7.1 建立 site_settings／content_seo 所需結構及公開白名單；串接 GET /site-settings/public、後台 SEO GET／PUT、settings.view/edit、版本與稽核。確切路徑對照 API草案列 38／39，實作時更新 OpenAPI。
 - [ ] 7.2 在 admin/settings 的 SEO 區塊提供全站名稱、標題後綴、摘要、關鍵字、正式網址、robots、分享圖、Twitter、Google／Bing 驗證碼及逐主題／逐頁覆寫；一般設定區仍明確待開放。
 - [ ] 7.3 完成已交付公開 HTML 的唯一 title／description／keywords／robots／canonical／OG／Twitter Card／favicon；內容覆寫 → 頁面覆寫／範本 → 全站預設，設定異動觸發 HTML 重產生及快取更新。
-- [ ] 7.4 私人／管理／重設頁強制 noindex，公開輸出不含個資；必要條款／隱私頁先提供可閱讀的正式文案及版本，編輯管理介面留一般設定階段。
+- [ ] 7.4 私人／管理／重設頁強制 noindex，公開輸出不含個資；必要條款／隱私頁提供可閱讀說明與真實版本。正式文案需業主提供，缺少時保留本機測試標示並列正式交付待辦，不自行生成或宣告完成；編輯管理介面留一般設定階段。
 
 交付／驗收：不執行 JS 也可讀到正確 head，詳情 canonical 自指；儲存 SEO 後跨登入仍有效，未授權回 403，私人頁不能被全站覆寫為可索引。驗證碼可設定／輸出屬 P0，平台實際收錄驗證屬 P1。正式 HTTPS 網域與文案未提供時列待驗；JSON-LD／動態 sitemap 不算本階段成果。
 

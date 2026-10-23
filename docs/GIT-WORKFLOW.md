@@ -69,7 +69,7 @@
 | --- | --- | --- | --- |
 | 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已完成本機驗收；五筆功能／驗收提交，P0 尚未完成 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 6A–6D 完成本機驗收；合併前備份並核對 tree，保留階段分支 |
-| 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 未開始 |
+| 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 已有細節計畫；尚未授權實作／建立分支 |
 | 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 未開始 |
 | 9：消息／優惠管理與前後篇 | P1 | `phase/09-content-management-details` | 未開始 |
 | 10：推薦路線 | P1 | `phase/10-recommended-routes` | 未開始 |
