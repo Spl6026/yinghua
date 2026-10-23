@@ -4,6 +4,8 @@
 
 ## 目前歷史
 
+2026-10-23 階段六細節規劃沿用先前方式，作為 main 的一筆純工程文件提交；七個預計 API、三表及驗收條件均未實作。待授權開始時從最新 main 建立 `phase/06-favorites-basic-itinerary`，依 PHASE-6-PLAN 的 6A–6D 交付，不提前建立實作分支或新增程式／migration。
+
 2026-10-22 階段五細節計畫作為 main 的規劃提交，沿用階段四先規劃、後開實作分支的方式。該規劃提交當時只有工程文件；其後依使用者授權從最新 main 建立 `phase/05-public-content-home`，完成以下五筆功能與驗收。
 
 2026-10-22 Compose 整理使用 `maintenance/compose-cleanup`，將設定、隔離／啟動驗證與閱讀說明作為一筆完整維護提交；驗證及備份後以 merge commit 回 main，保留分支。沒有改寫 PHP 安全更新或既有階段歷史。

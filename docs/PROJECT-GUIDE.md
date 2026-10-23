@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-23 階段六僅規劃：新增 [收藏與基本行程細節計畫](PHASE-6-PLAN.md)，包含來源儲存格、預計頁面／七個 API／三張表／兩份 migration、本人所有權、重送與並行、下架資料及待驗清單。僅更新工程文件，backend／frontend／schema／Docker 與目前 61 個 API／28 表／15 份 migration 不變；階段六尚未實作，完整旅程編排仍在階段十一。`PHASE-6-PLAN.md` 是設計，未建立閱讀指南或驗收通過紀錄冒充成果。
+
 2026-10-23 固定清單複驗：結果見 [本輪紀錄](RECHECK-PHASES-1-5-20261023.md)，後續依 [V01–V18 清單](VERIFICATION-CHECKLIST.md) 記錄狀態。修正景點編輯確認重載後仍保留待上傳圖片的問題，新增取消／成功／失敗重試的行為回歸；前端目前 104 項通過。`backend/tests/frontend_integrity.py` 以 Python 標準函式庫檢查建置後各頁的 main／ID／label、資產與靜態模組引用，選用 `--base-url` 做本機唯讀 HTTP 驗證；它不驗證後續功能或逐像素顯示。執行 `docker compose run --rm --no-deps frontend` 後，再執行 `python backend/tests/frontend_integrity.py --base-url http://localhost:8080`。本輪沒有新增 API、資料表、migration、環境變數或階段；PHP／資料庫架構維持既定分層。
 
 2026-10-23 階段一至五複驗：已重驗認證／權限、景點／媒體／地圖、電影／場次、公開消息／優惠／首頁及環境；代表頁桌面／手機原型對照與實際表單操作見 [複驗紀錄](REVIEW-PHASES-1-5-20261023.md)。修正選填空值的公開排版、手機電影重載按鈕及頂列連結斷行。無新增 API、資料表、migration 或環境變數；仍為 61 個操作／28 表／十五份 migration，階段六起未開始。`content-cards.js`／`scripts/publish.mjs` 負責瀏覽器／預先產生卡片與空值顯示，`phase2.css`／`phase4.css` 補充實際操作狀態，`attraction-publication.test.mjs` 驗證真實 HTML 產物。更新後執行前端建置與 `content:publish`，不手改 dist。
