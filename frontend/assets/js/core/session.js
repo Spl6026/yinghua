@@ -96,7 +96,7 @@ export async function memberNavigation() {
   try {
     const { member } = await authApi().me();
     if (generation !== memberNavigationVersion) return;
-    node.replaceChildren(element('span', {}, member.displayName), element('a', { href: '/change-password.html' }, '更改密碼'));
+    node.replaceChildren(element('span', {}, member.displayName), element('a', { href: '/favorites.html' }, '我的收藏'), element('a', { href: '/change-password.html' }, '更改密碼'));
     node.className = 'member-menu';
     const button = element('button', { type: 'button' }, '登出');
     button.addEventListener('click', async () => {

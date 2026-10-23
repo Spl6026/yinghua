@@ -4,7 +4,7 @@
 
 ## 目前歷史
 
-2026-10-23 階段六細節規劃沿用先前方式，作為 main 的一筆純工程文件提交；七個預計 API、三表及驗收條件均未實作。待授權開始時從最新 main 建立 `phase/06-favorites-basic-itinerary`，依 PHASE-6-PLAN 的 6A–6D 交付，不提前建立實作分支或新增程式／migration。
+2026-10-23 階段六細節規劃作為 main 的純工程文件提交；其後依使用者授權從最新 main 建立 `phase/06-favorites-basic-itinerary`。已按 6A 資料層、6B 收藏及 6C 基本行程分開提交，6D 驗證進行中。實際瀏覽器驗收未完成前不合併 main；自己的修正併回對應功能，原始檔及防毒隔離差異不納入變動。
 
 2026-10-22 階段五細節計畫作為 main 的規劃提交，沿用階段四先規劃、後開實作分支的方式。該規劃提交當時只有工程文件；其後依使用者授權從最新 main 建立 `phase/05-public-content-home`，完成以下五筆功能與驗收。
 
@@ -68,7 +68,7 @@
 | 階段 | 優先級 | 預定分支 | 狀態 |
 | --- | --- | --- | --- |
 | 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已完成本機驗收；五筆功能／驗收提交，P0 尚未完成 |
-| 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 未開始 |
+| 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 6A–6D 完成本機驗收；合併前備份並核對 tree，保留階段分支 |
 | 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 未開始 |
 | 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 未開始 |
 | 9：消息／優惠管理與前後篇 | P1 | `phase/09-content-management-details` | 未開始 |
@@ -124,3 +124,9 @@
 本機修改 refs 前以 `artifacts/review-phases1-5-before-history-20261023.bundle` 備份並驗證；另保留前一天的同名 20261022 備份。重建受影響的本機提交及下游父節點，先比對最終完整 tree，再一次更新 refs，不改遠端。第一提交、階段一、原型 69 檔、既有 migration、`.env` 忽略及防毒隔離差異均保持；沒有額外的修錯進度提交。
 
 同日固定清單複驗的選檔重載修正、行為回歸與閱讀指南歸回階段三景點管理功能；完整性工具、固定清單與本輪結果歸回階段五驗收。更新前另備份並驗證 `artifacts/verification-closure-20261023-before-history.bundle`，不覆寫較早備份；維持原有功能筆數、分支／合併關係與遠端 refs，核對完整 tree 及原始 69 檔。
+
+## 階段六歷史保護
+
+2026-10-24：四筆依序交付共用資料層、收藏、目前行程及跨模組驗收。瀏覽器驗收發現的可及性、長文字、美食共用入口與登入意圖修正併入所屬功能，閱讀指南隨功能提交，沒有另留修錯進度提交。驗收及最新狀態集中於第四筆。
+
+收整前備份並驗證 `artifacts/phase6-before-browser-fold-20261024.bundle`，只重建本階段未分享提交，不改較早階段、第一提交或遠端 refs。完整最終 tree 核對後，再備份 `artifacts/phase6-before-merge-20261024.bundle` 並以 --no-ff 合併，保留階段分支。防毒隔離檔保持原工作樹差異，不還原或納入提交；原始 69 檔、migration 舊檔及 .env 忽略狀態須再次核對，不推送遠端。

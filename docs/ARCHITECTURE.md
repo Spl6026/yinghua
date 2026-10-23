@@ -4,6 +4,8 @@
 
 使用者指定 PHP 對網站只提供 API，前端使用原生 JavaScript／jQuery。採 MVC 的責任分工，另外拆出 Service 與 Repository，使業務流程和 SQL 能重用。這是本專案的工程選擇，Excel 並未指定 MVC、框架或 design pattern。
 
+2026-10-23 階段六實作補充（E-27）：`config/member-routes.php` 由 Composition 註冊七個會員資源 API，沿用 Kernel 的會員 session／CSRF。FavoriteController／CurrentItineraryController → MemberFavorites／CurrentItinerary → 本人 Repository；MemberAccess 共用有效身分重查，MemberAttractions 共用成功公開投影。每次修改的交易由 Service 組織，不使用公開發布鎖或重新發布會員資料。私人 HTML 只有頁面殼，登入後向 no-store API 取資料，不把收藏或行程寫入公開 generation。完整檔案及資料流見 [會員指南](modules/member-resources.md)；整階段驗收進行中。
+
 階段二已依以下分工從零建立 PHP API 與前端，不存在後端遷移。原始 website/ 始終保留。網站互動使用原生 JavaScript；jQuery 仍是可選工具，本階段沒有需要而未引入。
 
 2026-10-17 依 U-02 參考 Spring Boot 改善服務責任、回應 DTO 與資料存取例外邊界；具體類別與完整資料流見 [PHP 分層閱讀指南](modules/backend-layering.md)。此為 E-01 工程設計，不新增規格功能或 API。

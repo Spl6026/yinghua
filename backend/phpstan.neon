@@ -8,6 +8,7 @@ parameters:
         - public/index.php
         - bin/console.php
         - config/routes.php
+        - config/member-routes.php
         - tests/ArchitectureTest.php
     tmpDir: .build/phpstan
     treatPhpDocTypesAsCertain: false

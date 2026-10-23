@@ -12,9 +12,15 @@ export function imageBlock(className, image, label, gradient) {
   return node;
 }
 
+export function attractionCardData(item) {
+  return { ...item, area: item.district, type: item.typeLabel || item.category, desc: item.summary, rating: item.recommendationLabel || '在地推薦' };
+}
+
 export function placeCard(item) {
   const card = element('article', { className: 'place-card reveal' });
   const image = imageBlock('place-image', item.image, item.name);
+  // [S：G34／E-27] 圖片區含收藏按鈕，使用 group 避免 img 語意隱藏互動子元素。
+  image.setAttribute('role', 'group');
   image.append(element('span', { className: 'place-type' }, item.type || item.category),
     element('button', { type: 'button', className: 'favorite-button', 'aria-label': '收藏' + item.name, 'aria-pressed': 'false', 'data-favorite': item.id }, '♡'));
   const body = element('div', { className: 'place-body' });
@@ -22,7 +28,7 @@ export function placeCard(item) {
   const actions = element('span', { className: 'place-actions' });
   actions.append(element('a', { href: detailHref(item, '/place-detail.html?id=' + item.id) }, '看介紹 ↗'),
     element('button', { type: 'button', 'data-add-stop': item.id }, '＋ 行程'));
-  details.append(element('span', {}, '◷ ' + item.hours), actions);
+  details.append(element('span', {}, '◷ ' + (item.hours || '依店家公告')), actions);
   // [U-11／E-18] 選填內容留空時省略空段落及分隔符號，不自動補入介紹。
   body.append(element('span', { className: 'place-area' }, [item.area, item.rating].filter(Boolean).join('　/　')), element('h3', {}, item.name));
   if (item.desc) body.append(element('p', {}, item.desc));

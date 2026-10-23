@@ -23,7 +23,8 @@ const url = item => item.isMuseum ? '/museum.html' : `/places/${item.slug}.html`
 const json = value => JSON.stringify(value).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
 // [U-01／E-18] 資料庫保存 UTC，網站日期依台北時區顯示。
 const localDate = value => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date(value));
-const image = (item, className) => `<div class="${className}" data-image-url="${e(item.image)}" role="img" aria-label="${e(item.imageAlt || item.name)}" style="background-image:url(&quot;${e(item.image || '/assets/image-placeholder.svg')}&quot;)"></div>`;
+// [S：G34／E-27] 含收藏控制的圖片區需保留互動子元素於無障礙樹。
+const image = (item, className) => `<div class="${className}" data-image-url="${e(item.image)}" role="${className === 'place-image' ? 'group' : 'img'}" aria-label="${e(item.imageAlt || item.name)}" style="background-image:url(&quot;${e(item.image || '/assets/image-placeholder.svg')}&quot;)"></div>`;
 // [U-11／E-18] 選填文字不補位；與瀏覽器卡片一致，省略空段落與多餘分隔符號。
 const card = item => `<article class="place-card reveal in-view">${image(item, 'place-image').replace('</div>', () => `<span class="place-type">${e(item.typeLabel || item.category)}</span><button type="button" class="favorite-button" aria-label="收藏${e(item.name)}" aria-pressed="false" data-favorite="${e(item.id)}">♡</button></div>`)}<div class="place-body"><span class="place-area">${[item.district, item.recommendationLabel || '在地推薦'].filter(Boolean).map(e).join('　/　')}</span><h3>${e(item.name)}</h3>${item.summary ? `<p>${e(item.summary)}</p>` : ''}<div class="place-details"><span>◷ ${e(item.hours || '依店家公告')}</span><span class="place-actions"><a href="${e(url(item))}">看介紹 ↗</a><button type="button" data-add-stop="${e(item.id)}">＋ 行程</button></span></div></div></article>`;
 const templates = Object.fromEntries(await Promise.all(['site-header','site-footer','admin-sidebar','admin-topbar','dialog'].map(async name => [name.replaceAll('-','_').toUpperCase(),await readFile(join(source,'templates',name+'.html'),'utf8')])));
@@ -39,6 +40,7 @@ let existing = false;
 try { existing = JSON.parse(await readFile(join(root,'.snapshot.json'),'utf8')).generation === snapshot.generation; } catch {}
 
 async function page(path, html, title, description, item, canonicalPath = path) {
+  if (!html.includes('/assets/css/phase6.css')) html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css"></head>');
   const canonical = snapshot.origin + canonicalPath;
   const imageUrl = item?.image ? new URL(item.image, snapshot.origin).href : snapshot.origin + '/assets/image-placeholder.svg';
   html = html.replace(/<title>[\s\S]*?<\/title>/, '').replace(/<meta\b[^>]*(?:name="(?:description|keywords|robots|googlebot|twitter:[^"]+)"|property="og:[^"]+")[^>]*>/g,'')

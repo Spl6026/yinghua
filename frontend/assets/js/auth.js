@@ -4,6 +4,11 @@ import { returnTo, requireSession, memberNavigation, redirectAuthenticated, admi
 import { submitForm, status } from './core/ui.js';
 
 const { authKind: kind, authMode: mode } = document.body.dataset;
+// [E-27] 登入／註冊切換仍保留經白名單檢查的收藏或行程待辦；不自動執行。
+if (kind === 'member' && (mode === 'login' || mode === 'register')) {
+  const switchLink = document.querySelector('.account-switch a');
+  if (switchLink) switchLink.href = (mode === 'login' ? '/register.html' : '/login.html') + '?returnTo=' + encodeURIComponent(returnTo(kind));
+}
 const api = authApi(kind);
 const form = document.querySelector('#auth-form');
 let checkingSession = mode === 'login' || mode === 'register' || mode === 'change-password';

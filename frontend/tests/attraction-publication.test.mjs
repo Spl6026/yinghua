@@ -30,6 +30,8 @@ test('公開 HTML 含可讀詳情、正確 canonical 與安全編碼', async () 
     assert.match(html, /更新日期：2026-10-18/);
     assert.match(html, /data-managed-attractions="true"/);
     assert.match(html, /src="\/assets\/js\/pages\/attractions.js"/);
+    const listing=await readFile(join(directory,'current/explore.html'),'utf8');
+    assert.match(listing, /class="place-image"[^>]*role="group"/);
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 

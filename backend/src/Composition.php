@@ -110,6 +110,14 @@ readonly class Composition
             new \Yinghua\Controllers\PublicHomeController(new \Yinghua\Services\PublicHome($publication)),
         );
 
+        $memberAccess = new \Yinghua\Services\MemberAccess($accounts);
+        $memberAttractions = new \Yinghua\Services\MemberAttractions($publication, new AttractionRepository($database), $clock);
+        $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(new \Yinghua\Repositories\FavoriteRepository($database), $memberAccess, $memberAttractions, $transactions));
+        $itineraryController = new \Yinghua\Controllers\CurrentItineraryController(new \Yinghua\Services\CurrentItinerary(new \Yinghua\Repositories\ItineraryRepository($database), $memberAccess, $memberAttractions, $transactions));
+        /** @var Closure(Router,\Yinghua\Controllers\FavoriteController,\Yinghua\Controllers\CurrentItineraryController):void $memberRoutes */
+        $memberRoutes = require dirname(__DIR__) . '/config/member-routes.php';
+        $memberRoutes($router, $favoriteController, $itineraryController);
+
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 

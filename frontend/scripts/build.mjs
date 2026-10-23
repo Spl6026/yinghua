@@ -31,6 +31,9 @@ const navigationSections = {
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
   let html = await readFile(source, 'utf8');
+  if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
+    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
+  }
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
   const selectedNavigation = Object.entries(navigationSections).find(([, paths]) => paths.some(path => path.endsWith('/') ? route.startsWith(path) : route === path))?.[0];
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {

@@ -6,6 +6,8 @@
 
 `website/` 是原始交付參考，仍與第一筆提交逐 byte 相同。實際服務從 `frontend/dist/` 提供，來源在 `frontend/pages/`、`templates/`、`assets/`。不要修改 dist；也不要把網站連回原始示範的 localStorage 認證。
 
+2026-10-23 階段六：固定來源增為 65 頁。favorites.html 沿用 place-grid，planner.html 沿用雙欄／站點結構；`phase6.css` 只補忙碌／待辦／失效項狀態。`member-resources-api.js` 沿用 api-client，`member-resource-state.js`／`current-trip-state.js` 分別處理真實收藏與行程狀態，`member-actions.js` 共用所有受管景點入口，pages/favorites.js／planner.js 處理頁面。名稱／日期保留位置且唯讀，加入／移除自動保存，完整編排待後續開放。私人資料不存 localStorage；畫面實際瀏覽器驗收仍待工具恢復，不能把 DOM 邊界測試當成排版驗收。
+
 ## 原版設計如何沿用
 
 `frontend/assets/css/style.css` 完整複製原始 `website/css/style.css`，包括 Noto Sans TC／Noto Serif TC 字型載入、色彩、尺寸與斷點。`phase2.css` 只補充 API 錯誤、必要新增欄位、確認對話框與互動狀態，不覆寫 account-card 寬度、標題字級或卡片造型。
