@@ -27,3 +27,13 @@ probe 獨立 PDO 連線，上限2秒，mysqlnd 讀取與 MariaDB statement／met
 `backend/tests/health_integration.py` 實際 HTTP 與隔離 MariaDB 驗18項、六種 CLI 故障注入（連線拒絕、密碼、庫不存在、APP_KEY、version、origin）及普通API連線邊界；`tests/health_probe.php` 僅 test 環境可用，不封入正式映像。missing／未完成／checksum 錯誤後逐欄還原 migration journal，復原200。HTTP health 不發 Cookie，修改 journal 只由測試 fixture 完成。真實 DB 暫停／網路無回應的 HTTP 逾時另在部署隔離演練驗證。
 
 目前72個 API 操作、67固定頁、33表／18 migration，沒有新增 schema。PHP 87項／302斷言、PHPStan10／PHPat通過。契約見 `backend/resources/openapi.json`；實際命令：`python backend/tests/health_integration.py`。完整整合驗收仍進行中。
+
+## 8C 正式封裝與隔離部署
+
+`docker/php/Dockerfile` 新增 release-frontend、release-base、release、release-web；保留 development target。正式base更新套件並依實際ELF連結保留runtime libraries，移除編譯器／headers／git；web改用已修補的官方Nginx1.30.6-alpine-slim，正式MariaDB仍12.3.3但更新官方digest。本機Compose的DB查看設定未改。release-manifest.mjs 在同個前端stage產生版本、commit、origin／條款版本及backend／migration／dist雜湊，app/web各有一份 `/var/www/release.json`；開站工具拒絕與runtime設定不符。`15-production-tls.sh` 每次從不變共用Nginx模板重建TLS設定，避免restart重複改寫；正式沒有另一套分叉API路由。
+
+`compose.production.yaml` 只有四服務／三獨立資料卷，不與開發檔疊加。`bin/readiness.php` 共用既有 ApplicationHealth／ContentPublication，只提供CLI核心／公開就緒JSON。`operations.py` preflight驗隔離目標、HTTPS、秘密長度、服務／掛載／port與log輪替，status驗核心／快照／app-web manifest；錯誤不直接轉印帶秘密的Compose或DB輸出。`build-release.py`要求來源已提交、commit一致及新標籤。
+
+`backend/tests/production_rehearsal.py` 限自有 spl-p0-* project，初次要求全空庫；直接建新資料卷，不複製主測試庫。實際已驗空庫HTTP503／migration重跑／固定admin初始化／首版公開、TLS／Cookie／308／HSTS、DB暫停503<5秒、FPM停止非200、worker停用到期拒絕舊HTML及重啟同generation。初次腳本有Secure旗標大小寫與公開settings URL錯誤，修正後明確resume已初始化fixture，沒有把這些誤報當應用缺陷。正式映像第一版亦修正templates目錄建立，歸本功能提交。完整乾淨發布重演與整階段驗收仍待後續記錄；不宣告正式環境通過。
+
+完整部署設定／操作見 [P0-OPERATIONS](../P0-OPERATIONS.md)。新增設定只有公開APP_VERSION與release／Compose部署參數；本機DBeaver3306未改。沒有新API、表、migration或HTML頁。
