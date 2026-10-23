@@ -8,6 +8,7 @@ import { weeklyFilms, filmRows, filmCards, filmDetail, screeningPeriodLabel } fr
 import { publishNews } from './public-news.mjs';
 import { publishOffers } from './public-offers.mjs';
 import { homeNewsRows } from '../assets/js/core/home-view.js';
+import { renderSeoHead } from './seo-head.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -17,6 +18,8 @@ for await (const chunk of process.stdin) {
   if (input.length > 32 * 1024 * 1024) throw new Error('Publication too large');
 }
 const snapshot = JSON.parse(input);
+const seoCatalog=JSON.parse(await readFile(join(source,'resources/seo-pages.json'),'utf8'));
+const publicImages=['items','films','news','offers'].flatMap(key=>(snapshot[key]||[]).flatMap(item=>[item.image,...(item.bodyImages||[])])).filter(Boolean);
 if (!/^[a-f0-9]{64}$/.test(snapshot.generation) || !Array.isArray(snapshot.items) || !/^https?:\/\//.test(snapshot.origin)) throw new Error('Invalid publication');
 const e = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const url = item => item.isMuseum ? '/museum.html' : `/places/${item.slug}.html`;
@@ -39,14 +42,12 @@ await mkdir(root, { recursive: true });
 let existing = false;
 try { existing = JSON.parse(await readFile(join(root,'.snapshot.json'),'utf8')).generation === snapshot.generation; } catch {}
 
-async function page(path, html, title, description, item, canonicalPath = path) {
+async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
   if (!html.includes('/assets/css/phase6.css')) html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css"></head>');
-  const canonical = snapshot.origin + canonicalPath;
-  const imageUrl = item?.image ? new URL(item.image, snapshot.origin).href : snapshot.origin + '/assets/image-placeholder.svg';
-  html = html.replace(/<title>[\s\S]*?<\/title>/, '').replace(/<meta\b[^>]*(?:name="(?:description|keywords|robots|googlebot|twitter:[^"]+)"|property="og:[^"]+")[^>]*>/g,'')
-    .replace(/<link\b[^>]*rel="canonical"[^>]*>/g,'').replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'');
-  html = html.replace('</head>', () => `<title>${e(title)}</title><meta name="description" content="${e(description)}"><meta name="keywords" content="新竹,映畫竹塹,${e(item?.category || '城市指南')}"><meta name="robots" content="index,follow"><link rel="canonical" href="${e(canonical)}"><meta property="og:title" content="${e(title)}"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${e(canonical)}"><meta property="og:type" content="${item ? 'article' : 'website'}"><meta property="og:site_name" content="映畫竹塹"><meta property="og:locale" content="zh_TW"><meta property="og:image" content="${e(imageUrl)}"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="${e(title)}"><meta name="twitter:description" content="${e(description)}"><meta name="twitter:image" content="${e(imageUrl)}"><noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>`);
-  html = html.replace('<body>', `<body data-managed-attractions="true"${filmEnabled?' data-managed-films="true"':''}${newsEnabled?' data-managed-news="true"':''}${offersEnabled?' data-managed-offers="true"':''}>`);
+  html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'');
+  html = renderSeoHead(html,{path:canonicalPath,title,description,item,seo:snapshot.seo,catalog:seoCatalog,origin:snapshot.origin,publicImages});
+  html = html.replace('</head>','<noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>');
+  if(managed)html = html.replace('<body>', `<body data-managed-attractions="true"${filmEnabled?' data-managed-films="true"':''}${newsEnabled?' data-managed-news="true"':''}${offersEnabled?' data-managed-offers="true"':''}>`);
   html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"></head>');
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_,name) => {
     const template = templates[name];
@@ -54,10 +55,10 @@ async function page(path, html, title, description, item, canonicalPath = path) 
     if (name === 'SITE_HEADER' && (canonicalPath.startsWith('/offers.html') || canonicalPath.startsWith('/offers/'))) return template.replace('href="/offers.html"','class="active" aria-current="page" href="/offers.html"');
     if (name === 'SITE_HEADER' && (/^\/(?:events|activities|city-news)\.html/.test(canonicalPath) || canonicalPath.startsWith('/news/'))) return template.replace('href="/events.html"','class="active" aria-current="page" href="/events.html"');
     if (name === 'SITE_HEADER' && (path === '/cinema.html' || path.startsWith('/films/'))) return template.replace('href="/cinema.html"','class="active" aria-current="page" href="/cinema.html"');
-    return name === 'SITE_HEADER' && path !== '/index.html' && path !== '/food.html' ? template.replace('href="/explore.html"','class="active" aria-current="page" href="/explore.html"') : template;
+    return name === 'SITE_HEADER' && (path === '/explore.html' || path === '/museum.html' || path.startsWith('/places/')) ? template.replace('href="/explore.html"','class="active" aria-current="page" href="/explore.html"') : template;
   });
-  html = html.replace('</body>', () => `<script type="application/json" id="attraction-publication">${json({generation:snapshot.generation,items:snapshot.items})}</script><script type="module" src="/assets/js/pages/attractions.js"></script></body>`);
-  if (filmEnabled) html = html.replace('</body>', () => `<script type="application/json" id="film-publication">${json({generation:snapshot.generation,total:filmItems.length,period:snapshot.filmPeriod})}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`);
+  if(managed)html = html.replace('</body>', () => `<script type="application/json" id="attraction-publication">${json({generation:snapshot.generation,items:snapshot.items})}</script><script type="module" src="/assets/js/pages/attractions.js"></script></body>`);
+  if (managed && filmEnabled) html = html.replace('</body>', () => `<script type="application/json" id="film-publication">${json({generation:snapshot.generation,total:filmItems.length,period:snapshot.filmPeriod})}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`);
   const target = join(root,path.slice(1));
   await mkdir(dirname(target),{recursive:true});
   await writeFile(target,html);
@@ -122,6 +123,12 @@ if (!existing) {
   if(offersEnabled) await publishOffers(source,snapshot,page);
   if(snapshot.home) home=home.replace('</body>',()=>`<script type="application/json" id="home-publication">${json({...snapshot.home,generation:snapshot.generation})}</script></body>`);
   await page('/index.html',home,'映畫竹塹｜新竹城市影像與旅行指南','從新竹市影像博物館出發，探索城市散策、在地美食與新竹旅行。',featured);
+  // [E-28] 新增的非內容固定公開頁也進同一 generation；保護頁使用安全靜態 shell。
+  const managedPaths=new Set(['/index.html','/explore.html','/food.html','/museum.html','/cinema.html','/events.html','/activities.html','/city-news.html','/offers.html']);
+  for(const entry of seoCatalog.filter(entry=>!entry.protected&&!entry.template&&!managedPaths.has(entry.path))){
+    let html;try{html=await readFile(join(source,'pages',entry.path.slice(1)),'utf8');}catch(error){if(error.code==='ENOENT')continue;throw error;}
+    await page(entry.path,html,entry.title,entry.description,undefined,entry.path,false);
+  }
   // 寫完所有頁面最後才放快照，避免半成品被當成可重用版本。
   await writeFile(join(root,'.snapshot.json'),JSON.stringify(snapshot));
 }

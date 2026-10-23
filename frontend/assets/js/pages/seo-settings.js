@@ -3,6 +3,7 @@ import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, formErrors, unsavedChanges } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { seoField, seoPanel, robotsChoices } from '../components/seo-fields.js';
+import { resolveSeo } from '../core/seo-resolver.js';
 
 const defaultFields=[['siteName','網站名稱',160],['description','全站預設摘要',500,'textarea'],['titleSuffix','SEO 標題後綴',160],
   ['robots','全站預設索引政策',40],['keywords','全站預設關鍵字（逗號分隔）',1000],['canonicalOrigin','正式網站網址（Canonical Origin）',255,'url'],
@@ -13,7 +14,7 @@ const overrideFields=[['title','SEO 標題（建議約 30 中文字）',160],['d
 
 export async function initializeSeoSettings(identity){
   const form=document.querySelector('#seo-settings-form'),message=document.querySelector('#seo-status'),reload=document.querySelector('#reload-seo');
-  let data=null,busy=false,dirty=false,generation=0;let defaultInputs={},rows=[];
+  let data=null,busy=false,dirty=false,generation=0;let defaultInputs={},rows=[],duplicateNote;
   const writable=()=>hasPermission(identity,'settings','edit')&&!identity.preview?.active;
   unsavedChanges(()=>dirty);
   function controls(){
@@ -24,6 +25,21 @@ export async function initializeSeoSettings(identity){
     });
   }
   function targetKey(target){return target.type+':'+(target.path||target.id);}
+  function draft(){
+    return {defaults:Object.fromEntries(Object.entries(defaultInputs).map(([key,input])=>[key,input.value.trim()])),
+      overrides:rows.map(row=>({target:row.target,...Object.fromEntries(Object.entries(row.inputs).map(([key,input])=>[key,input.dataset.seoProtected==='true'?null:input.value.trim()||null])),...(row.clearKeywords.checked?{keywords:''}:{})}))};
+  }
+  function previews(){
+    const seo=draft();
+    const seenTitle=new Set(),seenDescription=new Set();let duplicate=false;
+    for(const row of rows){
+      try{const meta=resolveSeo({path:row.previewPath,title:row.page.title||'',description:row.page.description||'',item:row.target.type==='page'?undefined:row.page,seo,catalog:data.pages,origin:location.origin});
+        row.preview.textContent=`標題：${meta.title}\n來源：${meta.source.title}\n摘要：${meta.description}\n來源：${meta.source.description}\n索引：${meta.robots}\nCanonical：${meta.canonical}`;
+        if(!row.page.protected&&!row.page.template){duplicate=duplicate||seenTitle.has(meta.title)||seenDescription.has(meta.description);seenTitle.add(meta.title);seenDescription.add(meta.description);}
+      }catch{row.preview.textContent='請先填入有效的正式網站網址，再查看預覽。';}
+    }
+    if(duplicateNote)duplicateNote.textContent=duplicate?'部分頁面的標題或摘要相同，請展開檢查是否符合各頁內容；此提示不會阻擋儲存。':'';
+  }
   function addOverride(container,target,existing={},label='',page={}){
     const key=targetKey(target);if(rows.some(row=>targetKey(row.target)===key))return;
     const index=rows.length;const detail=element('details',{className:'seo-page-config'});
@@ -43,8 +59,11 @@ export async function initializeSeoSettings(identity){
     const clearLabel=element('label',{for:clearKeywords.id},'清空此頁關鍵字（不繼承）');const clearWrap=element('div',{className:'admin-field full'});clearWrap.append(clearKeywords,clearLabel);grid.append(clearWrap);
     const note=element('p',{className:'helper-text'},target.type==='page'?'逐欄留空可回到全站或模板預設。':'單筆覆寫優先於內容編輯頁的 SEO；清除後才會沿用內容值。');grid.append(note);
     const remove=element('button',{type:'button',className:'button button-outline'},'清除本頁覆寫');
-    remove.addEventListener('click',()=>{for(const input of Object.values(inputs))if(!input.disabled)input.value='';clearKeywords.checked=false;dirty=true;status(message,'已清除此頁的編輯值，儲存後生效。');});grid.append(remove);
-    rows.push({target,inputs,clearKeywords,detail,summary});container.append(detail);
+    remove.addEventListener('click',()=>{for(const input of Object.values(inputs))if(!input.disabled)input.value='';clearKeywords.checked=false;dirty=true;previews();status(message,'已清除此頁的編輯值，儲存後生效。');});grid.append(remove);
+    const preview=element('pre',{className:'seo-preview-box','aria-label':'有效 SEO 預覽'});grid.append(preview);
+    const prefix={attraction:'places',film:'films',news:'news',offer:'offers'}[target.type];
+    const previewPath=target.type==='page'?target.path.replace('*','example'):`/${prefix}/${page.slug}.html`;
+    rows.push({target,inputs,clearKeywords,detail,summary,preview,previewPath,page});container.append(detail);
   }
   function render(){
     form.replaceChildren();rows=[];defaultInputs={};
@@ -60,6 +79,7 @@ export async function initializeSeoSettings(identity){
     form.append(basic.panel,social.panel);
     const catalog=seoPanel('各頁 SEO 覆寫','展開頁面設定；空欄位繼承，保護頁不可改為允許索引。');
     const list=element('div',{className:'seo-pages-list'});catalog.panel.append(list);
+    duplicateNote=element('p',{className:'helper-text',role:'status'});catalog.panel.append(duplicateNote);
     for(const page of data.pages){const target={type:'page',path:page.path};addOverride(list,target,data.overrides.find(item=>targetKey(item.target)===targetKey(target)),page.label+' '+page.path,page);}
     for(const item of data.overrides.filter(item=>item.target.type!=='page')){const target=data.targets.find(target=>target.type===item.target.type&&target.id===item.target.id);addOverride(list,item.target,item,target?.title||item.target.id,target);}
     const search=seoField('搜尋單筆內容','seo-target-query','',{max:80});search.input.setAttribute('data-seo-read','');
@@ -69,11 +89,11 @@ export async function initializeSeoSettings(identity){
     choices(data.targets);
     searchButton.addEventListener('click',async()=>{if(busy)return;busy=true;controls();try{const result=await seoSettingsApi.read(search.input.value.trim());data.targets=result.targets;choices(data.targets);status(message,result.targetsTruncated?'結果較多，請縮小關鍵字。':'已更新內容選項，未改動編輯值。');}catch(error){status(message,error.message,true);handleAdminError(error,message);}finally{busy=false;controls();}});
     const add=element('button',{type:'button',className:'button button-outline'},'加入單筆內容覆寫');
-    add.addEventListener('click',()=>{const target=data.targets.find(target=>target.type+':'+target.id===select.value);if(!target)return;addOverride(list,{type:target.type,id:target.id},{},target.title,target);const row=rows.find(row=>targetKey(row.target)===select.value);if(row){row.detail.open=true;row.summary.focus();}dirty=true;controls();});
+    add.addEventListener('click',()=>{const target=data.targets.find(target=>target.type+':'+target.id===select.value);if(!target)return;addOverride(list,{type:target.type,id:target.id},{},target.title,target);const row=rows.find(row=>targetKey(row.target)===select.value);if(row){row.detail.open=true;row.summary.focus();}dirty=true;previews();controls();});
     catalog.grid.append(search.wrapper,searchButton,select,add);form.append(catalog.panel);
     const notice=element('p',{className:'helper-text'},'聯絡信箱、一般網站設定、條款編輯及動態網站地圖尚未開放。正式文案與網站上線驗證另行確認。');
     const actions=element('div',{className:'admin-form-actions'});actions.append(element('button',{type:'submit',className:'button button-dark'},'儲存網站設定 ↗'));
-    form.append(notice,actions);controls();
+    form.append(notice,actions);previews();controls();
   }
   async function load(){
     if(busy)return;const request=++generation;busy=true;controls();status(message,'讀取 SEO 設定中…');
@@ -81,7 +101,7 @@ export async function initializeSeoSettings(identity){
     catch(error){data=null;status(message,error.message,true);handleAdminError(error,message);}finally{busy=false;controls();}
   }
   reload.addEventListener('click',async event=>{if(!busy&&(!dirty||await confirmAction('重新讀取 SEO 設定','這會放棄尚未儲存的修改。',event.currentTarget)))await load();});
-  form.addEventListener('input',event=>{if(!writable()||event.target?.hasAttribute('data-seo-read'))return;dirty=true;});
+  form.addEventListener('input',event=>{if(!writable()||event.target?.hasAttribute('data-seo-read'))return;dirty=true;previews();});
   form.addEventListener('submit',async event=>{
     event.preventDefault();if(busy||!data||!writable())return;busy=true;controls();formErrors(form,{fieldErrors:{}});status(message,'儲存並更新網站標籤中…');
     const defaults=Object.fromEntries(Object.entries(defaultInputs).map(([key,input])=>[key,input.value.trim()]));

@@ -1,6 +1,6 @@
 # 階段七：全站 SEO 設定與 HTML head 計畫
 
-設計日期：2026-10-24。使用者已授權實作，分支 `phase/07-seo-settings-head` 從最新 main 建立。**7A 資料層、7B 管理設定 API／表單已建立；公開同版發布與整階段驗收繼續。** 目前為 70 個 API 操作／65 固定頁；主／測試庫均 33 表／18 migration。檔案與實測見 [閱讀指南](modules/seo-settings.md)，以下保留設計／驗收基準。
+設計日期：2026-10-24。使用者已授權實作，分支 `phase/07-seo-settings-head` 從最新 main 建立。**7A–7C 資料層、管理設定及公開 HTML 同版發布已建立；7D／7E 繼續。** 目前為 71 個 API 操作／65 固定頁；主／測試庫均 33 表／18 migration。檔案與實測見 [閱讀指南](modules/seo-settings.md)，以下保留設計／驗收基準。
 
 基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)、原始 `website/admin/settings.html`／`website/js/app.js` 的 SEO 表單，以及 [總計畫](IMPLEMENTATION-PLAN.md)。S＝Excel 明文，D＝Excel 建議／草案，U＝使用者指定，E＝工程提案。本階段新增的具體設計集中標為 E-28；欄位被列出不等於必填。
 

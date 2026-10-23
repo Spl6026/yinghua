@@ -13,9 +13,9 @@ class SiteSettingsRepository
 {
     public function __construct(private readonly Database $database) {}
 
-    public function read(bool $lock = false): SeoSettingsDocument
+    public function read(bool $lock = false, bool $publishedOnly = false): SeoSettingsDocument
     {
-        $values = $this->database->row("SELECT value_json,version,updated_at FROM site_settings WHERE `key`='seo'" . ($lock ? ' FOR UPDATE' : ''));
+        $values = $this->database->row("SELECT value_json,version,updated_at FROM site_settings WHERE `key`='seo'" . ($publishedOnly ? ' AND published=1' : '') . ($lock ? ' FOR UPDATE' : ''));
         if ($values === null) {
             return new SeoSettingsDocument(0, new SeoDefaults());
         }

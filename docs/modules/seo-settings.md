@@ -1,6 +1,6 @@
 # SEO 設定與 HTML 發布閱讀指南
 
-更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A 資料層及 7B 管理設定 API／表單已建立，公開 SEO 同版發布及整階段驗收繼續**。下方帶日期／子步驟的結果保留當時範圍。
+更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7C 資料層、管理設定與公開 HTML 同版發布已建立，條款說明頁與整階段驗收繼續**。下方帶日期／子步驟的結果保留當時範圍。
 
 ## 7A 設定文件與覆寫資料層
 
@@ -43,3 +43,25 @@ docker compose run --rm --no-deps frontend node --test tests/seo-settings-page.t
 ```
 
 7B 實測：74 項檢查／32 回應契約，包括真會員不能代替管理員、view-only、撤權、CSRF、唯讀模擬、版本並行、audit 故障與草稿隔離／隱藏覆寫保留。自有帳號停用／session 清理，設定快照恢復，正常 audit 保留。表單 5 項行為測試通過，PHPStan10／PHPat 通過，240 檔格式 dry-run 零修正。最初測試工具誤將既有權限 PUT 的 204 當 200，以及少提供測試景點的 SQL 空欄，已修正工具並重驗；沒有改應用程式放寬要求或掩蓋失敗。
+
+## 7C 同版公開設定與 HTML head
+
+GET `/api/v1/site-settings/public` 為第三個 SEO 操作，總計 71 個。[PublicSiteSettingsController](../../backend/src/Controllers/PublicSiteSettingsController.php) → [PublicSiteSettings](../../backend/src/Services/PublicSiteSettings.php) → [PublicSiteSettingsDocument](../../backend/src/DTO/PublicSiteSettingsDocument.php) 只輸出成功快照的預設與公開 token／version／generation，不回操作者、草稿或全部覆寫。
+
+[SeoPublication](../../backend/src/Services/SeoPublication.php) 從兩個 Repository 讀公開設定，依同次內容 projection 的真實 ID 篩掉草稿／下架／刪除覆寫；ContentPublication 的 generation 納入結果。[NodeContentRenderer](../../backend/src/Adapters/NodeContentRenderer.php) 的模板雜湊包含共用 head／resolver／catalog 與固定頁，設定／模板異動都能重新發布，沒有外加 Redis 或 purge API。
+
+[seo-resolver.js](../../frontend/assets/js/core/seo-resolver.js) 為共用純函式：逐欄依單筆覆寫、內容 SEO、頁面／範本、全站與頁面預設繼承，keywords 空字串保留；提供管理預覽的有效值來源、後綴去重、分頁 canonical、強制 noindex 與匿名媒體規則。[seo-head.mjs](../../frontend/scripts/seo-head.mjs) 統一移除舊標籤／安全編碼並產生一份 head。[build.mjs](../../frontend/scripts/build.mjs) 與 [publish.mjs](../../frontend/scripts/publish.mjs) 共用此函式，前端 JS 不在瀏覽器改寫 head；設定表單使用同一 resolver 顯示預覽及重複摘要提示，不阻擋儲存。
+
+Nginx 的公開頁走成功 publication/current 與既有 gate，新增可由同版發布的條款／隱私路徑；此時 7D 尚未建立內容。管理／認證／私人頁保留 noindex 靜態 shell，不依賴發布成功才能開啟。Compose 的 frontend 建置容器轉傳**既有 APP_URL** 供固定 shell 的運行 origin，沒有新增環境變數；正式 SEO origin 不改 .env、Cookie 或 Nginx authority。本機／正式網址由各自部署設定處理，未提供正式網域不宣稱平台驗證通過。
+
+分享圖不擴大 MediaAccess 授權。本站 media 必須原已公開可讀；內容下架後 resolver 改用公開 placeholder，不能為 SEO 公開任意草稿圖。外部 HTTPS 圖不由後端抓取，平台實際分享驗證仍待正式環境。完整 JSON-LD／動態 sitemap 保持後續範圍。
+
+```powershell
+docker compose run --rm --no-deps frontend npm run build
+docker compose restart publisher web web-test
+docker compose exec -T -u www-data app php bin/console.php content:publish
+docker compose exec -T -u www-data app-test php bin/console.php content:publish
+python backend/tests/seo_publication_integration.py --dependency-path artifacts/audit-jsonschema
+```
+
+7C 實測：60 項真實 HTTP／DB 檢查、12 回應契約，涵蓋四種內容、公開快照排除草稿、固定頁與分頁標籤／canonical、驗證 token、保護頁 noindex、匿名資產、發布故障不混版及復原。使用自有店家／內容，finally 恢復原設定並清理，沒有呼叫 Google。resolver／head 6 項、表單 5 項及隔離副本的真實正式 origin 建置 1 項通過；PHPStan10／PHPat、244 檔格式 dry-run 通過。瀏覽器排版與整階段回歸仍待 7E。

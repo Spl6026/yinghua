@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {resolveSeo} from '../assets/js/core/seo-resolver.js';
 
 const strip=text=>text.replace(/^import .*;\r?\n/gm,'').replace(/\bexport /g,'');
 const source=await Promise.all(['components/seo-fields.js','pages/seo-settings.js'].map(async path=>strip(await readFile(new URL('../assets/js/'+path,import.meta.url),'utf8'))));
@@ -25,7 +26,7 @@ function deferred(){let resolve;const promise=new Promise(done=>resolve=done);re
 async function fixture(edit=true,preview=false){
   const form=new Node('form'),message=new Node(),reload=new Node('button');
   const state={reads:0,writes:[],confirm:true,read:async()=>doc(),save:async input=>({...doc(),...input,version:input.version+1}),errors:null};
-  const sandbox={Object,Array,URLSearchParams,location:{origin:'http://localhost:8081'},document:{querySelector:selector=>({'#seo-settings-form':form,'#seo-status':message,'#reload-seo':reload}[selector])},
+  const sandbox={Object,Array,URLSearchParams,resolveSeo,location:{origin:'http://localhost:8081'},document:{querySelector:selector=>({'#seo-settings-form':form,'#seo-status':message,'#reload-seo':reload}[selector])},
     element:(tag,attrs={},text)=>{const node=new Node(tag);for(const [key,value]of Object.entries(attrs))node.setAttribute(key,value);node.textContent=text;return node;},
     status:(node,text,error)=>{node.textContent=text;node.error=error;},formErrors:(_form,error)=>{state.errors=error.fieldErrors;state.errorFieldsEnabled=Object.keys(error.fieldErrors).every(name=>!form.all().find(node=>node.name===name)?.disabled);return false;},
     hasPermission:(_identity,_module,action)=>action!=='edit'||edit,handleAdminError(){},unsavedChanges:callback=>state.dirty=callback,
@@ -61,6 +62,10 @@ test('搜尋單筆內容只改選項，不覆蓋未儲存設定；名稱保持�
   const button=f.form.all().find(node=>node.textContent==='搜尋內容');await button.emit('click');
   assert.equal(f.field('defaults.siteName').value,'未保存');assert.equal(f.state.dirty(),true);
   assert.ok(f.form.all().some(node=>node.tag==='option'&&node.textContent==='<script>電影</script>'));assert.ok(f.form.all().every(node=>node.tag!=='script'));
+  f.field('content-choice').value='film:a';
+  await f.form.all().find(node=>node.textContent==='加入單筆內容覆寫').emit('click');
+  const added=f.form.all().filter(node=>node.tag==='pre').at(-1);
+  assert.match(added.textContent,/電影/);
 });
 test('覆寫欄位錯誤展開原本關閉的 details 並對應原輸入欄位',async()=>{
   const f=await fixture();f.field('overrides.0.title').value='測試';

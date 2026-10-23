@@ -23,6 +23,7 @@ class ContentPublication
         private readonly ?\Yinghua\Contracts\Clock $clock = null,
         private readonly ?\Yinghua\Repositories\NewsRepository $news = null,
         private readonly ?\Yinghua\Repositories\OfferRepository $offers = null,
+        private readonly ?SeoPublication $seo = null,
     ) {}
 
     /** @template T
@@ -121,6 +122,9 @@ class ContentPublication
             $data['offerAliases'] = $this->offers->aliases($now);
         }
         $data['home'] = \Yinghua\Policies\HomeSelection::fromSnapshot($data, $window)->toArray();
+        if ($this->seo !== null) {
+            $data['seo'] = $this->seo->project($data);
+        }
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 
         return $data;
