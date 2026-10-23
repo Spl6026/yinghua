@@ -1,5 +1,7 @@
 # Git 階段分支與功能提交
 
+2026-10-24 階段八細節計畫作為main的純工程文件提交，見 [PHASE-8-PLAN.md](PHASE-8-PLAN.md)。後續取得實作授權後，才從當時最新main建立階段分支；不把規劃當作階段八實作或P0驗收完成。
+
 2026-10-24 階段七依授權從最新 main 建立 phase/07-seo-settings-head，按7A資料層、7B管理設定、7C同版公開head、7D政策頁、7E整合驗收五筆交付。自身修正歸回對應功能；合併前備份歷史與核對完整 tree／原始69檔，--no-ff 合併並保留分支，不推送遠端。階段八尚未建立。
 
 更新日期：2026-10-22。依使用者指定：一個階段一條分支、完整功能分開提交、自身錯誤併回原功能。階段四交付依同一規則；下方另保留 10 月 19 日先前三階段整理的歷史紀錄。
@@ -72,7 +74,7 @@
 | 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已完成本機驗收；五筆功能／驗收提交，P0 尚未完成 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 6A–6D 完成本機驗收；合併前備份並核對 tree，保留階段分支 |
 | 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 7A–7E 已完成本機範圍；五筆功能／驗收提交，正式差項另列 |
-| 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 未開始 |
+| 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 已有細節計畫；尚未授權實作／建立分支 |
 | 9：消息／優惠管理與前後篇 | P1 | `phase/09-content-management-details` | 未開始 |
 | 10：推薦路線 | P1 | `phase/10-recommended-routes` | 未開始 |
 | 11：完整會員旅程 | P1 | `phase/11-member-itineraries` | 未開始 |
