@@ -42,8 +42,8 @@ def main():
             for _ in range(2):php(name,"(new Yinghua\\Adapters\\SchemaMigrator($db))->migrate('/var/www/app/database/migrations');")
             body=r"""
             $check=static function(bool $value):void {if(!$value)throw new RuntimeException('Schema assertion failed.');};
-            $tables=$db->rows('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');$check(count($tables)===28);
-            $migrations=$db->rows('SELECT version FROM schema_migrations WHERE applied_at IS NOT NULL');$check(count($migrations)===15);
+            $tables=$db->rows('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');$check(count($tables)===31);
+            $migrations=$db->rows('SELECT version FROM schema_migrations WHERE applied_at IS NOT NULL');$check(count($migrations)===17);
             $columns=$db->rows("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='film_screenings'");
             $check(!array_intersect(['ends_at','venue','status'],array_column($columns,'COLUMN_NAME')));
             $check(count($db->rows("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='merchants'"))===12);

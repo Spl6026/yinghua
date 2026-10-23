@@ -1,5 +1,11 @@
 # 全站架構與檔案功能導讀
 
+2026-10-24 階段六完成本機驗收：68 個 API／31 表／297 欄／17 份 migration／65 個固定頁。Brave 已實測登入返回、收藏與行程分頁／保存／移除／空值／下架／409／換帳號返回，以及桌面 1440×900／手機 390×844／鍵盤；精確證據與未驗情境見 [階段六驗收](PHASE-6-ACCEPTANCE.md#瀏覽器驗收)。修正愛心可及性、美食分類載入、長名稱換行及登入／註冊意圖保留。最後前端 129 項、建置 65 頁／77 個 HTTP 完整性零差異；PHP／MariaDB 未修改，沿用已列明的後端複驗。先前間歇事件仍保留，未宣稱根因消除。無新增服務、套件、port 或環境變數；階段七／十一未開始。下列帶日期段落是當時進度，非當前待辦。
+
+2026-10-23 20:21 定點複驗：收藏／行程／發布／重建／優惠／首頁六組共 307 項、PHP 69 項／270 斷言、Node 126 項、資料層／升級、PHPStan／格式與 65 頁／77 個 HTTP 完整性再次通過，未修改應用程式。詳見 [階段六複驗](PHASE-6-ACCEPTANCE.md#2026-10-23-2021-再次定點複驗)；本輪沒有重跑全部舊模組契約或依賴 audit。實際瀏覽器工具仍無法啟動，畫面待驗及先前間歇事件保留，尚未合併 main。
+
+2026-10-23 階段六目前交付：收藏與基本行程已在階段分支建立，68 個 API／31 表／297 欄／17 份 migration／65 個固定頁；自動化結果與剩餘實際畫面驗收見 [階段六紀錄](PHASE-6-ACCEPTANCE.md)。PHP 69 項／270 斷言、前端 126 項，收藏／行程／容器重建／五輪發布與既有模組契約已有實際結果。瀏覽器工具尚未恢復，並保留尚無穩定重現原因的間歇事件，不宣告整階段完成或合併 main；階段七與十一未開始。沒有新增 Docker 服務、套件、port 或環境變數，原始網站／規格保持完整。下方帶日期段落保留當時狀態。
+
 2026-10-23 階段六 6C：新增三個目前行程 API，合計 68 個操作。`CurrentItineraryController` → `CurrentItinerary` → `ItineraryRepository` 負責本人讀取、加入／移除、父子交易與版本衝突；`CurrentItineraryPage`／`ItineraryWriteResult` 限定輸出。前端 `current-trip-state.js` 管保存版本、舊回應與身分變更，`pages/planner.js` 管讀取／確認／保存提示，`components/member-itinerary.js` 沿用原型站點版型。`member-resources-api.js`／`member-actions.js` 共用收藏與加入入口。無新增 migration、環境變數或服務；31 表／17 份 migration、65 個固定前端來源頁。命令及資料流見 [會員指南](modules/member-resources.md#6c-目前行程與基本保存)。完整階段驗收仍在進行，尚未合併 main。
 
 2026-10-23 階段六 6B：四個本人收藏 API、愛心／登入待辦與 favorites.html 已建立，API 共 65；主／測試庫皆 31 表／17 份 migration，固定前端來源 65 頁。`config/member-routes.php` 為會員資源專用路由，PHPStan 已納入分析；`MemberFavorites`／`MemberAttractions` 分別管理本人交易與公開投影，`member-resource-state.js`／`member-actions.js` 共用狀態與操作，`pages/favorites.js` 控制本人列表。完整檔案／命令／驗證見 [會員指南](modules/member-resources.md#6b-收藏-api-與共用愛心)。基本行程與整階段驗收仍在進行，不標階段六完成。
@@ -34,7 +40,7 @@
 
 **2026-10-18 修正補充：** 已修正圖片說明保存、原型順序／文案標籤、營業時間欄及座標約束，並補齊景點表單失敗／競態測試。修正結果及驗收界線見 [PHASE-3-REVIEW-PLAN.md](PHASE-3-REVIEW-PLAN.md)。
 
-更新日期：2026-10-22。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。
+更新日期：2026-10-23。這份文件是目前專案的閱讀入口：先了解網站如何執行，再查每個檔案負責什麼、資料存在哪裡，以及修改功能時該從哪裡開始。上方帶日期的段落是各次交付紀錄，以下檔案表維持目前狀態。
 
 2026-10-18先前完整複查（當次紀錄）：[階段二、三完整複查報告](FULL-REVIEW-20261018.md)。PHP37項／182斷言、前端64項及396項整合檢查通過；64頁路由／資產／imports與桌面／手機Google原文流程已核對。該次複查未新增業務功能、API、表或migration；本輪基準校正則新增005–007，詳見上方校正交付。環境復原及仍未實作的內容補位見該次報告。
 
@@ -51,7 +57,7 @@
 | 範圍 | 階段與界線 | 實際狀態 |
 | --- | --- | --- |
 | 共用準備 | 1 | 已完成 |
-| P0 | 2–8；8 為整合驗收 | 2–5 已完成本機驗收，6–8 未開始，P0 尚未完成 |
+| P0 | 2–8；8 為整合驗收 | 2–6 已完成本機驗收，7–8 未開始，P0 尚未完成 |
 | P1 | 9–12；12 為整合驗收 | 未開始；完整內容管理、前後篇、路線、完整旅程、JSON-LD／索引 |
 | P2 | 13–15；15 為全站交付 | 未開始；搜尋、會員查詢、一般設定／營運與最終交付 |
 
@@ -129,6 +135,27 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 ## Backend：每個檔案做什麼
 
+### 階段六會員資料：新增檔案與資料流
+
+目前已完成本機驗收；七個 API 不提供完整旅程編排。欄位、來源與操作命令見 [會員指南](modules/member-resources.md)。
+
+本輪前端入口的檔案用途：`auth.js` 保留安全的登入／註冊待辦，`pages/attractions.js` 支援景點與美食兩種分類模板，`content-cards.js`／`scripts/publish.mjs` 同步卡片可及性及空營業時間顯示，`phase6.css` 防止長文字撐寬。新增 [卡片可及性回歸](../frontend/tests/member-card-accessibility.test.mjs) 與 [美食列表回歸](../frontend/tests/attraction-food-list.test.mjs)，並擴充 [認證導覽回歸](../frontend/tests/auth-navigation.test.mjs) 及 [真實發布產物測試](../frontend/tests/attraction-publication.test.mjs)。沒有變更 API、資料表或 migration。
+
+| 檔案／類別 | 用途 |
+| --- | --- |
+| [FavoriteController](../backend/src/Controllers/FavoriteController.php)／[CurrentItineraryController](../backend/src/Controllers/CurrentItineraryController.php) | 接收 HTTP、驗證白名單輸入、呼叫服務並序列化 DTO。 |
+| [MemberFavorites](../backend/src/Services/MemberFavorites.php)／[CurrentItinerary](../backend/src/Services/CurrentItinerary.php) | 收藏及目前行程的本人交易、明確增減、版本與重送規則。 |
+| [MemberAccess](../backend/src/Services/MemberAccess.php)／[MemberAttractions](../backend/src/Services/MemberAttractions.php) | 有效會員重查／寫入鎖，及成功公開投影的可用性判定。 |
+| [FavoriteRepository](../backend/src/Repositories/FavoriteRepository.php)／[ItineraryRepository](../backend/src/Repositories/ItineraryRepository.php) | 所有 SQL 都含本人條件；收藏分頁／批次狀態、父表／站點與順序。 |
+| [FavoriteRecord](../backend/src/DTO/FavoriteRecord.php)／[MemberItinerary](../backend/src/DTO/MemberItinerary.php)／[ItineraryStop](../backend/src/DTO/ItineraryStop.php) | 資料庫映射的不可變型別，與公開回應分開。 |
+| [MemberPageInput](../backend/src/DTO/MemberPageInput.php)／[FavoriteStatusInput](../backend/src/DTO/FavoriteStatusInput.php)／[ItineraryItemInput](../backend/src/DTO/ItineraryItemInput.php) | 游標、頁面大小、UUID 與版本輸入；不接受 owner 或完整編排欄位。 |
+| [FavoritePage](../backend/src/DTO/FavoritePage.php)／[FavoriteWriteResult](../backend/src/DTO/FavoriteWriteResult.php)／[CurrentItineraryPage](../backend/src/DTO/CurrentItineraryPage.php)／[ItineraryWriteResult](../backend/src/DTO/ItineraryWriteResult.php) | 七個 API 的明確輸出，不洩漏 memberId。 |
+| [MemberAttractionSnapshot](../backend/src/DTO/MemberAttractionSnapshot.php)／[AttractionAvailability](../backend/src/Models/AttractionAvailability.php) | available／unavailable／unknown；不從草稿補私人列表的公開資料。 |
+| [015](../backend/database/migrations/015_member_favorites.sql)／[016](../backend/database/migrations/016_member_itineraries.sql) | 三表及唯一／FK／CHECK；合計 31 表／297 欄／17 份 migration。 |
+| [member_resources_persistence.php](../backend/tests/member_resources_persistence.php)／[member_resources_schema.py](../backend/tests/member_resources_schema.py) | 真實約束／本人查詢；空庫／保留資料升級及重跑，清理自有 fixture。 |
+| [member_resources_integration.py](../backend/tests/member_resources_integration.py)／[member_itinerary_integration.py](../backend/tests/member_itinerary_integration.py) | HTTP、越權、契約、版本、並行及 DB 故障回滾。 |
+| [member_resources_queries.php](../backend/tests/member_resources_queries.php)／[member_resources_restart.py](../backend/tests/member_resources_restart.py)／[member_publication_integration.py](../backend/tests/member_publication_integration.py)／[phase6_regression.py](../backend/tests/phase6_regression.py) | MariaDB 查詢計畫、自有私有資料容器重建保存、五輪公開版本切換、既有模組契約回歸；結果以驗收紀錄為準。 |
+
 以下各表的檔名相對於表上指定的目錄；連結指向實際檔案。閱讀一個 API 時，先看 `config/routes.php`，再追 Controller、Service、Repository；不要從所有類別的第一行依序讀到最後。
 
 ### 入口、契約與工具設定
@@ -141,7 +168,8 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [src/Config.php](../backend/src/Config.php) | 讀取容器環境變數，校驗數值、APP_KEY、APP_URL 與正式環境 HTTPS／Secure cookie 條件；不解析 .env 檔。 |
 | [composer.json](../backend/composer.json) | 應用程式的 PHP／extension／PHPMailer 依賴及 Yinghua 命名空間的 PSR-4 載入設定。 |
 | [composer.lock](../backend/composer.lock) | 應用依賴的確切版本；安裝時依鎖定版本還原。 |
-| [resources/openapi.json](../backend/resources/openapi.json) | 61 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
+| [config/member-routes.php](../backend/config/member-routes.php) | 七個本人收藏／目前行程 API，與 routes.php 的 61 個操作由 Composition 一起註冊。 |
+| [resources/openapi.json](../backend/resources/openapi.json) | 68 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
 | [resources/role-templates.json](../backend/resources/role-templates.json) | 原始 Excel 四種角色、十個模組、四個動作的起始權限；供 seed 使用，不是每次請求直接查閱的個人權限。 |
 | [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover、content:seed-demo／backfill-demo-labels／publish／tick／watch。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |
 | [phpstan.neon](../backend/phpstan.neon) | PHPStan level 10 與 PHPat 架構規則的分析範圍、autoload 及快取設定。 |
@@ -289,6 +317,8 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 ## Frontend：每個檔案做什麼
 
+階段六新增 [member-resources-api.js](../frontend/assets/js/api/member-resources-api.js)、[member-resource-state.js](../frontend/assets/js/core/member-resource-state.js)、[current-trip-state.js](../frontend/assets/js/core/current-trip-state.js)、[member-actions.js](../frontend/assets/js/core/member-actions.js)、[member-itinerary.js](../frontend/assets/js/components/member-itinerary.js)、[favorites.js](../frontend/assets/js/pages/favorites.js)、[planner.js](../frontend/assets/js/pages/planner.js) 及 [phase6.css](../frontend/assets/css/phase6.css)。依序負責 HTTP、收藏狀態、行程狀態、共用操作、站點元件、收藏頁、行程頁與必要狀態樣式；實際資料流見 [會員指南](modules/member-resources.md)。相應測試為 member-resource-state／current-trip-state／member-pages／member-intent；後兩者使用 DOM 邊界替身，不能當成瀏覽器畫面驗收。
+
 ### 來源如何變成網頁
 
 `pages/*.html` 的 `{{SITE_HEADER}}` 等標記由建置器替換成 templates，assets 複製到 dist；Nginx 的公開根目錄是 dist。修改 pages／templates／assets 後必須重新建置，單改 PHP 不會重建畫面。原型圖片多為外部網址，主要字型載入沿用 CSS；目前 assets 不是完整的離線素材庫。
@@ -296,7 +326,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [package.json](../frontend/package.json) | 原生 ES module 專案設定，以及 build／test 命令；目前沒有第三方 npm 依賴或常駐 Node server。 |
-| [scripts/build.mjs](../frontend/scripts/build.mjs) | 掃描全部 64 個 HTML 來源，組合模板與 active 導覽、表單屬性、複製資產，產出路由白名單及 robots.txt。 |
+| [scripts/build.mjs](../frontend/scripts/build.mjs) | 掃描全部 65 個 HTML 來源，組合模板與 active 導覽、表單屬性、複製資產，產出路由白名單及 robots.txt。 |
 | [templates/site-header.html](../frontend/templates/site-header.html) | 公開頁共用品牌、主選單、手機導覽與會員導覽掛載位置。 |
 | [templates/site-footer.html](../frontend/templates/site-footer.html) | 公開頁 footer 與共用連結／文字。 |
 | [templates/admin-sidebar.html](../frontend/templates/admin-sidebar.html) | 後台模組導覽、登入者摘要與固定 root 唯讀模擬選單；權限顯示由 JS 決定。 |
@@ -316,7 +346,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
-| [public.js](../frontend/assets/js/public.js) | 公開頁入口：唯讀快照列表、分類／地區／搜尋、展示卡片、動畫、詳情與會員導覽；planner 要登入，收藏／行程保存尚未開放。 |
+| [public.js](../frontend/assets/js/public.js) | 公開頁入口：分類／地區／搜尋、動畫、詳情與會員導覽，掛載共用收藏／加入控制；planner 的真實資料由 pages/planner.js 讀取。 |
 | [auth.js](../frontend/assets/js/auth.js) | 會員／管理員認證頁共用入口：依 data-auth-kind／mode 綁定登入、註冊、挑戰、忘記／重設／更改密碼與登出切換帳號。 |
 | [admin.js](../frontend/assets/js/admin.js) | 後台共用入口：me、權限 guard、側欄與身分、登出／模擬，依 data-page 初始化 CRUD 或矩陣頁。 |
 | [api/auth-api.js](../frontend/assets/js/api/auth-api.js) | 會員／後台 auth 路徑封裝，讓頁面以 login／me／forgot／change 等方法呼叫。 |
@@ -396,7 +426,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [admin/routes.html](../frontend/pages/admin/routes.html) | 推薦行程；guard 要求 `routes.view` | `admin.js` | 待開放 |
 | [admin/settings.html](../frontend/pages/admin/settings.html) | 網站設定；guard 要求 `settings.view` | `admin.js` | 待開放 |
 
-#### 公開內容與行程示意：33 頁
+#### 公開內容與私人收藏／行程：34 頁
 
 | HTML 來源 | 用途 | 入口 | 目前狀態 |
 | --- | --- | --- | --- |
@@ -430,7 +460,8 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [places/or-arts.html](../frontend/pages/places/or-arts.html) | 或者工藝櫥窗的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
 | [places/or-coffee.html](../frontend/pages/places/or-coffee.html) | 或者咖啡的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
 | [places/shanfang.html](../frontend/pages/places/shanfang.html) | 山房選物所的固定詳情／文章 | `public.js` | 由公開版本產生；下架後 404 |
-| [planner.html](../frontend/pages/planner.html) | 需真實會員登入；只顯示三站行程示意，保存／排序／移除尚未開放 | `public.js` | 登入已串接；行程為示意 |
+| [planner.html](../frontend/pages/planner.html) | 本人目前行程、加入／移除、版本、下架快照；完整編排尚未開放 | `public.js`＋`pages/planner.js` | 階段六 API 已接入，實際畫面待驗 |
+| [favorites.html](../frontend/pages/favorites.html) | 本人收藏、取消、分頁及加入行程入口，私人 noindex 頁 | `public.js`＋`pages/favorites.js` | 階段六 API 已接入，實際畫面待驗 |
 | [routes.html](../frontend/pages/routes.html) | 兩條推薦路線示意 | `public.js` | 展示快照 |
 | [search.html](../frontend/pages/search.html) | 在展示快照中搜尋，不是全站搜尋 API | `public.js` | 展示快照 |
 
@@ -438,7 +469,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 | 位置 | 來源／用途 | 是否直接修改 |
 | --- | --- | --- |
-| `frontend/dist/*.html`、子目錄 HTML | 64 個 pages 組合共用模板後的成品 | 否，改 pages／templates 後建置 |
+| `frontend/dist/*.html`、子目錄 HTML | 65 個 pages 組合共用模板後的成品 | 否，改 pages／templates 後建置 |
 | `frontend/dist/assets/` | assets 的複製產物 | 否，改來源 assets |
 | `frontend/dist/assets/js/core/routes.js` | build.mjs 產生的路由 Set，供 session.js 驗證 returnTo | 否；來源樹中沒有同名檔案，需先 build 才能整體執行 |
 | `frontend/dist/robots.txt` | build.mjs 寫入的目前爬蟲限制 | 改建置來源；完整 SEO／sitemap 與內容發布同步仍待後續階段 |
@@ -491,6 +522,9 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | `news_aliases` | 消息歷史網址對應 | NewsRepository |
 | `offers` | 店家 FK、優惠內容／必填條款、選填日期、封面及發布／版本 | OfferRepository |
 | `offer_aliases` | 優惠歷史網址，含受控 coffee-walk 相容入口 | OfferRepository |
+| `favorites` | member_id＋attraction_id 唯一、建立時間及本人列表索引 | FavoriteRepository |
+| `itineraries` | 本人行程、目前槽、名稱／日期、版本及軟刪除；完整編排尚未開放 | ItineraryRepository |
+| `itinerary_items` | 站點 FK、唯一景點／順序、先前公開名稱快照、預留時間／備註 | ItineraryRepository |
 | `schema_migrations` | version、checksum、已套用 statement 數與完成時間；由 SchemaMigrator 建立 | SchemaMigrator |
 
 ```mermaid
@@ -504,6 +538,11 @@ erDiagram
     admin_users o|--o{ sessions : admin_id
     admin_users o|--o{ sessions : preview_admin_id
     members ||--o{ member_consents : member_id
+    members ||--o{ favorites : member_id
+    attractions ||--o{ favorites : attraction_id
+    members ||--o{ itineraries : member_id
+    itineraries ||--o{ itinerary_items : itinerary_id
+    attractions ||--o{ itinerary_items : attraction_id
     members o|--o{ password_reset_tokens : member_id
     admin_users o|--o{ password_reset_tokens : admin_id
     admin_users ||--o{ audit_logs : actor_admin_id
@@ -521,7 +560,7 @@ erDiagram
 
 密碼只存 Argon2id；session／reset／challenge token 存雜湊，挑戰答案存用途分離 HMAC。audit 中帳號／Email／名稱轉為 HMAC，保留安全狀態與權限變更；原始 Cookie、密碼或 token 不寫入這些業務紀錄。原始 token 只在必要的 Cookie 或本機重設郵件流程傳遞。
 
-景點／店家與媒體已有正式業務表、API 及公開 HTML 發布，博物館與首頁景點精選也讀真實景點資料。電影已有 films／film_screenings／film_aliases、管理與公開 API、首頁片單及基本詳情。消息與優惠已有正式表、受控維護與公開 API／HTML；收藏與行程尚無正式業務表；routes／route_attractions 只供引用保護，並非路線管理。尚未實作的後續畫面仍以 prototype.js／HTML 展示，規劃見 IMPLEMENTATION-PLAN.md。
+景點／店家與媒體已有正式業務表、API 及公開 HTML 發布，博物館與首頁景點精選也讀真實景點資料。電影已有 films／film_screenings／film_aliases、管理與公開 API、首頁片單及基本詳情。消息與優惠已有正式表、受控維護與公開 API／HTML。收藏／目前行程已有三表與七個本人 API，完整旅程編排仍待後續；routes／route_attractions 只供引用保護，並非路線管理。尚未實作的後續畫面仍以 prototype.js／HTML 展示，規劃見 IMPLEMENTATION-PLAN.md。
 
 ### 階段五新增資料與公開 API
 
@@ -539,7 +578,7 @@ erDiagram
 
 只有已能存取 Docker 的維運者可執行，CLI 沒有公開 HTTP 入口、不接受 --actor。exit 4 是資料已保存但發布待重試，執行 `content:publish`，不再次新增。排程／跨日有效期由既有 publisher 服務處理；沒有新增環境變數、對外 port 或病毒掃描服務。
 
-原型示範明確執行 `docker compose exec -T --user www-data app php bin/console.php content:seed-public-demo`；已匯入四篇消息／三項優惠，既有店家／編輯／停用狀態不覆寫，正式內容與圖片權利仍待確認。消息／優惠完整後台 CRUD、前後篇留階段九，收藏與行程保存留階段六。
+原型示範明確執行 `docker compose exec -T --user www-data app php bin/console.php content:seed-public-demo`；已匯入四篇消息／三項優惠，既有店家／編輯／停用狀態不覆寫，正式內容與圖片權利仍待確認。消息／優惠完整後台 CRUD、前後篇留階段九；收藏／基本行程已於階段六接入，完整旅程編排留階段十一。
 
 ## Docker、環境變數與資料位置
 
@@ -767,7 +806,7 @@ python backend/tests/film_schema_upgrade.py
 
 ## 階段三新增檔案與執行能力
 
-此節是上面各層清單的增量，新增檔案逐一列出。64 個 pages 仍是固定來源數；`/places/{slug}.html` 等實際服務內容來自 publication volume，數量隨已發布資料改變，不能以 dist 中原型詳情推定已發布。
+此節保留階段三檔案用途；目前固定來源已增為 65 個 pages。`/places/{slug}.html` 等實際服務內容來自 publication volume，數量隨已發布資料改變，不能以 dist 中原型詳情推定已發布。
 
 ### 新增後端檔案
 
@@ -1042,7 +1081,3 @@ U-15本次驗證：認證108項＋校正50項真實HTTP／MariaDB，PHP37項／1
 新增／編輯都可填電話；phone選填，phoneUrl是後端衍生的唯讀撥號連結。Controller／Service／Repository責任不變，PhoneNumber DTO負責格式，009 migration只新增phone。公開詳情與博物館使用相同安全輸出。沒有增加Google欄位或查詢配額。格式與來源、備份／migration及正式驗收差項見上述業主要求對照。
 
 E34／G34可讀性補充：phase2.css局部加深muted、標題說明與表單提示文字；新增頁實測提示文字對比由3.46提升至5.62，版型及website原檔不變。這不是完整WCAG／讀屏認證。
-
-共用入口補充（E-27）：auth.js 登入／註冊互切使用既有 returnTo 白名單保留待辦；attractions.js 支援美食無數字 span 的分類模板，food.html 店家分類使用 API 的在地店家值。content-cards.js／publish.mjs 含愛心的圖片容器使用 group，避免隱藏互動子元素；空營業時間顯示依店家公告，收藏與待辦長文字換行。member-card-accessibility.test.mjs、attraction-food-list.test.mjs 與 auth-navigation.test.mjs 覆蓋這些實際重現情境。
-
-行程排版補充（E-27）：phase6.css 的 grid 子項 min-width:0 及 overflow-wrap:anywhere 保留完整長名稱且避免手機橫向溢出；版面仍沿用原型雙欄／手機單欄。

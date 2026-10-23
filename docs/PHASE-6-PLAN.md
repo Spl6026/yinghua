@@ -1,6 +1,6 @@
 # 階段六：收藏與基本行程保存計畫
 
-設計日期：2026-10-23。使用者已授權實作，狀態：**6A–6C 已建立，6D 驗證進行中，尚未完成階段驗收**。分支 `phase/06-favorites-basic-itinerary` 從最新 main 建立。目前 API 為 68，主／測試庫皆 31 表／17 份 migration。下文保留設計與待驗基準，實際已建立檔案見 [會員資料閱讀指南](modules/member-resources.md)。
+設計日期：2026-10-23。使用者已授權實作，狀態：**6A–6D 已於 2026-10-24 完成本文件範圍的本機驗收**。分支 `phase/06-favorites-basic-itinerary` 從最新 main 建立。目前 API 為 68，主／測試庫皆 31 表／17 份 migration。下文保留設計與待驗基準，實際已建立檔案見 [會員資料閱讀指南](modules/member-resources.md)。
 
 依據：[原始 Excel](../映畫竹塹_後台工程串接功能規格.xlsx)、原始 website、[總計畫](IMPLEMENTATION-PLAN.md)、[分層架構](ARCHITECTURE.md)與 U-08。S＝Excel 功能明文、D＝Excel 建議／草案、U＝使用者指定、E＝工程設計。欄位列出不等於必填；本階段的具體技術決定集中標為 E-27。
 
@@ -79,11 +79,11 @@ API 不接受 title、tripDate、plannedTime、note、sortOrder、memberId 或�
 - 行程摘要包含 id、title、tripDate、version；項目包含 attractionId、sortOrder、plannedTime、note、snapshotName、availability 及可用時的公開資料。寫入成功後重新載入所見行程頁；若重讀失敗，明確區分「保存已成功、畫面待重讀」。
 - 401：會員未登入／失效；403：CSRF 拒絕；404：新增目標不公開、不存在或已刪；409：有效變更的版本衝突；422：輸入格式／未支援欄位；503：公開版本尚未就緒而不能確認新目標。不可用目標使用一致訊息，不洩漏草稿是否存在。
 - 已達成的狀態重送可成功而不新增資料、不增版本；例如同一 PUT 再送、同一 DELETE 再送。若需要真的改資料，必須符合當前 version，不能讓舊請求覆蓋中間變動。
-- 新增 OpenAPI schema／獨立契約驗證，**實作完成後預計 68 個操作**；現在契約仍維持 61，不提前寫入可呼叫端點。
+- 新增 OpenAPI schema／獨立契約驗證，契約已由設計前的 61 增為 68 個操作；實際驗收狀態分列，不以契約存在代替通過。
 
 ## 4. 預計資料表與 migration
 
-預計兩份 migration：`015_member_favorites.sql`、`016_member_itineraries.sql`，不修改舊 migration、不清空主庫。實作當時再確認編號未被占用。完成後預計 31 表／17 份 migration；目前仍是 28／15。三張表均為 InnoDB，UUID／FK 字元集沿用現有 ASCII CHAR(36)，日期時間沿用現有 UTC 儲存與台北顯示。
+已建立兩份 migration：`015_member_favorites.sql`、`016_member_itineraries.sql`，不修改舊 migration、不清空主庫。主／測試庫已由設計前的 28／15 升為 31 表／17 份 migration。三張表均為 InnoDB，UUID／FK 字元集沿用現有 ASCII CHAR(36)，日期時間沿用現有 UTC 儲存與台北顯示。
 
 | 表 | 預計欄位與約束 | D／E 對照 |
 | --- | --- | --- |
@@ -162,7 +162,7 @@ Service／Repository 的所有查詢都套本人條件；即使游標、JSON 或
 
 ## 8. 實作前固定的驗收清單
 
-以下是待執行條件，**現在沒有驗收通過結果**。實作時每項記錄 API／MariaDB／瀏覽器證據、版本、時間及未驗範圍，並依 [既有驗證流程](VERIFICATION-CHECKLIST.md) 重驗影響範圍。
+以下是實作前固定的驗收條件；實際執行與未驗部分見 [階段六驗證紀錄](PHASE-6-ACCEPTANCE.md)。API／MariaDB／JS 證據與實際瀏覽器結果分列，不因部分通過而宣告整階段完成；並依 [既有驗證流程](VERIFICATION-CHECKLIST.md) 重驗影響範圍。
 
 | ID | 必須驗證的流程 |
 | --- | --- |
