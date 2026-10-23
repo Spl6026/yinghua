@@ -39,7 +39,8 @@ def main():
             result=json.loads(php(name,r"""
             $tables=(int)$db->row('SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_schema=DATABASE()')['n'];
             $migrations=(int)$db->row('SELECT COUNT(*) AS n FROM schema_migrations')['n'];
-            if($tables!==31||$migrations!==17)throw new RuntimeException('Schema counts');
+            // [E-28] 以階段七完整 migration 集合複驗既有會員資料保留。
+            if($tables!==33||$migrations!==18)throw new RuntimeException('Schema counts');
             echo json_encode(['tables'=>$tables,'migrations'=>$migrations,'members'=>(int)$db->row('SELECT COUNT(*) AS n FROM members')['n'],'attractions'=>(int)$db->row('SELECT COUNT(*) AS n FROM attractions')['n']]);
             """))
             assert result['members']==result['attractions']==(1 if mode=='upgrade' else 0)

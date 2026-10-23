@@ -1,6 +1,10 @@
 # SEO 設定與 HTML 發布閱讀指南
 
-更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7D 資料層、管理設定、公開 HTML 同版發布與開發政策說明頁已建立，整階段驗收繼續**。下方帶日期／子步驟的結果保留當時範圍。
+操作：後台「網站設定」→ 修改全站預設或展開各頁覆寫 → 儲存。空的標題／摘要覆寫回繼承，勾選清空關鍵字才明確不繼承；單筆內容先搜尋／選擇加入。409 保留輸入，確認後重讀；已保存待發布可稍後重讀或 CLI content:publish 復原。不要將 API Key 填入公開驗證 token。
+
+本階段最後驗證命令：`python backend/tests/seo_settings_restart.py --dependency-path artifacts/audit-jsonschema`、`python backend/tests/policy_pages_integration.py`、`python backend/tests/seo_head_inventory.py --dependency-path artifacts/audit-jsonschema`。schema／管理／公開測試命令見各節；測試只用命名隔離環境。舊跨模組複驗用 phase6_regression.py，會員三組用 phase7_member_regression.py，後者不重試業務或網路錯誤。
+
+更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7E 已完成本機範圍，實際結果與正式差項見 [階段七驗收](../PHASE-7-ACCEPTANCE.md)**。下方帶日期／子步驟的結果保留當時範圍。
 
 ## 7A 設定文件與覆寫資料層
 
@@ -12,7 +16,7 @@
 
 [SeoCatalog](../../backend/src/Adapters/SeoCatalog.php) 讀取 [共用頁面 catalog](../../frontend/resources/seo-pages.json)，讓 PHP 輸入與 Node 後續產頁共享明確路徑與預設內容；不執行任意 regex 或檔案目錄掃描作為使用者篩選。
 
-[SiteSettingsRepository](../../backend/src/Repositories/SiteSettingsRepository.php) 集中設定列與 FOR UPDATE；[ContentSeoRepository](../../backend/src/Repositories/ContentSeoRepository.php) 批次讀寫整份覆寫。兩者都不自行 commit，預計由 Service 的同一交易協調，避免只更新一半。現有 attractions／films／news_posts／offers 的 SEO 欄位未搬移或刪除。
+[SiteSettingsRepository](../../backend/src/Repositories/SiteSettingsRepository.php) 集中設定列與 FOR UPDATE；[ContentSeoRepository](../../backend/src/Repositories/ContentSeoRepository.php) 批次讀寫整份覆寫。兩者都不自行 commit，由 Service 的同一交易協調，避免只更新一半。現有 attractions／films／news_posts／offers 的 SEO 欄位未搬移或刪除。
 
 測試庫已套用本 migration，為 33 表／18 份；主庫此時仍是 31 表／17 份。本階段沒有新增服務、port、套件、金鑰或環境變數。後續實作到發布流程前，不啟用新公開 API。
 
