@@ -1,8 +1,8 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "映畫竹塹 API（階段二至七）",
-    "version": "7.0.0",
+    "title": "映畫竹塹 API（階段二至八）",
+    "version": "8.0.0",
     "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。"
   },
   "servers": [
@@ -12291,6 +12291,49 @@
         },
         "description": "S：H30/H32；D：API C38；E-28。只回目前成功發布快照的公開白名單，不回覆寫、操作者或草稿；與 HTML generation 不一致回 503。"
       }
+    },
+    "/api/v1/health": {
+      "get": {
+        "operationId": "applicationHealth",
+        "summary": "核心設定、資料庫及 migration 就緒；不代表公開發布／SMTP／Google 就緒",
+        "tags": [
+          "operations"
+        ],
+        "x-status": "implemented",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "核心就緒；不發 Cookie",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "核心未就緒；不暴露內部診斷",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthUnavailable"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "僅 GET／HEAD；Allow: GET, HEAD",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -16568,6 +16611,60 @@
           "requestId"
         ],
         "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "version",
+          "requestId"
+        ],
+        "properties": {
+          "status": {
+            "const": "ok"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
+      },
+      "HealthUnavailable": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "version",
+          "code",
+          "message",
+          "fieldErrors",
+          "requestId"
+        ],
+        "properties": {
+          "status": {
+            "const": "unavailable"
+          },
+          "version": {
+            "type": "string"
+          },
+          "code": {
+            "const": "SERVICE_UNAVAILABLE"
+          },
+          "message": {
+            "type": "string"
+          },
+          "fieldErrors": {
+            "type": "object",
+            "maxProperties": 0
+          },
+          "requestId": {
+            "type": "string"
+          }
+        }
       }
     },
     "securitySchemes": {

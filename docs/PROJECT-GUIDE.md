@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-24 階段八8B：匿名核心健康 `GET /api/v1/health` 已建立，**72 API／67固定頁／33表／18 migration**。HealthController → ApplicationHealth → 可替換 DatabaseHealthProbe／PDO Adapter，HealthReport 安全輸出；精確入口先於 eager DB 組裝，錯誤503不洩漏診斷、HEAD／405／無Cookie已驗。17項真HTTP／MariaDB及六種CLI故障、PHP87項／302斷言與PHPStan10／PHPat通過，詳見 [運維指南](modules/operations.md#8b-核心健康-api)。新增非機密 APP_VERSION，本機development；正式必填，尚無正式部署或整階段通過。
+
 2026-10-24 階段八依使用者授權從最新 main 建立 `phase/08-p0-validation`，8A 診斷進行中。CSRF 增加有限五秒時鐘回撥預算與無秘密的拒絕原因日誌，12項受控邊界測試通過；100輪修正前觀察均為預期422，未將歷史不明註冊失敗宣稱已解決。檔案用途與命令見 [運維指南](modules/operations.md)。尚無新表／migration／HTML；整階段、部署與正式環境未驗收。以下較早段落為當時紀錄。
 
 2026-10-24 階段八僅規劃：新增 [P0整合驗收與部署基線細節計畫](PHASE-8-PLAN.md)，列出16項P0儲存格對照、優先診斷的偶發問題、一個預計health操作、正式封裝／TLS、隔離備份還原／回退及24項固定驗收。尚未授權實作或建立分支；目前仍71 API／67固定頁／33表／18 migration，沒有變更程式、環境或資料庫。 未建立階段八模組閱讀指南或通過報告冒充成果；實作後仍須逐功能維護本導讀。

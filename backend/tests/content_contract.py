@@ -11,7 +11,8 @@ def main():
     $kernel = (new Yinghua\\Composition(new Yinghua\\Config()))->kernel();
     $router = (new ReflectionProperty($kernel, 'router'))->getValue($kernel);
     $routes = (new ReflectionProperty($router, 'routes'))->getValue($router);
-    echo json_encode(array_map(fn($r) => [$r->method, $r->path], $routes));
+    // E-29：health 在 eager DB 組裝前分派，不列入一般認證 Router。
+    echo json_encode([...array_map(fn($r) => [$r->method, $r->path], $routes), ['GET', Yinghua\\Composition::HEALTH_PATH]]);
     '''
     result = subprocess.run(['docker', 'compose', 'exec', '-T', 'app-test', 'php'],
                             cwd=ROOT, input=php, capture_output=True, text=True, encoding='utf-8', check=True)

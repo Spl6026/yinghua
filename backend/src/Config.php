@@ -9,6 +9,17 @@ use RuntimeException;
 /** [U-01／E-08] 設定只有一個來源，秘密由 Docker 的 .env 提供。 */
 readonly class Config
 {
+    /** [E-29] 公開 release 標籤；不能回傳內部映像 digest 或任意環境內容。 */
+    public function applicationVersion(): string
+    {
+        $version = $this->string('APP_VERSION', $this->string('APP_ENV', 'local') === 'production' ? '' : 'development');
+        if (!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}$/D', $version)) {
+            throw new RuntimeException('APP_VERSION must be a public release label.');
+        }
+
+        return $version;
+    }
+
     public function string(string $key, string $default = ''): string
     {
         $value = getenv($key);
