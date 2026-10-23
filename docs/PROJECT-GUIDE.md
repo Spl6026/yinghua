@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-23 階段六 6A 共用準備：使用者已授權實作，分支為 `phase/06-favorites-basic-itinerary`。015／016 新建收藏／行程三表與本人唯一約束，`MemberAccess` 重查會員，`FavoriteRepository`／`ItineraryRepository` 集中本人資料 SQL；DTO、檔案用途與命令見 [會員資料閱讀指南](modules/member-resources.md)。測試庫已升級為 31 表／17 份 migration，主庫暫仍 28／15；API 仍 61，尚未接入收藏或行程頁面。空庫／保留資料升級、重跑及 25 項持久層檢查、輸入單元與靜態分析通過，不等於階段六完成。
+
 2026-10-23 階段六僅規劃：新增 [收藏與基本行程細節計畫](PHASE-6-PLAN.md)，包含來源儲存格、預計頁面／七個 API／三張表／兩份 migration、本人所有權、重送與並行、下架資料及待驗清單。僅更新工程文件，backend／frontend／schema／Docker 與目前 61 個 API／28 表／15 份 migration 不變；階段六尚未實作，完整旅程編排仍在階段十一。`PHASE-6-PLAN.md` 是設計，未建立閱讀指南或驗收通過紀錄冒充成果。
 
 2026-10-23 固定清單複驗：結果見 [本輪紀錄](RECHECK-PHASES-1-5-20261023.md)，後續依 [V01–V18 清單](VERIFICATION-CHECKLIST.md) 記錄狀態。修正景點編輯確認重載後仍保留待上傳圖片的問題，新增取消／成功／失敗重試的行為回歸；前端目前 104 項通過。`backend/tests/frontend_integrity.py` 以 Python 標準函式庫檢查建置後各頁的 main／ID／label、資產與靜態模組引用，選用 `--base-url` 做本機唯讀 HTTP 驗證；它不驗證後續功能或逐像素顯示。執行 `docker compose run --rm --no-deps frontend` 後，再執行 `python backend/tests/frontend_integrity.py --base-url http://localhost:8080`。本輪沒有新增 API、資料表、migration、環境變數或階段；PHP／資料庫架構維持既定分層。
