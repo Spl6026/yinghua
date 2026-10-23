@@ -73,4 +73,20 @@ readonly class MemberPageInput
             throw ApplicationError::invalid('cursor', '無效的分頁位置。');
         }
     }
+
+    /** @return array{id:string,version:int,order:int}|null */
+    public function itineraryPosition(): ?array
+    {
+        if ($this->position === []) {
+            return null;
+        }
+        try {
+            $input = new Input($this->position);
+            $input->only(['id', 'version', 'order']);
+
+            return ['id' => FavoriteStatusInput::id($input->text('id', 36, 36)), 'version' => $input->positiveInt('version'), 'order' => $input->positiveInt('order')];
+        } catch (ApplicationError) {
+            throw ApplicationError::invalid('cursor', '無效的行程分頁位置。');
+        }
+    }
 }

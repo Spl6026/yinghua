@@ -1,8 +1,8 @@
-// [E-12] 公開內容維持原始交付的展示資料與版型，正式內容 API 留待後續階段。
-import { memberNavigation, requireSession } from './core/session.js';
+// [E-12／E-27] 共用導覽與未交付頁的展示；受管內容與會員資料交由各模組的真實 API。
+import { memberNavigation } from './core/session.js';
 import { element, toast } from './core/ui.js';
-import { places, films, news, offers, routes, itineraryPreview } from './data/prototype.js';
-import { placeCard, cinemaRow, filmCard, newsCard, offerCard, routeCard, searchHit, itineraryStop } from './components/content-cards.js';
+import { places, films, news, offers, routes } from './data/prototype.js';
+import { placeCard, cinemaRow, filmCard, newsCard, offerCard, routeCard, searchHit } from './components/content-cards.js';
 import { initializeDetails } from './pages/public-details.js';
 import { mountMemberActions } from './core/member-actions.js';
 
@@ -103,8 +103,8 @@ reveal();
 
 // 保留原有按鈕位置；尚未實作的業務不以瀏覽器假資料保存。
 document.addEventListener('click', event => {
-  if (event.target.closest('[data-add-stop],[data-move],[data-remove],#save-trip,#use-route')) {
-    event.preventDefault(); toast('收藏與行程功能將於後續階段開放。');
+  if (event.target.closest('[data-move],#use-route')) {
+    event.preventDefault(); toast('完整行程編排將於後續開放。');
   }
   const navigation = event.target.closest('button[data-page]');
   if (navigation) {
@@ -120,15 +120,3 @@ if (backdrop) window.addEventListener('scroll', () => {
   }
 }, { passive: true });
 document.querySelector('#add-stop')?.addEventListener('click', () => location.assign('/explore.html'));
-if (path === '/planner.html') {
-  try {
-    const identity = await requireSession();
-    if (identity) {
-      document.querySelector('#planner-user-name').textContent = identity.member.displayName;
-      const accountLink = document.querySelector('.planner-user .text-link');
-      accountLink.href = '/change-password.html';
-      accountLink.replaceChildren(document.createTextNode('更改密碼 '), element('span', {}, '↗'));
-      render('#itinerary-list', itineraryPreview, itineraryStop, '目前沒有示意行程。');
-    }
-  } catch (error) { toast(error.message); }
-}

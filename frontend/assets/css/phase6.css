@@ -4,6 +4,7 @@
 [data-favorite][aria-busy="true"]{cursor:progress}
 .member-unavailable .place-image{background-image:url('/assets/image-placeholder.svg')}
 .member-unavailable .place-body{padding:24px}
-/* [S：G34／E-27] 收藏卡與待辦長名稱可換行。 */
-#favorites-list .place-body,.member-intent{overflow-wrap:anywhere}
+/* [S：G34／E-27] 真實長名稱不能撐大 grid 的最小內容寬度或被外框裁切。 */
+.planner-layout>.itinerary,.itinerary-stop>.stop-info{min-width:0}
+.itinerary-stop>.stop-info,#favorites-list .place-body,.member-intent{overflow-wrap:anywhere}
 @media(max-width:760px){.member-intent .button{max-width:100%;white-space:normal}}

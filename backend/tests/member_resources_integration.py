@@ -9,15 +9,19 @@ import jsonschema
 from api_integration import Client,ROOT,fixture,password,challenge,register_body
 
 spec=json.loads((ROOT/'backend/resources/openapi.json').read_text(encoding='utf8'))
-validator=jsonschema.Draft202012Validator(spec);checks=[];responses=0
+validator=jsonschema.Draft202012Validator(spec);checks=[];responses=0;csrf_recoveries=0
 prefix='p6-'+secrets.token_hex(5)
 def check(name,value):
     if not value:raise AssertionError(name)
     checks.append(name)
 def call(client,method,path,body=None,csrf=True):
-    global responses
+    global responses,csrf_recoveries
     if method not in ('GET','HEAD') and csrf:client.refresh()
     result=client.call(method,path,body,csrf=csrf)
+    # 與 core/api-client.js 相同：伺服器明確拒絕的 CSRF 只更新重試一次；刻意缺漏不重試。
+    if csrf and result[0]==403 and result[1].get('code')=='CSRF_INVALID':
+        validator.evolve(schema={'$ref':'#/components/schemas/Error'}).validate(result[1]);responses+=1;csrf_recoveries+=1
+        client.refresh();result=client.call(method,path,body,csrf=True)
     if path.startswith('/api/v1/me/'):
         for route,verbs in sorted(spec['paths'].items(),key=lambda item:'{' in item[0]):
             import re
@@ -106,5 +110,5 @@ def main():
             fixture("UPDATE members SET status='disabled',deleted_at=UTC_TIMESTAMP() WHERE id IN ("+ids+')')
         ids=','.join("'"+value+"'" for value in places)
         fixture('DELETE FROM attractions WHERE id IN ('+ids+')');publish()
-    print(json.dumps({'memberIntegrationChecks':len(checks),'contractResponses':responses,'fixturesRemoved':True}))
+    print(json.dumps({'memberIntegrationChecks':len(checks),'contractResponses':responses,'csrfRecoveries':csrf_recoveries,'fixturesRemoved':True}))
 if __name__=='__main__':main()

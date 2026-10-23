@@ -41,4 +41,26 @@ build.mjs 與 publish.mjs 統一加入 phase6.css 的必要操作狀態樣式；
 
 6B 驗證：69 個整合檢查（包含逐回應有契約判定）、29 個 JSON 回應契約通過；新增 8 個收藏狀態／競態行為案例，前端共 112 項通過；PHP 共 69 項／270 斷言、PHPStan10／PHPat 與 216 檔格式 dry-run 通過。完整瀏覽器／階段驗收仍待 6D。主／測試庫皆已套用 17 份 migration、31 表。
 
+## 6C 目前行程與基本保存
+
+三個端點為 GET `/api/v1/me/itineraries/current`、PUT／DELETE `/api/v1/me/itineraries/current/items/{attractionId}`。寫入只接受 `version`；owner 來自會員 session，不能由 body 指定。詳細欄位與錯誤回應見 `backend/resources/openapi.json`。總計 68 個 API 操作。
+
+`Controllers/CurrentItineraryController.php` 驗證 HTTP 輸入並轉 DTO，`Services/CurrentItinerary.php` 組織交易及版本規則，`Repositories/ItineraryRepository.php` 保留 SQL 與映射。GET 不會建立行程；第一次加入以 version=0 在同一交易新增父表及站點，失敗整組回滾。寫入依會員、目前行程、景點順序加鎖；並行修改以 409 要求重新載入，已完成的相同加入／移除可安全重送，不增加版本。移除最後一站仍保留父表與版本。
+
+`DTO/CurrentItineraryPage.php`／`ItineraryWriteResult.php` 僅輸出需要的欄位。列表游標綁目前行程 ID、版本及排序位置；跨頁版本變更不拼接舊資料。公開景點投影仍由 MemberAttractions 共用；下架後只顯示先前公開名稱快照與不可瀏覽狀態，不讀出草稿介紹。
+
+`core/current-trip-state.js` 管理會員、列表、保存版本、忙碌狀態與過期回應；保存前須讀取成功，遇到身分變更／409／未知網路結果須重新讀取。`pages/planner.js` 處理真實列表、分頁、移除、重讀及登入後待辦確認；query 不會自動寫入。`components/member-itinerary.js` 安全輸出站點文字，保留原型編號／資訊／移除結構。加入控制由 `core/member-actions.js` 共用，成功才前往 planner。名稱／日期保留原版位置且唯讀，排序及套用推薦路線待完整旅程階段開放，沒有示意行程混入帳號。
+
+```powershell
+python backend/tests/member_resources_integration.py --dependency-path artifacts/audit-jsonschema-linux
+python backend/tests/member_itinerary_integration.py --dependency-path artifacts/audit-jsonschema-linux
+docker compose run --rm --no-deps frontend node --test
+docker compose run --rm --no-deps frontend
+docker compose exec -T -u www-data app php bin/console.php content:publish
+```
+
+上述 dependency-path 為本機忽略的 Linux 測試依賴目錄，於 WSL 執行；Windows 使用 artifacts/audit-jsonschema，其他環境可依 tests/requirements.txt 安裝後省略參數。整合測試只建立 yinghua_test 自有會員／景點，完成後移除收藏／行程與景點、停用測試會員。行程整合 100 項檢查／55 個回應契約通過，包含父子回滾、多輪並行、管理員 session 不能讀會員資料；PHP 69 項／270 斷言及前端 120 項通過。跨模組回歸與實際瀏覽器驗收尚未完成，不能以這些數字代替整階段驗收。
+
 共用入口補充（E-27）：auth.js 登入／註冊互切使用既有 returnTo 白名單保留待辦；attractions.js 支援美食無數字 span 的分類模板，food.html 店家分類使用 API 的在地店家值。content-cards.js／publish.mjs 含愛心的圖片容器使用 group，避免隱藏互動子元素；空營業時間顯示依店家公告，收藏與待辦長文字換行。member-card-accessibility.test.mjs、attraction-food-list.test.mjs 與 auth-navigation.test.mjs 覆蓋這些實際重現情境。
+
+行程排版補充（E-27）：phase6.css 的 grid 子項 min-width:0 及 overflow-wrap:anywhere 保留完整長名稱且避免手機橫向溢出；版面仍沿用原型雙欄／手機單欄。
