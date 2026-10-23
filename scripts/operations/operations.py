@@ -52,13 +52,145 @@ class Deployment:
         if result.returncode:raise OperationError('Public publication not ready' if public else 'Core not ready')
         return json.loads(result.stdout)
 
+    def sql(self,statement):
+        return self.run(['exec','-T','db','sh','-c','MYSQL_PWD="$MARIADB_PASSWORD" exec mariadb --batch --skip-column-names -u "$MARIADB_USER" "$MARIADB_DATABASE"'],input=statement.encode()).stdout.decode('utf8')
+
+    def running(self,service):
+        return bool(self.run(['ps','--status','running','-q',service]).stdout.strip())
+
+    def pause_writes(self):
+        active=[name for name in ['web','publisher'] if self.running(name)]
+        if active:self.run(['stop',*active])
+        # SIGQUIT 等候／結束已送入 FPM 的請求，避免只停 Nginx 後仍有背景寫入。
+        self.run(['restart','--timeout','30','app'])
+        return active
+
+    def media(self):
+        return json.loads(self.run(['exec','-T','-u','www-data','app','php','bin/recovery.php','media']).stdout)
+
+    def stream(self,args,path,restore=False):
+        with path.open('rb' if restore else 'wb') as stream:
+            kwargs={'stdin':stream,'stdout':subprocess.DEVNULL} if restore else {'stdout':stream}
+            result=subprocess.run(self.command+args,cwd=ROOT,stderr=subprocess.PIPE,**kwargs)
+        if result.returncode:raise OperationError('Backup/restore stream failed; traffic remains closed')
+
+    def backup(self,target):
+        target=private_target(target)
+        if target.exists():raise OperationError('Backup destination already exists; never overwrite')
+        manifest=self.manifest();self.readiness(True)
+        active=self.pause_writes();started=time.monotonic()
+        try:
+            # 所有 HTTP 寫入口及 worker 停止後才讀取同窗口的 DB／媒體。
+            self.readiness(True);media=self.media();target.mkdir(parents=True,mode=0o700)
+            self.stream(['exec','-T','db','sh','-c','MYSQL_PWD="$MARIADB_PASSWORD" exec mariadb-dump -u "$MARIADB_USER" --single-transaction --quick --triggers --routines --events --hex-blob --skip-comments "$MARIADB_DATABASE"'],target/'database.sql')
+            self.stream(['exec','-T','app','tar','-C','/var/www/media','-cf','-','.'],target/'media.tar')
+            (target/'release.json').write_text(json.dumps(manifest,indent=2),encoding='utf8')
+            images={}
+            for name in ['app','web']:
+                container=self.run(['ps','-a','-q',name]).stdout.decode().strip()
+                result=subprocess.run(['docker','inspect','--format','{{.Image}}',container],capture_output=True,check=True)
+                images[name]=result.stdout.decode().strip()
+            report={'format':1,'sourceProject':self.project,'createdAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                'generation':self.readiness(True)['generation'],'media':media,'images':images,
+                'appKeyFingerprint':hashlib.sha256(self.config['services']['app']['environment']['APP_KEY'].encode()).hexdigest(),
+                'files':{name:hash_file(target/name) for name in ['database.sql','media.tar','release.json']},'elapsedSeconds':round(time.monotonic()-started,3)}
+            (target/'manifest.json').write_text(json.dumps(report,indent=2),encoding='utf8')
+            # 清單本身不能替代外部受保護／加密的備份位置與完整性信任。
+            verify_backup(target)
+            return {'project':self.project,'backup':str(target),'mediaFiles':len(media),'elapsedSeconds':report['elapsedSeconds']}
+        finally:
+            # 備份失敗沒有改變原資料；只恢復原本已運行的入口，不自動開啟原本關閉的站。
+            if active:self.run(['start',*active])
+
+    def restore(self,target):
+        target=private_target(target);report,release=verify_backup(target)
+        if self.project==report['sourceProject']:raise OperationError('Restore must use a different explicit empty target project')
+        if self.sql('SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=DATABASE()').strip()!='0':
+            raise OperationError('Restore target database is not empty; existing data will never be overwritten')
+        existing=self.run(['exec','-T','app','find','/var/www/media','-mindepth','1','-print','-quit']).stdout
+        if existing.strip():raise OperationError('Restore media volume must be empty')
+        current=self.manifest()
+        if release['migrations']!=current['migrations']:raise OperationError('Backup schema and selected release are incompatible')
+        fingerprint=hashlib.sha256(self.config['services']['app']['environment']['APP_KEY'].encode()).hexdigest()
+        if fingerprint!=report['appKeyFingerprint']:raise OperationError('Restore requires the separately preserved APP_KEY')
+        self.pause_writes()
+        started=time.monotonic()
+        self.stream(['exec','-T','db','sh','-c','MYSQL_PWD="$MARIADB_PASSWORD" exec mariadb -u "$MARIADB_USER" "$MARIADB_DATABASE"'],target/'database.sql',True)
+        self.stream(['exec','-T','-u','www-data','app','tar','--no-same-owner','--no-same-permissions','-C','/var/www/media','-xf','-'],target/'media.tar',True)
+        self.run(['exec','-T','-e','RESTORE_AUTHORIZATION_WINDOW=confirmed-empty-target','app','php','bin/recovery.php','revoke-auth'])
+        self.readiness()
+        if self.media()!=report['media']:raise OperationError('Restored media/DB references mismatch')
+        self.run(['exec','-T','-u','www-data','app','php','bin/console.php','content:publish'])
+        public=self.readiness(True)
+        return {'project':self.project,'restored':True,'trafficOpened':False,'generation':public['generation'],'elapsedSeconds':round(time.monotonic()-started,3)}
+
+    def open(self):
+        self.pause_writes()
+        self.manifest();self.readiness();public=self.readiness(True);self.media()
+        self.run(['up','-d','--no-build','publisher','web'])
+        return {'project':self.project,'trafficOpened':True,'generation':public['generation']}
+
+    def rollback(self):
+        self.pause_writes()
+        self.run(['up','-d','--no-deps','--no-build','app'])
+        self.manifest();self.readiness();self.media()
+        self.run(['exec','-T','-u','www-data','app','php','bin/console.php','content:publish'])
+        return self.open()
+
+def private_target(value):
+    target=Path(value).resolve()
+    if target==ROOT or ROOT in target.parents and ROOT/'artifacts' not in target.parents:
+        raise OperationError('Repository backups belong under ignored artifacts or outside the repository')
+    return target
+
+def hash_file(path):
+    digest=hashlib.sha256()
+    with path.open('rb') as stream:
+        for block in iter(lambda:stream.read(1024*1024),b''):digest.update(block)
+    return digest.hexdigest()
+
+def verify_backup(target):
+    try:
+        report=json.loads((target/'manifest.json').read_text(encoding='utf8'))
+        if not isinstance(report,dict) or report.get('format')!=1 or set(report['files'])!={'database.sql','media.tar','release.json'}:raise ValueError()
+        if not isinstance(report['media'],dict) or not re.fullmatch(r'[a-f0-9]{64}',report['appKeyFingerprint']) or not isinstance(report['sourceProject'],str):raise ValueError()
+        for name,checksum in report['files'].items():
+            if hash_file(target/name)!=checksum:raise ValueError()
+        release=json.loads((target/'release.json').read_text(encoding='utf8'))
+        if not isinstance(release,dict) or release.get('format')!=1 or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9._-]{0,63}',release['version']) or not re.fullmatch(r'[a-f0-9]{40}',release['commit']):raise ValueError()
+        if not isinstance(release['migrations'],dict) or not release['migrations']:raise ValueError()
+        for name,checksum in release['migrations'].items():
+            if not re.fullmatch(r'[a-zA-Z0-9_]+\.sql',name) or not re.fullmatch(r'[a-f0-9]{64}',checksum):raise ValueError()
+        actual={}
+        with tarfile.open(target/'media.tar','r:') as archive:
+            for member in archive.getmembers():
+                if member.isdir() and member.name in ('.','./'):continue
+                name=member.name.removeprefix('./')
+                if not member.isfile() or member.size>8*1024*1024 or not re.fullmatch(r'[a-f0-9-]{36}\.(jpg|png|webp)',name) or name in actual:raise ValueError()
+                stream=archive.extractfile(member)
+                if stream is None:raise ValueError()
+                digest=hashlib.sha256()
+                for block in iter(lambda:stream.read(1024*1024),b''):digest.update(block)
+                actual[name]=digest.hexdigest()
+        if actual!=report['media']:raise ValueError()
+        return report,release
+    except (KeyError,TypeError,ValueError,OSError,tarfile.TarError):
+        raise OperationError('Backup integrity/format verification failed; do not open traffic') from None
+
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--env-file',required=True);parser.add_argument('--project',required=True)
-    parser.add_argument('operation',choices=['preflight','status'])
+    parser.add_argument('operation',choices=['preflight','status','backup','verify-backup','restore','open','rollback'])
+    parser.add_argument('--backup-directory')
     options=parser.parse_args()
     deployment=Deployment(options.env_file,options.project)
     report=deployment.preflight()
+    if options.operation in ['backup','verify-backup','restore']:
+        if not options.backup_directory:raise OperationError('Explicit --backup-directory required')
+        if options.operation=='verify-backup':
+            verify_backup(private_target(options.backup_directory));report['backupVerified']=True
+        else:report=getattr(deployment,options.operation)(options.backup_directory)
+    elif options.operation in ['open','rollback']:report=getattr(deployment,options.operation)()
     if options.operation=='status':
         report.update(core=deployment.readiness(),public=deployment.readiness(True),release=deployment.manifest()['version'])
     print(json.dumps(report,ensure_ascii=False))

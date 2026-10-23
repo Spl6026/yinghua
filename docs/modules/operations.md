@@ -37,3 +37,13 @@ probe 獨立 PDO 連線，上限2秒，mysqlnd 讀取與 MariaDB statement／met
 `backend/tests/production_rehearsal.py` 限自有 spl-p0-* project，初次要求全空庫；直接建新資料卷，不複製主測試庫。實際已驗空庫HTTP503／migration重跑／固定admin初始化／首版公開、TLS／Cookie／308／HSTS、DB暫停503<5秒、FPM停止非200、worker停用到期拒絕舊HTML及重啟同generation。初次腳本有Secure旗標大小寫與公開settings URL錯誤，修正後明確resume已初始化fixture，沒有把這些誤報當應用缺陷。正式映像第一版亦修正templates目錄建立，歸本功能提交。完整乾淨發布重演與整階段驗收仍待後續記錄；不宣告正式環境通過。
 
 完整部署設定／操作見 [P0-OPERATIONS](../P0-OPERATIONS.md)。新增設定只有公開APP_VERSION與release／Compose部署參數；本機DBeaver3306未改。沒有新API、表、migration或HTML頁。
+
+## 8D 備份、復原與流量閘門
+
+operations.py增加backup／verify-backup／restore／open／rollback。備份停止HTTP／worker並退出在途FPM請求，串流logical dump與media，記錄image ID／manifest／generation及hash；restore只接受另一個明確全空目標，完整驗證後才寫入。不完整復原、checksum／缺圖／版本錯誤不能經open開流量。回退只由目前DB重新發布，沒有down migration／舊HTML捷徑。
+
+`Repositories/RecoveryRepository` 只查media keys及撤銷session／reset／challenge；`Adapters/RecoveryMediaInspector`驗UUID平面普通圖檔、DB引用與SHA256，拒絕連結／遺失／未知檔或暫存殘留。`bin/recovery.php`是CLI組裝，撤銷模式另需明確restore-window環境值；普通HTTP無此能力。撤銷三表在同個PdoTransactions內，帳號hash／權限／私人資料與audit保留。
+
+`backend/tests/recovery_rehearsal.py` 用全新自有volume、真GD圖片、兩種真session、設定API及audit、個人權限、收藏、行程順序／時間／備註／version42與發布／下架／別名。25項通過：完整業務表逐列hash一致、三圖hash一致、舊兩種Cookie失效、root trigger保留、損壞dump／缺圖／不相容／非空目標拒絕、發布故障維持關閉及修復。測試fixture初版有重複權限／固定token hash，已改更新既有矩陣與獨立隨機fixture，未變更業務約束；部分fixture只留在演練volume，結束統一清理。
+
+本輪小型備份約3.453秒、還原約3.907秒（三圖）；只量測本輪流程，不是正式SLA。另以標準unittest驗壞metadata、tar traversal與symlink拒絕。真正不同code版本的相容性／正式還原另驗；目前rollback工具與後續受控版本演練進行中，不冒稱歷史所有映像可回退。

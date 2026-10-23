@@ -8,6 +8,7 @@ parameters:
         - public/index.php
         - bin/console.php
         - bin/readiness.php
+        - bin/recovery.php
         - config/routes.php
         - config/member-routes.php
         - config/seo-routes.php
