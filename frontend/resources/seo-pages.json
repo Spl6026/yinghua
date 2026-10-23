@@ -146,16 +146,16 @@
   {
     "path": "/terms.html",
     "label": "服務條款",
-    "title": "服務條款｜映畫竹塹",
-    "description": "映畫竹塹服務條款與開發測試適用範圍。",
+    "title": "開發測試服務條款｜映畫竹塹",
+    "description": "映畫竹塹本機開發驗收適用說明、條款版本及正式文案待提供狀態。",
     "protected": false,
     "template": false
   },
   {
     "path": "/privacy.html",
     "label": "隱私說明",
-    "title": "隱私說明｜映畫竹塹",
-    "description": "映畫竹塹隱私說明與開發測試適用範圍。",
+    "title": "開發測試隱私說明｜映畫竹塹",
+    "description": "映畫竹塹註冊頁既有的本機開發測試資料用途說明與正式隱私文案狀態。",
     "protected": false,
     "template": false
   },

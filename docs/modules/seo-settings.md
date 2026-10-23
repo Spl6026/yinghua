@@ -1,6 +1,6 @@
 # SEO 設定與 HTML 發布閱讀指南
 
-更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7C 資料層、管理設定與公開 HTML 同版發布已建立，條款說明頁與整階段驗收繼續**。下方帶日期／子步驟的結果保留當時範圍。
+更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7D 資料層、管理設定、公開 HTML 同版發布與開發政策說明頁已建立，整階段驗收繼續**。下方帶日期／子步驟的結果保留當時範圍。
 
 ## 7A 設定文件與覆寫資料層
 
@@ -65,3 +65,11 @@ python backend/tests/seo_publication_integration.py --dependency-path artifacts/
 ```
 
 7C 實測：60 項真實 HTTP／DB 檢查、12 回應契約，涵蓋四種內容、公開快照排除草稿、固定頁與分頁標籤／canonical、驗證 token、保護頁 noindex、匿名資產、發布故障不混版及復原。使用自有店家／內容，finally 恢復原設定並清理，沒有呼叫 Google。resolver／head 6 項、表單 5 項及隔離副本的真實正式 origin 建置 1 項通過；PHPStan10／PHPat、244 檔格式 dry-run 通過。瀏覽器排版與整階段回歸仍待 7E。
+
+## 7D 開發條款與隱私說明
+
+[terms.html](../../frontend/pages/terms.html)／[privacy.html](../../frontend/pages/privacy.html) 沿用註冊頁既有的本機開發說明，清楚標記正式文案待業主提供；不是自行撰寫正式法律條款。註冊頁增加另開分頁的連結，保留尚未提交的表單與 returnTo。[policy.js](../../frontend/assets/js/policy.js) 只啟用既有導覽。
+
+[policy-pages.mjs](../../frontend/scripts/policy-pages.mjs) 以文字編碼顯示既有 TERMS_VERSION；build 容器轉傳同名既有變數，公開產頁使用 ContentPublication 的 policyVersion，兩者不猜測新版本。auth.js 以真實 auth configuration 更新註冊說明中的版本；不改寫 member_consents 歷史。NodeContentRenderer 納入新模板 helper 的雜湊。共 67 固定頁，仍為 71 API／33 表／18 migration。
+
+版本與安全編碼有 Node 測試及實際建置測試；`python backend/tests/policy_pages_integration.py` 唯讀檢查實際公開頁／註冊連結／當前版本與同意紀錄數不變，不接受條款或建立新會員。本機說明不代表正式條款驗收通過。

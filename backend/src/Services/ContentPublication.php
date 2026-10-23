@@ -96,7 +96,7 @@ class ContentPublication
     {
         $now = $this->clock?->now() ?? time();
         $window = \Yinghua\DTO\ScreeningWindow::current($now);
-        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),
+        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),'policyVersion' => $this->config->string('TERMS_VERSION', 'local-development-v1'),
             'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published($now)),
             'aliases' => $this->attractions->aliases($now)];
         // [E-25] 景點與電影共享 generation；本週邊界使無編輯的換週也會發布。

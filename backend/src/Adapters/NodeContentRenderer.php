@@ -31,6 +31,7 @@ class NodeContentRenderer implements ContentRenderer
             $source . '/scripts/public-offers.mjs',$source . '/assets/js/core/offer-view.js',
             $source . '/pages/offers.html',...glob($source . '/pages/offers/*.html') ?: [],
             $source . '/scripts/seo-head.mjs',$source . '/assets/js/core/seo-resolver.js',$source . '/resources/seo-pages.json',
+            $source . '/scripts/policy-pages.mjs',
             ...glob($source . '/pages/*.html') ?: []];
         $hash = hash_init('sha256');
         foreach ($files as $path) {

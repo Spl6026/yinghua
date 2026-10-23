@@ -3,6 +3,7 @@ import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderSeoHead } from './seo-head.mjs';
+import { renderPolicyVersion } from './policy-pages.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
@@ -32,7 +33,7 @@ const navigationSections = {
 };
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
-  let html = await readFile(source, 'utf8');
+  let html = renderPolicyVersion(await readFile(source, 'utf8'),process.env.TERMS_VERSION||'local-development-v1');
   if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
   }

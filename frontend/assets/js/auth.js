@@ -64,6 +64,8 @@ async function refreshCaptcha(email = false) {
   try {
     if (email && !form.elements.email.reportValidity()) return;
     termsVersion ??= (await authConfiguration()).termsVersion;
+    const termsLabel = document.querySelector('[data-terms-version]');
+    if (termsLabel) termsLabel.textContent = termsVersion;
     const result = email ? await api.emailCaptcha(form.elements.email.value) : await api.captcha();
     challengeToken = result.challengeToken;
     const image = document.querySelector('#captcha-image');

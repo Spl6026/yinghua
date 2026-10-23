@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-24 階段七 7D：新增公開開發條款／隱私說明與註冊連結，67 固定頁；仍為 71 API／33 表／18 migration。沿用註冊既有說明與 TERMS_VERSION，不修改歷史同意紀錄；正式文案待業主提供。policy-pages.mjs 處理版本文字輸出，policy.js 共用導覽，ContentPublication 保存同版 policyVersion，Compose frontend 轉傳既有 TERMS_VERSION。用途與驗證命令見 [政策說明指南](modules/seo-settings.md#7d-開發條款與隱私說明)。整階段與實際畫面驗收進行中。
+
 2026-10-24 階段七 7C：公開 settings GET 與同版 SEO head 已建立，合計 71 個操作／33 表／18 migration／65 固定頁。PublicSiteSettings 只回成功 generation 的白名單，SeoPublication 過濾草稿覆寫，ContentPublication／NodeContentRenderer 納入設定與模板；build／publish／管理預覽共用 seo-resolver.js／seo-head.mjs。Nginx 保留公開 gate，管理／認證／私人 shell 不受發布故障阻擋；Compose frontend 僅轉傳既有 APP_URL，沒有新變數或服務。檔案、60 項／12 契約及命令見 [SEO 指南](modules/seo-settings.md#7c-同版公開設定與-html-head)。條款頁與整階段／實際畫面驗收尚未完成，完整 JSON-LD／索引與一般設定仍未開放。
 
 2026-10-24 階段七 7B：管理 SEO GET／PUT、settings 原型表單、版本／權限／同交易 audit 已建立，API 共 70；主庫備份後升級，主／測試均 33 表／18 migration，固定頁仍 65。Controller → SeoSettings → SiteSettingsRepository／ContentSeoRepository；SeoContentRepository 批次目標與權限篩選、SeoSettingsResult 限定輸出；前端 seo-settings-api／seo-fields／seo-settings／phase7.css 分別包 HTTP、欄位、互動與必要樣式。詳細檔案與 74 項／32 契約、5 項表單行為驗證見 [SEO 指南](modules/seo-settings.md#7b-管理設定與原型表單)。公開 GET／head 整合仍在 7C，不把 publicationReady=false 當已完成發布，整階段未驗收。

@@ -9,6 +9,7 @@ import { publishNews } from './public-news.mjs';
 import { publishOffers } from './public-offers.mjs';
 import { homeNewsRows } from '../assets/js/core/home-view.js';
 import { renderSeoHead } from './seo-head.mjs';
+import { renderPolicyVersion } from './policy-pages.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -43,6 +44,7 @@ let existing = false;
 try { existing = JSON.parse(await readFile(join(root,'.snapshot.json'),'utf8')).generation === snapshot.generation; } catch {}
 
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
+  html=renderPolicyVersion(html,snapshot.policyVersion||'local-development-v1');
   if (!html.includes('/assets/css/phase6.css')) html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css"></head>');
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'');
   html = renderSeoHead(html,{path:canonicalPath,title,description,item,seo:snapshot.seo,catalog:seoCatalog,origin:snapshot.origin,publicImages});
