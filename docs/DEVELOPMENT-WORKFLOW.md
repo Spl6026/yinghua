@@ -1,5 +1,7 @@
 # 專案開發流程與 Skills
 
+2026-10-25 全 P0 複驗結果見 [最新報告](P0-REVERIFICATION-20261025.md)：保留首次失敗、有限診斷與受影響重驗；本輪 Semgrep／Gitleaks 已實際執行，不能再把前輪未執行當作目前狀態。P0 有已重現差項與未定位 503，仍未合併／未進入 P1。工具 fixture 或執行器錯誤與應用缺陷分開記錄，測試通過不作需求或介面正確的反向依據。
+
 2026-10-24 階段八已依授權於 `phase/08-p0-validation` 實作：匿名health、DB故障503、獨立正式發布版／TLS、備份還原／回退及手機導覽焦點修正。**72 API／67固定頁／33表316欄／18 migration；無新DDL。** 本輪隔離部署、25項還原及9項回退通過；完整人工AA、上游映像風險與正式環境仍待驗，P0界線未通過，保留階段分支、尚未合併main或進入P1。實際結果見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)、[16列來源矩陣](P0-ACCEPTANCE-MATRIX.md)、[安全差項](PHASE-8-SECURITY-REVIEW.md)；下方較早帶日期段落為當時紀錄。
 
 設定日期：2026-10-13。適用架構：PHP 8.5、MariaDB 12.3、Docker、原生 JavaScript／jQuery。

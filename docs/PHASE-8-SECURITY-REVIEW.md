@@ -1,5 +1,17 @@
 # 階段八安全審查與映像風險
 
+## 2026-10-25 複驗更新
+
+本輪應用來源 `1fd4f14`，新增實際 Semgrep／全可達 Git refs Gitleaks 掃描；完整範圍、版本、逐筆分類與限制見 [複驗報告](P0-REVERIFICATION-20261025.md#安全掃描與尚未關閉的風險)。下方「未執行」是前輪歷史，現改以本節為準，未刪除原結果。
+
+- Gitleaks 8.30.1：18 命中均在第三方 skill 教學文件，8 個唯一檔案／行位置跨歷史 refs 重複；人工遮蔽核對為範例，應用路徑 0 命中。沒有將疑似 key 對外驗證，也不能推論全無秘密。
+- Semgrep 1.182.0：官方規則 commit `16b9e6d45f10649f6a531ec4838ed9924372c3bc`，256 rules／298 files，115 命中、0 parse errors。逐筆分類為 72 信任邊界核對、22 heuristic 不符、17 相容性選擇、1 OS 更新選擇、3 工程強化待辦（兩個 root master container／一處 pipeline pipefail）。這些分類不是全無漏洞或全面誤報宣告。
+- 掃描離線執行，只掛所需 Git 或 source／規則；沒有 `.env`／Docker socket。命中保留 exit 1，沒有新增 suppress／ignore。
+- 同來源新映像 a：app `63f484f5…` 為 78 HIGH／3 CRITICAL、web `1c0aa3de…` 為 0／0、DB `5d313c7a…` 為 25／1；秘密命中均 0。風險與下方 vendor 判讀一致，未因重掃而關閉。
+- Composer 應用 audit、真 MariaDB 越權／失敗、HTTPS Cookie 及發布／復原故障重新執行；優惠首次 503 仍未定位，不把診斷後成功當作穩定性已修復。
+
+本輪沒有修改應用 PHP／JS／CSS 或容器權限，只有兩個測試工具的隔離／診斷改善。正式安全門檻、完整人工 AA 與實際部署條件仍未完成。
+
 日期：2026-10-24；依 security-audit 審查本次health、CSRF、DB錯誤、正式Docker與復原CLI，不宣稱整站滲透或正式安全認證。PHP8.5.12官方映像維持；程式未降低密碼／驗證碼／授權政策。來源E-29，業務依Excel／U既定規則。
 
 ## 已修正並驗證
@@ -36,9 +48,9 @@ Composer `audit --no-dev` 對應用鎖版依賴：無已知公告／abandoned。
 
 剩餘78HIGH／3CRITICAL與DB26項不因無vendor fix或推論而算通過。正式上線安全門檻尚未完成；完整report包含套件版本與CVE對照，不含應用秘密。不把漏洞數直接等同26個可遠端利用的網站缺陷，也不反向宣稱完全安全。
 
-## 未執行與正式差項
+## 2026-10-24 當輪未執行與正式差項
 
-Semgrep／Gitleaks及全Git歷史秘密掃描未執行；不勾成通過。人工審查修改範圍與.env忽略、Composer audit、Trivy映像掃描有實際證據，不能取代未做的工具。沒有把全套skill雲端／K8s／AI掃描套在本專案。
+10月24日前輪的Semgrep／Gitleaks及全Git歷史秘密掃描未執行；不勾成通過。10月25日本輪已補做，結果見本文件開頭與複驗報告。人工審查修改範圍與.env忽略、Composer audit、Trivy映像掃描有實際證據，不能取代未做的工具。沒有把全套skill雲端／K8s／AI掃描套在本專案。
 
 正式SMTP、Google API配額、可信TLS更新、實際主機權限／Windows備份ACL、加密／異地／保留期／RPO／RTO、正式素材與政策版本仍待配置和驗證。備份含個資／密碼雜湊，運維文件明示私有保存；不提交備份、測試.env、APP_KEY、私鑰或帳密。
 

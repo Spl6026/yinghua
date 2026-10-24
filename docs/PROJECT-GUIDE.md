@@ -1,5 +1,9 @@
 # 全站架構與檔案功能導讀
 
+2026-10-25 全 P0 複驗：來源 `1fd4f14`，真 DB／HTTP、PHP／JS 品質、67 頁完整性、隔離 TLS 冷部署 17 項、還原 25 項與回退 9 項已重跑。**P0 仍未通過**：小字對比、電影頁館舍時間寫死、消息分類蓋掉 SEO 覆寫，以及首次優惠 503 尚未定位，見 [本輪完整報告](P0-REVERIFICATION-20261025.md)。Semgrep／Gitleaks 本輪已執行並逐筆判讀，映像安全／人工 AA／正式條件仍保留。本輪沒有改應用程式、前端或資料表；維持 72 API／67 固定頁／33 表 316 欄／18 migration，未合併 main／未進入 P1。下方帶日期內容為各輪歷史，不能當成最新全綠結論。
+
+本輪驗證工具用途更新：[mail_failure.py](../backend/tests/mail_failure.py) 自建並清理 active 隔離會員，避免依賴其他套件最後一筆資料；[offers_public_integration.py](../backend/tests/offers_public_integration.py) 在讀列表欄位前驗 HTTP 狀態，非預期回應保存安全 code／requestId、不自動重試。環境、架構、API 與 migration 未變；仍用 Docker 執行 PHP／Composer，測試不還原主庫。具體結果、命令入口、具名清理及證據索引見上述報告。
+
 2026-10-24 階段八已依授權於 `phase/08-p0-validation` 實作：匿名health、DB故障503、獨立正式發布版／TLS、備份還原／回退及手機導覽焦點修正。**72 API／67固定頁／33表316欄／18 migration；無新DDL。** 本輪隔離部署、25項還原及9項回退通過；最終67頁／14資產／81HTTP完整性零差異，health18項／6契約、PHP87／302斷言、Node145、PHPStan10／PHPat及格式檢查通過。主／測試已更新運行，12個演練project及具名UI fixture已清理。完整人工AA、上游映像風險與正式環境仍待驗，P0界線未通過，保留階段分支、尚未合併main或進入P1。實際結果見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)、[16列來源矩陣](P0-ACCEPTANCE-MATRIX.md)、[安全差項](PHASE-8-SECURITY-REVIEW.md)；下方較早帶日期段落為當時紀錄。
 
 2026-10-24 階段八8E介面修正：共用公開／後台手機選單關閉時設inert，Escape將選單內焦點返回按鈕，桌面斷點恢復可操作。修正原本能Tab到被裁切連結的實際問題，維持原型CSS與67頁；145項Node與Brave390×844重驗通過。函式及命令見 [導覽／鍵盤閱讀指南](modules/frontend-accessibility.md)。仍為72 API／33表／18 migration；整合、正式條件與安全差項尚未全驗收，不宣告P0全部完成。
