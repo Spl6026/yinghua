@@ -3,7 +3,7 @@ import argparse, http.client, http.cookiejar, json, secrets, socket, ssl, subpro
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'scripts/operations'))
-from operations import Deployment
+from operations import Deployment,OperationError
 
 class LoopbackTLS(http.client.HTTPSConnection):
     def connect(self):
@@ -46,6 +46,18 @@ def await_status(client,path,status,seconds=25):
         if actual==status:return seen
         time.sleep(.5)
     raise AssertionError('State transition timed out: '+path+' '+str(seen))
+
+def await_database_health(deployment,seconds=30):
+    """Docker's health label can lag behind recovered SQL after a deliberate pause."""
+    start=time.monotonic();seen=[]
+    while time.monotonic()-start<seconds:
+        lines=deployment.run(['ps','--format','json','db']).stdout.decode().splitlines()
+        rows=[json.loads(line) for line in lines if line.strip()]
+        if len(rows)!=1:raise RuntimeError('One owned database container required')
+        health=rows[0].get('Health','');seen.append(health)
+        if health=='healthy':return seen
+        time.sleep(.5)
+    raise RuntimeError('Docker database health did not recover within the fixed window')
 
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--env-file',required=True);parser.add_argument('--project',required=True);parser.add_argument('--resume-initialized',action='store_true');options=parser.parse_args()
@@ -95,6 +107,7 @@ def main():
             check('unresponsive database HTTP503 within 5 seconds',code==503 and body['code']=='SERVICE_UNAVAILABLE' and elapsed<5)
         finally:d.run(['unpause','db'])
         check('database unpause readiness recovered',await_status(client,'/api/v1/health',200)[-1]==200)
+        report['transitions']['databaseContainerHealth']=await_database_health(d)
         d.run(['stop','app'])
         try:check('FPM stop never pretends healthy',client.call('GET','/api/v1/health')[0] in (502,503,504))
         finally:d.run(['start','app'])
@@ -112,6 +125,9 @@ def main():
         d.run(['restart','publisher'])
         check('worker restart preserves publication',d.readiness(True)['generation']==public['generation'])
         report['passed']=True
+    except Exception as error:
+        report['failure']={'type':type(error).__name__,'afterChecks':len(checks),'detail':str(error) if isinstance(error,OperationError) else 'Fixed assertion/transport failure; no request payload recorded'}
+        raise
     finally:
         (ROOT/'artifacts/phase8-production-rehearsal.json').write_text(json.dumps(report,indent=2),encoding='utf8')
     print(json.dumps({'checks':len(checks),'passed':True}))

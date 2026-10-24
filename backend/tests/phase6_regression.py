@@ -8,7 +8,7 @@ import argparse,contextlib,importlib,io,json,runpy,sys
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[2]
-parser=argparse.ArgumentParser();parser.add_argument('--dependency-path');options=parser.parse_args()
+parser=argparse.ArgumentParser();parser.add_argument('--dependency-path');parser.add_argument('--start-at');options=parser.parse_args()
 if options.dependency_path:sys.path.insert(0,str(Path(options.dependency_path).resolve()))
 import jsonschema
 from api_integration import Client
@@ -31,8 +31,9 @@ def main():
     completed=[]
     try:
         sys.argv=['openapi_contracts.py','--include-films']
-        runpy.run_path(str(ROOT/'backend/tests/openapi_contracts.py'),run_name='__main__')
-        completed.append('openapi_contracts:21-suites')
+        if options.start_at:sys.argv+=['--start-at',options.start_at]
+        contract_result=runpy.run_path(str(ROOT/'backend/tests/openapi_contracts.py'),run_name='__main__')
+        completed.append('openapi_contracts:'+str(len(contract_result['completed']))+'-suites')
         sys.argv=[sys.argv[0]]
         for name in ['news_public_integration','offers_public_integration','home_public_integration','public_content_security','public_demo_integration']:
             capture=io.StringIO()
@@ -42,7 +43,7 @@ def main():
                 (ROOT/('artifacts/phase6-regression-'+name+'.log')).write_text(capture.getvalue(),encoding='utf8')
             completed.append(name);print(json.dumps({'suite':name,'completed':len(completed)}),flush=True)
     finally:
-        (ROOT/'artifacts/phase6-cross-module-results.json').write_text(json.dumps({'completed':completed,'csrfRefreshes':recoveries,'allCompleted':len(completed)==6},indent=2),encoding='utf8')
+        (ROOT/'artifacts/phase6-cross-module-results.json').write_text(json.dumps({'completed':completed,'contractStartAt':options.start_at,'csrfRefreshes':recoveries,'allCompleted':len(completed)==6},indent=2),encoding='utf8')
         Client.call=original
 
 if __name__=='__main__':main()

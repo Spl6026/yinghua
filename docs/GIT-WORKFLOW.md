@@ -74,7 +74,7 @@
 | 5：公開消息／優惠與首頁 | P0 | `phase/05-public-content-home` | 已完成本機驗收；五筆功能／驗收提交，P0 尚未完成 |
 | 6：收藏與基本行程保存 | P0 | `phase/06-favorites-basic-itinerary` | 6A–6D 完成本機驗收；合併前備份並核對 tree，保留階段分支 |
 | 7：SEO 設定與 HTML head | P0 | `phase/07-seo-settings-head` | 7A–7E 已完成本機範圍；五筆功能／驗收提交，正式差項另列 |
-| 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 已有細節計畫；尚未授權實作／建立分支 |
+| 8：P0 驗收與部署基線 | P0 界線 | `phase/08-p0-validation` | 已依授權實作；本機演練通過範圍見階段八紀錄，完整AA／正式差項待驗，尚未合併 |
 | 9：消息／優惠管理與前後篇 | P1 | `phase/09-content-management-details` | 未開始 |
 | 10：推薦路線 | P1 | `phase/10-recommended-routes` | 未開始 |
 | 11：完整會員旅程 | P1 | `phase/11-member-itineraries` | 未開始 |
@@ -134,3 +134,9 @@
 2026-10-24：四筆依序交付共用資料層、收藏、目前行程及跨模組驗收。瀏覽器驗收發現的可及性、長文字、美食共用入口與登入意圖修正併入所屬功能，閱讀指南隨功能提交，沒有另留修錯進度提交。驗收及最新狀態集中於第四筆。
 
 收整前備份並驗證 `artifacts/phase6-before-browser-fold-20261024.bundle`，只重建本階段未分享提交，不改較早階段、第一提交或遠端 refs。完整最終 tree 核對後，再備份 `artifacts/phase6-before-merge-20261024.bundle` 並以 --no-ff 合併，保留階段分支。防毒隔離檔保持原工作樹差異，不還原或納入提交；原始 69 檔、migration 舊檔及 .env 忽略狀態須再次核對，不推送遠端。
+
+## 階段八歷史與發布來源
+
+2026-10-24：8A CSRF診斷、8B health與連線故障、8C發布版／TLS、8D復原、手機選單焦點及整合驗收按可獨立驗證功能提交。自身修正已折回所屬功能，修改歷史前保留並驗證 artifacts/phase8-before-fold-20261024.bundle、phase8-before-security-fold-20261024.bundle、phase8-before-availability-fold-20261024.bundle。
+
+r5／r6與最後還原target映像的來源為262201dd3fea36cbb483fd892e95d5610b99b88d，該提交保留為本分支祖先，不再改寫而讓已驗映像失去來源。後續只整合未封入映像的驗證工具／文件。保留原始第一提交、main／遠端refs及防毒隔離差異；未宣告全階段驗收，尚未merge main。完整驗收後才再次備份、核對tree並 --no-ff 合併，保留階段分支。

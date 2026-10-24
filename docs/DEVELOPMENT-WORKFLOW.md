@@ -1,5 +1,7 @@
 # 專案開發流程與 Skills
 
+2026-10-24 階段八已依授權於 `phase/08-p0-validation` 實作：匿名health、DB故障503、獨立正式發布版／TLS、備份還原／回退及手機導覽焦點修正。**72 API／67固定頁／33表316欄／18 migration；無新DDL。** 本輪隔離部署、25項還原及9項回退通過；完整人工AA、上游映像風險與正式環境仍待驗，P0界線未通過，保留階段分支、尚未合併main或進入P1。實際結果見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)、[16列來源矩陣](P0-ACCEPTANCE-MATRIX.md)、[安全差項](PHASE-8-SECURITY-REVIEW.md)；下方較早帶日期段落為當時紀錄。
+
 設定日期：2026-10-13。適用架構：PHP 8.5、MariaDB 12.3、Docker、原生 JavaScript／jQuery。
 
 本文件定義後續實作如何選擇 skills 及驗證改動。skills 與 Docker／Composer 品質工具環境已完成安裝；階段二認證、階段三景點／媒體／發布、階段四電影／多場次及階段五公開消息／優惠／首頁已實作，實際驗收分見 PHASE-2-ACCEPTANCE.md 至 PHASE-5-ACCEPTANCE.md。安裝、命令與驗證結果見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。
@@ -37,7 +39,7 @@ web-design-guidelines 每次審查依其指示讀取當時的官方 guidelines�
 
 ## 2. 當前狀態
 
-backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前階段一至七完成本機範圍；各輪結果與限制見 PHASE-2-ACCEPTANCE.md 至 PHASE-6-ACCEPTANCE.md。階段六於 2026-10-24 補完實際瀏覽器驗收；階段七的實際證據／保留限制見 PHASE-7-ACCEPTANCE.md；階段八起未開始，P0 尚未完成。
+backend/ 的 API／schema／規則／測試與 frontend/ 來源已建立；tools/php/ 持續獨立管理第三方品質工具。後續業務功能依 [實作計畫](IMPLEMENTATION-PLAN.md) 重排：P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；階段一為共用準備。目前階段一至七完成本機範圍；各輪結果與限制見 PHASE-2-ACCEPTANCE.md 至 PHASE-7-ACCEPTANCE.md。階段八已實作health／部署及復原基線與整合回歸，完整人工AA／正式條件與安全差項待補，見PHASE-8-ACCEPTANCE.md；尚未合併main，P0未完成，階段九以後未開始。
 
 工具可執行不代表功能或分析已通過。環境結果見 ENVIRONMENT-SETUP.md；功能驗收以各階段 PHASE-*-ACCEPTANCE.md 的實際結果為準。
 

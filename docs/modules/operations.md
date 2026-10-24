@@ -44,6 +44,10 @@ operations.py增加backup／verify-backup／restore／open／rollback。備份�
 
 `Repositories/RecoveryRepository` 只查media keys及撤銷session／reset／challenge；`Adapters/RecoveryMediaInspector`驗UUID平面普通圖檔、DB引用與SHA256，拒絕連結／遺失／未知檔或暫存殘留。`bin/recovery.php`是CLI組裝，撤銷模式另需明確restore-window環境值；普通HTTP無此能力。撤銷三表在同個PdoTransactions內，帳號hash／權限／私人資料與audit保留。
 
-`backend/tests/recovery_rehearsal.py` 用全新自有volume、真GD圖片、兩種真session、設定API及audit、個人權限、收藏、行程順序／時間／備註／version42與發布／下架／別名。25項通過：完整業務表逐列hash一致、三圖hash一致、舊兩種Cookie失效、root trigger保留、損壞dump／缺圖／不相容／非空目標拒絕、發布故障維持關閉及修復。測試fixture初版有重複權限／固定token hash，已改更新既有矩陣與獨立隨機fixture，未變更業務約束；部分fixture只留在演練volume，結束統一清理。
+`backend/tests/recovery_rehearsal.py` 用全新自有volume、真GD圖片、兩種真session、設定API及audit、個人權限、收藏、行程順序／時間／備註／version42與發布／下架／別名。最終r5的25項通過：完整業務表逐列hash一致、1張圖hash一致、舊兩種Cookie失效、root trigger保留、損壞dump／缺圖／不相容／非空目標拒絕、發布故障維持關閉及修復。還原target的origin不同，先從相同已提交來源重建其app/web，不能沿用不符origin的manifest。測試fixture初版有重複權限／固定token hash，已改更新既有矩陣與獨立隨機fixture，未變更業務約束；fixture只留在演練volume，結束統一清理。
 
-本輪小型備份約3.453秒、還原約3.907秒（三圖）；只量測本輪流程，不是正式SLA。另以標準unittest驗壞metadata、tar traversal與symlink拒絕。真正不同code版本的相容性／正式還原另驗；目前rollback工具與後續受控版本演練進行中，不冒稱歷史所有映像可回退。
+最終r5小型備份3.500秒、還原4.172秒（1圖）；只量測本輪流程，不是正式SLA。標準unittest另驗壞metadata、tar traversal／symlink與安全CLI錯誤4項。rollback_rehearsal.py完成9項：r6→r5兩個release label切換、全業務資料不變、下架404、schema錯誤關站及修正恢復、正常／上游故障日誌不含秘密query。兩版是同個已提交程式來源，只證明工具與相容manifest流程，不冒稱任意歷史code可回退。
+
+最終部署r5先13項後因Docker DB健康標籤延遲中止；保留分類結果後明示resume14項，與冷啟動3項合計17個不同驗收，不改成全程一次無失敗。工具先等待DB容器healthy，不以API200替代Compose相依條件。當前完整結果及正式差項以 [階段八紀錄](../PHASE-8-ACCEPTANCE.md) 為準；健康契約由phase8_health_contract.py以jsonschema4.26.0驗6個真HTTP回應，沒有假造503。
+
+映像掃描命令：`python scripts/operations/scan-images.py --help`，固定Trivy版本且要求新的私有輸出目錄；exit1有漏洞必須保留。正式r5仍有上游HIGH／CRITICAL，詳見 [安全報告](../PHASE-8-SECURITY-REVIEW.md)，不因沒有vendor修補就算通過。

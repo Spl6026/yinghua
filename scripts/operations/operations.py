@@ -18,7 +18,15 @@ class Deployment:
 
     def run(self,args,input=None,check=True):
         result=subprocess.run(self.command+args,cwd=ROOT,input=input,capture_output=True)
-        if check and result.returncode:raise OperationError('Docker operation failed: '+args[0]+' (details withheld; inspect safe service logs)')
+        if check and result.returncode:
+            detail='details withheld for a command that may contain data'
+            if args[0] in {'start','stop','restart','up','down','pause','unpause'}:
+                detail=result.stderr.decode('utf8',errors='replace').strip()[-1800:]
+                for service in getattr(self,'config',{}).get('services',{}).values():
+                    for key,value in service.get('environment',{}).items():
+                        if any(word in key for word in ['KEY','SECRET','PASSWORD','TOKEN']) or key in ['SMTP_USERNAME','MAIL_FROM_ADDRESS']:
+                            if value:detail=detail.replace(str(value),'[redacted]')
+            raise OperationError('Docker operation failed: '+args[0]+' (exit '+str(result.returncode)+'): '+detail)
         return result
 
     def preflight(self):

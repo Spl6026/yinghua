@@ -11,6 +11,7 @@ from importlib.metadata import version
 parser = argparse.ArgumentParser(description='Isolated integration suites plus independent OpenAPI schema checks')
 parser.add_argument('--dependency-path', help='Optional pip --target directory for test dependencies')
 parser.add_argument('--include-films', action='store_true', help='Include phase-four film/public/screening suites')
+parser.add_argument('--start-at', help='Run the remaining fixed suites after a diagnosed harness failure; previous evidence stays separate')
 options = parser.parse_args()
 if options.dependency_path:
     sys.path.insert(0, str(Path(options.dependency_path).resolve()))
@@ -90,6 +91,9 @@ if options.include_films:
     names += ['films_public_integration', 'films_admin_integration', 'films_screenings_integration',
               'films_seed_integration', 'films_content_persistence', 'films_pagination_integration', 'publication_failures']
 completed = []
+if options.start_at:
+    if options.start_at not in names:raise ValueError('Unknown fixed suite')
+    names=names[names.index(options.start_at):]
 for name in names:
     module = importlib.import_module(name)
     capture = io.StringIO()

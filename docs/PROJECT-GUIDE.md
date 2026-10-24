@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-24 階段八已依授權於 `phase/08-p0-validation` 實作：匿名health、DB故障503、獨立正式發布版／TLS、備份還原／回退及手機導覽焦點修正。**72 API／67固定頁／33表316欄／18 migration；無新DDL。** 本輪隔離部署、25項還原及9項回退通過；最終67頁／14資產／81HTTP完整性零差異，health18項／6契約、PHP87／302斷言、Node145、PHPStan10／PHPat及格式檢查通過。主／測試已更新運行，12個演練project及具名UI fixture已清理。完整人工AA、上游映像風險與正式環境仍待驗，P0界線未通過，保留階段分支、尚未合併main或進入P1。實際結果見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)、[16列來源矩陣](P0-ACCEPTANCE-MATRIX.md)、[安全差項](PHASE-8-SECURITY-REVIEW.md)；下方較早帶日期段落為當時紀錄。
+
 2026-10-24 階段八8E介面修正：共用公開／後台手機選單關閉時設inert，Escape將選單內焦點返回按鈕，桌面斷點恢復可操作。修正原本能Tab到被裁切連結的實際問題，維持原型CSS與67頁；145項Node與Brave390×844重驗通過。函式及命令見 [導覽／鍵盤閱讀指南](modules/frontend-accessibility.md)。仍為72 API／33表／18 migration；整合、正式條件與安全差項尚未全驗收，不宣告P0全部完成。
 
 2026-10-24 階段八8D：DB＋media＋release備份、全空目標還原、復原憑證撤銷與open／rollback閘門已建立。RecoveryRepository集中SQL、RecoveryMediaInspector查引用與hash、bin/recovery.php僅CLI組裝；25項隔離還原／拒絕流程及壞tar邊界通過，具體資料量與保留限制見 [運維指南](modules/operations.md#8d-備份復原與流量閘門)。沒有主庫還原、新HTTP／schema或頁面；整合／畫面與版本回退演練仍進行中。
@@ -81,7 +83,7 @@
 | 範圍 | 階段與界線 | 實際狀態 |
 | --- | --- | --- |
 | 共用準備 | 1 | 已完成 |
-| P0 | 2–8；8 為整合驗收 | 2–7 已完成本機範圍，8 未開始，P0 尚未完成 |
+| P0 | 2–8；8 為整合驗收 | 2–7 已完成本機範圍；8已實作，完整人工／正式驗收待補，P0未完成 |
 | P1 | 9–12；12 為整合驗收 | 未開始；完整內容管理、前後篇、路線、完整旅程、JSON-LD／索引 |
 | P2 | 13–15；15 為全站交付 | 未開始；搜尋、會員查詢、一般設定／營運與最終交付 |
 
@@ -158,6 +160,27 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 `website/` 的原始 68 個檔案不由目前 Nginx 提供服務；主要參考入口是 `website/index.html`、`website/admin/`、`website/css/style.css` 與 `website/js/app.js`。全 57 個原始網址及原型差異見 [原始網站對照](WEBSITE-COMPARISON-REVIEW.md)。第三方 skill 參考檔、Composer vendor 及 Git 內部檔案不逐項當成網站程式解釋。
 
 ## Backend：每個檔案做什麼
+
+### 階段八：健康、復原與部署
+
+| 檔案／群組 | 責任及閱讀入口 |
+| --- | --- |
+| [HealthController](../backend/src/Controllers/HealthController.php)／[HealthReport](../backend/src/DTO/HealthReport.php) | GET／HEAD／405及最小200／503 JSON；不建立session／HTML。 |
+| [ApplicationHealth](../backend/src/Services/ApplicationHealth.php)／[DatabaseHealthProbe](../backend/src/Contracts/DatabaseHealthProbe.php)／[PdoDatabaseHealthProbe](../backend/src/Adapters/PdoDatabaseHealthProbe.php) | 核心設定、可替換DB探測、有限連線／只讀SQL與migration校驗。Composition::HEALTH_PATH由public/index.php精確提前組裝；普通Database連線錯誤也映安全503。 |
+| [RecoveryRepository](../backend/src/Repositories/RecoveryRepository.php)／[RecoveryMediaInspector](../backend/src/Adapters/RecoveryMediaInspector.php) | 集中媒體引用／撤銷SQL與實體圖檔／hash邊界，PdoTransactions保持交易。 |
+| [readiness.php](../backend/bin/readiness.php)／[recovery.php](../backend/bin/recovery.php) | 僅CLI：核心／公開就緒、media清單、受控還原授權撤銷；HTTP不可呼叫。 |
+| [Csrf.php](../backend/src/Http/Csrf.php)／[CsrfTest](../backend/tests/Unit/CsrfTest.php) | 有限5秒回撥預算、來源／簽章不放寬；安全原因分類與12受控邊界。 |
+| [health_integration.py](../backend/tests/health_integration.py)／[phase8_health_contract.py](../backend/tests/phase8_health_contract.py)／[health_probe.php](../backend/tests/health_probe.php)／[connection_boundary.php](../backend/tests/connection_boundary.php) | 真MariaDB與HTTP健康／schema故障、jsonschema契約及普通連線503；故障CLI限定test，不封正式映像。 |
+| [stability_observation.py](../backend/tests/stability_observation.py)／[phase8_validation.py](../backend/tests/phase8_validation.py) | 固定100輪安全觀察、會員／SEO固定批次；不重試到綠。舊契約runner的--start-at明示續跑批次。 |
+| [production_rehearsal.py](../backend/tests/production_rehearsal.py)／[public_database_outage.py](../backend/tests/public_database_outage.py)／[recovery_rehearsal.py](../backend/tests/recovery_rehearsal.py)／[rollback_rehearsal.py](../backend/tests/rollback_rehearsal.py) | 限自有spl-p0-*隔離project，TLS／冷啟動／停DB／worker、還原／拒絕及相容release回退。不得對主庫演練。 |
+| [phase8_browser_fixture.py](../backend/tests/phase8_browser_fixture.py) | 僅yinghua_test具名合成帳號／內容與真PNG，--cleanup還原自有設定、移除自有資料／媒體、停用測試帳號並保留正常audit。私有帳密不進Git。 |
+| [compose.production.yaml](../compose.production.yaml)／[Dockerfile](../docker/php/Dockerfile)／[15-production-tls.sh](../docker/nginx/15-production-tls.sh) | 獨立四服務／三資料卷、正式release與release-web target、同版67頁、唯讀TLS／308及安全日誌；不疊加開發Compose。 |
+| [build-release.py](../scripts/operations/build-release.py)／[release-manifest.mjs](../scripts/operations/release-manifest.mjs) | 要求已提交來源／新image標籤，保存version／commit／origin／policy及檔案hash；app/web同版驗證。 |
+| [operations.py](../scripts/operations/operations.py)／[production.env.example](../scripts/operations/production.env.example) | preflight／status／backup／verify-backup／restore／open／rollback；串流dump／media、空target／相容／撤銷與失敗關站。設定範例不含真秘密。 |
+| [scan-images.py](../scripts/operations/scan-images.py)／[operations tests](../scripts/operations/tests) | 固定Trivy image archive掃描、只輸出摘要；壞metadata／tar路徑／symlink及錯誤秘密過濾4測試。CVE不全綠見安全報告。 |
+| [core/ui.js](../frontend/assets/js/core/ui.js)／[menu-state.test.mjs](../frontend/tests/menu-state.test.mjs) | 公開／後台手機選單inert與Escape焦點返回，斷點恢復；不變更原型CSS。 |
+
+完整責任、命令與故障排查見 [運維閱讀指南](modules/operations.md)／[部署操作](P0-OPERATIONS.md)；介面見 [導覽閱讀指南](modules/frontend-accessibility.md)。來源矩陣與實際結果分別見 [P0矩陣](P0-ACCEPTANCE-MATRIX.md)／[驗收](PHASE-8-ACCEPTANCE.md)／[安全差項](PHASE-8-SECURITY-REVIEW.md)。本機新增APP_VERSION（development）與PHP DNS options；正式設定的RELEASE_COMMIT／映像／HTTPS port／TLS目錄只供部署，詳見範例。DB仍33表316欄18migration，18份舊檔均保留，無新API以外的業務能力。
 
 ### 階段七 SEO 的新增檔案
 

@@ -1,5 +1,7 @@
 # 映畫竹塹
 
+2026-10-24 階段八已依授權於 `phase/08-p0-validation` 實作：匿名health、DB故障503、獨立正式發布版／TLS、備份還原／回退及手機導覽焦點修正。**72 API／67固定頁／33表316欄／18 migration；無新DDL。** 本輪隔離部署、25項還原及9項回退通過；完整人工AA、上游映像風險與正式環境仍待驗，P0界線未通過，保留階段分支、尚未合併main或進入P1。實際結果見 [階段八紀錄](docs/PHASE-8-ACCEPTANCE.md)、[16列來源矩陣](docs/P0-ACCEPTANCE-MATRIX.md)、[安全差項](docs/PHASE-8-SECURITY-REVIEW.md)；下方較早帶日期段落為當時紀錄。 正式設定／操作見 [部署指南](docs/P0-OPERATIONS.md)。
+
 階段七已完成本機 SEO 設定與公開 HTML head 同版發布，後台「網站設定」可保存全站／逐頁／單筆覆寫；開發條款／隱私頁沿用現有版本。71 API、67固定頁、33表／18 migration。檔案與操作見 [SEO指南](docs/modules/seo-settings.md)，驗證與正式網域／業主文案／平台待辦及保留限制見 [階段七驗收](docs/PHASE-7-ACCEPTANCE.md)。
 
 階段二至五已實作：PHP API-only、MariaDB、Docker，以及原生 JavaScript 的會員認證、管理員管理、權限矩陣、景點／店家管理、圖片上傳、地圖候選匯入、電影／多場次管理、公開消息／優惠及首頁同版發布。原始 `website/` 和 Excel 保留；新頁面在 `frontend/`，PHP 在 `backend/`，工程文件在 `docs/`。
@@ -10,7 +12,7 @@
 
 Google匯入另依U-10改善行政區、HTTP官網與可見地點關聯；Google簡介僅顯示原文供參考，網站介紹由管理員撰寫。變更地點後須重新確認或解除，前後端都會檢查。見 [地圖改善計畫](docs/MAP-IMPORT-IMPROVEMENTS.md)與[程式指南](docs/modules/google-place-fields.md)。
 
-後續計畫已按 P0（階段 2–8）→ P1（9–12）→ P2（13–15）重排，階段一為共用準備；各級有整合驗收界線，詳見 [實作計畫](docs/IMPLEMENTATION-PLAN.md)。目前階段一至七完成本機範圍，階段八未開始，P0 尚未完成。階段五操作與界線見 [公開內容指南](docs/modules/public-content.md)／[驗收紀錄](docs/PHASE-5-ACCEPTANCE.md)。
+後續計畫已按 P0（階段 2–8）→ P1（9–12）→ P2（13–15）重排，階段一為共用準備；各級有整合驗收界線，詳見 [實作計畫](docs/IMPLEMENTATION-PLAN.md)。目前階段一至七完成本機範圍；階段八已實作、完整驗收待補，P0尚未完成。階段五操作與界線見 [公開內容指南](docs/modules/public-content.md)／[驗收紀錄](docs/PHASE-5-ACCEPTANCE.md)。
 
 ## 本機啟動
 
