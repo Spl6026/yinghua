@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Controllers;
 
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
 use Yinghua\Services\ContentPublication;
@@ -44,7 +45,10 @@ class PublicAttractionController
             $this->publication->read();
 
             return new Response(204);
-        } catch (ApplicationError) {
+        } catch (ApplicationError $error) {
+            if ($error instanceof PublicationPending) {
+                error_log('request=' . $context->request->requestId . ' ' . $error->diagnostic());
+            }
             return new Response(403);
         }
     }

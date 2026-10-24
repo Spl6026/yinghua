@@ -1,5 +1,13 @@
 # 部署與運維閱讀指南
 
+## 2026-10-25 發布順序與安全診斷修正
+
+消息／優惠 alias 現與景點／電影一樣先按鍵排序，避免無業務變更時因資料庫列順序改變 generation。[PublicationPending](../../backend/src/Exceptions/PublicationPending.php) 僅產生 `publication_reason`（missing_snapshot／projection_changed）、格式已驗的 published／expected hash 及固定白名單 `sections`，不記內容、設定值、Cookie、token 或任意資料鍵。Kernel 的公開 API 與 PublicAttractionController 的 HTML gate 在邊界加 requestId；對外仍是既有安全錯誤／503，gate 仍 403，不放寬發布檢查。
+
+本機 bind mount 更新 PHP 發布邏輯後，既有 `content:watch` 不會卸載已讀入的 class。請先 `docker compose restart publisher`，再 `docker compose exec -T -u www-data app php bin/console.php content:publish`；否則新 API／CLI 可能與舊 worker 交替產生不同版本。正式採不可變映像，更新需同版 app／publisher 一起重建服務，不以只換檔案代替發布。此次主站診斷確實捕捉到 alias 版本差異，重載後多個週期維持一致。
+
+新回歸 [publication_alias_order.php](../../backend/tests/publication_alias_order.php) 在真測試庫交易內強制兩種查詢順序，產物使用自有 `/tmp`、資料 rollback；[publication_diagnostics.py](../../backend/tests/publication_diagnostics.py) 驗 API／gate requestId、拒舊與清理。7／8 項通過；完整結果與歷史 503 尚不能追認的限制見 [本輪修正](../P0-IMPROVEMENTS-20261025.md)。沒有新資料表、HTTP 路由或監控服務。
+
 更新：2026-10-24。來源是階段八 E-29；具體診斷／時限不是業主新增的業務限制。實作進行中，正式上線與完整 P0 尚未驗收。
 
 ## 8A 穩定性診斷

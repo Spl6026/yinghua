@@ -1,10 +1,8 @@
 # 全站架構與檔案功能導讀
 
-2026-10-25 P0 修正 R03：新增 [list-seo.js](../frontend/assets/js/core/list-seo.js)，列表頁使用產頁時的 `public-list-seo` context 與既有 resolver，保留後台覆寫、品牌及正式 canonical。分類／分頁／返回共享規則，API 換版時載新發布頁；首次無 JS head 不變。檔案及資料流見 [SEO 閱讀指南](modules/seo-settings.md)，Node 150／head 74 與實際桌手機分類驗證通過；沒有新增 API／表／migration。
+2026-10-25 P0 差項修正：三類小字對比、電影頁館舍同源、列表 SEO 已修；alias 排序與 API／HTML gate 安全診斷已改善，發布 worker 已重載。**PHP 91／318、Node 150、PHPStan／PHPat、格式 261、head 74、67 頁／81 HTTP，以及真 DB 順序 7／診斷 8 項通過**。資料仍為 72 API／67 頁／33 表 316 欄／18 migration，沒有新路由／DDL／環境變數；原始 website 保留，合成資料與設定已清理／復原。完整檔案入口、測試命令與限制見 [本輪修正](P0-IMPROVEMENTS-20261025.md)，分模組見 [無障礙](modules/frontend-accessibility.md)、[電影](modules/films.md)、[SEO](modules/seo-settings.md)、[運維](modules/operations.md)。歷史那一筆 503 不追認根因，完整 AA／正式環境及映像風險仍保留，P0 未宣告通過、不合併 main。下方保留修正前各輪歷史。
 
-2026-10-25 P0 修正 R02：電影頁館舍區塊改由 [publish.mjs](../frontend/scripts/publish.mjs) 讀同一公開快照與既有營業週表，移除寫死時間，缺館舍顯示空態。新增產頁回歸已通過，桌機／手機資料一致及交通資訊連結已驗；見 [電影閱讀指南](modules/films.md)。沒有新增 API／表／migration 或修改原始 website。
-
-2026-10-25 P0 修正 R01：共用 [phase2.css](../frontend/assets/css/phase2.css) 提高三類小字對比，實測 5.21／4.76／4.76；原型字級、間距與原始 website 保留。檔案用途及驗收範圍見 [無障礙閱讀指南](modules/frontend-accessibility.md)。這是前輪已重現差項的處理，不把完整人工 AA 或整個 P0 標為通過；API／資料表／Docker 服務不變。
+新增檔案用途：`frontend/assets/js/core/list-seo.js` 讀同版公開 context 並共用 resolver；`backend/src/Exceptions/PublicationPending.php` 限定內部診斷；`tests/Unit/PublicationOrderTest.php`／`PublicationPendingTest.php` 測誤判與秘密邊界，`tests/publication_alias_order.php`／`publication_diagnostics.py` 測真 DB 及 API／gate。架構仍為前端 View／PHP API 的 Controller→Service→Repository；沒有將 SQL 移入 Controller。修改 PHP 發布程式後須重啟長駐 publisher，命令見上述運維指南。
 
 2026-10-25 全 P0 複驗：來源 `1fd4f14`，真 DB／HTTP、PHP／JS 品質、67 頁完整性、隔離 TLS 冷部署 17 項、還原 25 項與回退 9 項已重跑。**P0 仍未通過**：小字對比、電影頁館舍時間寫死、消息分類蓋掉 SEO 覆寫，以及首次優惠 503 尚未定位，見 [本輪完整報告](P0-REVERIFICATION-20261025.md)。Semgrep／Gitleaks 本輪已執行並逐筆判讀，映像安全／人工 AA／正式條件仍保留。本輪沒有改應用程式、前端或資料表；維持 72 API／67 固定頁／33 表 316 欄／18 migration，未合併 main／未進入 P1。下方帶日期內容為各輪歷史，不能當成最新全綠結論。
 

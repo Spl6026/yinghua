@@ -83,6 +83,8 @@ class OfferRepository
             $row = new Row($values);
             $result[$row->string('path')] = '/offers/' . $row->string('slug') . '.html';
         }
+        // [E-29] Alias 是映射，不讓 SQL 掃描順序改變發布 generation。
+        ksort($result);
         return $result;
     }
 

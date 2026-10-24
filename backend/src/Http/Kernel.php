@@ -8,6 +8,7 @@ use Throwable;
 use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\AuthenticatedIdentity;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
 use Yinghua\Support\Secrets;
@@ -62,6 +63,9 @@ class Kernel
 
             return $anonymous->newCookie ? $response->withCookie($this->csrf->cookie($anonymous, $route->kind)) : $response;
         } catch (ApplicationError $error) {
+            if ($error instanceof PublicationPending) {
+                error_log('request=' . $request->requestId . ' ' . $error->diagnostic());
+            }
             if ($context !== null && in_array($error->errorCode, ['FORBIDDEN', 'CSRF_INVALID', 'PREVIEW_READ_ONLY'], true)) {
                 $this->events->auth('access-denied', false, $error->errorCode, $context->kind, $context->identity?->owner, '', $context->client);
             }

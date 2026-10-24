@@ -84,6 +84,8 @@ class NewsRepository
             $row = new Row($values);
             $result[$row->string('path')] = '/news/' . $row->string('slug') . '.html';
         }
+        // [E-29] Alias 是映射，不讓 SQL 掃描順序改變發布 generation。
+        ksort($result);
         return $result;
     }
 

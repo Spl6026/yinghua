@@ -1,5 +1,7 @@
 # 開發環境安裝與驗證
 
+2026-10-25 發布程式更新提醒：PHP bind mount 會讓新 FPM 請求讀新檔，但長駐 `publisher` 仍保留已載入的 class。修改發布相關 PHP 後執行 `docker compose restart publisher`，再 `docker compose exec -T -u www-data app php bin/console.php content:publish`，避免新 API 與舊 worker 互相判斷版本失效。正式不可變映像須同版更新 app／publisher。實測與安全診斷見 [P0 修正紀錄](P0-IMPROVEMENTS-20261025.md)，沒有新增環境變數或變更 DB port。
+
 2026-10-22 安全維護：PHP 更新為官方 8.5.12 FPM／CLI 映像並鎖定 digest；已將原先應急的官方原始碼編譯配方換回官方預建映像。來源、重建命令與實際結果見 [PHP 安全更新](PHP-SECURITY-UPDATE-20261021.md)。下方 8.5.11 等內容保留 10 月 13 日的歷史環境紀錄。
 
 > 本文件記錄 2026-10-13 應用實作前的環境安裝；目前應用、啟動與驗收狀態見 README.md 與 PHASE-2-ACCEPTANCE.md。
