@@ -108,6 +108,11 @@ if (!existing) {
     cinema = cinema.replace(/(<div class="cinema-list" id="cinema-list">)[\s\S]*?(<\/div>)/, (_,open,close) => open + filmRows(filmItems.slice(0,20)) + close)
       .replace('THIS WEEK · 10.10—10.16', `THIS WEEK · ${e(weekLabel)}`)
       .replace('※ 場次為示意資料', '實際放映資訊請以最新公告為準。');
+    // [S：串接總覽 B7／E6/L6；E-29] 與館舍詳情共用同一快照和週表，不另存開放時間。
+    const visit = museum
+      ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${e(museum.name)}</h2><p>${[museum.address,...openingHoursLines(museum.openingHours,museum.hours)].filter(Boolean).map(text=>e(text).replaceAll('\n','<br>')).join('<br>')}</p></div><a class="text-link" href="/museum.html">查看館舍與交通資訊 <span>↗</span></a></div>`
+      : '<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>博物館參觀資訊</h2><p>目前沒有已發布的博物館介紹。</p></div><a class="text-link" href="/museum.html">查看館舍介紹 <span>↗</span></a></div>';
+    cinema=cinema.replace(/<!-- MUSEUM_VISIT_START -->[\s\S]*?<!-- MUSEUM_VISIT_END -->/,()=>visit);
     await page('/cinema.html',cinema,'本週映演｜映畫竹塹','查看影像博物館本週放映日期、時間、電影介紹與海報。');
     // [U-05] 採原型電影專用頁殼，保留「本週映演」導覽，不沿用城市散策頁。
     const filmTemplate = await readFile(join(source,'pages/films/window-sunday.html'),'utf8');

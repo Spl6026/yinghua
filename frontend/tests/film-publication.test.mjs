@@ -5,6 +5,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { weeklyFilms, screeningDate, filmRows, filmCards, filmDetail } from '../assets/js/core/film-view.js';
+import { emptyOpeningHours } from '../assets/js/core/opening-hours.js';
 
 const script = new URL('../scripts/publish.mjs', import.meta.url);
 const period = {from:'2026-12-27T16:00:00+00:00',to:'2027-01-03T16:00:00+00:00',timeZone:'Asia/Taipei'};
@@ -57,4 +58,24 @@ test('電影頁沿用原型海報遮色、預設類型及詳情場次段落',()=
   assert.match(html,/aria-label="放映場次"/);assert.match(html,/<time datetime=/);
   assert.doesNotMatch(html,/<h2>放映場次|<ul class="film-screenings"/);
   assert.match(html,/rel="noopener noreferrer"/);
+});
+
+test('片單館舍資訊與詳情同版更新，缺館舍不顯示舊地址或時間',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'spl-cinema-museum-'));
+  const openingHours=emptyOpeningHours();openingHours.days[1]={day:1,status:'periods',periods:[{opens:'10:15',closes:'21:30',nextDay:false}]};
+  const museum={id:'museum',slug:'museum',isMuseum:true,name:'測試館舍 <script>x</script>',summary:'',description:'',category:'景點',address:'新地址 $&',hours:'不要顯示舊摘要',openingHours,updatedAt:'2026-12-28T00:00:00+00:00'};
+  const publish=(generation,items)=>spawnSync(process.execPath,[script.pathname,directory],{encoding:'utf8',input:JSON.stringify({origin:'https://example.test',generation:generation.repeat(64),items,aliases:{},films:[],filmAliases:{},filmPeriod:period})});
+  try{
+    let result=publish('a',[museum]);assert.equal(result.status,0,result.stderr);
+    const cinema=await readFile(join(directory,'current/cinema.html'),'utf8');
+    const detail=await readFile(join(directory,'current/museum.html'),'utf8');
+    for(const html of [cinema,detail]){assert.match(html,/新地址 \$&amp;/);assert.match(html,/週一：10:15–21:30/);assert.doesNotMatch(html,/<script>x<\/script>/);}
+    assert.doesNotMatch(cinema.match(/<main[\s\S]*?<\/main>/)[0],/09:30|不要顯示舊摘要/);
+    result=publish('b',[{...museum,address:'第二版地址',openingHours:null,hours:'預約參觀'}]);assert.equal(result.status,0,result.stderr);
+    const changed=await readFile(join(directory,'current/cinema.html'),'utf8');
+    assert.match(changed,/第二版地址/);assert.match(changed,/預約參觀/);assert.doesNotMatch(changed,/新地址|10:15/);
+    result=publish('c',[]);assert.equal(result.status,0,result.stderr);
+    const empty=await readFile(join(directory,'current/cinema.html'),'utf8');
+    assert.match(empty,/目前沒有已發布的博物館介紹/);assert.doesNotMatch(empty,/第二版地址|09:30|預約參觀/);
+  }finally{await rm(directory,{recursive:true,force:true});}
 });
