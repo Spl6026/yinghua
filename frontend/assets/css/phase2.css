@@ -50,3 +50,5 @@ button,a,input,select{touch-action:manipulation}
 /* [S：功能規格 E34/G34；E-14] 保留原型色系，提高已串接表單的提示文字對比。 */
 :root{--muted:#65685d}
 .admin-page-heading p,.helper-text,.field-hint,.form-privacy{color:#62665c}
+/* [S：G34／串接總覽 B15；E-29] 原型小字在紙色背景仍須達一般文字對比。 */
+.section-kicker,.film-meta,.demo-note{color:#62665c}

@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-25 P0 修正 R01：共用 [phase2.css](../frontend/assets/css/phase2.css) 提高三類小字對比，實測 5.21／4.76／4.76；原型字級、間距與原始 website 保留。檔案用途及驗收範圍見 [無障礙閱讀指南](modules/frontend-accessibility.md)。這是前輪已重現差項的處理，不把完整人工 AA 或整個 P0 標為通過；API／資料表／Docker 服務不變。
+
 2026-10-25 全 P0 複驗：來源 `1fd4f14`，真 DB／HTTP、PHP／JS 品質、67 頁完整性、隔離 TLS 冷部署 17 項、還原 25 項與回退 9 項已重跑。**P0 仍未通過**：小字對比、電影頁館舍時間寫死、消息分類蓋掉 SEO 覆寫，以及首次優惠 503 尚未定位，見 [本輪完整報告](P0-REVERIFICATION-20261025.md)。Semgrep／Gitleaks 本輪已執行並逐筆判讀，映像安全／人工 AA／正式條件仍保留。本輪沒有改應用程式、前端或資料表；維持 72 API／67 固定頁／33 表 316 欄／18 migration，未合併 main／未進入 P1。下方帶日期內容為各輪歷史，不能當成最新全綠結論。
 
 本輪驗證工具用途更新：[mail_failure.py](../backend/tests/mail_failure.py) 自建並清理 active 隔離會員，避免依賴其他套件最後一筆資料；[offers_public_integration.py](../backend/tests/offers_public_integration.py) 在讀列表欄位前驗 HTTP 狀態，非預期回應保存安全 code／requestId、不自動重試。環境、架構、API 與 migration 未變；仍用 Docker 執行 PHP／Composer，測試不還原主庫。具體結果、命令入口、具名清理及證據索引見上述報告。
