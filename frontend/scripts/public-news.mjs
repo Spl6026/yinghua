@@ -1,7 +1,7 @@
 // [S：功能規格 9；E-17／26] 各分類所有頁均由成功快照產生，query 重整不退回第一頁。
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {newsCards,newsFeatured,newsDetail,newsLabel} from '../assets/js/core/news-view.js';
+import {newsCards,newsFeatured,newsDetail,newsLabel,newsListTitle,newsListDescription} from '../assets/js/core/news-view.js';
 import {contentPager,pageHref,jsonForHtml} from '../assets/js/core/content-view.js';
 
 export async function publishNews(source,snapshot,page) {
@@ -21,9 +21,9 @@ export async function publishNews(source,snapshot,page) {
           html=html.replace(/<select id="news-filter">[\s\S]*?<\/select>/,()=>`<form class="public-content-filter" action="/events.html" method="get"><select id="news-filter" name="type"><option value=""${!type?' selected':''}>全部消息</option><option value="event"${type==='event'?' selected':''}>活動</option><option value="city"${type==='city'?' selected':''}>城市消息</option></select><noscript><button class="button button-outline" type="submit">篩選</button></noscript></form>`);
         }
         html=html.replace('</body>',()=>`<script type="application/json" id="public-news-state">${jsonForHtml(data)}</script><script type="module" src="/assets/js/pages/news.js"></script></body>`);
-        const title=(kind==='events'?(type?newsLabel(type):'新竹現場'):kind==='activities'?'新竹活動':'新竹城市消息')+(current>1?'・第 '+current+' 頁':'')+'｜映畫竹塹';
+        const title=newsListTitle(path,type,current);
         const destination=`/_content_pages/${kind}/${type||'all'}/${current}.html`;
-        await page(destination,html,title,`${title}，瀏覽已發布的活動與城市消息。`,undefined,href);
+        await page(destination,html,title,newsListDescription(path,type,current),undefined,href);
       }
     }
   }

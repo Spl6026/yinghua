@@ -18,3 +18,10 @@ export function newsDetail(item) {
   // body 只接受後端 Service 淨化後的 HTML，其餘欄位一律當作文字編碼。
   return `<section class="section-pad detail-page">${contentImage(item,'detail-cover')}<div class="detail-body"><p class="eyebrow">CITY STORY / DETAIL</p><h1>${e(item.title)}</h1><p class="detail-lead">${e(item.summary)}</p><div class="public-article-body">${item.body || ''}</div>${dates.map(d=>`<p>${e(d)}</p>`).join('')}${item.eventLocation?`<p>活動地點：${e(item.eventLocation)}</p>`:''}<div class="detail-meta">${e(newsLabel(item.type))}・發布日期 <time datetime="${e(item.publishAt)}">${e(contentDate(item.publishAt))}</time></div><div class="detail-actions"><a class="button button-dark" href="/events.html">回到新竹現場 ↗</a><a class="text-link" href="/planner.html">安排進旅行 <span>→</span></a></div></div></section>`;
 }
+// [S：E9/E30；E-29] 發布 HTML 與瀏覽器分類／分頁共用主題文字。
+export function newsListTitle(path,type,page=1){
+  return (path==='/events.html'?(type?newsLabel(type):'新竹現場'):path==='/activities.html'?'新竹活動':'新竹城市消息')+(page>1?'・第 '+page+' 頁':'')+'｜映畫竹塹';
+}
+export function newsListDescription(path,type,page=1){
+  return `${newsListTitle(path,type,page)}，瀏覽已發布的活動與城市消息。`;
+}

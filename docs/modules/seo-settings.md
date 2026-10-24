@@ -1,5 +1,15 @@
 # SEO 設定與 HTML 發布閱讀指南
 
+## 2026-10-25 R03：列表切換沿用已發布 SEO
+
+來源為功能規格 E30／E32／L32、工程 E-29。以前只有第一次產生 HTML 使用覆寫，分類／換頁卻自行寫入固定品牌標題。現在 [seo-head.mjs](../../frontend/scripts/seo-head.mjs) 在消息／優惠頁附 `public-list-seo` JSON：只含已發布預設、目前主題覆寫、該頁 catalog 及公開媒體白名單；字串的 `<`／`>`／`&` 編碼，其他內容覆寫不送出。
+
+[list-seo.js](../../frontend/assets/js/core/list-seo.js) 讀取這份同版 context，分類／分頁／popstate 共用既有 `resolveSeo()`，再以 DOM 屬性更新 title、摘要、canonical、OG／Twitter。canonical 使用設定的正式 origin，不拼目前 localhost。沒有另外非同步抓一份可能不同版的設定，也不增加 API。
+
+[public-list-controller.js](../../frontend/assets/js/core/public-list-controller.js) 若發現 API generation 已變，或舊頁缺 context，就改載新發布頁，避免舊設定搭配新內容。[news-view.js](../../frontend/assets/js/core/news-view.js) 的 `newsListTitle()`／`newsListDescription()` 由發布工具及瀏覽器共用；優惠也走同一控制器。首次 HTML 的完整無 JS head 保留。
+
+[public-list-seo.test.mjs](../../frontend/tests/public-list-seo.test.mjs) 四項涵蓋 JSON 邊界、覆寫／品牌／正式 origin、第二頁、返回與換版，並執行真正列表控制器。全 Node 150 項及無 JS head 74 HTTP 通過；Brave 實際設定自訂標題／摘要／HTTPS canonical，分類、返回、手機 390px、重新整理均一致；測試後復原設定。
+
 操作：後台「網站設定」→ 修改全站預設或展開各頁覆寫 → 儲存。空的標題／摘要覆寫回繼承，勾選清空關鍵字才明確不繼承；單筆內容先搜尋／選擇加入。409 保留輸入，確認後重讀；已保存待發布可稍後重讀或 CLI content:publish 復原。不要將 API Key 填入公開驗證 token。
 
 本階段最後驗證命令：`python backend/tests/seo_settings_restart.py --dependency-path artifacts/audit-jsonschema`、`python backend/tests/policy_pages_integration.py`、`python backend/tests/seo_head_inventory.py --dependency-path artifacts/audit-jsonschema`。schema／管理／公開測試命令見各節；測試只用命名隔離環境。舊跨模組複驗用 phase6_regression.py，會員三組用 phase7_member_regression.py，後者不重試業務或網路錯誤。

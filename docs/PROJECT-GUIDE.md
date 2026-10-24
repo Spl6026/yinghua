@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-10-25 P0 修正 R03：新增 [list-seo.js](../frontend/assets/js/core/list-seo.js)，列表頁使用產頁時的 `public-list-seo` context 與既有 resolver，保留後台覆寫、品牌及正式 canonical。分類／分頁／返回共享規則，API 換版時載新發布頁；首次無 JS head 不變。檔案及資料流見 [SEO 閱讀指南](modules/seo-settings.md)，Node 150／head 74 與實際桌手機分類驗證通過；沒有新增 API／表／migration。
+
 2026-10-25 P0 修正 R02：電影頁館舍區塊改由 [publish.mjs](../frontend/scripts/publish.mjs) 讀同一公開快照與既有營業週表，移除寫死時間，缺館舍顯示空態。新增產頁回歸已通過，桌機／手機資料一致及交通資訊連結已驗；見 [電影閱讀指南](modules/films.md)。沒有新增 API／表／migration 或修改原始 website。
 
 2026-10-25 P0 修正 R01：共用 [phase2.css](../frontend/assets/css/phase2.css) 提高三類小字對比，實測 5.21／4.76／4.76；原型字級、間距與原始 website 保留。檔案用途及驗收範圍見 [無障礙閱讀指南](modules/frontend-accessibility.md)。這是前輪已重現差項的處理，不把完整人工 AA 或整個 P0 標為通過；API／資料表／Docker 服務不變。
