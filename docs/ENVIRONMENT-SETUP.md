@@ -1,5 +1,7 @@
 # 開發環境安裝與驗證
 
+2026-10-26：新增供 U-19 背景驗收的 [隔離讀屏環境](modules/isolated-accessibility.md)，位於 `tools/accessibility/`，獨立 Compose 專案／loopback 6091／有上限的 CPU 記憶體與暫存。`run.ps1` 建置、重建並等待 healthy，`-Stop` 只停止該桌面；`collect.py` 保存真實 Orca 輸出及版本／隔離設定。已實際建置、啟動並採證，不需 Windows NVDA、主機桌面或音效掛載；不是正式網站容器，不改主站環境變數或 DB schema。完整 AA 仍以實際覆蓋判定。
+
 2026-10-25 發布程式更新提醒：PHP bind mount 會讓新 FPM 請求讀新檔，但長駐 `publisher` 仍保留已載入的 class。修改發布相關 PHP 後執行 `docker compose restart publisher`，再 `docker compose exec -T -u www-data app php bin/console.php content:publish`，避免新 API 與舊 worker 互相判斷版本失效。正式不可變映像須同版更新 app／publisher。實測與安全診斷見 [P0 修正紀錄](P0-IMPROVEMENTS-20261025.md)，沒有新增環境變數或變更 DB port。
 
 2026-10-22 安全維護：PHP 更新為官方 8.5.12 FPM／CLI 映像並鎖定 digest；已將原先應急的官方原始碼編譯配方換回官方預建映像。來源、重建命令與實際結果見 [PHP 安全更新](PHP-SECURITY-UPDATE-20261021.md)。下方 8.5.11 等內容保留 10 月 13 日的歷史環境紀錄。

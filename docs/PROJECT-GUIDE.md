@@ -10,6 +10,10 @@
 
 2026-10-26 AA 逐項驗收：50 個歷史 A／AA 編號已逐項審查，37 通過、2 不通過、10 不適用、1 已廢止，見 [完整準則表與修正方案](P0-AA-VERIFICATION-20261026.md)。Windows NVDA 2026.2 的完整確認訊息、錯誤、收藏通知與英文切換，以及反向 Tab／模態兩端、16 個受保護頁面的實際 200%／400%、文字間距與直橫向已補驗。新增 `frontend/scripts/language-passages.mjs`，由 build／publish 共用已核對英文標示；`components/dialog.js` 明確循環兩端；phase2.css 補欄位邊界並停止首頁旅行區裝飾。新增兩份功能測試，最終 159 項通過；[元件與檔案說明](modules/frontend-accessibility.md)。仍為 72 API／67 固定頁／33 表 316 欄／18 migration；無 PHP／DDL／環境變數或正式服務變動。登入到期提示／延長及已發布非當週內容的完整尋找途徑未通過，P0 不合併 main／不進 P1。下方保留前輪歷史狀態。
 
+2026-10-26 登入後補驗：會員收藏／目前行程、管理員登入／列表、三種 P0 新增表單及真 API 載入後的權限／SEO 控制項已補驗；確認框標題與刪除說明可手動讀出。`frontend/templates/dialog.html` 新增標準警示角色／modal／說明關聯，仍由原生 dialog 處理開關與取消；[檔案說明](modules/frontend-accessibility.md#2026-10-26-確認框語意補驗)、[逐項結果與保留差項](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-登入後與確認框補驗)。152 前端及 67 頁／81 HTTP 最終通過；API／DB／PHP 架構、72 API／67 頁／33 表 316 欄／18 migration 不變。消息／優惠後台仍為 P1；自動播報／反向 Tab／Windows NVDA／完整 AA 不提前列通過。沒有新增應用環境變數或正式部署服務。
+
+2026-10-26：依 U-19 新增 `tools/accessibility/` 的獨立背景讀屏桌面與採證腳本，檔案用途、Docker／暫存／secret、啟停及 Python 命令見 [隔離讀屏指南](modules/isolated-accessibility.md)。Orca／Firefox 已實測首頁結構、登入必填警示、註冊欄位與未勾選同意框；[具體範圍](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-隔離讀屏補驗) 不等同 Windows NVDA 或完整 AA。網站來源／架構、72 API／67 頁／33 表 316 欄／18 migration 不變；新增工程驗收工具不納入正式網站映像，主站 `.env` 不改。Windows NVDA 停止，測試 fixture 已清理；階段八仍不合併 main／不進 P1。下方日期段落保留當時結果。
+
 2026-10-26 01:20：[實際 400% 補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-0120-實際-400-縮放補驗) 完成 31 公開／認證頁、短視窗選單 Tab／Escape 與表單聚焦，連同前輪 200% 共 64 次主要觀察。原服務停止後已恢復既有容器，資料表／API／架構／程式來源不變；沒有新增套件驗證成果。NVDA 維持停止、實際讀屏仍待工具視窗存取許可；不宣告完整 AA，不合併 main／進 P1。
 
 2026-10-25 22:02：[實際 200% 補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2202-實際-200-縮放補驗) 完成 31 個公開／認證頁的真瀏覽器縮放巡查及表單 Tab 捲動，未改應用檔案／架構／API／資料表。NVDA portable 啟動後因視窗存取授權逾時而未取得讀屏證據，已停止自有程序；400% 尚待使用者調整後量測，不列通過。前輪測試、架構與 Docker 交接範圍保持。

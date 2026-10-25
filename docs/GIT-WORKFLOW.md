@@ -1,5 +1,13 @@
 # Git 階段分支與功能提交
 
+2026-10-26 AA-01／AA-02 修正依既有自身修正規則歸回 P0 驗證提交；工具準備提交仍保留，main／其他階段／原始 69 檔不變。改寫前備份於 `artifacts/p0-aa-repairs-20261026/history-before-aa-fold.bundle`，核對完整 tree。新提示的主機讀屏未完成，沒有合併／推送或提前宣告整體 AA 通過。
+
+2026-10-26 AA 逐項驗收：欄位邊界／靜止裝飾、英文語言標示、確認框循環及其 159 項測試／閱讀指南與 [準則結果](P0-AA-VERIFICATION-20261026.md) 歸回既有 P0 驗證提交（原 7665b7f）；獨立讀屏工具的最新說明歸回工具提交（原 44c8256），不新增自身修正進度提交。改寫前備份於 `artifacts/p0-aa-full-20261026/history-before-aa-fold.bundle`，核對完整最終 tree、原始交付 69 檔及其他分支／main／origin/main。未合併或推送；尚未通過的兩項 AA 不提前視為 P0 完成。
+
+2026-10-26 登入後補驗：確認框語意修正與對應閱讀說明歸回原 P0 驗證提交（舊 a7ff07f），隔離讀屏結果／工具使用說明歸回原工具提交（舊 451f1de），不另留自身修正進度提交。改寫前備份 `artifacts/isolated-a11y-resume-20261026/history-before-followup.bundle`，保留 parent 343bd7e、原始交付及所有其他階段／main／origin/main，最終 tree 以實際暫存內容逐一核對。下方「a7ff07f 不改寫」是前一工具交付當時的歷史狀態；本輪按使用者既有規則歸回修正，仍未合併或推送。
+
+2026-10-26：依 U-19 建立 E-30 隔離讀屏桌面，是可獨立說明／啟停／採證的新增驗收準備功能，與工具指南及有限讀屏結果同一筆提交，留在 `phase/08-p0-validation`。既有 P0 驗證提交 `a7ff07f` 及其 parent `343bd7e` 不改寫；工具建立過程的配額／健康檢查修正不另列進度。沒有合併或推送 main，原始 69 檔保持，見 [工具指南](modules/isolated-accessibility.md)。
+
 2026-10-26 01:20：400% 的補驗紀錄併回相同階段八驗證提交，改寫前備份 `artifacts/p0-a11y-20261025-211402/zoom-reader/history-before-400-amend.bundle`。本輪無新應用進度，保留 parent 343bd7e、原始交付與 main／origin/main；實際讀屏未完成，不提前合併或標 P1 已開始。
 
 2026-10-25 22:02：實際 200% 與 NVDA 授權逾時的補驗紀錄仍併回階段八最新驗證提交；改寫前備份為 `artifacts/p0-a11y-20261025-211402/zoom-reader/history-before-zoom-amend.bundle`。無新應用進度、不改 main／原始交付／343bd7e parent；完整 400%／讀屏狀態保留未完成。

@@ -2,6 +2,8 @@
 
 2026-10-26 到期提示修正已依 security-audit 審查：期限標頭不含憑證，閒置／絕對上限及伺服器授權不變；只在使用者明確操作時延長，重新登入仍用既有密碼／CSRF／限流／撤銷流程。51 項真實隔離 HTTP／MariaDB 測試涵蓋兩種身分各 11 次延長、到期拒絕、舊 token 撤銷、CSRF、越權與停用；公開索引只讀同版白名單快照並轉義，沒有新依賴、API、資料表或主庫發布指令。完整上游映像／正式環境差項沿用，不冒稱本輪重掃。見 [修正紀錄](P0-AA-REPAIRS-20261026.md)。
 
+2026-10-26 E-30：依 security-audit 的 Docker／IaC 範圍審查新 `tools/accessibility/`。實際 inspect 及採證斷言確認非 root、唯讀根目錄、cap_drop ALL、no-new-privileges、非 host network、無主機裝置／Docker socket／X11／音效掛載、僅 loopback 6091 與 CPU／RAM／程序配額；Docker context 白名單不含 secret，Git 忽略 VNC 密碼及採證。健康檢查辨別 zombie，CLI 不開主機可見視窗。這是短期本機 VNC 傳統認證，沒有外網 TLS／正式遠端桌面用途；Firefox user namespace EPERM 保留，不宣稱所有 sandbox 層正常，亦未放寬 seccomp。原始 Orca debug 僅私有 volume，採證不匯出原始按鍵；只用隔離假資料，不輸入正式秘密。工具新映像本輪未重跑 Trivy／Semgrep／Gitleaks，不追認掃描無漏洞。沒有認證／管理 API 或應用碼變更，既有安全回歸不重記為本輪結果。見 [指南](modules/isolated-accessibility.md)／[實測](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-隔離讀屏補驗)。
+
 2026-10-25 21:40：U-18 指定既有 server 為交付目標；下方 Docker CVE 屬環境交接資料，不作本次網站功能驗收的阻擋條件，亦非已修復／全部誤報。本輪僅 CSS 遮罩／重排，無 PHP／授權／session／DDL 變更，沒有重掃映像或降低安全控制；[介面補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2140-網站介面補驗) 如實記錄其餘驗證及限制。
 
 2026-10-25 20:15 前端修正：解析錯誤經現有 element／textContent 顯示，獨立查詢欄不混入保存 DTO；返回 URL／文字來自固定建置路由表，create-only 去向沿既有授權資訊，沒有變動 PHP／API／session 政策。152 項 Node 回歸與真非法域名拒絕／Google 重試完成。本輪未重掃映像、未手動主環境 content:publish；原有 CVE／人工 AA／正式門檻仍保留，見 [修正追記](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2015-修正後結果)。
