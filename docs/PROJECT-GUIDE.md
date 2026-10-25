@@ -1,5 +1,29 @@
 # 全站架構與檔案功能導讀
 
+2026-10-29 AA 最終判定：依 U-20 不以 NVDA 為必要工具；內建 Browser／隔離 Orca 補驗及有效基線逐項覆核後，WCAG 2.1 A／AA 為39通過、10不適用、1已廢止，沒有未處理失敗準則。到期／錯誤摘要焦點、正反向Tab、草稿保留及174項前端回歸通過；[完整50項矩陣與證據界線](P0-AA-FINAL-20261029.md)。不宣稱本輪重跑所有真縮放或取得Orca完整錯誤字句的自動語音；已聚焦的文字錯誤依W3C 3.3.1／4.1.2判定，沒有改寫工具結果。主機讀屏未啟動，測試資料與臨時環境清理；API／DDL不變。這是目前P0工程AA驗收，不是正式server或第三方標章認證；未合併main／未開始P1。下方日期段落保留歷史。
+
+2026-10-29 內建 Browser 補驗完成：40 個原型頁面桌手機成對對照、10 個核心頁面載入後 320px 重排，以及登入、權限、景點／圖片、電影、收藏／行程、SEO、到期草稿與鍵盤操作已實測。修正電影週期沿用範本日期的缺陷，171 項前端回歸通過；[逐項結果、檔案用途與 AA 證據界線](P0-BROWSER-VERIFICATION-20261029.md)。已清理隔離資料並恢復 SEO／TTL；API／資料表不變。新提示的 Windows NVDA 即時完整播報未列通過，完整 AA 及正式 server 簽核不冒稱完成；未合併 main。下方保留歷史結果。
+
+2026-10-29：本輪 P0 背景驗收已完成，PHP 91／前端 171／session 51 項及完整 API／DB 套件通過；原始 69 檔無差異。瀏覽器專用連線不可用，原生控制後又因無法確認 URL 被工具安全機制停止，因此本輪介面與完整 AA 不簽核，不合併 main。具體執行、跨日續驗、工具診斷及清理見 [本輪驗收紀錄](P0-ACCEPTANCE-20261029.md)。沒有應用或資料表變更，仍為 72 API／68 固定頁／33 表 316 欄／18 migration。
+
+2026-10-26：依使用者指示修正 AA-01／AA-02，新增登入到期預警／原頁重新驗證與網站導覽（分類及名稱尋找）。修正與實測範圍見 [AA 差項修正](P0-AA-REPAIRS-20261026.md)。72 API／68 固定頁／33 表 316 欄／18 migration；原型與 Excel 不動。新提示的 Windows NVDA 採證未完成：啟動主機讀屏造成干擾，已依使用者反映停止並確認程序結束，後續不再自行啟動主機讀屏；不冒稱完整 AA 已通過。
+
+2026-10-26 AA 逐項驗收：50 個歷史 A／AA 編號已逐項審查，37 通過、2 不通過、10 不適用、1 已廢止，見 [完整準則表與修正方案](P0-AA-VERIFICATION-20261026.md)。Windows NVDA 2026.2 的完整確認訊息、錯誤、收藏通知與英文切換，以及反向 Tab／模態兩端、16 個受保護頁面的實際 200%／400%、文字間距與直橫向已補驗。新增 `frontend/scripts/language-passages.mjs`，由 build／publish 共用已核對英文標示；`components/dialog.js` 明確循環兩端；phase2.css 補欄位邊界並停止首頁旅行區裝飾。新增兩份功能測試，最終 159 項通過；[元件與檔案說明](modules/frontend-accessibility.md)。仍為 72 API／67 固定頁／33 表 316 欄／18 migration；無 PHP／DDL／環境變數或正式服務變動。登入到期提示／延長及已發布非當週內容的完整尋找途徑未通過，P0 不合併 main／不進 P1。下方保留前輪歷史狀態。
+
+2026-10-26 01:20：[實際 400% 補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-0120-實際-400-縮放補驗) 完成 31 公開／認證頁、短視窗選單 Tab／Escape 與表單聚焦，連同前輪 200% 共 64 次主要觀察。原服務停止後已恢復既有容器，資料表／API／架構／程式來源不變；沒有新增套件驗證成果。NVDA 維持停止、實際讀屏仍待工具視窗存取許可；不宣告完整 AA，不合併 main／進 P1。
+
+2026-10-25 22:02：[實際 200% 補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2202-實際-200-縮放補驗) 完成 31 個公開／認證頁的真瀏覽器縮放巡查及表單 Tab 捲動，未改應用檔案／架構／API／資料表。NVDA portable 啟動後因視窗存取授權逾時而未取得讀屏證據，已停止自有程序；400% 尚待使用者調整後量測，不列通過。前輪測試、架構與 Docker 交接範圍保持。
+
+2026-10-25 21:40：依 U-18，既有 server 為交付目標，Docker CVE／主機設定另列部署事項，不阻擋本輪網站功能驗收。[介面補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2140-網站介面補驗) 含 50 頁／78 次觀察、鍵盤與錯誤關聯、12 類圖片文字對比界限；Node 152 項與 67 頁／81 HTTP 通過。style.css 調整圖片漸層／caption，phase2.css 以正常排版避免首頁 CTA 重疊，並以 museum-photo::after 防止發布圖片蓋掉遮罩。無新 API／資料表／migration／環境變數，仍 72 API／67 頁／33 表 316 欄／18 migration；原始 website 不動。實際縮放／讀屏的最新狀態以該節為準，不以工具安裝冒充通過。
+
+2026-10-25 20:15：V-01 文字對比、V-02 四頁返回列表、V-03 Google 解析欄位錯誤已依授權修正，另補 320／390 頂列換行及欄位寬度。117 次觀察、5,105 可計算樣本低對比候選 0，Node 152 項、67 頁／81 HTTP 通過；完整 AA／正式差項仍保留。見 [修正追記](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2015-修正後結果)。自身修正歸入階段八完整驗收提交，不新增進度提交／不合併 main。
+
+檔案用途：build.mjs 依固定路由選擇四頁返回標籤；core/ui.js 的 formErrors 支援欄位群組；pages/attraction-form.js 映射解析錯誤、與保存網址分流，解除 busy 後聚焦；景點兩表單標記查詢欄；film-form.js 沿用 create-only 去向。style.css／phase2.css 管對比及窄螢幕，回歸在 attraction-form／film-form／seo-build 測試。無新程式檔、API、表、migration 或環境變數，仍 72 API／67 頁／33 表 316 欄／18 migration；PHP 分層保持。
+
+2026-10-25 15:21 全 P0 重新驗證：以 `343bd7e` 對照原始 Excel 七工作表／16 列 P0，40 個原型對應頁完成桌面與手機共 80 組比對，並驗 320 CSS px、真 Google／選檔／發布、電影場次、會員保存、root 唯讀與 SEO 分類。**功能測試通過，但仍有一般文字對比、四個景點／電影表單頂列返回動線、Google 網址欄位錯誤關聯三類差項**；完整 AA／正式環境與映像風險未關閉，未合併 main。各頁範圍與重現位置見 [本輪完整驗證](P0-COMPLETE-VERIFICATION-20261025.md)。
+
+本輪無應用／前端／DDL／Docker 或環境設定變更，仍為 72 API／67 固定頁／33 表 316 欄／18 migration，主／測試庫查核一致。PHP 91／318、Node 150、67 頁／81 HTTP、head 74、冷部署 17／還原 25／回退 9 重跑；Rector dry-run 40 建議未套用。新增文件只負責驗證追溯，架構與檔案用途仍依本導讀及模組指南。測試資料、兩張 SEO 表與隔離 root 已清理／復原，三個自有部署演練專案移除。下方各輪歷史不作最新全綠結論。
+
 2026-10-25 P0 差項修正：三類小字對比、電影頁館舍同源、列表 SEO 已修；alias 排序與 API／HTML gate 安全診斷已改善，發布 worker 已重載。**PHP 91／318、Node 150、PHPStan／PHPat、格式 261、head 74、67 頁／81 HTTP，以及真 DB 順序 7／診斷 8 項通過**。資料仍為 72 API／67 頁／33 表 316 欄／18 migration，沒有新路由／DDL／環境變數；原始 website 保留，合成資料與設定已清理／復原。完整檔案入口、測試命令與限制見 [本輪修正](P0-IMPROVEMENTS-20261025.md)，分模組見 [無障礙](modules/frontend-accessibility.md)、[電影](modules/films.md)、[SEO](modules/seo-settings.md)、[運維](modules/operations.md)。歷史那一筆 503 不追認根因，完整 AA／正式環境及映像風險仍保留，P0 未宣告通過、不合併 main。下方保留修正前各輪歷史。
 
 新增檔案用途：`frontend/assets/js/core/list-seo.js` 讀同版公開 context 並共用 resolver；`backend/src/Exceptions/PublicationPending.php` 限定內部診斷；`tests/Unit/PublicationOrderTest.php`／`PublicationPendingTest.php` 測誤判與秘密邊界，`tests/publication_alias_order.php`／`publication_diagnostics.py` 測真 DB 及 API／gate。架構仍為前端 View／PHP API 的 Controller→Service→Repository；沒有將 SQL 移入 Controller。修改 PHP 發布程式後須重啟長駐 publisher，命令見上述運維指南。

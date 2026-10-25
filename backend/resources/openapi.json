@@ -3,7 +3,7 @@
   "info": {
     "title": "映畫竹塹 API（階段二至八）",
     "version": "8.0.0",
-    "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。"
+    "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。\n\nE-29：成功驗證既有 session 的回應（含業務 403／409／422）可帶 X-Session-Kind、X-Session-Owner、X-Session-Server-Time、X-Session-Expires-At、X-Session-Idle-Expires-At。匿名／401 不提供；以 auth/me 的 200 回應及 components.headers 為定義。時間為 Unix 秒，期限資訊不是登入憑證；不改 JSON、閒置／絕對上限、CSRF 或權限規則。登入後先取得 auth/me；到期重新登入不自動重送原業務操作。"
   },
   "servers": [
     {
@@ -531,6 +531,23 @@
                 "schema": {
                   "$ref": "#/components/schemas/MemberIdentity"
                 }
+              }
+            },
+            "headers": {
+              "X-Session-Kind": {
+                "$ref": "#/components/headers/X-Session-Kind"
+              },
+              "X-Session-Owner": {
+                "$ref": "#/components/headers/X-Session-Owner"
+              },
+              "X-Session-Server-Time": {
+                "$ref": "#/components/headers/X-Session-Server-Time"
+              },
+              "X-Session-Expires-At": {
+                "$ref": "#/components/headers/X-Session-Expires-At"
+              },
+              "X-Session-Idle-Expires-At": {
+                "$ref": "#/components/headers/X-Session-Idle-Expires-At"
               }
             }
           },
@@ -1699,6 +1716,23 @@
                 "schema": {
                   "$ref": "#/components/schemas/AdminIdentity"
                 }
+              }
+            },
+            "headers": {
+              "X-Session-Kind": {
+                "$ref": "#/components/headers/X-Session-Kind"
+              },
+              "X-Session-Owner": {
+                "$ref": "#/components/headers/X-Session-Owner"
+              },
+              "X-Session-Server-Time": {
+                "$ref": "#/components/headers/X-Session-Server-Time"
+              },
+              "X-Session-Expires-At": {
+                "$ref": "#/components/headers/X-Session-Expires-At"
+              },
+              "X-Session-Idle-Expires-At": {
+                "$ref": "#/components/headers/X-Session-Idle-Expires-At"
               }
             }
           },
@@ -16683,6 +16717,46 @@
         "in": "header",
         "name": "X-CSRF-Token",
         "description": "須同時攜帶對應 spl_member_anonymous／spl_admin_anonymous 簽章 Cookie。"
+      }
+    },
+    "headers": {
+      "X-Session-Kind": {
+        "description": "E-29：已驗證 session 的唯讀期限資訊；時間為 Unix 秒。匿名及 401 不提供；不是登入憑證，不變更既有期限。",
+        "schema": {
+          "type": "string",
+          "enum": [
+            "admin",
+            "member"
+          ]
+        }
+      },
+      "X-Session-Owner": {
+        "description": "E-29：已驗證 session 的唯讀期限資訊；時間為 Unix 秒。匿名及 401 不提供；不是登入憑證，不變更既有期限。",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "X-Session-Server-Time": {
+        "description": "E-29：已驗證 session 的唯讀期限資訊；時間為 Unix 秒。匿名及 401 不提供；不是登入憑證，不變更既有期限。",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "X-Session-Expires-At": {
+        "description": "E-29：已驗證 session 的唯讀期限資訊；時間為 Unix 秒。匿名及 401 不提供；不是登入憑證，不變更既有期限。",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "X-Session-Idle-Expires-At": {
+        "description": "E-29：已驗證 session 的唯讀期限資訊；時間為 Unix 秒。匿名及 401 不提供；不是登入憑證，不變更既有期限。",
+        "schema": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     }
   }

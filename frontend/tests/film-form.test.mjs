@@ -62,5 +62,5 @@ test('202 後有編輯權限，下一次使用既有 id/version 而非重複新�
 
 test('僅新增權限保存成功後顯示結果，可再新增，不導向沒有權限的列表',async()=>{
   const f=fixture({creating:true,edit:false,view:false});await f.initialize();f.form.elements.title.value='新增權限電影';f.form.emit('submit');await settle();
-  assert.equal(f.state.assignments.length,0);assert.equal(f.save.disabled,true);assert.match(f.message.textContent,/已儲存/);assert.equal(f.node('#film-another').hidden,false);assert.equal(f.node('#film-cancel').href,'/index.html');
+  assert.equal(f.state.assignments.length,0);assert.equal(f.save.disabled,true);assert.match(f.message.textContent,/已儲存/);assert.equal(f.node('#film-another').hidden,false);assert.equal(f.node('#film-cancel').href,'/index.html');assert.equal(f.node('.admin-preview').href,'/index.html');assert.equal(f.node('.admin-preview').textContent,'返回網站');
 });

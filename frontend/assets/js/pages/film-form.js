@@ -11,6 +11,7 @@ export async function initializeFilmForm(identity,page) {
   const creating=page==='film-add';
   if(!hasPermission(identity,'films','view')){
     const cancel=document.querySelector('#film-cancel');cancel.href='/index.html';cancel.textContent='返回網站';
+    const back=document.querySelector('.admin-preview');back.href=cancel.href;back.textContent=cancel.textContent;
   }
   let id=creating?null:new URLSearchParams(location.search).get('id');
   let version,loaded=creating,busy=false,dirty=false,completed=false,generation=0;

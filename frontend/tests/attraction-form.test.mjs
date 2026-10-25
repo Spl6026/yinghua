@@ -11,14 +11,14 @@ const settle = async () => { for(let i=0;i<6;i++) await new Promise(resolve=>set
 const deferred = () => { let resolve;const promise=new Promise(yes=>{resolve=yes;});return {promise,resolve}; };
 class Node {
   constructor(tag='div'){this.tag=tag;this.attrs={};this.dataset={};this.children=[];this.listeners=new Map();this.value='';this.files=[];this.disabled=false;this.checked=false;this.textContent='';this.classList={add(){},remove(){}};}
-  setAttribute(key,value){this.attrs[key]=value;}
+  setAttribute(key,value){this.attrs[key]=value;if(key==='id')this.id=value;}
   removeAttribute(key){delete this.attrs[key];}
   append(...children){for(const child of children){child.parent=this;this.children.push(child);}}
   replaceChildren(...children){this.children=[];this.append(...children);}
   addEventListener(type,callback){this.listeners.set(type,callback);}
   emit(type){return this.listeners.get(type)?.({preventDefault(){},currentTarget:this});}
-  querySelectorAll(selector){if(selector.startsWith('input,select'))return this.children.filter(x=>['input','select','textarea'].includes(x.tag)||x.attrs['data-write']);if(selector==='[aria-invalid]')return this.children.filter(x=>x.attrs['aria-invalid']);if(selector==='.field-error')return this.children.filter(x=>x.className==='field-error');return [];}
-  focus(){this.focused=true;}
+  querySelectorAll(selector){const all=this.children.flatMap(x=>[x,...x.querySelectorAll('*')]);if(selector==='*')return all;if(selector.startsWith('input,select'))return all.filter(x=>['input','select','textarea'].includes(x.tag)||x.attrs['data-write']);if(selector==='[aria-invalid]')return all.filter(x=>x.attrs['aria-invalid']);if(selector==='.field-error')return all.filter(x=>x.className==='field-error');if(selector==='[data-field-name]')return all.filter(x=>x.dataset.fieldName);return [];}
+  focus(){this.focused=true;this.focusedWhileDisabled=this.disabled;}
   closest(){return this.parent;}
   remove(){this.parent.children=this.parent.children.filter(x=>x!==this);}
 }
@@ -34,6 +34,9 @@ function fixture({creating=false,preview=false,edit=true,view=true}={}) {
   form.querySelector=selector=>selector==='[type="submit"]'?save:null;
   for(const id of ['#upload-place-image','#parse-place-url']){const button=node(id,'button');button.attrs['data-write']=true;form.append(button);}
   for(const id of ['#reload-place','#retry-place-publication','#place-photo-preview','#media-status','#map-status','#map-candidates','#google-short-url'])node(id);
+  const lookup=form.elements.mapLookupUrl;lookup.id='google-short-url';lookup.dataset.fieldName='mapLookupUrl';
+  nodes.set('#google-short-url',lookup);form.children=form.children.filter(x=>x!==lookup);
+  const lookupGroup=node('#map-url-field');form.append(lookupGroup);lookupGroup.append(lookup);
   const item={id:'a',slug:'sample',name:'原景點',category:'景點',district:'北區',typeLabel:'文化場館',summary:'摘要',description:'介紹',address:'地址',hours:'09:00',publishAt:'2026-10-18T00:00:00+08:00',featured:false,isMuseum:false,version:1,status:'draft',image:'/media/original.png',mediaId:'media-a',imageAlt:'原圖說明',imageSource:'原來源',imageLicense:'原授權',recommendationLabel:'城市記憶'};
   const state={gets:0,saves:[],uploads:[],assignments:[],replacements:[],windowEvents:new Map(),confirm:true};
   const sandbox={URLSearchParams,HTMLElement:Node,routes:new Set(),passwordError:()=>'',
@@ -45,7 +48,7 @@ function fixture({creating=false,preview=false,edit=true,view=true}={}) {
     googlePlaceLink:()=>({load(){},acceptCandidate(){state.linkConfirmed=true;},setDisabled(value){state.linkDisabled=value;},canSave:()=>!state.linkStale,confirmed:()=>Boolean(state.linkConfirmed)}),
     renderPlaceReference:(container,item)=>{container.reference=item;},
     attractionSamplePicker:()=>({setDisabled(){},async load(){}}),
-    attractionsApi:{get:async()=>{state.gets++;return state.get?state.get():{attraction:item};},save:async(id,body)=>{state.saves.push({id,body});return state.write?state.write():{attraction:{id:'a',version:2},publication:{status:'succeeded'}};},upload:async body=>{state.uploads.push(body);return state.upload?state.upload():{media:{id:'new-image',url:'/media/new.png',alt:'新說明',source:'新來源',license:'新授權',width:20,height:20}};},resolve:async()=>state.mapResult,retry:async()=>({message:'公開頁面已同步'})}};
+    attractionsApi:{get:async()=>{state.gets++;return state.get?state.get():{attraction:item};},save:async(id,body)=>{state.saves.push({id,body});return state.write?state.write():{attraction:{id:'a',version:2},publication:{status:'succeeded'}};},upload:async body=>{state.uploads.push(body);return state.upload?state.upload():{media:{id:'new-image',url:'/media/new.png',alt:'新說明',source:'新來源',license:'新授權',width:20,height:20}};},resolve:async()=>state.resolve?state.resolve():state.mapResult,retry:async()=>({message:'公開頁面已同步'})}};
   vm.createContext(sandbox);source.forEach(code=>vm.runInContext(code,sandbox));
   const identity={preview:{active:preview},permissions:[...(view?['view']:[]),'create',...(edit?['edit']:[])].map(action=>({module:'attractions',action,allowed:true}))};
   return {form,save,message,node,state,item,initialize:()=>sandbox.initializeAttractionForm(identity,creating?'place-add':'place-edit')};
@@ -54,6 +57,7 @@ function fixture({creating=false,preview=false,edit=true,view=true}={}) {
 test('只有新增權限保存後留在成功畫面，再次送出不重複新增',async()=>{
   const f=fixture({creating:true,view:false,edit:false});await f.initialize();
   assert.equal(f.node('#place-cancel').href,'/admin/place-add.html');
+  assert.equal(f.node('.admin-preview').href,'/admin/place-add.html');assert.equal(f.node('.admin-preview').textContent,'返回可用功能');
   f.form.emit('submit');await settle();
   assert.equal(f.state.assignments.length,0);assert.match(f.message.textContent,/已儲存/);
   assert.equal(f.node('#place-another').hidden,false);assert.equal(f.save.disabled,true);
@@ -136,4 +140,24 @@ test('圖片來源及授權說明留空仍可上傳，替代文字仍必填',asy
  f.form.elements.image.files=[{}];f.form.elements.imageSource.value='';f.form.elements.imageLicense.value='';
  f.form.elements.imageAlt.value='';await f.node('#upload-place-image').emit('click');assert.equal(f.state.uploads.length,0);
  f.form.elements.imageAlt.value='測試圖片';await f.node('#upload-place-image').emit('click');assert.equal(f.state.uploads.length,1);
+});
+
+test('解析錯誤對應網址欄、還原控制項後聚焦；重試只清除解析區錯誤',async()=>{
+ const f=fixture();await f.initialize();const input=f.node('#google-short-url');input.value='https://example.com/not-google';
+ const other=new Node('span');other.className='field-error';f.form.append(other);
+ f.state.resolve=async()=>{throw Object.assign(new Error('請檢查輸入內容。'),{status:422,fieldErrors:{mapUrl:'僅接受可信任的 HTTPS Google 地圖網址。'}});};
+ await f.node('#parse-place-url').emit('click');
+ assert.equal(input.attrs['aria-invalid'],'true');assert.equal(input.attrs['aria-describedby'],'google-short-url-error');
+ assert.equal(input.focused,true);assert.equal(input.focusedWhileDisabled,false);assert.equal(input.value,'https://example.com/not-google');
+ assert.match(f.node('#map-url-field').children.at(-1).textContent,/可信任/);assert.equal(f.state.saves.length,0);
+ f.state.resolve=async()=>({candidates:[],attribution:'Google Maps',notice:'無候選'});await f.node('#parse-place-url').emit('click');
+ assert.equal(input.attrs['aria-invalid'],undefined);assert.equal(input.attrs['aria-describedby'],undefined);assert.ok(f.form.children.includes(other));
+});
+
+test('空解析網址聚焦欄位；查詢欄不混入景點 mapUrl 保存',async()=>{
+ const f=fixture();await f.initialize();await f.node('#parse-place-url').emit('click');assert.equal(f.node('#google-short-url').focused,true);
+ f.form.elements.mapUrl.value='https://www.google.com/maps?q=stored';f.form.elements.mapLookupUrl.value='https://www.google.com/maps?q=lookup';
+ f.form.emit('submit');await settle();assert.equal(f.state.saves[0].body.mapUrl,'https://www.google.com/maps?q=stored');assert.equal(Object.hasOwn(f.state.saves[0].body,'mapLookupUrl'),false);
+ const invalid=fixture();await invalid.initialize();invalid.state.write=async()=>{throw Object.assign(new Error('請檢查網址'),{status:422,fieldErrors:{mapUrl:'保存的地圖網址不正確'}});};
+ invalid.form.emit('submit');await settle();assert.equal(invalid.form.elements.mapUrl.attrs['aria-invalid'],'true');assert.equal(invalid.node('#google-short-url').attrs['aria-invalid'],undefined);
 });

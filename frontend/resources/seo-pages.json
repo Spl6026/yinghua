@@ -190,5 +190,13 @@
     "description": "",
     "protected": false,
     "template": true
+  },
+  {
+    "path": "/site-map.html",
+    "label": "網站導覽",
+    "title": "網站導覽｜映畫竹塹",
+    "description": "依分類瀏覽或按名稱尋找已發布的景點、電影、活動消息與店家優惠。",
+    "protected": false,
+    "template": false
   }
 ]

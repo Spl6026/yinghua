@@ -1,4 +1,5 @@
 // [E-02／E-13] Cookie、CSRF、錯誤與逾時處理只有一份；狀態不存 localStorage。
+import { recordSessionResponse, sessionSnapshot, sessionEpoch } from './session-events.js';
 export class ApiError extends Error {
   constructor(status, payload, retryAfter) {
     super(payload.message || '操作失敗，請稍後再試。');
@@ -49,12 +50,15 @@ export async function authConfiguration(kind = 'member') {
 
 export async function api(path, { method = 'GET', body, kind = 'member', retry = true } = {}) {
   if (!path.startsWith('/api/v1/') || path.includes('\\')) throw new Error('API path must be a same-origin route.');
+  if(!['GET','HEAD'].includes(method)&&!path.includes('/auth/')&&sessionSnapshot(kind)?.changed)throw new ApiError(409,{code:'SESSION_CHANGED',message:'登入身分已變更，請先保留內容並重新開啟本頁。'});
   const headers = { Accept: 'application/json' };
   if (method !== 'GET' && method !== 'HEAD') {
     headers['X-CSRF-Token'] = await csrf(kind);
     if (!(body instanceof FormData)) headers['Content-Type'] = 'application/json';
   }
+  const epoch=sessionEpoch(kind);
   const { response, payload } = await request(path, { method, headers, body: body === undefined ? undefined : body instanceof FormData ? body : JSON.stringify(body) });
+  recordSessionResponse(path,response,payload,kind,epoch);
   if (!response.ok) {
     if (retry && payload.code === 'CSRF_INVALID') {
       await csrf(kind, true);

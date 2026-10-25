@@ -60,6 +60,7 @@ class Kernel
                 $this->authorization->require($actor, $route->module, $route->action);
             }
             $response = ($route->handler)($context);
+            $response = $this->withSessionTiming($response, $context);
 
             return $anonymous->newCookie ? $response->withCookie($this->csrf->cookie($anonymous, $route->kind)) : $response;
         } catch (ApplicationError $error) {
@@ -70,12 +71,29 @@ class Kernel
                 $this->events->auth('access-denied', false, $error->errorCode, $context->kind, $context->identity?->owner, '', $context->client);
             }
 
-            return self::error($error);
+            return $this->withSessionTiming(self::error($error), $context);
         } catch (Throwable $error) {
             error_log('request=' . $request->requestId . ' exception=' . $error::class);
 
             return self::error(new ApplicationError('INTERNAL_ERROR', '系統暫時無法完成操作，請稍後再試。'));
         }
+    }
+
+    /** [S G34／B15；E-29] 依真正驗證的 session 回傳期限，不能由瀏覽器宣告延長。 */
+    private function withSessionTiming(Response $response, ?ApiContext $context): Response
+    {
+        if ($context?->identity === null || $response->status === 401) {
+            return $response;
+        }
+        $timing = $context->identity->timing;
+
+        return $response->withHeaders([
+            'X-Session-Kind' => $context->kind->value,
+            'X-Session-Owner' => $context->identity->owner->id,
+            'X-Session-Server-Time' => (string) $timing->serverTime,
+            'X-Session-Expires-At' => (string) $timing->expiresAt,
+            'X-Session-Idle-Expires-At' => (string) $timing->idleExpiresAt,
+        ]);
     }
 
     public static function error(ApplicationError $error): Response

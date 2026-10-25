@@ -29,7 +29,8 @@ export function formErrors(form, error) {
   let first;
   for (const [name, message] of Object.entries(error.fieldErrors || {})) {
     // [U-09／E-20] 複合表單（例如整週營業時間）也須顯示具體錯誤並可取得焦點。
-    const input = [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) || form.elements.namedItem(name);
+    // [S：G34；E-29] 地圖解析等獨立欄位群組亦可共用，不清除其他表單區塊的錯誤。
+    const input = [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) || form.elements?.namedItem(name);
     if (!(input instanceof HTMLElement)) continue;
     input.setAttribute('aria-invalid', 'true');
     const hint = element('span', { className: 'field-error', id: `${input.id}-error` }, message);

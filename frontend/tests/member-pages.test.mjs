@@ -29,7 +29,7 @@ async function fixture(page,search=''){
   const api={favorites:async()=>({items:[],nextCursor:null}),itinerary:async()=>{data.reads++;return {itinerary:data.trip,nextCursor:null};},addStop:async(id,version)=>{data.writes.push({id,version});return {version:version+1};},removeStop:async(id,version)=>{data.writes.push({id,version});return {version:version+1};}};
   const document={hidden:false,querySelector:node,addEventListener:(name,fn)=>docEvents.set(name,fn)};
   const sandbox={document,URLSearchParams,CurrentTripState,memberResourcesApi:api,readMember:async()=>data.member,requireSession:async()=>data.member,
-    location:{search,replace:url=>data.replacements.push(url)},loginLocation:()=>'/login.html',
+    location:{search,replace:url=>data.replacements.push(url)},loginLocation:()=>'/login.html',handleSessionExpiry:()=>data.replacements.push('/login.html'),
     window:{addEventListener:(name,fn)=>windowEvents.set(name,fn)},clearMemberIntent:()=>{data.intentCleared=true;},resolvePublicAttraction:async()=>({id:'place-a',name:'公開地點'}),
     element:(tag,attrs={},text)=>{const n=new Node(tag);Object.assign(n,attrs);n.textContent=text;return n;},status:(n,text,error)=>{n.textContent=text;n.error=error;},
     memberItineraryStop:item=>Object.assign(new Node(),{item}),placeCard:item=>Object.assign(new Node(),{item}),attractionCardData:item=>item,mountMemberActions:async()=>{}};

@@ -39,11 +39,14 @@ test('真正產生首頁、片單及詳情：無 JS 可讀、安全編碼、下�
     const home=await readFile(join(directory,'current/index.html'),'utf8');
     assert.match(home,/電影 \$&amp;/);assert.match(home,/12.28 — 01.03/);
     const cinema=await readFile(join(directory,'current/cinema.html'),'utf8');
+    assert.match(cinema, /id="film-period"><bdi lang="en">THIS WEEK<\/bdi> · 12\.28 — 01\.03<\/p>/);
+    assert.doesNotMatch(cinema, /10\.10—10\.16/);
     assert.equal((cinema.match(/class="cinema-row/g)||[]).length,2);
     assert.match(cinema,/data-managed-films="true"/);
     assert.equal(publish('b',[]).status,0);
     await assert.rejects(readFile(join(directory,'current/films/film-test.html'),'utf8'),{code:'ENOENT'});
     assert.match(await readFile(join(directory,'current/cinema.html'),'utf8'),/目前沒有/);
+    assert.match(await readFile(join(directory,'current/cinema.html'),'utf8'), /id="film-period"><bdi lang="en">THIS WEEK<\/bdi> · 12\.28 — 01\.03<\/p>/);
   } finally {await rm(directory,{recursive:true,force:true});}
 });
 

@@ -26,6 +26,12 @@ readonly class Response
         return new self($this->status, $this->payload, [...$this->cookies, $cookie], $this->headers, $this->afterSend);
     }
 
+    /** @param array<string,string> $headers */
+    public function withHeaders(array $headers): self
+    {
+        return new self($this->status, $this->payload, $this->cookies, [...$this->headers, ...$headers], $this->afterSend);
+    }
+
     public function emit(string $requestId, bool $head = false): void
     {
         http_response_code($this->status);

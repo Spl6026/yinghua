@@ -1,5 +1,11 @@
 # Git 階段分支與功能提交
 
+2026-10-26 01:20：400% 的補驗紀錄併回相同階段八驗證提交，改寫前備份 `artifacts/p0-a11y-20261025-211402/zoom-reader/history-before-400-amend.bundle`。本輪無新應用進度，保留 parent 343bd7e、原始交付與 main／origin/main；實際讀屏未完成，不提前合併或標 P1 已開始。
+
+2026-10-25 22:02：實際 200% 與 NVDA 授權逾時的補驗紀錄仍併回階段八最新驗證提交；改寫前備份為 `artifacts/p0-a11y-20261025-211402/zoom-reader/history-before-zoom-amend.bundle`。無新應用進度、不改 main／原始交付／343bd7e parent；完整 400%／讀屏狀態保留未完成。
+
+2026-10-25 21:40：本輪補驗的封面重排／圖片遮罩修正及驗收指南併回最新 P0 驗證提交，未另列自身修正進度。改寫前已建立並 verify `artifacts/p0-a11y-20261025-211402/history-before-a11y-amend.bundle`；只 amend 該階段分支尾端，保留 parent `343bd7e` 與原始交付，核對 staged tree、原始 69 檔、main／origin/main 不變。未合併 main 或推送遠端；實際縮放／讀屏未完成的狀態繼續保留。
+
 2026-10-24 階段八細節計畫作為main的純工程文件提交，見 [PHASE-8-PLAN.md](PHASE-8-PLAN.md)。後續取得實作授權後，才從當時最新main建立階段分支；不把規劃當作階段八實作或P0驗收完成。
 
 2026-10-24 階段七依授權從最新 main 建立 phase/07-seo-settings-head，按7A資料層、7B管理設定、7C同版公開head、7D政策頁、7E整合驗收五筆交付。自身修正歸回對應功能；合併前備份歷史與核對完整 tree／原始69檔，--no-ff 合併並保留分支，不推送遠端。階段八尚未建立。
@@ -136,6 +142,8 @@
 收整前備份並驗證 `artifacts/phase6-before-browser-fold-20261024.bundle`，只重建本階段未分享提交，不改較早階段、第一提交或遠端 refs。完整最終 tree 核對後，再備份 `artifacts/phase6-before-merge-20261024.bundle` 並以 --no-ff 合併，保留階段分支。防毒隔離檔保持原工作樹差異，不還原或納入提交；原始 69 檔、migration 舊檔及 .env 忽略狀態須再次核對，不推送遠端。
 
 ## 階段八歷史與發布來源
+
+2026-10-25：最新完整驗收發現的三類前端自身差項及其回歸／閱讀指南，歸入本輪完整驗收提交，不另留修錯進度。修改前以 `artifacts/p0-ui-fixes-20261025-195151/history-before-acceptance-amend.bundle` 備份並 verify；只修整最後一筆尚未封入映像的驗收提交，保留其父 `343bd7e` 與更早 `262201d`，兩者均是已驗映像來源。原始第一提交、main／遠端、舊 migration 及防毒隔離差異保持，未 merge main。
 
 2026-10-24：8A CSRF診斷、8B health與連線故障、8C發布版／TLS、8D復原、手機選單焦點及整合驗收按可獨立驗證功能提交。自身修正已折回所屬功能，修改歷史前保留並驗證 artifacts/phase8-before-fold-20261024.bundle、phase8-before-security-fold-20261024.bundle、phase8-before-availability-fold-20261024.bundle。
 

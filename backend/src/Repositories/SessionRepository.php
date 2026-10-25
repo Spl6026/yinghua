@@ -8,6 +8,7 @@ use Yinghua\Config;
 use Yinghua\Contracts\Clock;
 use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\SessionIdentity;
+use Yinghua\DTO\SessionTiming;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Support\Secrets;
@@ -35,7 +36,7 @@ class SessionRepository
             return null;
         }
         $row = $this->database->row(
-            'SELECT id,preview_admin_id,' . $kind->foreignKey() . ' AS owner FROM sessions WHERE token_hash=:token AND '
+            'SELECT id,preview_admin_id,UNIX_TIMESTAMP(expires_at) AS absolute_expiry,' . $kind->foreignKey() . ' AS owner FROM sessions WHERE token_hash=:token AND '
             . $kind->foreignKey() . ' IS NOT NULL AND revoked_at IS NULL AND expires_at>:now AND idle_expires_at>:idle' . ($lock ? ' FOR UPDATE' : ''),
             ['token' => hash('sha256', $token), 'now' => gmdate('Y-m-d H:i:s', $this->clock->now()), 'idle' => gmdate('Y-m-d H:i:s', $this->clock->now())],
         );
@@ -43,13 +44,19 @@ class SessionRepository
             return null;
         }
         $record = new Row($row);
+        $now = $this->clock->now();
+        $idleExpiry = min($record->integer('absolute_expiry'), $now + $this->config->integer('AUTH_IDLE_SECONDS', 1800));
         $this->database->execute(
             'UPDATE sessions SET last_seen_at=:now,idle_expires_at=LEAST(expires_at,:idle) WHERE id=:id AND revoked_at IS NULL',
-            ['id' => $record->string('id'), 'now' => gmdate('Y-m-d H:i:s', $this->clock->now()),
-                'idle' => gmdate('Y-m-d H:i:s', $this->clock->now() + $this->config->integer('AUTH_IDLE_SECONDS', 1800))],
+            ['id' => $record->string('id'), 'now' => gmdate('Y-m-d H:i:s', $now), 'idle' => gmdate('Y-m-d H:i:s', $idleExpiry)],
         );
 
-        return new SessionIdentity($record->string('id'), $record->string('owner'), $record->nullableString('preview_admin_id'));
+        return new SessionIdentity(
+            $record->string('id'),
+            $record->string('owner'),
+            $record->nullableString('preview_admin_id'),
+            new SessionTiming($now, $record->integer('absolute_expiry'), $idleExpiry),
+        );
     }
 
     /** [U-06／E-16] 在鎖定交易內更新同一 session，輪替 token，不延長最長登入期限。 */

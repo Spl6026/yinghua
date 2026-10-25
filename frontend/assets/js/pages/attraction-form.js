@@ -17,12 +17,17 @@ export async function initializeAttractionForm(identity, page) {
   if (!hasPermission(identity, 'attractions', 'view')) {
     const cancel = document.querySelector('#place-cancel');
     cancel.href = adminDestination(identity); cancel.textContent = '返回可用功能';
+    const back = document.querySelector('.admin-preview');
+    back.href = cancel.href; back.textContent = cancel.textContent;
   }
   let id = creating ? null : new URLSearchParams(location.search).get('id');
   let version, loaded = creating, busy = false, dirty = false, generation = 0, completed = false;
   const preview = document.querySelector('#place-photo-preview');
   const mediaMessage = document.querySelector('#media-status');
   const mapMessage = document.querySelector('#map-status');
+  const mapField = document.querySelector('#map-url-field');
+  // 查詢網址與景點保存的 mapUrl 分開，不能把保存錯誤指向查詢欄。
+  const mapErrors = error => formErrors(mapField, { fieldErrors: error.fieldErrors?.mapUrl ? { mapLookupUrl: error.fieldErrors.mapUrl } : {} });
   const openingEditor = openingHoursEditor(document.querySelector('#opening-hours-editor'));
   const reference = document.querySelector('#google-place-reference');
   const linkContainer = document.querySelector('#google-place-link');
@@ -100,8 +105,13 @@ export async function initializeAttractionForm(identity, page) {
   });
   document.querySelector('#parse-place-url').addEventListener('click', async () => {
     if (!available()) return;
+    formErrors(mapField, { fieldErrors: {} });
     const mapUrl = document.querySelector('#google-short-url').value.trim();
-    if (!mapUrl) { status(mapMessage, '請先輸入 Google Maps 網址。', true); return; }
+    if (!mapUrl) {
+      const hint = '請先輸入 Google Maps 網址。';
+      status(mapMessage, hint, true); mapErrors({ fieldErrors: { mapUrl: hint } }); return;
+    }
+    let failure;
     busy = true; controls(); status(mapMessage, '解析地圖資料中…');
     const candidates = document.querySelector('#map-candidates'); candidates.replaceChildren();
     try {
@@ -121,8 +131,12 @@ export async function initializeAttractionForm(identity, page) {
         });
         card.append(button);candidates.append(card);
       }
-    } catch (error) { handleAdminError(error, mapMessage); }
-    finally { busy = false; controls(); }
+    } catch (error) { failure = error; handleAdminError(error, mapMessage); }
+    finally {
+      busy = false; controls();
+      // [S：E34/G34；E-29] 還原可操作狀態後再聚焦，API 原因以純文字關聯解析欄。
+      if (failure) mapErrors(failure);
+    }
   });
   document.querySelector('#retry-place-publication').addEventListener('click', async () => {
     if (busy || !writeAllowed()) return;

@@ -40,16 +40,16 @@ class Authentication
     {
         $session = $this->sessions->find($kind, $token);
         $account = $session === null ? null : $this->accounts->find($kind, $session->ownerId);
-        if ($account === null || !$account->isActive()) {
+        if ($session === null || $account === null || !$account->isActive()) {
             throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
         }
 
-        if ($session?->previewAdminId !== null && ($kind !== IdentityKind::Admin || !$account->isRoot)) {
+        if ($session->previewAdminId !== null && ($kind !== IdentityKind::Admin || !$account->isRoot)) {
             throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
         }
-        $preview = $session?->previewAdminId === null ? null : $this->accounts->find(IdentityKind::Admin, $session->previewAdminId);
+        $preview = $session->previewAdminId === null ? null : $this->accounts->find(IdentityKind::Admin, $session->previewAdminId);
 
-        return new AuthenticatedIdentity($account, $preview, $session?->previewAdminId);
+        return new AuthenticatedIdentity($account, $preview, $session->previewAdminId, $session->timing);
     }
 
     public function login(IdentityKind $kind, LoginInput $input, ClientContext $client, string $previousToken = ''): AuthGrant

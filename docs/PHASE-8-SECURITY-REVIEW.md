@@ -1,5 +1,23 @@
 # 階段八安全審查與映像風險
 
+2026-10-26 到期提示修正已依 security-audit 審查：期限標頭不含憑證，閒置／絕對上限及伺服器授權不變；只在使用者明確操作時延長，重新登入仍用既有密碼／CSRF／限流／撤銷流程。51 項真實隔離 HTTP／MariaDB 測試涵蓋兩種身分各 11 次延長、到期拒絕、舊 token 撤銷、CSRF、越權與停用；公開索引只讀同版白名單快照並轉義，沒有新依賴、API、資料表或主庫發布指令。完整上游映像／正式環境差項沿用，不冒稱本輪重掃。見 [修正紀錄](P0-AA-REPAIRS-20261026.md)。
+
+2026-10-25 21:40：U-18 指定既有 server 為交付目標；下方 Docker CVE 屬環境交接資料，不作本次網站功能驗收的阻擋條件，亦非已修復／全部誤報。本輪僅 CSS 遮罩／重排，無 PHP／授權／session／DDL 變更，沒有重掃映像或降低安全控制；[介面補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2140-網站介面補驗) 如實記錄其餘驗證及限制。
+
+2026-10-25 20:15 前端修正：解析錯誤經現有 element／textContent 顯示，獨立查詢欄不混入保存 DTO；返回 URL／文字來自固定建置路由表，create-only 去向沿既有授權資訊，沒有變動 PHP／API／session 政策。152 項 Node 回歸與真非法域名拒絕／Google 重試完成。本輪未重掃映像、未手動主環境 content:publish；原有 CVE／人工 AA／正式門檻仍保留，見 [修正追記](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2015-修正後結果)。
+
+## 2026-10-25 15:21 完整驗證輪
+
+來源 `343bd7e`，範圍見 [完整驗證](P0-COMPLETE-VERIFICATION-20261025.md#安全及尚未完成的驗收)。本輪真 DB／HTTP 授權、CSRF、session、媒體／SSRF／XSS、發布故障及 TLS／還原／回退重跑；沒有降低安全設定或改動應用。
+
+- Semgrep 1.182.0／同官方規則 commit：300 檔、256 執行規則、121 命中；78 邊界核對、18 heuristic 不符、21 相容性選擇、1 工程選擇、3 強化待辦。**publish.mjs:115 有 1 個 PartialParsing warning**；Node 執行與人工 escaping 核對不等於 scanner 完整覆蓋，未 suppress。
+- Gitleaks 8.30.1：全可達 refs、離線遮蔽 18 命中／8 個唯一 skill 教學位置，與前輪 rule／file／line 集合相同；未對外驗 key，不保證全無秘密。Composer 應用 audit 無已知公告／abandoned。
+- 新建 app `302d8e34…`：77 HIGH／3 CRITICAL；web `361f11ac…`：0／0；同 DB `5d313c7a…`：25 HIGH／1 CRITICAL；秘密命中均 0。保留 exit 1，DB 26 個 Go metadata 修補不代表官方 gosu 已更新。下方 vendor 分析仍為待處理，非全部誤報／安全通過；Debian SQLite／libxml2／zlib 狀態本輪再查官方 tracker。
+- Google 網址錯誤未關聯輸入欄，非法網域本身仍由服務端拒絕；另有 AA 對比差項，見 V-01／V-03。
+- SEO 兩表逐列還原、隔離 root 原摘要復原並撤銷 UI session、具名帳號停用及內容／媒體清理；三個自有 production projects／volumes 清理，主庫及其他服務保持。正式安全門檻、root master／pipeline 強化與完整人工 AA 保留。
+
+下方較早日期數值與「未重掃」為各輪歷史，不代表本輪未執行。
+
 ## 2026-10-25 後續修正審查
 
 公開列表 context 只含已發布的目前主題 SEO／公開媒體白名單，JSON 編碼 `<`／`>`／`&`，head 更新使用文字與屬性；沒有新增 HTML 注入或外部設定請求。PublicationPending 僅將固定原因／區塊名稱及已驗格式 hash 寫入日誌，API／gate 在邊界加 requestId；錯誤 body 不帶診斷。真 DB／HTTP 8 項驗對應與內容不外洩、7 項驗 alias 順序不誤判而真下架仍拒舊；相關發布失敗／契約回歸通過，見 [修正紀錄](P0-IMPROVEMENTS-20261025.md)。本輪未新增授權、降低 gate、改密碼政策或使用正式帳號；具名測試設定已復原。沒有修改映像／依賴或重跑 scanner，因此下方上游 CVE 與正式門檻保持待處理。

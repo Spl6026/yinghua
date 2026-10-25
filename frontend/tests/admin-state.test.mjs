@@ -67,6 +67,7 @@ function fixture(module, identity = {}, creating = false) {
   const state = { confirmation: true, confirmations: [], getCalls: 0, reads: [], saves: [], replacements: [], assignments: [], windowEvents: new Map(), timers: [], get: null, read: null, write: null };
   const sandbox = {
     URLSearchParams, HTMLElement: DomNode,
+    recoverSession(kind) { state.recoveredKind=kind;return Boolean(state.recoverable); },
     window: { setTimeout(callback) { state.timers.push(callback); }, addEventListener(type, callback) { state.windowEvents.set(type, callback); } },
     document: { createElement: tag => new DomNode(tag), querySelector: selector => nodes.get(selector) || null },
     location: { search: '?id=a', pathname: '/admin/example.html', replace(path) { state.replacements.push(path); }, assign(path) { state.assignments.push(path); } },
@@ -145,6 +146,15 @@ test('管理員唯讀模擬重新載入後仍禁止修改和送出', async () =>
 test('管理員儲存遇到401使用後台登入導向', async () => {
   const f = fixture('admins'); await f.initialize(); f.state.write = async () => { throw Object.assign(new Error('請先登入'), { status: 401 }); };
   f.form.emit('submit'); await settle(); assert.match(f.state.replacements[0], /^\/admin\/login\.html\?returnTo=/);
+});
+
+test('已登入管理員逾時會保留編輯內容，恢復後不自動重送', async () => {
+  const f=fixture('admins');await f.initialize();f.state.recoverable=true;
+  f.form.elements.displayName.value='尚未儲存的名稱';
+  f.state.write=async()=>{throw Object.assign(new Error('登入已到期'),{status:401});};
+  f.form.emit('submit');await settle();
+  assert.equal(f.state.recoveredKind,'admin');assert.equal(f.state.replacements.length,0);
+  assert.equal(f.form.elements.displayName.value,'尚未儲存的名稱');assert.equal(f.state.saves.length,1);
 });
 test('管理員儲存期間重新載入不能開啟第二次送出', async () => {
   const f = fixture('admins'); await f.initialize(); const pending = deferred(); f.state.write = () => pending.promise;
