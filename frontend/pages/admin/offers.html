@@ -1,24 +1,4 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<meta name="referrer" content="no-referrer">
-<title>店家優惠｜映畫竹塹後台</title>
-<link rel="icon" href="/assets/favicon.svg">
-<link rel="stylesheet" href="/assets/css/style.css">
-<link rel="stylesheet" href="/assets/css/phase2.css">
-</head>
-<body data-module="offers" data-action="view" data-page="offers">
-<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
-<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / OFFERS</p><h1>店家優惠</h1><p>此功能將於後續階段提供。</p></div></div>
-<section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
-</section>
-</div>
-</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
-<script type="module" src="/assets/js/admin.js"></script></body>
-</html>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>店家優惠｜映畫竹塹後台</title><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/assets/css/style.css"><link rel="stylesheet" href="/assets/css/phase2.css"><link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/phase9.css"></head><body data-module="offers" data-action="view" data-page="offers"><a class="skip-link" href="#main-content">跳到主要內容</a><main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT / OFFERS</p><h1>店家優惠</h1><p>管理店家優惠，發布後同步前台；優惠與消息資料獨立。</p></div><a id="new-content" class="button button-dark" href="/admin/offer-add.html">新增店家優惠 ↗</a></div><section class="admin-panel"><div class="admin-toolbar"><div class="admin-field"><label for="content-query">搜尋標題／優惠／店家</label><input id="content-query" name="query" type="search"></div>
+<div class="admin-field"><label for="content-filter-status">發布狀態</label><select id="content-filter-status" name="filter-status"><option value="">全部</option><option value="published">發布／排程</option><option value="draft">草稿</option><option value="archived">下架</option></select></div>
+<div class="admin-field"><label for="content-filter-active">優惠有效狀態</label><select id="content-filter-active" name="filter-active"><option value="">全部</option><option value="true">有效</option><option value="false">尚未開始／過期／未上架</option></select></div>
+<button type="button" id="reload-content" class="button button-outline">重新載入</button></div><p id="content-list-status" class="form-status" role="status" tabindex="-1"></p><div class="table-scroll"><table class="admin-table"><caption class="visually-hidden">店家優惠管理清單</caption><thead><tr><th scope="col">標題</th><th scope="col">店家</th><th scope="col">發布時間</th><th scope="col">狀態／期間</th><th scope="col">操作</th></tr></thead><tbody id="content-rows"></tbody></table></div><nav class="pagination" aria-label="管理清單分頁"><button id="content-previous" type="button" class="button button-outline">上一頁</button><span id="content-page"></span><button id="content-next" type="button" class="button button-outline">下一頁</button></nav></section></div></div></div></main>{{DIALOG}}<div class="toast" id="toast" role="status" aria-live="polite"></div><script type="module" src="/assets/js/admin.js"></script></body></html>

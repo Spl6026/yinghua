@@ -25,6 +25,7 @@ export async function initializeContentForm(identity,module,page) {
     for(const node of form.querySelectorAll('input,textarea,select,button'))node.disabled=!available();
     document.querySelector('#reload-content-form').disabled=busy||completed;
     form.elements.coverAlt.required=Boolean(form.elements.coverUrl.value.trim()||form.elements.coverMediaId.value||form.elements.image.files.length);
+    merchants?.refresh();
   }
   const setBusy=value=>{busy=value;controls();};
   const changed=()=>{dirty=true;controls();};

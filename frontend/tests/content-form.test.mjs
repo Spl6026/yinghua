@@ -30,12 +30,12 @@ function fixture({creating=false,preview=false,view=true,edit=true,module='news'
   document:{querySelector:id=>node(id),createElement:tag=>new Node(tag)},
   location:{search:'?id=a',protocol:'http:',assign:url=>state.assignments.push(url)},window:{addEventListener(){},setTimeout(){}},
   confirmAction:async()=>state.confirm,contentAdminApi:()=>api,
-  initializeContentBodyEditor:()=>({render(){}}),offerMerchants:()=>({load:async()=>{},select:async()=>{}})};
+  initializeContentBodyEditor:()=>({render(){}}),offerMerchants:()=>({load:async()=>{},select:async()=>{},refresh(){}})};
  vm.createContext(sandbox);source.forEach(s=>vm.runInContext(s,sandbox));
  const identity={preview:{active:preview},permissions:['create',...(view?['view']:[]),...(edit?['edit']:[])].map(action=>({module,action,allowed:true}))};
  return{form,save,message,state,node,initialize:()=>sandbox.initializeContentForm(identity,module,(module==='news'?'news':'offer')+(creating?'-add':'-edit'))};
 }
-for(const module of ['news']){
+for(const module of ['news','offers']){
  test(module+'：202已保存禁止重複新增，只具新增權限不返回自己',async()=>{
   const f=fixture({module,creating:true,view:false,edit:false});await f.initialize();f.state.write=async()=>({record:{id:'new',version:1},publication:{status:'failed',message:'已保存，同步失敗'}});
   f.form.emit('submit');await settle();f.form.emit('submit');await settle();assert.equal(f.state.saves.length,1);assert.equal(f.save.disabled,true);assert.equal(f.node('#content-cancel').href,'/index.html');assert.equal(f.state.assignments.length,0);

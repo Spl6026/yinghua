@@ -28,6 +28,8 @@ const routes = [];
 const adminBackLinks = {
   'admin/news-add.html': ['/admin/news.html', '← 返回消息與活動'],
   'admin/news-edit.html': ['/admin/news.html', '← 返回消息與活動'],
+  'admin/offer-add.html': ['/admin/offers.html', '← 返回店家優惠'],
+  'admin/offer-edit.html': ['/admin/offers.html', '← 返回店家優惠'],
   'admin/place-add.html': ['/admin/places.html', '← 返回景點與店家'],
   'admin/place-edit.html': ['/admin/places.html', '← 返回景點與店家'],
   'admin/film-add.html': ['/admin/films.html', '← 返回本週映演'],

@@ -131,6 +131,19 @@ readonly class Composition
         $newsRoutes = require dirname(__DIR__) . '/config/news-admin-routes.php';
         $newsRoutes($router, new \Yinghua\Controllers\AdminNewsController(new \Yinghua\Services\AdminNewsManagement($newsRecords, $newsEditor, $authorization, $transactions, $publication, $events, $clock)));
 
+        // [S G23；E-31] 優惠與共享店家分開動作；靜態merchants路由先註冊。
+        $offerRecords = new \Yinghua\Repositories\OfferRepository($database);
+        $merchantRecords = new \Yinghua\Repositories\MerchantRepository($database);
+        $offerEditor = new \Yinghua\Services\OfferManagement($offerRecords, $merchantRecords, $contentMedia, $authorization, $events, $contentCover, $clock);
+        $merchantEditor = new \Yinghua\Services\MerchantManagement($merchantRecords, $authorization, $events);
+        /** @var Closure(Router,\Yinghua\Controllers\AdminOfferController,\Yinghua\Controllers\OfferMerchantController):void $offerRoutes */
+        $offerRoutes = require dirname(__DIR__) . '/config/offer-admin-routes.php';
+        $offerRoutes(
+            $router,
+            new \Yinghua\Controllers\AdminOfferController(new \Yinghua\Services\AdminOfferManagement($offerRecords, $offerEditor, $authorization, $transactions, $publication, $events, $clock)),
+            new \Yinghua\Controllers\OfferMerchantController(new \Yinghua\Services\OfferMerchants($merchantRecords, $merchantEditor, $authorization, $transactions, $publication)),
+        );
+
         $memberAccess = new \Yinghua\Services\MemberAccess($accounts);
         $memberAttractions = new \Yinghua\Services\MemberAttractions($publication, new AttractionRepository($database), $clock);
         $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(new \Yinghua\Repositories\FavoriteRepository($database), $memberAccess, $memberAttractions, $transactions));

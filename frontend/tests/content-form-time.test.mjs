@@ -10,7 +10,7 @@ test('台北編輯時間可跨UTC日期往返，空日期保持選填',()=>{
 });
 
 test('編輯表單接受伺服器發布時間的秒數，不被原生分鐘步進擋送',async()=>{
-  for(const page of ['news-add','news-edit']){
+  for(const page of ['news-add','news-edit','offer-add','offer-edit']){
     const html=await readFile(new URL(`../pages/admin/${page}.html`,import.meta.url),'utf8');
     const dates=html.match(/<input\b[^>]*type="datetime-local"[^>]*>/g)||[];
     assert.ok(dates.length>0);

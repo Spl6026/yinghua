@@ -13,6 +13,7 @@ parameters:
         - config/member-routes.php
         - config/seo-routes.php
         - config/news-admin-routes.php
+        - config/offer-admin-routes.php
         - tests/ArchitectureTest.php
     tmpDir: .build/phpstan
     treatPhpDocTypesAsCertain: false
