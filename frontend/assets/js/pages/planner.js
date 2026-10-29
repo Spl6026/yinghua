@@ -1,7 +1,7 @@
 import { memberResourcesApi } from '../api/member-resources-api.js';
 import { CurrentTripState } from '../core/current-trip-state.js';
 import { readMember, resolvePublicAttraction, clearMemberIntent } from '../core/member-actions.js';
-import { loginLocation } from '../core/session.js';
+import { handleSessionExpiry } from '../core/session.js';
 import { element, status } from '../core/ui.js';
 import { memberItineraryStop } from '../components/member-itinerary.js';
 
@@ -37,7 +37,7 @@ async function load(append = false, saved = false) {
     if (await task) { render(); status(message, saved ? '變更已保存。' : `已載入 ${trip.items.length} 個地點。`); }
   } catch (error) {
     render();
-    if (error.status === 401) location.replace(loginLocation('member'));
+    if (error.status === 401) handleSessionExpiry('member');
     else status(message, saved ? '資料已保存，但畫面讀取失敗。請按「重新載入行程」。' : error.message, true);
   } finally { controls(); }
 }
@@ -51,7 +51,7 @@ async function change(id, remove = false) {
     await load(false, true); message.focus();
   } catch (error) {
     if (!trip.loaded) render();
-    if (error.status === 401) location.replace(loginLocation('member'));
+    if (error.status === 401) handleSessionExpiry('member');
     else status(message, error.message, true);
     message.focus();
   } finally { controls(); }

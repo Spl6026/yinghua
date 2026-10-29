@@ -3,7 +3,18 @@ export function confirmAction(title, message, trigger = document.activeElement) 
   document.querySelector('#confirm-title').textContent = title;
   document.querySelector('#confirm-message').textContent = message;
   return new Promise(resolve => {
+    // [S G34／串接總覽 B15；E-29] 明確循環兩端，避免原生 Tab 導航移到瀏覽器工具列。
+    const cycleFocus = event => {
+      if (event.key !== 'Tab') return;
+      const buttons = [...dialog.querySelectorAll('button:not([disabled])')];
+      const first = buttons[0], last = buttons.at(-1);
+      const target = event.shiftKey && document.activeElement === first ? last
+        : !event.shiftKey && document.activeElement === last ? first : null;
+      if (target) { event.preventDefault(); target.focus(); }
+    };
+    dialog.addEventListener('keydown', cycleFocus);
     dialog.addEventListener('close', () => {
+      dialog.removeEventListener('keydown', cycleFocus);
       resolve(dialog.returnValue === 'confirm');
       trigger?.focus();
     }, { once: true });

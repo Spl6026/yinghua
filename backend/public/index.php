@@ -14,7 +14,11 @@ $requestId = bin2hex(random_bytes(16));
 try {
     $request = Request::capture();
     $requestId = $request->requestId;
-    (new Composition(new Config()))->kernel()->handle($request)->emit($requestId, $request->method === 'HEAD');
+    $composition = new Composition(new Config());
+    $response = $request->path === Composition::HEALTH_PATH
+        ? $composition->health()->handle($request)
+        : $composition->kernel()->handle($request);
+    $response->emit($requestId, $request->method === 'HEAD');
 } catch (ApplicationError $error) {
     Kernel::error($error)->emit($requestId);
 } catch (Throwable $error) {

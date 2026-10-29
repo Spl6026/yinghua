@@ -1,0 +1,125 @@
+# [E-29] 獨立正式檔，禁止與 compose.yaml 疊加；不含測試服務或開發來源掛載。
+name: ${PRODUCTION_PROJECT:?Set a distinct production project}
+
+x-runtime: &runtime
+  dns_opt: ["timeout:1", "attempts:1", "ndots:0"]
+  image: ${RELEASE_APP_IMAGE:?Use an immutable release image}
+  build: &release-build
+    context: .
+    dockerfile: docker/php/Dockerfile
+    target: release
+    args:
+      APP_VERSION: ${APP_VERSION:?Set a public release label}
+      VCS_REF: ${RELEASE_COMMIT:?Set the full source commit}
+      APP_URL: ${APP_URL:?Set the HTTPS origin}
+      TERMS_VERSION: ${TERMS_VERSION:?Set the reviewed policy version}
+  environment: &environment
+    APP_ENV: production
+    APP_VERSION: ${APP_VERSION:?Set release label}
+    APP_URL: ${APP_URL:?Set HTTPS origin}
+    APP_KEY: ${APP_KEY:?Set a persistent secret}
+    SESSION_SECURE: "true"
+    DB_HOST: db
+    DB_PORT: "3306"
+    DB_DATABASE: ${DB_DATABASE:?Set database}
+    DB_USERNAME: ${DB_USERNAME:-spl}
+    DB_PASSWORD: ${DB_PASSWORD:?Set password}
+    TERMS_VERSION: ${TERMS_VERSION:?Set policy version}
+    SMTP_HOST: ${SMTP_HOST:?Set SMTP host}
+    SMTP_PORT: ${SMTP_PORT:-587}
+    SMTP_ENCRYPTION: ${SMTP_ENCRYPTION:-tls}
+    SMTP_USERNAME: ${SMTP_USERNAME:-}
+    SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+    MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:?Set sender}
+    MAIL_FROM_NAME: ${MAIL_FROM_NAME:-映畫竹塹}
+    GOOGLE_PLACES_API_KEY: ${GOOGLE_PLACES_API_KEY:-}
+    PUBLICATION_PATH: /var/www/publication
+    MEDIA_PATH: /var/www/media
+    FRONTEND_SOURCE_PATH: /var/www/frontend-source
+  volumes:
+    - media:/var/www/media
+    - publication:/var/www/publication
+  depends_on:
+    db:
+      condition: service_healthy
+  restart: unless-stopped
+  logging: &logging
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+services:
+  db:
+    image: mariadb:12.3@sha256:99c125f103f5d081ebbc9ffe064e63daf7f688ac33a5f7f29af2d7260a96debf
+    environment:
+      MARIADB_DATABASE: ${DB_DATABASE:?Set database}
+      MARIADB_USER: ${DB_USERNAME:-spl}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?Set password}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set root password}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+    logging: *logging
+
+  app:
+    <<: *runtime
+    healthcheck:
+      # FPM 存活與核心 readiness 分開，空庫 migration 前仍可運行受控 CLI。
+      test: ["CMD", "php", "-r", "exit(is_resource(@fsockopen('127.0.0.1',9000)) ? 0 : 1);"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  publisher:
+    <<: *runtime
+    user: www-data
+    command: ["php", "bin/console.php", "content:watch"]
+    depends_on:
+      db:
+        condition: service_healthy
+      app:
+        condition: service_healthy
+
+  web:
+    image: ${RELEASE_WEB_IMAGE:?Use a matching immutable web image}
+    build:
+      <<: *release-build
+      target: release-web
+    environment:
+      API_UPSTREAM: app:9000
+      CANONICAL_ORIGIN: ${APP_URL:?Set HTTPS origin}
+      NGINX_ENVSUBST_FILTER: ^(API_UPSTREAM|CANONICAL_ORIGIN)$
+    ports:
+      - "${PRODUCTION_BIND_ADDRESS:-0.0.0.0}:${HTTPS_PORT:-443}:443"
+      - "${PRODUCTION_BIND_ADDRESS:-0.0.0.0}:${HTTP_REDIRECT_PORT:-80}:80"
+    volumes:
+      - type: bind
+        source: ${PRODUCTION_TLS_DIRECTORY:?Set certificate directory}
+        target: /etc/nginx/tls
+        read_only: true
+        bind:
+          create_host_path: false
+      - media:/var/www/media:ro
+      - publication:/var/www/publication:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:8082/_alive"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    depends_on:
+      app:
+        condition: service_healthy
+    restart: unless-stopped
+    logging: *logging
+
+volumes:
+  database:
+  media:
+  publication:

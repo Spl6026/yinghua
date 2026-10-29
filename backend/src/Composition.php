@@ -56,7 +56,19 @@ use Yinghua\Services\MapResolver;
 /** [E-01] 唯一組裝位置；業務類別不查容器，也不自行 new 資料庫／SMTP。 */
 readonly class Composition
 {
+    /** [E-29] 入口與操作清單共用唯一的 eager-DB 前置路徑。 */
+    public const string HEALTH_PATH = '/api/v1/health';
+
     public function __construct(private Config $config) {}
+
+    /** [E-29] health 在任何強制 DB 連線之前組裝，普通 API 的權限管線保持完整。 */
+    public function health(): \Yinghua\Controllers\HealthController
+    {
+        return new \Yinghua\Controllers\HealthController(new \Yinghua\Services\ApplicationHealth(
+            $this->config,
+            new \Yinghua\Adapters\PdoDatabaseHealthProbe($this->config, dirname(__DIR__) . '/database/migrations'),
+        ));
+    }
 
     public function kernel(): Kernel
     {

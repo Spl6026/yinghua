@@ -4,6 +4,7 @@ import { api } from './api-client.js';
 import { element, status, toast } from './ui.js';
 import { MemberResourceState } from './member-resource-state.js';
 import { CurrentTripState } from './current-trip-state.js';
+import { recoverSession } from './session-expiry.js';
 
 // [E-27] 只處理受管景點 UUID；原型陣列索引不直接當正式資料識別。
 export const isAttractionId = id => /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
@@ -35,6 +36,7 @@ function paint() {
 }
 
 export function loginForMemberAction(kind, id) {
+  if(recoverSession('member'))return;
   const target = new URL(location.href);
   if (kind !== 'favorite') { target.pathname = '/planner.html'; target.search = ''; }
   target.searchParams.set(kind === 'favorite' ? 'pendingFavorite' : 'place', id);

@@ -1,0 +1,37 @@
+name: spl-accessibility
+services:
+  desktop:
+    image: spl-accessibility-desktop:local
+    build: .
+    init: true
+    user: "1000:1000"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: 0.75
+    mem_limit: 1024m
+    memswap_limit: 1024m
+    shm_size: 128m
+    pids_limit: 512
+    ports:
+      - "127.0.0.1:6091:6080"
+    tmpfs:
+      - /tmp:uid=1000,gid=1000,mode=1777,size=128m
+      - /run:uid=1000,gid=1000,mode=755,size=32m
+      - /home/spl:uid=1000,gid=1000,mode=700,size=256m
+    volumes:
+      - evidence:/state
+    secrets:
+      - vnc_password
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; from pathlib import Path; assert {'orca','firefox-esr','Xvfb'} <= {p.read_text().strip() for p in Path('/proc').glob('[0-9]*/comm') if ') Z ' not in p.with_name('stat').read_text()}; urllib.request.urlopen('http://127.0.0.1:6080/vnc.html', timeout=2).close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+    restart: "no"
+secrets:
+  vnc_password:
+    file: .env.vnc-password
+volumes:
+  evidence:

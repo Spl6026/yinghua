@@ -10,6 +10,8 @@ import { publishOffers } from './public-offers.mjs';
 import { homeNewsRows } from '../assets/js/core/home-view.js';
 import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
+import { annotateEnglishPassages } from './language-passages.mjs';
+import { renderPublicContentIndex } from './public-content-index.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -63,7 +65,8 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   if (managed && filmEnabled) html = html.replace('</body>', () => `<script type="application/json" id="film-publication">${json({generation:snapshot.generation,total:filmItems.length,period:snapshot.filmPeriod})}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`);
   const target = join(root,path.slice(1));
   await mkdir(dirname(target),{recursive:true});
-  await writeFile(target,html);
+  html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
+  await writeFile(target,annotateEnglishPassages(html));
 }
 
 if (!existing) {
@@ -106,8 +109,14 @@ if (!existing) {
       .replace('映演內容為示意資料，實際場次請以影像博物館公告為準。', '實際放映資訊請以影像博物館最新公告為準。');
     let cinema = await readFile(join(source,'pages/cinema.html'),'utf8');
     cinema = cinema.replace(/(<div class="cinema-list" id="cinema-list">)[\s\S]*?(<\/div>)/, (_,open,close) => open + filmRows(filmItems.slice(0,20)) + close)
-      .replace('THIS WEEK · 10.10—10.16', `THIS WEEK · ${e(weekLabel)}`)
+      // [S E7／L7；E-29] 依穩定欄位更新週期，保留語言標示，不依賴原型純文字。
+      .replace(/(<p\b[^>]*\bid="film-period"[^>]*>)[\s\S]*?(<\/p>)/, (_,open,close) => `${open}<bdi lang="en">THIS WEEK</bdi> · ${e(weekLabel)}${close}`)
       .replace('※ 場次為示意資料', '實際放映資訊請以最新公告為準。');
+    // [S：串接總覽 B7／E6/L6；E-29] 與館舍詳情共用同一快照和週表，不另存開放時間。
+    const visit = museum
+      ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${e(museum.name)}</h2><p>${[museum.address,...openingHoursLines(museum.openingHours,museum.hours)].filter(Boolean).map(text=>e(text).replaceAll('\n','<br>')).join('<br>')}</p></div><a class="text-link" href="/museum.html">查看館舍與交通資訊 <span>↗</span></a></div>`
+      : '<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>博物館參觀資訊</h2><p>目前沒有已發布的博物館介紹。</p></div><a class="text-link" href="/museum.html">查看館舍介紹 <span>↗</span></a></div>';
+    cinema=cinema.replace(/<!-- MUSEUM_VISIT_START -->[\s\S]*?<!-- MUSEUM_VISIT_END -->/,()=>visit);
     await page('/cinema.html',cinema,'本週映演｜映畫竹塹','查看影像博物館本週放映日期、時間、電影介紹與海報。');
     // [U-05] 採原型電影專用頁殼，保留「本週映演」導覽，不沿用城市散策頁。
     const filmTemplate = await readFile(join(source,'pages/films/window-sunday.html'),'utf8');
@@ -125,8 +134,11 @@ if (!existing) {
   if(offersEnabled) await publishOffers(source,snapshot,page);
   if(snapshot.home) home=home.replace('</body>',()=>`<script type="application/json" id="home-publication">${json({...snapshot.home,generation:snapshot.generation})}</script></body>`);
   await page('/index.html',home,'映畫竹塹｜新竹城市影像與旅行指南','從新竹市影像博物館出發，探索城市散策、在地美食與新竹旅行。',featured);
+  const indexTemplate=await readFile(join(source,'pages/site-map.html'),'utf8');
+  await page('/site-map.html',indexTemplate.replace('<div id="public-content-index"></div>',()=>`<div id="public-content-index">${renderPublicContentIndex(snapshot)}</div>`),
+    '網站導覽｜映畫竹塹','依分類瀏覽或按名稱尋找映畫竹塹已發布的景點、電影、活動消息與店家優惠。',undefined,'/site-map.html',false);
   // [E-28] 新增的非內容固定公開頁也進同一 generation；保護頁使用安全靜態 shell。
-  const managedPaths=new Set(['/index.html','/explore.html','/food.html','/museum.html','/cinema.html','/events.html','/activities.html','/city-news.html','/offers.html']);
+  const managedPaths=new Set(['/index.html','/explore.html','/food.html','/museum.html','/cinema.html','/events.html','/activities.html','/city-news.html','/offers.html','/site-map.html']);
   for(const entry of seoCatalog.filter(entry=>!entry.protected&&!entry.template&&!managedPaths.has(entry.path))){
     let html;try{html=await readFile(join(source,'pages',entry.path.slice(1)),'utf8');}catch(error){if(error.code==='ENOENT')continue;throw error;}
     await page(entry.path,html,entry.title,entry.description,undefined,entry.path,false);

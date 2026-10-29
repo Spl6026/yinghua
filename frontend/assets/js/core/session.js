@@ -1,6 +1,7 @@
 import { authApi } from '../api/auth-api.js';
 import { routes } from './routes.js';
 import { element, initializeMenus, toast } from './ui.js';
+import { recoverSession } from './session-expiry.js';
 
 // [E-04] 僅允許已建置的站內頁面；不把 query 直接當 redirect URL。
 export function returnTo(kind, fallback = kind === 'admin' ? '/admin/index.html' : '/index.html') {
@@ -82,7 +83,7 @@ export async function requireSession(kind = 'member', allowChange = false) {
     const identity = await authApi(kind).me();
     return identity;
   } catch (error) {
-    if (error.status === 401) { location.replace(loginLocation(kind)); return null; }
+    if (error.status === 401) { handleSessionExpiry(kind); return null; }
     throw error;
   }
 }
@@ -115,6 +116,10 @@ export async function memberNavigation() {
 }
 
 export function handleAdminError(error, message) {
-  if (error.status === 401) location.replace(loginLocation('admin'));
+  if (error.status === 401) { handleSessionExpiry('admin'); message.textContent='登入已到期，重新登入後請再儲存；未儲存內容仍保留。'; }
   else { message.textContent = error.message; message.dataset.error = 'true'; message.focus(); }
+}
+
+export function handleSessionExpiry(kind) {
+  if(!recoverSession(kind))location.replace(loginLocation(kind));
 }

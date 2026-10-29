@@ -1,5 +1,9 @@
 # 電影與放映場次閱讀指南
 
+2026-10-25 R02 館舍同步（S：串接總覽 B7／功能規格 E6、L6；E-29）：[cinema.html](../../frontend/pages/cinema.html) 的 `MUSEUM_VISIT_START/END` 標記由 [publish.mjs](../../frontend/scripts/publish.mjs) 置換。館名、地址及開放時間取同一 generation 的 `home.museum`／公開館舍，週表使用既有 `openingHoursLines()`，與 museum 詳情同源；下架顯示空態，不回填原型時間。連結導向館舍詳情與交通資訊，保留 `.museum-info` 排版。無 API／資料表新增。
+
+[film-publication.test.mjs](../../frontend/tests/film-publication.test.mjs) 實際產頁測結構週表、第二版地址／舊式時間、下架空態與文字編碼；本輪 Node 150 項通過。Brave 桌機 1440×900／手機 390×844 已確認時間與 museum 相同、連結可達且無頁面橫向溢出。
+
 更新：2026-10-20。階段四 4A–4E 已完成本機實作與驗收：電影資料層、公開發布、電影資訊／海報管理及多場次編輯。最終 PHP 55 項／233 斷言、Node 88 項、20 套真實整合 619 項及 54 個 API 操作契約驗證通過；實際範圍與限制見 [階段四驗收](../PHASE-4-ACCEPTANCE.md)。下方 4A–4D 數字保留各功能當時的驗證紀錄。
 
 2026-10-23 手機複驗補充（U-05／E-25）：`frontend/assets/css/phase4.css` 讓編輯頁標題旁 `#reload-film` 不縮成逐字直排。只補充實際新增的操作按鈕，不修改原型 style.css、欄位限制或 API；390 CSS px 的按鈕單行及頁面無水平溢出已實測。

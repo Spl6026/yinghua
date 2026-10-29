@@ -1,5 +1,9 @@
 # API 與前端分離的架構設計
 
+2026-10-26：依使用者指示修正 AA-01／AA-02，新增登入到期預警／原頁重新驗證與網站導覽（分類及名稱尋找）。修正與實測範圍見 [AA 差項修正](P0-AA-REPAIRS-20261026.md)。72 API／68 固定頁／33 表 316 欄／18 migration；原型與 Excel 不動。新提示的 Windows NVDA 採證未完成：啟動主機讀屏造成干擾，已依使用者反映停止並確認程序結束，後續不再自行啟動主機讀屏；不冒稱完整 AA 已通過。
+
+2026-10-24 階段八新增兩個運維入口：HTTP精確health在一般kernel的eager DB之前組裝，HealthController → ApplicationHealth → DatabaseHealthProbe／PdoDatabaseHealthProbe → HealthReport；一般API授權分層保留。readiness.php／recovery.php是CLI composition，RecoveryRepository管SQL、RecoveryMediaInspector管檔案完整性，PdoTransactions管撤銷交易。Python工具僅部署編排，不新增PHP View或繞過公開發布閘門。檔案導讀見 [運維指南](modules/operations.md)、[部署操作](P0-OPERATIONS.md)。33表／18migration不變，正式app／web／worker封裝同manifest。
+
 2026-10-24 階段七（E-28）：SeoSettingsController → SeoSettings → 三個明確 Repository；DTO／enum／policy 限定文件、目標與 URL。Service 組織版本鎖、設定／覆寫／audit 交易；SeoPublication 將公開覆寫加入 ContentPublication，PublicSiteSettings 從成功快照取白名單。前端 resolver／head 共用 build／publish／預覽規則，Nginx gate 避免混版；管理／認證／私人 shell 固定 noindex 且可獨立修復，政策版本也納入 projection。沒有 PHP View、通用 key-value API、額外 ORM／快取服務；見 [SEO 指南](modules/seo-settings.md)／[本機驗收](PHASE-7-ACCEPTANCE.md)。
 
 設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18；階段四電影／場次：2026-10-20；階段五公開內容／首頁：2026-10-22。

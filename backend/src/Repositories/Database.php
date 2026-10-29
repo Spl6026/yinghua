@@ -6,8 +6,10 @@ namespace Yinghua\Repositories;
 
 use PDO;
 use PDOStatement;
+use PDOException;
 use RuntimeException;
 use Yinghua\Config;
+use Yinghua\Exceptions\ApplicationError;
 
 /** 共用一個 PDO；每個 Repository 的寫入參與同一個交易。 */
 class Database
@@ -20,14 +22,21 @@ class Database
         if (!preg_match('/^[a-zA-Z0-9_]+$/D', $name)) {
             throw new RuntimeException('Invalid database name.');
         }
-        $pdo = new PDO(
-            'mysql:host=' . $config->string('DB_HOST', 'db') . ';port=' . $config->integer('DB_PORT', 3306)
-            . ';dbname=' . $name . ';charset=utf8mb4',
-            $config->string('DB_USERNAME', 'spl'),
-            $config->string('DB_PASSWORD'),
-            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC],
-        );
-        $pdo->exec("SET time_zone = '+00:00'");
+        try {
+            $pdo = new PDO(
+                'mysql:host=' . $config->string('DB_HOST', 'db') . ';port=' . $config->integer('DB_PORT', 3306)
+                . ';dbname=' . $name . ';charset=utf8mb4',
+                $config->string('DB_USERNAME', 'spl'),
+                $config->string('DB_PASSWORD'),
+                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false,
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 2],
+            );
+            $pdo->exec("SET time_zone = '+00:00'");
+        } catch (PDOException $error) {
+            // [E-29] DB 暫停／斷線不讓公開請求等待預設30秒，也不洩漏連線內容。
+            error_log('database_connect_exception=' . $error::class);
+            throw new ApplicationError('SERVICE_UNAVAILABLE', '服務暫時無法使用。');
+        }
 
         return new self($pdo);
     }

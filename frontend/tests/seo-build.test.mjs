@@ -24,6 +24,14 @@ test('實際固定頁建置使用運行 origin，保護頁不依賴發布且不�
       assert.doesNotMatch(html,/\{\{TERMS_VERSION\}\}/);
     }
     const register=await readFile(join(directory,'dist/register.html'),'utf8');
+    for(const [page,href,label]of [
+      ['place-add','places','← 返回景點與店家'],['place-edit','places','← 返回景點與店家'],
+      ['film-add','films','← 返回本週映演'],['film-edit','films','← 返回本週映演']]){
+      const html=await readFile(join(directory,'dist/admin',page+'.html'),'utf8');
+      assert.ok(html.includes(`<a class="admin-preview" href="/admin/${href}.html">${label}</a>`));
+    }
+    const admins=await readFile(join(directory,'dist/admin/admin-add.html'),'utf8');
+    assert.ok(admins.includes('<a class="admin-preview" href="/index.html">查看網站 ↗</a>'));
     assert.match(register,/href="\/terms.html" target="_blank" rel="noopener"/);
     assert.match(register,/href="\/privacy.html" target="_blank" rel="noopener"/);
   }finally{await rm(directory,{recursive:true,force:true});}

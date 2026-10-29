@@ -1,5 +1,55 @@
 # 全站架構與檔案功能導讀
 
+2026-10-29階段九僅規劃：[消息／優惠管理與詳情前後篇計畫](PHASE-9-PLAN.md)已核對Excel及原型；預計復用現有表與Service，補六個後台頁、合作店家必要維護及四類前後篇。17個API／0個新業務表是提案，不列既有成果；目前仍72 API／68固定頁／33表316欄／18 migration，沒有程式、環境或資料變動，未建立階段九分支。總計畫已同步P0最新本機驗收與P1尚未實作狀態。
+
+2026-10-29 AA 最終判定：依 U-20 不以 NVDA 為必要工具；內建 Browser／隔離 Orca 補驗及有效基線逐項覆核後，WCAG 2.1 A／AA 為39通過、10不適用、1已廢止，沒有未處理失敗準則。到期／錯誤摘要焦點、正反向Tab、草稿保留及174項前端回歸通過；[完整50項矩陣與證據界線](P0-AA-FINAL-20261029.md)。不宣稱本輪重跑所有真縮放或取得Orca完整錯誤字句的自動語音；已聚焦的文字錯誤依W3C 3.3.1／4.1.2判定，沒有改寫工具結果。主機讀屏未啟動，測試資料與臨時環境清理；API／DDL不變。這是目前P0工程AA驗收，不是正式server或第三方標章認證；未合併main／未開始P1。下方日期段落保留歷史。
+
+2026-10-29 內建 Browser 補驗完成：40 個原型頁面桌手機成對對照、10 個核心頁面載入後 320px 重排，以及登入、權限、景點／圖片、電影、收藏／行程、SEO、到期草稿與鍵盤操作已實測。修正電影週期沿用範本日期的缺陷，171 項前端回歸通過；[逐項結果、檔案用途與 AA 證據界線](P0-BROWSER-VERIFICATION-20261029.md)。已清理隔離資料並恢復 SEO／TTL；API／資料表不變。新提示的 Windows NVDA 即時完整播報未列通過，完整 AA 及正式 server 簽核不冒稱完成；未合併 main。下方保留歷史結果。
+
+2026-10-29：本輪 P0 背景驗收已完成，PHP 91／前端 171／session 51 項及完整 API／DB 套件通過；原始 69 檔無差異。瀏覽器專用連線不可用，原生控制後又因無法確認 URL 被工具安全機制停止，因此本輪介面與完整 AA 不簽核，不合併 main。具體執行、跨日續驗、工具診斷及清理見 [本輪驗收紀錄](P0-ACCEPTANCE-20261029.md)。沒有應用或資料表變更，仍為 72 API／68 固定頁／33 表 316 欄／18 migration。
+
+2026-10-26：依使用者指示修正 AA-01／AA-02，新增登入到期預警／原頁重新驗證與網站導覽（分類及名稱尋找）。修正與實測範圍見 [AA 差項修正](P0-AA-REPAIRS-20261026.md)。72 API／68 固定頁／33 表 316 欄／18 migration；原型與 Excel 不動。新提示的 Windows NVDA 採證未完成：啟動主機讀屏造成干擾，已依使用者反映停止並確認程序結束，後續不再自行啟動主機讀屏；不冒稱完整 AA 已通過。
+
+2026-10-26 AA 逐項驗收：50 個歷史 A／AA 編號已逐項審查，37 通過、2 不通過、10 不適用、1 已廢止，見 [完整準則表與修正方案](P0-AA-VERIFICATION-20261026.md)。Windows NVDA 2026.2 的完整確認訊息、錯誤、收藏通知與英文切換，以及反向 Tab／模態兩端、16 個受保護頁面的實際 200%／400%、文字間距與直橫向已補驗。新增 `frontend/scripts/language-passages.mjs`，由 build／publish 共用已核對英文標示；`components/dialog.js` 明確循環兩端；phase2.css 補欄位邊界並停止首頁旅行區裝飾。新增兩份功能測試，最終 159 項通過；[元件與檔案說明](modules/frontend-accessibility.md)。仍為 72 API／67 固定頁／33 表 316 欄／18 migration；無 PHP／DDL／環境變數或正式服務變動。登入到期提示／延長及已發布非當週內容的完整尋找途徑未通過，P0 不合併 main／不進 P1。下方保留前輪歷史狀態。
+
+2026-10-26 登入後補驗：會員收藏／目前行程、管理員登入／列表、三種 P0 新增表單及真 API 載入後的權限／SEO 控制項已補驗；確認框標題與刪除說明可手動讀出。`frontend/templates/dialog.html` 新增標準警示角色／modal／說明關聯，仍由原生 dialog 處理開關與取消；[檔案說明](modules/frontend-accessibility.md#2026-10-26-確認框語意補驗)、[逐項結果與保留差項](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-登入後與確認框補驗)。152 前端及 67 頁／81 HTTP 最終通過；API／DB／PHP 架構、72 API／67 頁／33 表 316 欄／18 migration 不變。消息／優惠後台仍為 P1；自動播報／反向 Tab／Windows NVDA／完整 AA 不提前列通過。沒有新增應用環境變數或正式部署服務。
+
+2026-10-26：依 U-19 新增 `tools/accessibility/` 的獨立背景讀屏桌面與採證腳本，檔案用途、Docker／暫存／secret、啟停及 Python 命令見 [隔離讀屏指南](modules/isolated-accessibility.md)。Orca／Firefox 已實測首頁結構、登入必填警示、註冊欄位與未勾選同意框；[具體範圍](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-隔離讀屏補驗) 不等同 Windows NVDA 或完整 AA。網站來源／架構、72 API／67 頁／33 表 316 欄／18 migration 不變；新增工程驗收工具不納入正式網站映像，主站 `.env` 不改。Windows NVDA 停止，測試 fixture 已清理；階段八仍不合併 main／不進 P1。下方日期段落保留當時結果。
+
+2026-10-26 01:20：[實際 400% 補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-0120-實際-400-縮放補驗) 完成 31 公開／認證頁、短視窗選單 Tab／Escape 與表單聚焦，連同前輪 200% 共 64 次主要觀察。原服務停止後已恢復既有容器，資料表／API／架構／程式來源不變；沒有新增套件驗證成果。NVDA 維持停止、實際讀屏仍待工具視窗存取許可；不宣告完整 AA，不合併 main／進 P1。
+
+2026-10-25 22:02：[實際 200% 補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2202-實際-200-縮放補驗) 完成 31 個公開／認證頁的真瀏覽器縮放巡查及表單 Tab 捲動，未改應用檔案／架構／API／資料表。NVDA portable 啟動後因視窗存取授權逾時而未取得讀屏證據，已停止自有程序；400% 尚待使用者調整後量測，不列通過。前輪測試、架構與 Docker 交接範圍保持。
+
+2026-10-25 21:40：依 U-18，既有 server 為交付目標，Docker CVE／主機設定另列部署事項，不阻擋本輪網站功能驗收。[介面補驗](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2140-網站介面補驗) 含 50 頁／78 次觀察、鍵盤與錯誤關聯、12 類圖片文字對比界限；Node 152 項與 67 頁／81 HTTP 通過。style.css 調整圖片漸層／caption，phase2.css 以正常排版避免首頁 CTA 重疊，並以 museum-photo::after 防止發布圖片蓋掉遮罩。無新 API／資料表／migration／環境變數，仍 72 API／67 頁／33 表 316 欄／18 migration；原始 website 不動。實際縮放／讀屏的最新狀態以該節為準，不以工具安裝冒充通過。
+
+2026-10-25 20:15：V-01 文字對比、V-02 四頁返回列表、V-03 Google 解析欄位錯誤已依授權修正，另補 320／390 頂列換行及欄位寬度。117 次觀察、5,105 可計算樣本低對比候選 0，Node 152 項、67 頁／81 HTTP 通過；完整 AA／正式差項仍保留。見 [修正追記](P0-COMPLETE-VERIFICATION-20261025.md#2026-10-25-2015-修正後結果)。自身修正歸入階段八完整驗收提交，不新增進度提交／不合併 main。
+
+檔案用途：build.mjs 依固定路由選擇四頁返回標籤；core/ui.js 的 formErrors 支援欄位群組；pages/attraction-form.js 映射解析錯誤、與保存網址分流，解除 busy 後聚焦；景點兩表單標記查詢欄；film-form.js 沿用 create-only 去向。style.css／phase2.css 管對比及窄螢幕，回歸在 attraction-form／film-form／seo-build 測試。無新程式檔、API、表、migration 或環境變數，仍 72 API／67 頁／33 表 316 欄／18 migration；PHP 分層保持。
+
+2026-10-25 15:21 全 P0 重新驗證：以 `343bd7e` 對照原始 Excel 七工作表／16 列 P0，40 個原型對應頁完成桌面與手機共 80 組比對，並驗 320 CSS px、真 Google／選檔／發布、電影場次、會員保存、root 唯讀與 SEO 分類。**功能測試通過，但仍有一般文字對比、四個景點／電影表單頂列返回動線、Google 網址欄位錯誤關聯三類差項**；完整 AA／正式環境與映像風險未關閉，未合併 main。各頁範圍與重現位置見 [本輪完整驗證](P0-COMPLETE-VERIFICATION-20261025.md)。
+
+本輪無應用／前端／DDL／Docker 或環境設定變更，仍為 72 API／67 固定頁／33 表 316 欄／18 migration，主／測試庫查核一致。PHP 91／318、Node 150、67 頁／81 HTTP、head 74、冷部署 17／還原 25／回退 9 重跑；Rector dry-run 40 建議未套用。新增文件只負責驗證追溯，架構與檔案用途仍依本導讀及模組指南。測試資料、兩張 SEO 表與隔離 root 已清理／復原，三個自有部署演練專案移除。下方各輪歷史不作最新全綠結論。
+
+2026-10-25 P0 差項修正：三類小字對比、電影頁館舍同源、列表 SEO 已修；alias 排序與 API／HTML gate 安全診斷已改善，發布 worker 已重載。**PHP 91／318、Node 150、PHPStan／PHPat、格式 261、head 74、67 頁／81 HTTP，以及真 DB 順序 7／診斷 8 項通過**。資料仍為 72 API／67 頁／33 表 316 欄／18 migration，沒有新路由／DDL／環境變數；原始 website 保留，合成資料與設定已清理／復原。完整檔案入口、測試命令與限制見 [本輪修正](P0-IMPROVEMENTS-20261025.md)，分模組見 [無障礙](modules/frontend-accessibility.md)、[電影](modules/films.md)、[SEO](modules/seo-settings.md)、[運維](modules/operations.md)。歷史那一筆 503 不追認根因，完整 AA／正式環境及映像風險仍保留，P0 未宣告通過、不合併 main。下方保留修正前各輪歷史。
+
+新增檔案用途：`frontend/assets/js/core/list-seo.js` 讀同版公開 context 並共用 resolver；`backend/src/Exceptions/PublicationPending.php` 限定內部診斷；`tests/Unit/PublicationOrderTest.php`／`PublicationPendingTest.php` 測誤判與秘密邊界，`tests/publication_alias_order.php`／`publication_diagnostics.py` 測真 DB 及 API／gate。架構仍為前端 View／PHP API 的 Controller→Service→Repository；沒有將 SQL 移入 Controller。修改 PHP 發布程式後須重啟長駐 publisher，命令見上述運維指南。
+
+2026-10-25 全 P0 複驗：來源 `1fd4f14`，真 DB／HTTP、PHP／JS 品質、67 頁完整性、隔離 TLS 冷部署 17 項、還原 25 項與回退 9 項已重跑。**P0 仍未通過**：小字對比、電影頁館舍時間寫死、消息分類蓋掉 SEO 覆寫，以及首次優惠 503 尚未定位，見 [本輪完整報告](P0-REVERIFICATION-20261025.md)。Semgrep／Gitleaks 本輪已執行並逐筆判讀，映像安全／人工 AA／正式條件仍保留。本輪沒有改應用程式、前端或資料表；維持 72 API／67 固定頁／33 表 316 欄／18 migration，未合併 main／未進入 P1。下方帶日期內容為各輪歷史，不能當成最新全綠結論。
+
+本輪驗證工具用途更新：[mail_failure.py](../backend/tests/mail_failure.py) 自建並清理 active 隔離會員，避免依賴其他套件最後一筆資料；[offers_public_integration.py](../backend/tests/offers_public_integration.py) 在讀列表欄位前驗 HTTP 狀態，非預期回應保存安全 code／requestId、不自動重試。環境、架構、API 與 migration 未變；仍用 Docker 執行 PHP／Composer，測試不還原主庫。具體結果、命令入口、具名清理及證據索引見上述報告。
+
+2026-10-24 階段八已依授權於 `phase/08-p0-validation` 實作：匿名health、DB故障503、獨立正式發布版／TLS、備份還原／回退及手機導覽焦點修正。**72 API／67固定頁／33表316欄／18 migration；無新DDL。** 本輪隔離部署、25項還原及9項回退通過；最終67頁／14資產／81HTTP完整性零差異，health18項／6契約、PHP87／302斷言、Node145、PHPStan10／PHPat及格式檢查通過。主／測試已更新運行，12個演練project及具名UI fixture已清理。完整人工AA、上游映像風險與正式環境仍待驗，P0界線未通過，保留階段分支、尚未合併main或進入P1。實際結果見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)、[16列來源矩陣](P0-ACCEPTANCE-MATRIX.md)、[安全差項](PHASE-8-SECURITY-REVIEW.md)；下方較早帶日期段落為當時紀錄。
+
+2026-10-24 階段八8E介面修正：共用公開／後台手機選單關閉時設inert，Escape將選單內焦點返回按鈕，桌面斷點恢復可操作。修正原本能Tab到被裁切連結的實際問題，維持原型CSS與67頁；145項Node與Brave390×844重驗通過。函式及命令見 [導覽／鍵盤閱讀指南](modules/frontend-accessibility.md)。仍為72 API／33表／18 migration；整合、正式條件與安全差項尚未全驗收，不宣告P0全部完成。
+
+2026-10-24 階段八8D：DB＋media＋release備份、全空目標還原、復原憑證撤銷與open／rollback閘門已建立。RecoveryRepository集中SQL、RecoveryMediaInspector查引用與hash、bin/recovery.php僅CLI組裝；25項隔離還原／拒絕流程及壞tar邊界通過，具體資料量與保留限制見 [運維指南](modules/operations.md#8d-備份復原與流量閘門)。沒有主庫還原、新HTTP／schema或頁面；整合／畫面與版本回退演練仍進行中。
+
+2026-10-24 階段八8C：獨立正式Compose、app/web發布target、同版manifest、TLS／308／安全Cookie／日誌輪替、受控建置與核心／公開readiness CLI已建立；隔離新volume已驗空庫／migration／首版發布、DB暫停／FPM停止／worker到期及重啟。細節與尚待乾淨發布重演見 [運維模組](modules/operations.md#8c-正式封裝與隔離部署)，命令與設定見 [部署指南](P0-OPERATIONS.md)。本機Compose／DB查看port保留；72 API／67頁／33表／18 migration不變，備份還原與完整驗收仍進行中。
+
+2026-10-24 階段八8B：匿名核心健康 `GET /api/v1/health` 已建立，**72 API／67固定頁／33表／18 migration**。HealthController → ApplicationHealth → 可替換 DatabaseHealthProbe／PDO Adapter，HealthReport 安全輸出；精確入口先於 eager DB 組裝，錯誤503不洩漏診斷、HEAD／405／無Cookie已驗。17項真HTTP／MariaDB及六種CLI故障、PHP87項／302斷言與PHPStan10／PHPat通過，詳見 [運維指南](modules/operations.md#8b-核心健康-api)。新增非機密 APP_VERSION，本機development；正式必填，尚無正式部署或整階段通過。
+
+2026-10-24 階段八依使用者授權從最新 main 建立 `phase/08-p0-validation`，8A 診斷進行中。CSRF 增加有限五秒時鐘回撥預算與無秘密的拒絕原因日誌，12項受控邊界測試通過；100輪修正前觀察均為預期422，未將歷史不明註冊失敗宣稱已解決。檔案用途與命令見 [運維指南](modules/operations.md)。尚無新表／migration／HTML；整階段、部署與正式環境未驗收。以下較早段落為當時紀錄。
+
 2026-10-24 階段八僅規劃：新增 [P0整合驗收與部署基線細節計畫](PHASE-8-PLAN.md)，列出16項P0儲存格對照、優先診斷的偶發問題、一個預計health操作、正式封裝／TLS、隔離備份還原／回退及24項固定驗收。尚未授權實作或建立分支；目前仍71 API／67固定頁／33表／18 migration，沒有變更程式、環境或資料庫。 未建立階段八模組閱讀指南或通過報告冒充成果；實作後仍須逐功能維護本導讀。
 
 2026-10-24 階段七完成本機驗收：**71 API／67 固定頁／33 表／316 欄／18 migration**。SEO 全站／逐頁／範本／單筆設定、公開 head 同版、權限／版本／audit 與開發政策頁已交付；桌面／手機與失敗流程見 [階段七驗收](PHASE-7-ACCEPTANCE.md)。下方 7A–7D 與較早日期保留當時紀錄；最新功能及外部差項以本段和驗收為準，階段八未開始、P0 尚未完成。
@@ -71,7 +121,7 @@
 | 範圍 | 階段與界線 | 實際狀態 |
 | --- | --- | --- |
 | 共用準備 | 1 | 已完成 |
-| P0 | 2–8；8 為整合驗收 | 2–7 已完成本機範圍，8 未開始，P0 尚未完成 |
+| P0 | 2–8；8 為整合驗收 | 2–7 已完成本機範圍；8已實作，完整人工／正式驗收待補，P0未完成 |
 | P1 | 9–12；12 為整合驗收 | 未開始；完整內容管理、前後篇、路線、完整旅程、JSON-LD／索引 |
 | P2 | 13–15；15 為全站交付 | 未開始；搜尋、會員查詢、一般設定／營運與最終交付 |
 
@@ -148,6 +198,27 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 `website/` 的原始 68 個檔案不由目前 Nginx 提供服務；主要參考入口是 `website/index.html`、`website/admin/`、`website/css/style.css` 與 `website/js/app.js`。全 57 個原始網址及原型差異見 [原始網站對照](WEBSITE-COMPARISON-REVIEW.md)。第三方 skill 參考檔、Composer vendor 及 Git 內部檔案不逐項當成網站程式解釋。
 
 ## Backend：每個檔案做什麼
+
+### 階段八：健康、復原與部署
+
+| 檔案／群組 | 責任及閱讀入口 |
+| --- | --- |
+| [HealthController](../backend/src/Controllers/HealthController.php)／[HealthReport](../backend/src/DTO/HealthReport.php) | GET／HEAD／405及最小200／503 JSON；不建立session／HTML。 |
+| [ApplicationHealth](../backend/src/Services/ApplicationHealth.php)／[DatabaseHealthProbe](../backend/src/Contracts/DatabaseHealthProbe.php)／[PdoDatabaseHealthProbe](../backend/src/Adapters/PdoDatabaseHealthProbe.php) | 核心設定、可替換DB探測、有限連線／只讀SQL與migration校驗。Composition::HEALTH_PATH由public/index.php精確提前組裝；普通Database連線錯誤也映安全503。 |
+| [RecoveryRepository](../backend/src/Repositories/RecoveryRepository.php)／[RecoveryMediaInspector](../backend/src/Adapters/RecoveryMediaInspector.php) | 集中媒體引用／撤銷SQL與實體圖檔／hash邊界，PdoTransactions保持交易。 |
+| [readiness.php](../backend/bin/readiness.php)／[recovery.php](../backend/bin/recovery.php) | 僅CLI：核心／公開就緒、media清單、受控還原授權撤銷；HTTP不可呼叫。 |
+| [Csrf.php](../backend/src/Http/Csrf.php)／[CsrfTest](../backend/tests/Unit/CsrfTest.php) | 有限5秒回撥預算、來源／簽章不放寬；安全原因分類與12受控邊界。 |
+| [health_integration.py](../backend/tests/health_integration.py)／[phase8_health_contract.py](../backend/tests/phase8_health_contract.py)／[health_probe.php](../backend/tests/health_probe.php)／[connection_boundary.php](../backend/tests/connection_boundary.php) | 真MariaDB與HTTP健康／schema故障、jsonschema契約及普通連線503；故障CLI限定test，不封正式映像。 |
+| [stability_observation.py](../backend/tests/stability_observation.py)／[phase8_validation.py](../backend/tests/phase8_validation.py) | 固定100輪安全觀察、會員／SEO固定批次；不重試到綠。舊契約runner的--start-at明示續跑批次。 |
+| [production_rehearsal.py](../backend/tests/production_rehearsal.py)／[public_database_outage.py](../backend/tests/public_database_outage.py)／[recovery_rehearsal.py](../backend/tests/recovery_rehearsal.py)／[rollback_rehearsal.py](../backend/tests/rollback_rehearsal.py) | 限自有spl-p0-*隔離project，TLS／冷啟動／停DB／worker、還原／拒絕及相容release回退。不得對主庫演練。 |
+| [phase8_browser_fixture.py](../backend/tests/phase8_browser_fixture.py) | 僅yinghua_test具名合成帳號／內容與真PNG，--cleanup還原自有設定、移除自有資料／媒體、停用測試帳號並保留正常audit。私有帳密不進Git。 |
+| [compose.production.yaml](../compose.production.yaml)／[Dockerfile](../docker/php/Dockerfile)／[15-production-tls.sh](../docker/nginx/15-production-tls.sh) | 獨立四服務／三資料卷、正式release與release-web target、同版67頁、唯讀TLS／308及安全日誌；不疊加開發Compose。 |
+| [build-release.py](../scripts/operations/build-release.py)／[release-manifest.mjs](../scripts/operations/release-manifest.mjs) | 要求已提交來源／新image標籤，保存version／commit／origin／policy及檔案hash；app/web同版驗證。 |
+| [operations.py](../scripts/operations/operations.py)／[production.env.example](../scripts/operations/production.env.example) | preflight／status／backup／verify-backup／restore／open／rollback；串流dump／media、空target／相容／撤銷與失敗關站。設定範例不含真秘密。 |
+| [scan-images.py](../scripts/operations/scan-images.py)／[operations tests](../scripts/operations/tests) | 固定Trivy image archive掃描、只輸出摘要；壞metadata／tar路徑／symlink及錯誤秘密過濾4測試。CVE不全綠見安全報告。 |
+| [core/ui.js](../frontend/assets/js/core/ui.js)／[menu-state.test.mjs](../frontend/tests/menu-state.test.mjs) | 公開／後台手機選單inert與Escape焦點返回，斷點恢復；不變更原型CSS。 |
+
+完整責任、命令與故障排查見 [運維閱讀指南](modules/operations.md)／[部署操作](P0-OPERATIONS.md)；介面見 [導覽閱讀指南](modules/frontend-accessibility.md)。來源矩陣與實際結果分別見 [P0矩陣](P0-ACCEPTANCE-MATRIX.md)／[驗收](PHASE-8-ACCEPTANCE.md)／[安全差項](PHASE-8-SECURITY-REVIEW.md)。本機新增APP_VERSION（development）與PHP DNS options；正式設定的RELEASE_COMMIT／映像／HTTPS port／TLS目錄只供部署，詳見範例。DB仍33表316欄18migration，18份舊檔均保留，無新API以外的業務能力。
 
 ### 階段七 SEO 的新增檔案
 

@@ -1,5 +1,5 @@
 import { memberResourcesApi } from '../api/member-resources-api.js';
-import { requireSession, loginLocation } from '../core/session.js';
+import { requireSession, handleSessionExpiry } from '../core/session.js';
 import { element, status } from '../core/ui.js';
 import { mountMemberActions } from '../core/member-actions.js';
 import { placeCard, attractionCardData } from '../components/content-cards.js';
@@ -39,7 +39,7 @@ async function load(focus = false) {
     if (focus && request === generation) message.focus();
   } catch (error) {
     if (request !== generation) return;
-    if (error.status === 401) location.replace(loginLocation('member'));
+    if (error.status === 401) handleSessionExpiry('member');
     else { status(message, error.message, true); retry.hidden = false; }
   } finally { if (request === generation) list.removeAttribute('aria-busy'); }
 }

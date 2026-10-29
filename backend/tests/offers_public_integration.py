@@ -30,7 +30,7 @@ def cli(module,items,apply=False,expected=0):
     if apply:args.append('--apply')
     return json.loads(run(args,allowed=(expected,)).stdout)
 
-def api(path):
+def api(path,expected=200):
     global contracts
     code,text,headers=get(path);data=json.loads(text)
     spec=json.loads((ROOT/'backend/resources/openapi.json').read_text(encoding='utf8'))
@@ -38,6 +38,11 @@ def api(path):
     if route not in spec['paths']:route='/api/v1/offers/{slug}'
     schema=spec['paths'][route]['get']['responses'].get(str(code),{}).get('content',{}).get('application/json',{}).get('schema')
     if schema:validate(schema,data);contracts+=1
+    # [E-29] 首次非預期回應保留安全診斷，不讓缺少total變成無法追查的KeyError；不自動重試。
+    if code!=expected:
+        failure={'route':route,'expected':expected,'status':code,'code':data.get('code'),'requestId':data.get('requestId')}
+        (ROOT/'artifacts/phase5-offers-http-failure.json').write_text(json.dumps(failure,indent=2),encoding='utf8')
+        raise AssertionError(json.dumps(failure))
     return code,data
 
 def main():
@@ -71,7 +76,7 @@ def main():
         check('empty date bounds preserved',next(x for x in data['items'] if x['id']==ids[1])['validTo'] is None)
         check('active false does not reveal drafts or schedules',api('/api/v1/offers?active=false&q='+prefix+'&pageSize=100')[1]['total']==23)
         check('district filter reads store profile',api('/api/v1/offers?district='+__import__('urllib.parse',fromlist=['quote']).quote('東區')+'&q='+prefix)[1]['total']==0)
-        check('invalid active query rejected',api('/api/v1/offers?active=maybe')[0]==422)
+        check('invalid active query rejected',api('/api/v1/offers?active=maybe',expected=422)[0]==422)
         page2=api('/api/v1/offers?page=2')[1]
         code,html,_=get('/offers.html?page=2')
         check('offers deep page directly readable',code==200 and all(x['title'] in html for x in page2['items']))

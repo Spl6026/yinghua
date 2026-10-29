@@ -1,5 +1,9 @@
 # 資料表與原始 Excel 對照
 
+2026-10-25 15:21 完整驗證：重讀「資料表建議」A2／C5:D26 及 16 列 P0，從主／測試 MariaDB 查核均 **33 表／316 欄／18 migration**。本輪無 DDL 或 migration 變更；schema 空庫／升級／rollback、公開狀態、唯一／外鍵、本人授權與還原保留資料重跑通過。草案與 U-16／U-09／U-11 的差異維持，不新增推定必填；見 [本輪報告](P0-COMPLETE-VERIFICATION-20261025.md#資料表與架構)。具名內容／媒體／收藏行程清理，SEO 兩表與隔離 root 原摘要復原，正常 audit 保留。
+
+2026-10-24 階段八核對：33張表／316欄／18份migration維持，舊migration未改、沒有新增運維業務表。health只讀schema_migrations並驗名稱／checksum／applied_at；system_logs仍以既有安全應用日誌處理，未從建議表名推定必須新建同名表。recovery只撤銷既有sessions／password_reset_tokens／captcha_challenges，帳號、權限、內容、收藏、行程、正常audit保留；隔離還原逐列hash證據見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)。
+
 階段七現況：**32 張業務表＋migration 工具表，共33表／316欄／18 migration**，主／測試庫均已套017。C24–D25 的 site_settings、content_seo 已建立並接三個 SEO API；草案沒有升格為所有欄位必填。site_settings 採 key PK、JSON 預設、published／version／updated_by FK／updated_at；content_seo 採 UUID、資源 enum、resource_id 或 path_pattern 擇一、可空標題／摘要／關鍵字／canonical／robots／分享圖、操作者時間及兩個目標唯一鍵。具體 DDL、160／500 等技術上限、路徑 XOR／enum／FK 為 E-28；og_image_media_id 預留 typed storage，本階段 HTTP 使用 URL 並驗證本站媒體原已公開，不新增上傳權限。原內容 SEO 欄位、member_consents 歷史及舊 migration 保留。見 [017](../backend/database/migrations/017_site_seo.sql)、[指南](modules/seo-settings.md)／[驗收](PHASE-7-ACCEPTANCE.md)。
 
 更新日期：2026-10-24。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。

@@ -1,8 +1,8 @@
 # 階段八：P0 整合驗收與部署基線計畫
 
-設計日期：2026-10-24。**本文件只有規劃，尚未授權實作／建立階段八分支，也沒有完成驗收或正式部署。** 後續實作從當時最新 main 建立 `phase/08-p0-validation`。原始 Excel／website 不修改，新工程文件放 docs。
+設計日期：2026-10-24。使用者其後已授權實作，從最新 main 建立 `phase/08-p0-validation`；實作進行中，尚未完成階段驗收或正式部署。以下預計項目維持設計性質，實際結果另記錄。原始 Excel／website 不修改，新工程文件放 docs。
 
-目前基線為階段一至七的本機成果：71 個 API 操作、67 固定頁、33 表／316 欄／18 migration。階段七合併點為 `c34ff11`；本次規劃不改 backend／frontend／Docker／資料庫。較早階段的通過證據保留，不能直接改日期充當本輪重驗。
+目前基線為階段一至七的本機成果：71 個 API 操作、67 固定頁、33 表／316 欄／18 migration。階段七合併點為 `c34ff11`；這是規劃時的基線；實作後為72 API，其餘數量不變。較早階段的通過證據保留，不能直接改日期充當本輪重驗。
 
 ## 1. 目標、來源與完成界線
 
@@ -201,4 +201,4 @@ E-29初始預算：DB連線／查詢各2秒、health端到端5秒內結束，實
 - [MariaDB mariadb-dump](https://mariadb.com/docs/server/clients-and-utilities/backup-restore-and-import-clients/mariadb-dump)：InnoDB一致快照與DDL邊界，不能把運行中的整個DB目錄tar當作已驗證備份。
 - [W3C WCAG 2.1](https://www.w3.org/TR/WCAG21/)：依客戶指定的AA檢核適用條件與完整流程，不將自動檢查當成全部符合證明。
 
-**本次只有這份計畫及工程索引更新。** 尚無health API、正式Compose、備份／還原工具、階段八測試結果或驗收通過文件；API／schema／頁面／環境實作基線不變。
+**2026-10-24 實作結果：** health／正式Compose／備份還原與回退工具及驗證紀錄已建立，實際範圍與未完成界線見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)。本文件的「預計／擬採」保留原設計語意，不以計畫代替通過；完整AA與正式環境仍待驗。

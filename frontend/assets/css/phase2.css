@@ -36,6 +36,8 @@
 .pagination button{font:inherit;padding:8px 12px;color:var(--ink);background:none;border:1px solid var(--line);cursor:pointer}
 .table-scroll{overflow-x:auto}
 .admin-wrap>.admin-main{min-width:0}
+.admin-form-grid>.admin-field{min-width:0}
+.admin-field input,.admin-field select,.admin-field textarea{min-width:0;max-width:100%}
 .admin-table td{overflow-wrap:anywhere}
 .inline-actions{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
 dialog{border:1px solid var(--line);padding:30px;max-width:min(90vw,500px);background:var(--paper);color:var(--ink);overscroll-behavior:contain}
@@ -45,8 +47,48 @@ button:disabled{opacity:.6;cursor:not-allowed}
 button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #a7793e;outline-offset:3px}
 button,a,input,select{touch-action:manipulation}
 @media(max-width:640px){.member-menu{font-size:12px;gap:8px}.admin-top-actions{gap:8px;font-size:12px}}
+/* [U-05／S G34；E-29] 返回列表與真實登入操作並存時，窄螢幕頂列分行，頁名不擠成直排。 */
+@media(max-width:640px){
+  .admin-topbar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;height:auto;min-height:58px;padding:10px 14px}
+  .admin-topbar>.admin-preview{min-width:0;white-space:normal}
+  .admin-topbar>.admin-top-actions{grid-row:1;grid-column:3}
+  .admin-topbar>div:not(.admin-top-actions){grid-column:1/-1;min-width:0}
+}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 /* [S：功能規格 E34/G34；E-14] 保留原型色系，提高已串接表單的提示文字對比。 */
-:root{--muted:#65685d}
+:root{--muted:#5b5f55}
 .admin-page-heading p,.helper-text,.field-hint,.form-privacy{color:#62665c}
+/* [S：G34／串接總覽 B15；E-29] 原型小字在紙色背景仍須達一般文字對比。 */
+.section-kicker,.film-meta,.demo-note{color:#62665c}
+
+/* [S G34／E-29] 標題換行或瀏覽器放大時，封面由內容撐高，避免按鈕與底部註記重疊。 */
+.hero{height:auto;min-height:clamp(560px,calc(100svh - 82px),710px);padding:120px 12% 100px}
+.hero-content{position:relative;inset:auto;width:100%}
+@media(max-width:760px){
+  .hero{min-height:570px;max-height:none;padding:100px 8% 90px}
+}
+/* [S G34／E-29] 已發布館舍圖片使用 inline background-image；遮罩獨立成層，避免圖片覆蓋遮罩。 */
+.museum-photo::after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,rgba(25,29,23,.82) 0%,rgba(25,29,23,.82) 35%,transparent 58%)}
+/* [S G34／串接總覽 B15；E-29] 空白欄位仍須有可辨識的邊界；不改原型尺寸與紙色。 */
+.form-field input,.form-field select,.form-field textarea,.admin-field input,.admin-field select,.admin-field textarea,.filter-bar input,.filter-bar select,.filter-controls select,.search-field input,.planner-card input,.url-import input,.search-modal-row input,.admin-session-switch select,.permission-toolbar select{border-color:#77796d}
+/* [S G34／E-29] 裝飾不持續自動移動，避免閱讀行程時受干擾。 */
+.planner-orbit{animation:none}
+/* [S G34／B15；E-29] 到期提醒可重排、捲動；不改動或重建原表單。 */
+#session-prompt{width:min(520px,calc(100% - 32px));max-height:calc(100dvh - 32px);overflow:auto;border:1px solid #77796d;background:var(--paper);color:var(--ink);padding:28px}
+#session-prompt::backdrop{background:rgba(23,27,22,.62)}
+#session-prompt h2{font-family:var(--serif);font-size:26px;margin:0 0 16px}
+#session-prompt p{overflow-wrap:anywhere;line-height:1.7}
+.session-prompt-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+.session-prompt-actions .button{white-space:normal}
+.public-index h1{font-family:var(--serif);font-size:36px;font-weight:500}
+.public-index p{line-height:1.8;overflow-wrap:anywhere}
+.public-index-pages{display:flex;flex-wrap:wrap;gap:12px 24px;list-style:none;padding:0}
+.public-index form{margin:32px 0 16px}
+.public-index input{display:block;width:min(100%,520px);margin-top:8px;min-height:44px}
+.public-index-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.public-index-group{margin-top:40px;scroll-margin-top:110px}
+.public-index-group h2{font-family:var(--serif);font-size:26px;font-weight:500}
+.public-index-group li{margin-bottom:12px;overflow-wrap:anywhere}
+.public-index a{text-decoration:underline;text-underline-offset:4px}
+.footer-bottom{flex-wrap:wrap}

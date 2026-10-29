@@ -7,7 +7,7 @@ namespace Yinghua\Services;
 use Throwable;
 use Yinghua\Config;
 use Yinghua\Contracts\ContentRenderer;
-use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\PublicationRepository;
 
@@ -84,8 +84,12 @@ class ContentPublication
     {
         // [S-SEO-17] 產生失敗／下架／排程切換期間不繼續公開舊版本。
         $current = $this->renderer->current();
-        if ($current === null || ($current['generation'] ?? null) !== $this->generation($this->projection())) {
-            throw new ApplicationError('PUBLICATION_PENDING', '公開頁面正在更新，請稍後重試。', retryAfter: 5);
+        if ($current === null) {
+            throw new PublicationPending(null, []);
+        }
+        $expected = $this->projection();
+        if (($current['generation'] ?? null) !== $this->generation($expected)) {
+            throw new PublicationPending($current, $expected);
         }
 
         return $current;

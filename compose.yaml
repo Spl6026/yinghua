@@ -2,6 +2,8 @@ name: yinghua
 
 # [E-12] 共用 image、環境與掛載；不在此宣告 FPM 專用健康檢查。
 x-php-common: &php-common
+  # [E-29] PDO 連線逾時不涵蓋 glibc DNS；一併限制 Docker 服務名稱查詢。
+  dns_opt: ["timeout:1", "attempts:1", "ndots:0"]
   image: yinghua-app
   working_dir: /var/www/app
   build:
@@ -10,6 +12,7 @@ x-php-common: &php-common
     target: development
   environment: &php-environment
     APP_ENV: ${APP_ENV:-local}
+    APP_VERSION: ${APP_VERSION:-development}
     APP_URL: ${APP_URL:-http://localhost:8080}
     APP_KEY: ${APP_KEY:?Run scripts/setup-env.ps1 first}
     APP_TIMEZONE: Asia/Taipei

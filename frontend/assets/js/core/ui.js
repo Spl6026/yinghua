@@ -29,7 +29,8 @@ export function formErrors(form, error) {
   let first;
   for (const [name, message] of Object.entries(error.fieldErrors || {})) {
     // [U-09／E-20] 複合表單（例如整週營業時間）也須顯示具體錯誤並可取得焦點。
-    const input = [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) || form.elements.namedItem(name);
+    // [S：G34；E-29] 地圖解析等獨立欄位群組亦可共用，不清除其他表單區塊的錯誤。
+    const input = [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) || form.elements?.namedItem(name);
     if (!(input instanceof HTMLElement)) continue;
     input.setAttribute('aria-invalid', 'true');
     const hint = element('span', { className: 'field-error', id: `${input.id}-error` }, message);
@@ -93,19 +94,28 @@ export function initializeMenus() {
     // [E-14] 認證狀態刷新可重複呼叫，但相同導覽只綁定一次。
     initializedNavigation.add(button);
     const closedLabel = button.getAttribute('aria-label');
-    const close = () => {
+    // [S 功能規格 G34／E-29] 被裁切／移出畫面的手機選單不可留下隱形 Tab 停駐點。
+    const mobile = matchMedia('(max-width: 760px)');
+    const synchronizeFocusability = () => { menu.inert = mobile.matches && button.getAttribute('aria-expanded') !== 'true'; };
+    mobile.addEventListener('change', synchronizeFocusability);
+    synchronizeFocusability();
+    const close = (restoreFocus = false) => {
+      const returnFocus = restoreFocus && button.getAttribute('aria-expanded') === 'true' && menu.contains(document.activeElement);
       menu.classList.remove(openClass);
       button.setAttribute('aria-expanded', 'false');
       button.setAttribute('aria-label', closedLabel);
+      synchronizeFocusability();
+      if (returnFocus) button.focus();
     };
     button.addEventListener('click', () => {
       const open = button.getAttribute('aria-expanded') !== 'true';
       button.setAttribute('aria-expanded', String(open));
       button.setAttribute('aria-label', open ? closedLabel.replace(/^開啟/, '關閉') : closedLabel);
       menu.classList.toggle(openClass, open);
+      synchronizeFocusability();
     });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
-    menu.querySelectorAll('a').forEach(link => link.addEventListener('click', close));
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') close(true); });
+    menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => close()));
   }
   const backTop = document.querySelector('.back-top');
   if (!backTop || initializedNavigation.has(backTop)) return;

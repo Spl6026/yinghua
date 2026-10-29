@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>網站導覽｜映畫竹塹</title>
+<meta name="description" content="依分類瀏覽或按名稱尋找映畫竹塹已發布的景點、電影、活動消息與店家優惠。">
+<link rel="icon" href="/assets/favicon.svg">
+<link rel="stylesheet" href="/assets/css/style.css">
+<link rel="stylesheet" href="/assets/css/phase2.css">
+</head>
+<body>
+<a class="skip-link" href="#main-content">跳到主要內容</a>
+<div class="site-shell">{{SITE_HEADER}}<main id="main-content" tabindex="-1">
+<section class="section-pad public-index">
+<p class="eyebrow">映畫竹塹</p><h1>網站導覽</h1>
+<p>依分類瀏覽，或按名稱尋找已發布的內容。非當週電影及歷史優惠也保留入口；實際場次與優惠期限請以各介紹頁為準。</p>
+<nav aria-label="主要頁面"><ul class="public-index-pages">
+<li><a href="/index.html">首頁</a></li><li><a href="/museum.html">影像博物館</a></li><li><a href="/explore.html">城市散策</a></li><li><a href="/food.html">新竹美食</a></li>
+<li><a href="/cinema.html">本週映演</a></li><li><a href="/events.html">新竹現場</a></li><li><a href="/activities.html">活動</a></li><li><a href="/city-news.html">城市消息</a></li><li><a href="/offers.html">店家優惠</a></li>
+<li><a href="/planner.html">旅行計畫</a></li><li><a href="/favorites.html">我的收藏</a></li><li><a href="/login.html">會員登入</a></li><li><a href="/register.html">建立會員</a></li>
+<li><a href="/terms.html">使用條款</a></li><li><a href="/privacy.html">隱私說明</a></li></ul></nav>
+<form id="public-index-search" method="get" action="/site-map.html">
+<div class="search-field"><label for="public-index-query">依名稱尋找公開內容</label><input id="public-index-query" type="search" name="q" autocomplete="off" maxlength="160"></div>
+<div class="public-index-actions"><button class="button button-dark" type="submit">尋找 ↗</button><button class="button button-outline" type="reset">顯示全部</button></div>
+</form><p id="public-index-status" role="status" aria-live="polite"></p>
+<nav aria-label="內容分類"><a href="#index-places">景點與店家</a> · <a href="#index-films">電影</a> · <a href="#index-news">消息與活動</a> · <a href="#index-offers">優惠</a></nav>
+<div id="public-content-index"></div>
+<noscript><p>可直接使用下方分類連結瀏覽全部內容；使用瀏覽器的「尋找頁面文字」也可依名稱定位。</p></noscript>
+</section></main>{{SITE_FOOTER}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+<script type="module" src="/assets/js/public.js"></script>
+<script type="module" src="/assets/js/pages/public-index.js"></script>
+</body></html>

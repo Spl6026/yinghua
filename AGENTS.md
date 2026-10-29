@@ -21,6 +21,6 @@
 - 新功能與業務註解標出規格、文件草案、使用者指定或工程補充，來源 ID 見 [docs/DESIGN-TRACEABILITY.md](docs/DESIGN-TRACEABILITY.md)。完成模組提供中文閱讀指南，不能把工程提案寫成規格硬性要求。
 - 每完成一個階段，必須在宣告完成及合併 main 前更新 [docs/PROJECT-GUIDE.md](docs/PROJECT-GUIDE.md)：更新日期、實際完成範圍、架構與檔案用途、頁面／API 狀態、資料表／migration、Docker／環境及操作命令；核對檔案清單與連結，不提前標記後續功能。功能開發期間有相關變更亦應隨功能提交同步維護。
 - 計畫依 [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) 分為共用準備 1、P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；依序完成優先級界線驗收後再進入下一級。必要前置能力標明用途，不提前冒充後續功能；重排不等於新增實作或授權。
-- 使用者已授權實作階段三、四；認證／權限、景點／媒體／地圖／發布及電影／多場次已完成本機驗收，實際範圍見各階段驗收文件。階段五已於 2026-10-22 依授權實作並完成本機驗收，見 docs/PHASE-5-ACCEPTANCE.md。階段六已依授權於 phase/06-favorites-basic-itinerary 建立收藏／目前行程，2026-10-24 完成本機驗收，範圍與限制見 docs/PHASE-6-ACCEPTANCE.md；合併前須備份並核對完整內容。階段七已另行授權並完成本機範圍；階段八以後未開始，依後續授權處理。U-16 只檢查放映日期及開始時間，結束時間延後。狀態與驗收只記錄實際結果。
+- 使用者已授權實作階段三、四；認證／權限、景點／媒體／地圖／發布及電影／多場次已完成本機驗收，實際範圍見各階段驗收文件。階段五已於 2026-10-22 依授權實作並完成本機驗收，見 docs/PHASE-5-ACCEPTANCE.md。階段六已依授權於 phase/06-favorites-basic-itinerary 建立收藏／目前行程，2026-10-24 完成本機驗收，範圍與限制見 docs/PHASE-6-ACCEPTANCE.md；合併前須備份並核對完整內容。階段七已另行授權並完成本機範圍；階段八已由使用者另行授權，於phase/08-p0-validation實作health／發布部署／復原及整合驗證；完整人工AA／正式環境與安全差項仍待驗，未合併main，見docs/PHASE-8-ACCEPTANCE.md。階段九以後未開始，P0界線通過後依後續授權處理。U-16 只檢查放映日期及開始時間，結束時間延後。狀態與驗收只記錄實際結果。
 - 階段七已於 2026-10-24 依使用者授權在 phase/07-seo-settings-head 實作，7A–7E已完成本機範圍，見 docs/PHASE-7-ACCEPTANCE.md；不因前一條歷史狀態而視為未授權。範圍見 docs/PHASE-7-PLAN.md／docs/modules/seo-settings.md，本機驗收後依規則備份、核對完整 tree 並合併；正式差項與既有偶發驗證限制如實保留。
 - PHP、Composer 與品質檢查工具在 Docker 開發環境執行。缺少工具時先建立或如實記錄，不能把「未安裝／未執行」當成檢查通過。

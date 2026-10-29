@@ -4,6 +4,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
+import { annotateEnglishPassages } from './language-passages.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
@@ -23,6 +24,13 @@ async function pages(directory) {
   return result;
 }
 const routes = [];
+// [U-05／E-29] 內容新增／編輯頁保留原型的上方返回列表；其他後台仍查看網站。
+const adminBackLinks = {
+  'admin/place-add.html': ['/admin/places.html', '← 返回景點與店家'],
+  'admin/place-edit.html': ['/admin/places.html', '← 返回景點與店家'],
+  'admin/film-add.html': ['/admin/films.html', '← 返回本週映演'],
+  'admin/film-edit.html': ['/admin/films.html', '← 返回本週映演'],
+};
 // [U-03 / E-12] 保留原型各頁導覽的 active 樣式；food/search/auth 原版沒有選中項目。
 const navigationSections = {
   '/explore.html': ['explore.html', 'museum.html', 'place-detail.html', 'places/'],
@@ -40,6 +48,10 @@ for (const source of await pages(join(root, 'pages'))) {
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
   const selectedNavigation = Object.entries(navigationSections).find(([, paths]) => paths.some(path => path.endsWith('/') ? route.startsWith(path) : route === path))?.[0];
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
+    if (name === 'ADMIN_TOPBAR' && adminBackLinks[route]) {
+      const [href, label] = adminBackLinks[route];
+      return templates[name].replace(/<a class="admin-preview"[^>]*>[^<]*<\/a>/, `<a class="admin-preview" href="${href}">${label}</a>`);
+    }
     if (name === 'SITE_HEADER' && selectedNavigation) {
       return templates[name].replace(`href="${selectedNavigation}"`, `class="active" aria-current="page" href="${selectedNavigation}"`);
     }
@@ -62,7 +74,9 @@ for (const source of await pages(join(root, 'pages'))) {
   if (html.includes('{{')) throw new Error(`Unresolved template: ${route}`);
   const target = join(output, route);
   await mkdir(dirname(target), { recursive: true });
-  await writeFile(target, html);
+  // [S G34／B15；E-29] 各頁共用期限監看；API 事件可在入口載入前暫存於記憶體。
+  html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
+  await writeFile(target, annotateEnglishPassages(html));
   routes.push(`/${route}`);
 }
 await cp(join(root, 'assets'), join(output, 'assets'), { recursive: true });
