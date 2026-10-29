@@ -144,6 +144,11 @@ readonly class Composition
             new \Yinghua\Controllers\OfferMerchantController(new \Yinghua\Services\OfferMerchants($merchantRecords, $merchantEditor, $authorization, $transactions, $publication)),
         );
 
+        $neighborController = new \Yinghua\Controllers\PublicNeighborController(new \Yinghua\Services\PublicNeighbors($publication));
+        foreach (['attractions','films','news','offers'] as $topic) {
+            $router->add(new \Yinghua\Http\Route('GET', '/api/v1/' . $topic . '/{slug}/neighbors', \Yinghua\Models\IdentityKind::Member, $neighborController->{$topic}(...)));
+        }
+
         $memberAccess = new \Yinghua\Services\MemberAccess($accounts);
         $memberAttractions = new \Yinghua\Services\MemberAttractions($publication, new AttractionRepository($database), $clock);
         $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(new \Yinghua\Repositories\FavoriteRepository($database), $memberAccess, $memberAttractions, $transactions));

@@ -57,7 +57,7 @@ def get(path):
         if path.startswith('/api/v1/news') and r.headers.get('Content-Type','').startswith('application/json'):
             spec=json.loads((ROOT/'backend/resources/openapi.json').read_text(encoding='utf8'))
             route=path.split('?')[0]
-            if route not in spec['paths']:route='/api/v1/news/{slug}'
+            if route not in spec['paths']:route='/api/v1/news/{slug}/neighbors' if route.endswith('/neighbors') else '/api/v1/news/{slug}'
             schema=spec['paths'][route]['get']['responses'].get(str(r.status),{}).get('content',{}).get('application/json',{}).get('schema')
             if schema:validate(schema,json.loads(text))
         return r.status,text,dict(r.headers)
@@ -95,7 +95,9 @@ def main():
         check('basic detail has real safe body',code==200 and '<strong>正文</strong>' in html and '<script>alert(1)' not in html)
         check('detail API exposes same article',json.loads(get('/api/v1/news/'+item['slug'])[1])['article']['id']==item['id'])
         check('missing detail is explicit 404',get('/api/v1/news/'+prefix+'-missing')[0]==404)
-        check('detail does not invent neighbors','article-neighbor-grid' not in html)
+        adjacent=json.loads(get('/api/v1/news/'+item['slug']+'/neighbors')[1])
+        check('detail renders real published same-category neighbors',
+              'article-neighbor-grid' in html and all('href="'+x['url']+'"' in html for x in [adjacent['previous'],adjacent['next']] if x))
         changed={**item,'title':prefix+' renamed','slug':prefix+'-renamed','version':1}
         result=cli([changed],True)
         check('versioned update works',result['items'][0]['version']==2)
