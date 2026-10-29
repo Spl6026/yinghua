@@ -25,7 +25,7 @@ final class ImportVersion
     {
         // [E-26] 完全相同的重跑可不寫入；不同內容不能以過期版本覆蓋。
         if (!$unchanged && $provided !== $actual) {
-            throw new ApplicationError('CONFLICT', '內容已更新，請取得最新版本後再匯入。');
+            throw new ApplicationError('CONFLICT', '內容已更新，請重新載入最新版本後再儲存。');
         }
     }
 }

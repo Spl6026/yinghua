@@ -1,0 +1,9 @@
+# 共用內容編輯準備
+
+2026-10-30，階段九共用前置能力。這一步不新增HTTP操作或管理畫面。
+
+既有NewsManagement／OfferManagement／MerchantManagement原本只接收CLI ImportItem。現在prepareValues接受具體ID與輸入，產生PreparedContentChange；saveChange保存該型別。原CLI prepare／save介面委派共用邏輯，既有匯入冪等及版本規則保留。HTTP可直接共用驗證，不必偽造匯入物件。
+
+AdminContentQuery驗證搜尋與分頁；ContentPage／ContentRecordView／ContentWriteResult是後續管理回應的明確邊界，不輸出作者與帳號。Offer的merchantAvailable為管理狀態，publicArray仍採原白名單。Authorization.requireAny處理檢視或編輯等既有權限組合，不新增字典權限；實際寫入仍逐項驗證。ImportVersion的衝突提示改成適用CLI與HTTP的重新載入後儲存。
+
+來源為E-31技術設計，支援功能規格G22／G23；不是新增必填政策。既有PHPUnit91／318、PHPStan10／PHPat及消息／優惠CLI公開回歸各40項已實際執行；階段九加入前後篇後最終94／331見驗收，最後驗收見PHASE-9-ACCEPTANCE.md。PHP工具在Docker執行；資料表及環境不變。
