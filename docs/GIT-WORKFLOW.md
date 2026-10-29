@@ -1,5 +1,7 @@
 # Git 階段分支與功能提交
 
+2026-10-30：階段八依本機P0工程界線完成後已以merge commit d674baf合併，前置備份artifacts/phase9-planning/before-phase8-merge.bundle。階段九另分phase/09-news-offers-admin，按共用typed編輯準備、9A消息、9B優惠與共享店家、9C前後篇、9D整合驗收五筆交付。格式／按鈕／代理自身修正歸回相應功能；整理前artifacts/phase9/before-history-fold.bundle及合併前artifacts/phase9/before-merge.bundle、原始69檔與完整tree必須核對，保留階段分支，不推送。實際範圍見[驗收](PHASE-9-ACCEPTANCE.md)。
+
 2026-10-26 AA-01／AA-02 修正依既有自身修正規則歸回 P0 驗證提交；工具準備提交仍保留，main／其他階段／原始 69 檔不變。改寫前備份於 `artifacts/p0-aa-repairs-20261026/history-before-aa-fold.bundle`，核對完整 tree。新提示的主機讀屏未完成，沒有合併／推送或提前宣告整體 AA 通過。
 
 2026-10-26 AA 逐項驗收：欄位邊界／靜止裝飾、英文語言標示、確認框循環及其 159 項測試／閱讀指南與 [準則結果](P0-AA-VERIFICATION-20261026.md) 歸回既有 P0 驗證提交（原 7665b7f）；獨立讀屏工具的最新說明歸回工具提交（原 44c8256），不新增自身修正進度提交。改寫前備份於 `artifacts/p0-aa-full-20261026/history-before-aa-fold.bundle`，核對完整最終 tree、原始交付 69 檔及其他分支／main／origin/main。未合併或推送；尚未通過的兩項 AA 不提前視為 P0 完成。
@@ -156,3 +158,5 @@
 2026-10-24：8A CSRF診斷、8B health與連線故障、8C發布版／TLS、8D復原、手機選單焦點及整合驗收按可獨立驗證功能提交。自身修正已折回所屬功能，修改歷史前保留並驗證 artifacts/phase8-before-fold-20261024.bundle、phase8-before-security-fold-20261024.bundle、phase8-before-availability-fold-20261024.bundle。
 
 r5／r6與最後還原target映像的來源為262201dd3fea36cbb483fd892e95d5610b99b88d，該提交保留為本分支祖先，不再改寫而讓已驗映像失去來源。後續只整合未封入映像的驗證工具／文件。保留原始第一提交、main／遠端refs及防毒隔離差異；未宣告全階段驗收，尚未merge main。完整驗收後才再次備份、核對tree並 --no-ff 合併，保留階段分支。
+
+2026-10-30 使用者再次複驗後，店家分頁狀態與3項行為測試歸回9B，30筆Browser及API／190項前端與環境恢復紀錄歸回9D；保留原五筆功能界線與單一階段九merge。改寫前備份artifacts/phase9/before-recheck-fold-20261030.bundle，核對原始69檔、最終tree及其他分支；不推送遠端。

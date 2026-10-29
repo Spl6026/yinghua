@@ -16,6 +16,33 @@ class NewsRepository
 
     public function __construct(private readonly Database $database) {}
 
+    /** [S G22／G23；E-31] 管理查詢保留非公開內容；不與公開投影共用篩選。 */
+    public function listing(\Yinghua\DTO\AdminContentQuery $query, string $today): \Yinghua\DTO\ContentPage
+    {
+        $where = 'n.deleted_at IS NULL';
+        $params = [];
+        if ($query->q !== '') {
+            $where .= " AND n.title LIKE :q ESCAPE '!'";
+            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+        }
+        if ($query->status !== '') {
+            $where .= ' AND n.status=:status';
+            $params['status'] = $query->status;
+        }
+        if ($query->type !== '') {
+            $where .= ' AND n.type=:type';
+            $params['type'] = $query->type;
+        }
+        $count = new Row($this->database->row('SELECT COUNT(*) AS total FROM news_posts n  WHERE ' . $where, $params) ?? []);
+        $rows = $this->database->rows(self::SELECT . ' WHERE ' . $where . ' ORDER BY n.updated_at DESC,n.id DESC LIMIT :size OFFSET :offset', [...$params,'size' => $query->pageSize,'offset' => ($query->page - 1) * $query->pageSize]);
+        return new \Yinghua\DTO\ContentPage(array_map($this->map(...), $rows), $count->integer('total'), $query->page, $query->pageSize);
+    }
+
+    public function delete(string $id): void
+    {
+        $this->database->execute("UPDATE news_posts SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id", ['id' => $id]);
+    }
+
     public function find(string $id, bool $lock = false): ?NewsPost
     {
         $row = $this->database->row(self::SELECT . ' WHERE n.id=:id' . ($lock ? ' FOR UPDATE' : ''), ['id' => $id]);

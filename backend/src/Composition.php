@@ -122,6 +122,33 @@ readonly class Composition
             new \Yinghua\Controllers\PublicHomeController(new \Yinghua\Services\PublicHome($publication)),
         );
 
+        // [S G22；E-31] HTTP與CLI共用明確editor，不組裝匯入封裝。
+        $contentMedia = new MediaRepository($database);
+        $contentCover = new \Yinghua\Policies\ContentCover();
+        $newsRecords = new \Yinghua\Repositories\NewsRepository($database);
+        $newsEditor = new \Yinghua\Services\NewsManagement($newsRecords, $contentMedia, $authorization, $events, new \Yinghua\Adapters\HtmlPurifierSanitizer(), $contentCover, $clock);
+        /** @var Closure(Router,\Yinghua\Controllers\AdminNewsController):void $newsRoutes */
+        $newsRoutes = require dirname(__DIR__) . '/config/news-admin-routes.php';
+        $newsRoutes($router, new \Yinghua\Controllers\AdminNewsController(new \Yinghua\Services\AdminNewsManagement($newsRecords, $newsEditor, $authorization, $transactions, $publication, $events, $clock)));
+
+        // [S G23；E-31] 優惠與共享店家分開動作；靜態merchants路由先註冊。
+        $offerRecords = new \Yinghua\Repositories\OfferRepository($database);
+        $merchantRecords = new \Yinghua\Repositories\MerchantRepository($database);
+        $offerEditor = new \Yinghua\Services\OfferManagement($offerRecords, $merchantRecords, $contentMedia, $authorization, $events, $contentCover, $clock);
+        $merchantEditor = new \Yinghua\Services\MerchantManagement($merchantRecords, $authorization, $events);
+        /** @var Closure(Router,\Yinghua\Controllers\AdminOfferController,\Yinghua\Controllers\OfferMerchantController):void $offerRoutes */
+        $offerRoutes = require dirname(__DIR__) . '/config/offer-admin-routes.php';
+        $offerRoutes(
+            $router,
+            new \Yinghua\Controllers\AdminOfferController(new \Yinghua\Services\AdminOfferManagement($offerRecords, $offerEditor, $authorization, $transactions, $publication, $events, $clock)),
+            new \Yinghua\Controllers\OfferMerchantController(new \Yinghua\Services\OfferMerchants($merchantRecords, $merchantEditor, $authorization, $transactions, $publication)),
+        );
+
+        $neighborController = new \Yinghua\Controllers\PublicNeighborController(new \Yinghua\Services\PublicNeighbors($publication));
+        foreach (['attractions','films','news','offers'] as $topic) {
+            $router->add(new \Yinghua\Http\Route('GET', '/api/v1/' . $topic . '/{slug}/neighbors', \Yinghua\Models\IdentityKind::Member, $neighborController->{$topic}(...)));
+        }
+
         $memberAccess = new \Yinghua\Services\MemberAccess($accounts);
         $memberAttractions = new \Yinghua\Services\MemberAttractions($publication, new AttractionRepository($database), $clock);
         $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(new \Yinghua\Repositories\FavoriteRepository($database), $memberAccess, $memberAttractions, $transactions));

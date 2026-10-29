@@ -31,4 +31,21 @@ class Authorization
     {
         return $this->permissions->effective($actor);
     }
+
+    /** @param non-empty-list<string> $actions
+     * [E-31] 表單單筆／選擇器不強迫具新增／編輯權者另有列表檢視權。
+     */
+    public function requireAny(Account $actor, string $module, array $actions): Account
+    {
+        foreach ($actions as $action) {
+            try {
+                return $this->require($actor, $module, $action);
+            } catch (ApplicationError $error) {
+                if ($error->errorCode !== 'FORBIDDEN') {
+                    throw $error;
+                }
+            }
+        }
+        throw ApplicationError::forbidden();
+    }
 }

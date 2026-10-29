@@ -1,5 +1,7 @@
 # 部署與運維閱讀指南
 
+2026-10-30 複驗：本機長駐publisher未載入階段九PHP，公開快照缺detailNeighbors而被版本閘門拒絕；新程序DB唯讀連線正常。依本文件重啟既有publisher後由watch自行同步，恢復公開入口；本輪未手動在主庫執行content:publish，未變更業務資料、服務定義或環境變數。
+
 ## 2026-10-25 發布順序與安全診斷修正
 
 消息／優惠 alias 現與景點／電影一樣先按鍵排序，避免無業務變更時因資料庫列順序改變 generation。[PublicationPending](../../backend/src/Exceptions/PublicationPending.php) 僅產生 `publication_reason`（missing_snapshot／projection_changed）、格式已驗的 published／expected hash 及固定白名單 `sections`，不記內容、設定值、Cookie、token 或任意資料鍵。Kernel 的公開 API 與 PublicAttractionController 的 HTML gate 在邊界加 requestId；對外仍是既有安全錯誤／503，gate 仍 403，不放寬發布檢查。

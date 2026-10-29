@@ -7,6 +7,7 @@ import { openingHoursLines } from '../assets/js/core/opening-hours.js';
 import { weeklyFilms, filmRows, filmCards, filmDetail, screeningPeriodLabel } from '../assets/js/core/film-view.js';
 import { publishNews } from './public-news.mjs';
 import { publishOffers } from './public-offers.mjs';
+import { contentNeighbors } from '../assets/js/core/content-neighbors.js';
 import { homeNewsRows } from '../assets/js/core/home-view.js';
 import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
@@ -46,6 +47,7 @@ let existing = false;
 try { existing = JSON.parse(await readFile(join(root,'.snapshot.json'),'utf8')).generation === snapshot.generation; } catch {}
 
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
+  if(snapshot.detailNeighbors?.[path])html=html.replace('</main>',()=>contentNeighbors(snapshot.detailNeighbors[path])+'</main>');
   html=renderPolicyVersion(html,snapshot.policyVersion||'local-development-v1');
   if (!html.includes('/assets/css/phase6.css')) html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css"></head>');
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'');

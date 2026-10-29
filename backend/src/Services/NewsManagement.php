@@ -11,6 +11,7 @@ use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\ImportItem;
 use Yinghua\DTO\NewsInput;
 use Yinghua\DTO\PreparedImport;
+use Yinghua\DTO\PreparedContentChange;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Models\MediaModule;
@@ -36,18 +37,31 @@ class NewsManagement implements ContentImportService
 
     public function prepare(Account $actor, ImportItem $item, bool $lock): PreparedImport
     {
-        $before = $this->news->find($item->id, $lock);
+        $change = $this->prepareValues($actor, $item->id, $item->values, $lock);
+        return new PreparedImport($item, $change->input, $change->creating, $change->unchanged, $change->version, $change->warnings);
+    }
+
+    /** @param array<string,mixed> $values */
+    public function prepareValues(Account $actor, string $id, array $values, bool $lock, ?bool $creating = null): PreparedContentChange
+    {
+        $before = $this->news->find($id, $lock);
+        if ($creating === false && ($before === null || ($before->fields['deleted_at'] ?? null) !== null)) {
+            throw new ApplicationError('NOT_FOUND', '找不到此內容。');
+        }
+        if ($creating === true && $before !== null) {
+            throw new ApplicationError('CONFLICT', '此識別已存在。');
+        }
         $this->authorization->require($actor, 'news', $before === null ? 'create' : 'edit', $lock);
         if (($before?->fields['deleted_at'] ?? null) !== null) {
             throw new ApplicationError('CONFLICT', '此識別已刪除，不能以匯入重新使用。');
         }
-        $input = NewsInput::fromArray($item->values, $before === null, $this->clock->now());
+        $input = NewsInput::fromArray($values, $before === null, $this->clock->now());
         $fields = $input->fields;
         if ($fields['slug'] === '') {
-            $fields['slug'] = $before?->fields['slug'] ?? 'news-' . str_replace('-', '', $item->id);
+            $fields['slug'] = $before?->fields['slug'] ?? 'news-' . str_replace('-', '', $id);
         }
         $slug = (string) $fields['slug'];
-        $this->news->assertSlugAvailable($slug, $item->id);
+        $this->news->assertSlugAvailable($slug, $id);
         $coverId = $fields['cover_media_id'] ?? null;
         $fields = $this->cover->apply($fields, is_string($coverId) ? $this->media->find($coverId, MediaModule::News) : null);
         $body = (string) ($fields['body'] ?? '');
@@ -70,8 +84,8 @@ class NewsManagement implements ContentImportService
             ImportVersion::assertCurrent($input->version, $before->version, $unchanged);
         }
         $version = $before === null ? 0 : $before->version;
-        return new PreparedImport(
-            $item,
+        return new PreparedContentChange(
+            $id,
             new NewsInput($fields, $input->version),
             $before === null,
             $unchanged,
@@ -82,16 +96,21 @@ class NewsManagement implements ContentImportService
 
     public function save(Account $actor, PreparedImport $change, ClientContext $client): void
     {
+        $this->saveChange($actor, new PreparedContentChange($change->item->id, $change->input, $change->creating, $change->unchanged, $change->version, $change->warnings), $client);
+    }
+
+    public function saveChange(Account $actor, PreparedContentChange $change, ClientContext $client): void
+    {
         if (!$change->input instanceof NewsInput) {
             throw new \LogicException('News input required.');
         }
         $fresh = $this->authorization->require($actor, 'news', $change->creating ? 'create' : 'edit', true);
-        $this->news->save($change->item->id, $change->input, $change->creating, $fresh->id);
+        $this->news->save($change->id, $change->input, $change->creating, $fresh->id);
         $this->events->content(
             $fresh->id,
             $change->creating ? 'news-create' : 'news-update',
             'news',
-            $change->item->id,
+            $change->id,
             $change->creating ? null : $change->version,
             $change->version + 1,
             (string) ($change->input->fields['status'] ?? 'unchanged'),

@@ -12,9 +12,42 @@ use Yinghua\Exceptions\ContentConflict;
 /** [D：資料表建議 16；E-26] 主題查詢／型別映射／歷史網址集中管理。 */
 class OfferRepository
 {
-    private const string SELECT = "SELECT n.*,m.storage_key,m.alt AS media_alt,c.name AS merchant_name,c.district AS merchant_district,c.address AS merchant_address,c.phone AS merchant_phone,c.website AS merchant_website FROM offers n LEFT JOIN media_assets m ON m.id=n.cover_media_id JOIN merchants c ON c.id=n.merchant_id";
+    private const string SELECT = "SELECT n.*,m.storage_key,m.alt AS media_alt,c.status AS merchant_status,c.deleted_at AS merchant_deleted_at,c.name AS merchant_name,c.district AS merchant_district,c.address AS merchant_address,c.phone AS merchant_phone,c.website AS merchant_website FROM offers n LEFT JOIN media_assets m ON m.id=n.cover_media_id JOIN merchants c ON c.id=n.merchant_id";
 
     public function __construct(private readonly Database $database) {}
+
+    /** [S G22／G23；E-31] 管理查詢保留非公開內容；不與公開投影共用篩選。 */
+    public function listing(\Yinghua\DTO\AdminContentQuery $query, string $today): \Yinghua\DTO\ContentPage
+    {
+        $where = 'n.deleted_at IS NULL';
+        $params = [];
+        if ($query->q !== '') {
+            $where .= " AND CONCAT(n.title,' ',n.discount_text,' ',c.name) LIKE :q ESCAPE '!'";
+            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+        }
+        if ($query->status !== '') {
+            $where .= ' AND n.status=:status';
+            $params['status'] = $query->status;
+        }
+        if ($query->merchantId !== '') {
+            $where .= ' AND n.merchant_id=:merchant';
+            $params['merchant'] = $query->merchantId;
+        }
+        if ($query->active !== '') {
+            $active = "(n.status='published' AND n.publish_at<=UTC_TIMESTAMP() AND c.deleted_at IS NULL AND c.status='active' AND (n.valid_from IS NULL OR n.valid_from<=:startDate) AND (n.valid_to IS NULL OR n.valid_to>=:endDate))";
+            $where .= ' AND ' . ($query->active === 'true' ? $active : 'NOT ' . $active);
+            $params['startDate'] = $today;
+            $params['endDate'] = $today;
+        }
+        $count = new Row($this->database->row('SELECT COUNT(*) AS total FROM offers n JOIN merchants c ON c.id=n.merchant_id WHERE ' . $where, $params) ?? []);
+        $rows = $this->database->rows(self::SELECT . ' WHERE ' . $where . ' ORDER BY n.updated_at DESC,n.id DESC LIMIT :size OFFSET :offset', [...$params,'size' => $query->pageSize,'offset' => ($query->page - 1) * $query->pageSize]);
+        return new \Yinghua\DTO\ContentPage(array_map($this->map(...), $rows), $count->integer('total'), $query->page, $query->pageSize);
+    }
+
+    public function delete(string $id): void
+    {
+        $this->database->execute("UPDATE offers SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id", ['id' => $id]);
+    }
 
     public function find(string $id, bool $lock = false): ?Offer
     {
@@ -99,6 +132,6 @@ class OfferRepository
                 'phone' => $row->string('merchant_phone'),'website' => $row->string('merchant_website')],
             'discount' => $row->string('discount_text'),'description' => $row->string('description'),'terms' => $row->string('terms'),
             'validFrom' => $fields['valid_from'],'validTo' => $fields['valid_to']];
-        return new Offer($row->string('id'), $row->integer('version'), $fields, $public);
+        return new Offer($row->string('id'), $row->integer('version'), $fields, $public, $row->string('merchant_status') === 'active' && ($values['merchant_deleted_at'] ?? null) === null);
     }
 }

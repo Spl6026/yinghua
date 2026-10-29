@@ -125,6 +125,7 @@ class ContentPublication
             }, $this->offers->published($now));
             $data['offerAliases'] = $this->offers->aliases($now);
         }
+        $data['detailNeighbors'] = \Yinghua\Policies\NeighborSelection::project($data);
         $data['home'] = \Yinghua\Policies\HomeSelection::fromSnapshot($data, $window)->toArray();
         if ($this->seo !== null) {
             $data['seo'] = $this->seo->project($data);

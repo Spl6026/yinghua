@@ -24,3 +24,5 @@
 - 使用者已授權實作階段三、四；認證／權限、景點／媒體／地圖／發布及電影／多場次已完成本機驗收，實際範圍見各階段驗收文件。階段五已於 2026-10-22 依授權實作並完成本機驗收，見 docs/PHASE-5-ACCEPTANCE.md。階段六已依授權於 phase/06-favorites-basic-itinerary 建立收藏／目前行程，2026-10-24 完成本機驗收，範圍與限制見 docs/PHASE-6-ACCEPTANCE.md；合併前須備份並核對完整內容。階段七已另行授權並完成本機範圍；階段八已由使用者另行授權，於phase/08-p0-validation實作health／發布部署／復原及整合驗證；完整人工AA／正式環境與安全差項仍待驗，未合併main，見docs/PHASE-8-ACCEPTANCE.md。階段九以後未開始，P0界線通過後依後續授權處理。U-16 只檢查放映日期及開始時間，結束時間延後。狀態與驗收只記錄實際結果。
 - 階段七已於 2026-10-24 依使用者授權在 phase/07-seo-settings-head 實作，7A–7E已完成本機範圍，見 docs/PHASE-7-ACCEPTANCE.md；不因前一條歷史狀態而視為未授權。範圍見 docs/PHASE-7-PLAN.md／docs/modules/seo-settings.md，本機驗收後依規則備份、核對完整 tree 並合併；正式差項與既有偶發驗證限制如實保留。
 - PHP、Composer 與品質檢查工具在 Docker 開發環境執行。缺少工具時先建立或如實記錄，不能把「未安裝／未執行」當成檢查通過。
+
+- 2026-10-30 最新狀態：階段八本機P0工程界線通過後已合併；階段九另依使用者授權於phase/09-news-offers-admin完成消息／優惠管理及四類詳情前後篇，本機驗收與基線／正式交接界線見docs/PHASE-9-ACCEPTANCE.md。89 API／68固定頁／33表316欄／18 migration；每功能提交與合併備份規則維持。階段十以後未開始，不因舊歷史的「階段九未開始」誤判本輪授權。
