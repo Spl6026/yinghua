@@ -1,24 +1,17 @@
-<!doctype html>
-<html lang="zh-Hant">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex,nofollow">
-<meta name="referrer" content="no-referrer">
-<title>新增消息與活動｜映畫竹塹後台</title>
-<link rel="icon" href="/assets/favicon.svg">
-<link rel="stylesheet" href="/assets/css/style.css">
-<link rel="stylesheet" href="/assets/css/phase2.css">
-</head>
-<body data-module="news" data-action="create" data-page="news-add">
-<a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
-<main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / NEWS</p><h1>新增消息與活動</h1><p>此功能將於後續階段提供。</p></div></div>
-<section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
-</section>
-</div>
-</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
-<script type="module" src="/assets/js/admin.js"></script></body>
-</html>
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>新增消息與活動｜映畫竹塹後台</title><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><link rel="icon" href="/assets/favicon.svg"><link rel="stylesheet" href="/assets/css/style.css"><link rel="stylesheet" href="/assets/css/phase2.css"><link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/phase9.css"></head><body data-module="news" data-action="create" data-page="news-add"><a class="skip-link" href="#main-content">跳到主要內容</a><main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT / NEWS</p><h1>新增消息與活動</h1><p>資料保存與公開頁面同步分開顯示。</p></div><button id="reload-content-form" type="button" class="button button-outline">重新載入</button></div><section class="admin-panel"><form id="content-form" method="post" autocomplete="off"><p id="content-form-status" class="form-status" role="status" tabindex="-1"></p><div class="admin-form-grid"><div class="admin-field"><label for="content-title">標題 *</label><input id="content-title" name="title" type="text" required></div>
+<div class="admin-field"><label for="content-type">分類</label><select id="content-type" name="type"><option value="event">活動</option><option value="city">城市消息</option></select></div>
+<div class="admin-field"><label for="content-publishAt">發布日期與時間（台北；留空立即發布）</label><input id="content-publishAt" name="publishAt" type="datetime-local" step="1"></div>
+<div class="admin-field"><label for="content-status">發布狀態</label><select id="content-status" name="status"><option value="published">發布／排程</option><option value="draft">草稿</option><option value="archived">下架</option></select></div>
+<div class="admin-field full"><label for="content-summary">內容摘要（選填）</label><textarea id="content-summary" name="summary" rows="5"></textarea></div>
+<div class="admin-field full"><label for="content-body">正文（選填）</label><div id="body-toolbar" class="inline-actions" aria-label="正文格式工具列"></div><textarea id="content-body" name="body" rows="10" aria-describedby="body-help"></textarea><p id="body-help" class="helper-text">可用工具插入段落、標題、清單與連結；儲存時由伺服器清理不安全內容。</p><details><summary>正文預覽</summary><div id="body-preview" class="public-article-body"></div></details><label for="body-image">正文圖片（選填）</label><input id="body-image" type="file" accept="image/jpeg,image/png,image/webp"><label for="body-image-alt">正文圖片替代文字</label><input id="body-image-alt" type="text"><button id="insert-body-image" type="button" class="button button-outline" data-write>上傳並插入正文圖片</button></div><div class="admin-field"><label for="content-eventStartAt">活動開始時間（選填，台北）</label><input id="content-eventStartAt" name="eventStartAt" type="datetime-local" step="1"></div>
+<div class="admin-field"><label for="content-eventEndAt">活動結束時間（選填，台北）</label><input id="content-eventEndAt" name="eventEndAt" type="datetime-local" step="1"></div>
+<div class="admin-field"><label for="content-eventLocation">活動地點（選填）</label><input id="content-eventLocation" name="eventLocation" type="text"></div>
+<div class="admin-field"><label for="content-eventLabel">活動日期補充說明（選填）</label><input id="content-eventLabel" name="eventLabel" type="text"></div>
+<div class="admin-field"><label for="content-slug">網址識別（留空自動產生）</label><input id="content-slug" name="slug" type="text"></div>
+<div class="admin-field"><label for="content-coverUrl">封面圖片網址（選填）</label><input id="content-coverUrl" name="coverUrl" type="url"></div>
+<input id="content-coverMediaId" name="coverMediaId" type="hidden"><div class="admin-field"><label for="content-image">或上傳封面圖片（選填）</label><input id="content-image" name="image" type="file" accept="image/jpeg,image/png,image/webp"></div><div class="admin-field"><label for="content-coverAlt">封面替代文字（有圖片時必填）</label><input id="content-coverAlt" name="coverAlt" type="text"></div>
+<div class="admin-field"><label for="content-coverSource">圖片來源（選填）</label><input id="content-coverSource" name="coverSource" type="text"></div>
+<div class="admin-field"><label for="content-coverLicense">圖片授權（選填）</label><input id="content-coverLicense" name="coverLicense" type="text"></div>
+<div class="admin-field full"><button id="upload-content-image" type="button" class="button button-outline" data-write>上傳封面圖片</button><p class="helper-text">JPEG／PNG／WebP，最多8 MiB、邊長6000及1200萬像素；檢查／解碼／重編碼，非病毒掃描。先上傳再儲存內容。</p><p id="content-media-status" class="form-status" role="status" tabindex="-1"></p><img id="content-image-preview" src="/assets/image-placeholder.svg" alt="封面預覽" width="360" height="240" class="content-image-preview" hidden></div><div class="admin-field"><label for="content-seoTitle">SEO標題覆寫（選填）</label><input id="content-seoTitle" name="seoTitle" type="text"></div>
+<div class="admin-field"><label for="content-seoDescription">SEO摘要覆寫（選填）</label><textarea id="content-seoDescription" name="seoDescription" rows="5"></textarea></div>
+</div><div class="admin-form-actions"><a class="button button-outline" id="content-cancel" href="/admin/news.html">取消</a><button class="button button-dark" type="submit">新增內容 ↗</button><a hidden id="content-another" href="/admin/news-add.html">再新增一筆</a></div></form></section></div></div></div></main>{{DIALOG}}<div class="toast" id="toast" role="status" aria-live="polite"></div><script type="module" src="/assets/js/admin.js"></script></body></html>

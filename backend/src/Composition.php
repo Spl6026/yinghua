@@ -122,6 +122,15 @@ readonly class Composition
             new \Yinghua\Controllers\PublicHomeController(new \Yinghua\Services\PublicHome($publication)),
         );
 
+        // [S G22；E-31] HTTP與CLI共用明確editor，不組裝匯入封裝。
+        $contentMedia = new MediaRepository($database);
+        $contentCover = new \Yinghua\Policies\ContentCover();
+        $newsRecords = new \Yinghua\Repositories\NewsRepository($database);
+        $newsEditor = new \Yinghua\Services\NewsManagement($newsRecords, $contentMedia, $authorization, $events, new \Yinghua\Adapters\HtmlPurifierSanitizer(), $contentCover, $clock);
+        /** @var Closure(Router,\Yinghua\Controllers\AdminNewsController):void $newsRoutes */
+        $newsRoutes = require dirname(__DIR__) . '/config/news-admin-routes.php';
+        $newsRoutes($router, new \Yinghua\Controllers\AdminNewsController(new \Yinghua\Services\AdminNewsManagement($newsRecords, $newsEditor, $authorization, $transactions, $publication, $events, $clock)));
+
         $memberAccess = new \Yinghua\Services\MemberAccess($accounts);
         $memberAttractions = new \Yinghua\Services\MemberAttractions($publication, new AttractionRepository($database), $clock);
         $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(new \Yinghua\Repositories\FavoriteRepository($database), $memberAccess, $memberAttractions, $transactions));

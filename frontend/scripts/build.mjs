@@ -26,6 +26,8 @@ async function pages(directory) {
 const routes = [];
 // [U-05／E-29] 內容新增／編輯頁保留原型的上方返回列表；其他後台仍查看網站。
 const adminBackLinks = {
+  'admin/news-add.html': ['/admin/news.html', '← 返回消息與活動'],
+  'admin/news-edit.html': ['/admin/news.html', '← 返回消息與活動'],
   'admin/place-add.html': ['/admin/places.html', '← 返回景點與店家'],
   'admin/place-edit.html': ['/admin/places.html', '← 返回景點與店家'],
   'admin/film-add.html': ['/admin/films.html', '← 返回本週映演'],

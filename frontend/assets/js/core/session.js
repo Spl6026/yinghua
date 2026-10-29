@@ -40,7 +40,7 @@ const adminPages = {
   dashboard: ['index'],
   attractions: ['places', 'place-add', 'place-edit', '⌖　新增景點'],
   films: ['films', 'film-add', 'film-edit', '▣　新增映演場次'],
-  news: ['news'],
+  news: ['news', 'news-add', 'news-edit', '▤　新增消息與活動'],
   offers: ['offers'],
   routes: ['routes'],
   admins: ['admins', 'admin-add', 'admin-edit', '♙　新增管理員'],
@@ -73,7 +73,7 @@ export function adminReturnTo(identity) {
     if (path === `/admin/${pages[0]}.html` && hasPermission(identity, module, 'view')) return target;
     if (pages[1] && path === `/admin/${pages[1]}.html` && hasPermission(identity, module, 'create')) return target;
     if (pages[2] && path === `/admin/${pages[2]}.html`
-      && hasPermission(identity, module, 'view') && hasPermission(identity, module, 'edit')) return target;
+      && (hasPermission(identity, module, 'view') || ['news'].includes(module)) && hasPermission(identity, module, 'edit')) return target;
   }
   return fallback;
 }
