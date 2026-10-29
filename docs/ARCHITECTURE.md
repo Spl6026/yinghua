@@ -1,5 +1,7 @@
 # API 與前端分離的架構設計
 
+2026-10-30：階段九新增消息／優惠的Controller→HTTP應用Service→共用Editor→Repository資料流，傳輸無關PreparedContentChange讓CLI與HTTP復用驗證。news-admin-routes／offer-admin-routes分主題註冊；公開前後篇由同版snapshot投影，PHP仍只回API、前端產HTML。89操作／68固定頁，DB及環境不變；見[模組指南](modules/news-offers-admin.md)。
+
 2026-10-26：依使用者指示修正 AA-01／AA-02，新增登入到期預警／原頁重新驗證與網站導覽（分類及名稱尋找）。修正與實測範圍見 [AA 差項修正](P0-AA-REPAIRS-20261026.md)。72 API／68 固定頁／33 表 316 欄／18 migration；原型與 Excel 不動。新提示的 Windows NVDA 採證未完成：啟動主機讀屏造成干擾，已依使用者反映停止並確認程序結束，後續不再自行啟動主機讀屏；不冒稱完整 AA 已通過。
 
 2026-10-24 階段八新增兩個運維入口：HTTP精確health在一般kernel的eager DB之前組裝，HealthController → ApplicationHealth → DatabaseHealthProbe／PdoDatabaseHealthProbe → HealthReport；一般API授權分層保留。readiness.php／recovery.php是CLI composition，RecoveryRepository管SQL、RecoveryMediaInspector管檔案完整性，PdoTransactions管撤銷交易。Python工具僅部署編排，不新增PHP View或繞過公開發布閘門。檔案導讀見 [運維指南](modules/operations.md)、[部署操作](P0-OPERATIONS.md)。33表／18migration不變，正式app／web／worker封裝同manifest。
