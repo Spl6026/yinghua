@@ -31,6 +31,7 @@
 | U-01 | PHP＋MariaDB＋Docker；原生 JS，可用 jQuery | 使用者對話「希望 php+mariadb 並且用 docker 開」 |
 | U-18 | 網站未來交付至已架設 server；Docker 映像 CVE／主機環境另列部署交接，不阻擋本次網站功能與介面驗收。開發工具仍保留 Docker，不推定正式主機已通過安全檢查 | 使用者 2026-10-25 指定「未來我們是上傳到一個已經架好的 server 上…另外的驗收請你想辦法測試」 |
 | U-19 | 驗收避免占用使用者 Windows 前景／鍵盤，改用背景隔離環境 | 使用者 2026-10-26 反映讀屏操作影響 LOL，並要求「你處理一下」；不把此偏好冒充 Excel 指定工具 |
+| U-21 | 搜尋與回頂端圖示在按鈕內水平、垂直置中 | 使用者2026-10-30指定icon-button與back-top對齊偏好；只改前端CSS，不是Excel新增業務限制 |
 | U-20 | 完成 WCAG 2.1 AA 修正與逐項驗收，NVDA 不作必要工具；不豁免各成功準則 | 使用者 2026-10-29 指定「請做修改並做完整AA 但應該不需要NVDA」；使用內建 Browser 與隔離 Orca，既有有效證據明確標記沿用 |
 | U-02 | PHP 的網站責任全為 API，明確的 MVC 類似分工、重用、易讀與適當 design pattern；分層可參考 Spring Boot | 使用者架構要求，2026-10-17 指定參考 Spring Boot 並授權改善 |
 | U-03 | website 原始交付保留，新文件在 project；其他技術使用者名稱 spl，DB yinghua | 使用者既有對話；固定網站 admin 仍依 S-026 |

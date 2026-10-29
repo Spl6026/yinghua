@@ -53,3 +53,10 @@ docker compose run --rm --no-deps frontend
 來源 S G34／L34／串接總覽B15、U-20、E-29；[AA完整矩陣](../P0-AA-FINAL-20261029.md)。`components/session-prompt.js` 的標題關聯提示及帳號，開框／模式轉換先聚焦訊息；Tab／Shift+Tab由靜態訊息進入首／末控制項並循環。進度使用polite status，錯誤使用獨立atomic alert；失敗時焦點到錯誤摘要，按Tab進密碼欄，不只停在同一欄位重讀invalid entry。密碼欄透過describedby關聯錯誤，密碼用後清除，取消回觸發點，草稿不重建／不持久化、不自動重送保存。
 
 `frontend/tests/session-prompt.test.mjs` 驗證初始雙向Tab、警示轉到期、錯誤摘要／密碼清除／關閉返回；Docker完整174項通過。沒有新增套件、PHP、API、schema或環境變數。真Orca完整預警／到期說明已取得；原生密碼提示干擾及未取得完整錯誤字句自動語音如實保留，已接收焦點的摘要按W3C相應準則驗收，不額外指定NVDA品牌。正常CSS／TTL已恢復，隔離讀屏停止。
+
+
+## 2026-10-30 搜尋與回頂端圖示置中（U-21）
+
+`frontend/assets/css/style.css` 的 `.icon-button`、`.back-top` 使用inline-flex、align-items:center與justify-content:center，清除文字按鈕預設padding，line-height:1與letter-spacing:0避免繼承的行高／字距影響位置。維持38×38搜尋及43×43回頂端原尺寸，flex-shrink:0避免擠縮。
+
+主站8080內建Browser實測兩者computed align／justify均center；桌面搜尋圖示與390手機圓框箭頭已視覺檢查，回頂端點擊與可見焦點保留。手機搜尋的原型顯示規則不變。只改排版，HTML連結、aria-label、API、資料表與環境不變；已建置68頁，不為簡單CSS變更增加鏡像測試。採證在忽略的artifacts/phase9/centered-footer-mobile.png。

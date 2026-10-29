@@ -1204,3 +1204,5 @@ E34／G34可讀性補充：phase2.css局部加深muted、標題說明與表單�
 2026-10-30 再次複驗：修正店家首末分頁被共用表單重新啟用，新增3項回歸，完整前端190通過。offer-merchants.refresh負責分頁邊界，content-form委派重套；型別／API／DB不變。依既有運維指南重啟長駐publisher載入新PHP，恢復8080公開快照；具體失敗／恢復及最終完整性見PHASE-9-ACCEPTANCE.md。
 
 本輪最終8080／8081各68頁／17資產／85 HTTP均無問題；假資料與session已清，原始69檔未動。分頁修正與回歸歸回9B，驗證紀錄歸回9D；既有五筆功能與單一merge界線維持。
+
+2026-10-30 U-21介面維護：style.css的icon-button／back-top採flex雙向置中，保留38／43px原尺寸、連結與焦點。桌面搜尋、390手機回頂端及點擊已實測；[樣式與檔案說明](modules/frontend-accessibility.md)。無API／DDL／環境變數或階段十功能變動。
