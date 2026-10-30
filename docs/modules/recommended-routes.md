@@ -1,6 +1,6 @@
 # 推薦路線程式閱讀指南
 
-2026-10-30。階段十已實作、實際 Browser 待驗，尚未合併 main；見 [計畫](../PHASE-10-PLAN.md)／[結果](../PHASE-10-ACCEPTANCE.md)。來源 S 為功能規格 E14:G14/L14/E24:G24；資料表草案 D C17:D18；具體工程決策 E-32。
+2026-10-30。階段十已完成本機功能與實際 Browser 範圍驗收，依Git流程交付；見 [計畫](../PHASE-10-PLAN.md)／[結果](../PHASE-10-ACCEPTANCE.md)。來源 S 為功能規格 E14:G14/L14/E24:G24；資料表草案 D C17:D18；具體工程決策 E-32。
 
 先看 `RecommendedRouteInput::from()`：JSON 白名單、名稱、選填資料、發布狀態與至少一站；`RouteStopInput` 驗證每站 UUID、HH:mm及備註。HTTP 不接受 sortOrder 站點欄位；陣列順序就是站點次序。
 
@@ -30,7 +30,7 @@
 | frontend/scripts/publish.mjs、docker/nginx/default.conf | 同快照公開 HTML 與版本檢查路由。 |
 | backend/resources/openapi.json | 96個操作；新增路線輸入、輸出、錯誤與參數契約。 |
 | backend/tests/phase10_integration.py、phase10_contracts.py、tests/Unit/RecommendedRouteTest.php | 真MariaDB／HTTP、獨立契約、純規則測試。 |
-| frontend/tests/route-form.test.mjs、route-view.test.mjs | 排序保留時間、分頁、202、409、重載／唯讀與文字安全。 |
+| frontend/tests/route-form.test.mjs、route-list.test.mjs、route-view.test.mjs | 排序保留時間、分頁、202、409、重載／唯讀與文字安全。 |
 
 ## 資料庫與環境
 

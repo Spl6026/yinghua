@@ -1,6 +1,6 @@
 # 階段十：推薦路線管理與公開列表
 
-2026-10-30 使用者授權實作。分支 `phase/10-recommended-routes`，從當時最新 main 開始。此文件同時保留設計範圍與待驗界線；實際結果見 [驗收](PHASE-10-ACCEPTANCE.md)。
+2026-10-30 使用者授權實作。分支 `phase/10-recommended-routes`，從當時最新 main 開始。本機範圍已完成；此文件保留設計範圍與驗收界線；實際結果見 [驗收](PHASE-10-ACCEPTANCE.md)。
 
 ## 來源與欄位
 

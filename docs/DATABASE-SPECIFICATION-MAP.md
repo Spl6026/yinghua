@@ -1,5 +1,11 @@
 # 資料表與原始 Excel 對照
 
+2026-10-30 最終：階段十已補完內建 Browser 本機驗收；四頁各1440／390／320共12筆實測，另12筆原型比對。公開導覽選中及刪除後焦點兩項已修、實測與回歸通過。PHP99／342、前端200、路線58／45契約回應零錯誤；96 API／68固定頁／33表327欄／19migration。全站導讀與檔案用途見[推薦路線指南](modules/recommended-routes.md)，實際範圍與共用AA基線界線見[階段十驗收](PHASE-10-ACCEPTANCE.md)。本機範圍通過，依備份／完整tree核對程序合併並保留階段分支；完整會員套用仍留階段十一。下方帶日期段落保留歷史。
+
+
+2026-10-30：階段十依使用者授權於 `phase/10-recommended-routes` 實作推薦路線管理與公開列表；96 API／68固定頁／33表327欄／19 migration。自動化結果見 [階段十驗收](PHASE-10-ACCEPTANCE.md)，程式閱讀見 [推薦路線指南](modules/recommended-routes.md)。內建 Browser 連線不可用，實際介面待驗，尚未合併 main；完整會員套用留階段十一。下方帶日期段落保留歷史。
+
+
 2026-10-30：階段九未新增或修改DDL，真MariaDB12.3.3盤點33表316欄／18 migration。沿用資料表建議14–16列的news_posts／merchants／offers及alias／媒體，新增管理SQL／軟刪除，不把草案欄位自動當必填。EXPLAIN沿既有news_public／offer_public／merchant主鍵；少量店家掃描不盲加索引。具體邊界與驗收見[階段九](PHASE-9-ACCEPTANCE.md)。
 
 2026-10-25 15:21 完整驗證：重讀「資料表建議」A2／C5:D26 及 16 列 P0，從主／測試 MariaDB 查核均 **33 表／316 欄／18 migration**。本輪無 DDL 或 migration 變更；schema 空庫／升級／rollback、公開狀態、唯一／外鍵、本人授權與還原保留資料重跑通過。草案與 U-16／U-09／U-11 的差異維持，不新增推定必填；見 [本輪報告](P0-COMPLETE-VERIFICATION-20261025.md#資料表與架構)。具名內容／媒體／收藏行程清理，SEO 兩表與隔離 root 原摘要復原，正常 audit 保留。
