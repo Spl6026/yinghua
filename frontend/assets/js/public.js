@@ -103,7 +103,7 @@ reveal();
 
 // 保留原有按鈕位置；尚未實作的業務不以瀏覽器假資料保存。
 document.addEventListener('click', event => {
-  if (event.target.closest('[data-move],#use-route')) {
+  if (!document.body.dataset.managedItineraries && event.target.closest('[data-move],#use-route')) {
     event.preventDefault(); toast('完整行程編排將於後續開放。');
   }
   const navigation = event.target.closest('button[data-page]');
@@ -119,4 +119,4 @@ if (backdrop) window.addEventListener('scroll', () => {
     backdrop.style.transform = `scale(1.03) translateY(${Math.min(scrollY * .11, 75)}px)`;
   }
 }, { passive: true });
-document.querySelector('#add-stop')?.addEventListener('click', () => location.assign('/explore.html'));
+if(!document.body.dataset.managedItineraries)document.querySelector('#add-stop')?.addEventListener('click', () => location.assign('/explore.html'));

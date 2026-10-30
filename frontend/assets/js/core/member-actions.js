@@ -3,7 +3,6 @@ import { memberResourcesApi } from '../api/member-resources-api.js';
 import { api } from './api-client.js';
 import { element, status, toast } from './ui.js';
 import { MemberResourceState } from './member-resource-state.js';
-import { CurrentTripState } from './current-trip-state.js';
 import { recoverSession } from './session-expiry.js';
 
 // [E-27] 只處理受管景點 UUID；原型陣列索引不直接當正式資料識別。
@@ -14,7 +13,6 @@ export const readMember = async () => {
 };
 const state = new MemberResourceState(memberResourcesApi, readMember);
 let bound = false, pendingGeneration = 0;
-let tripWriting = false;
 const favoriteButtons = () => [...document.querySelectorAll('[data-favorite]')];
 const knownIds = () => favoriteButtons().map(button => button.dataset.favorite).filter(isAttractionId);
 
@@ -118,22 +116,9 @@ async function toggleFavorite(button) {
 
 async function addStop(button) {
   const id = button.dataset.addStop;
-  if (!isAttractionId(id) || tripWriting) return;
-  tripWriting = true;
-  const controls = [...document.querySelectorAll('[data-add-stop]')];
-  controls.forEach(node => { node.disabled = true; node.setAttribute('aria-busy', 'true'); });
-  const trip = new CurrentTripState(memberResourcesApi, readMember);
-  try {
-    if (!await trip.load()) return;
-    await trip.change(id);
-    location.assign('/planner.html');
-  } catch (error) {
-    if (error.status === 401) loginForMemberAction('trip', id);
-    else toast(error.message);
-  } finally {
-    tripWriting = false;
-    controls.forEach(node => { node.disabled = false; node.removeAttribute('aria-busy'); });
-  }
+  if (!isAttractionId(id)) return;
+  // [S E15；E-33] 到planner確認選定行程後才保存；匿名由共用登入安全返回。
+  location.assign('/planner.html?place='+encodeURIComponent(id));
 }
 
 export async function mountMemberActions() {

@@ -1,88 +1,99 @@
-import { memberResourcesApi } from '../api/member-resources-api.js';
-import { CurrentTripState } from '../core/current-trip-state.js';
-import { readMember, resolvePublicAttraction, clearMemberIntent } from '../core/member-actions.js';
-import { handleSessionExpiry } from '../core/session.js';
-import { element, status } from '../core/ui.js';
-import { memberItineraryStop } from '../components/member-itinerary.js';
+import {itinerariesApi} from '../api/itineraries-api.js';
+import {TripEditorState} from '../core/trip-editor-state.js';
+import {tripStopEditor} from '../components/trip-stop-editor.js';
+import {readMember,resolvePublicAttraction,clearMemberIntent} from '../core/member-actions.js';
+import {handleSessionExpiry} from '../core/session.js';
+import {element,status,formErrors,unsavedChanges} from '../core/ui.js';
+import {confirmAction} from '../components/dialog.js';
 
-const trip = new CurrentTripState(memberResourcesApi, readMember);
-const list = document.querySelector('#itinerary-list');
-const message = document.querySelector('#trip-status');
-const more = document.querySelector('#itinerary-more');
-const reload = document.querySelector('#reload-trip');
-let pendingGeneration = 0;
+// [S E15/L24；E-33] 完整編輯器：server版本與未保存草稿分離，不用localStorage當正式資料。
+export async function initializePlanner(){
+ const state=new TripEditorState(itinerariesApi,readMember),form=document.querySelector('#trip-form'),list=document.querySelector('#itinerary-list'),message=document.querySelector('#trip-status');
+ const title=document.querySelector('#trip-title'),date=document.querySelector('#trip-date'),selector=document.querySelector('#trip-select');
+ const save=document.querySelector('#save-trip'),reload=document.querySelector('#reload-trip'),create=document.querySelector('#new-trip'),remove=document.querySelector('#delete-trip');
+ const previous=document.querySelector('#trip-list-previous'),next=document.querySelector('#trip-list-next'),apply=document.querySelector('#use-route'),add=document.querySelector('#add-stop');
+ const routeMessage=document.querySelector('#route-preview-status');let working=false,suggestion=null,suggestionRequest=0,pendingPlace=null;
+ const locked=()=>working||state.busy||state.loading;
+ function dirtyHint(){const node=document.querySelector('#trip-dirty'),text=state.dirty?'有尚未儲存的修改。':state.trip?'目前內容已保存。':'請先新增或開啟行程。';if(node.textContent!==text)node.textContent=text;}
+ function controls(){
+  const disabled=locked(),editable=!disabled&&!!state.draft;
+  title.disabled=date.disabled=!editable;selector.disabled=disabled;create.disabled=reload.disabled=disabled;remove.disabled=disabled||!state.trip;
+  save.disabled=!editable||state.stale||state.uncertain;previous.disabled=disabled||state.page<=1;next.disabled=disabled||state.page*20>=state.total;
+  apply.disabled=!editable||!suggestion||state.stale||state.uncertain;add.disabled=disabled;
+  document.querySelector('#confirm-place')?.toggleAttribute('disabled',!editable||state.stale||state.uncertain||!pendingPlace);
+  for(const input of list.querySelectorAll('input,textarea'))input.disabled=!editable;
+  list.querySelectorAll('article').forEach((node,index)=>{const buttons=node.querySelectorAll('button');buttons.forEach(button=>{button.disabled=!editable;});if(buttons[0])buttons[0].disabled=!editable||index===0;if(buttons[1])buttons[1].disabled=!editable||index===state.draft.items.length-1;});
+  form.setAttribute('aria-busy',String(disabled));dirtyHint();
+ }
+ function summaries(){
+  selector.replaceChildren(element('option',{value:''},state.total?'選擇要開啟的行程':'尚無行程，請先新增'));
+  const choices=[...state.summaries];if(state.trip&&!choices.some(trip=>trip.id===state.trip.id))choices.unshift(state.trip);
+  for(const trip of choices)selector.append(element('option',{value:trip.id},`${trip.title||'未命名行程'}${trip.isCurrent?'（目前）':''}${trip.tripDate?'｜'+trip.tripDate:''}`));
+  selector.value=state.trip?.id||'';document.querySelector('#trip-list-page').textContent=`第 ${state.page} 頁，共 ${state.total} 份`;
+ }
+ function renderStops(focusIndex){
+  const items=state.draft?.items||[];
+  list.replaceChildren(...items.map((item,index)=>tripStopEditor(item,index,items.length,{disabled:locked(),onMove:(i,delta)=>{if(!locked()&&state.move(i,delta)){renderStops(i+delta);status(message,'站點順序已調整，請儲存行程。');}},onRemove:i=>{if(!locked()&&state.remove(i)){renderStops(Math.min(i,state.draft.items.length-1));status(message,'站點已從草稿移除，請儲存行程。');}},onEdit:(field,value)=>{if(locked())return;item[field]=value;state.dirty=true;dirtyHint();}})));
+  document.querySelector('#itinerary-empty').hidden=items.length>0;controls();
+  if(focusIndex!==undefined)(list.children[focusIndex]?.querySelector('input')||list).focus();
+ }
+ function render(){
+  title.value=state.draft?.title||'';date.value=state.draft?.tripDate||'';document.querySelector('#current-trip-name').textContent=state.trip?(state.trip.title||'未命名行程'):'先建立旅行計畫';
+  document.querySelector('#planner-user-name').textContent=state.member?.displayName||'城市旅人';
+  const account=document.querySelector('.planner-user .text-link');account.href='/change-password.html';account.textContent='更改密碼 ↗';
+  summaries();renderStops();
+ }
+ function fail(error){
+  render();
+  if(error.status===401){status(message,'登入已到期，草稿仍保留；重新驗證後請再操作。',true);handleSessionExpiry('member');return;}
+  status(message,(error.saved?'資料已保存，但清單讀取尚未完成；請重新載入確認。 ':'')+error.message,true);
+  if(!formErrors(form,error))message.focus();
+ }
+ async function act(task,text){
+  if(locked())return;working=true;formErrors(form,{fieldErrors:{}});status(message,'處理中…');
+  try{const promise=task();controls();await promise;render();status(message,text);message.focus();}
+  catch(error){fail(error);}finally{working=false;controls();}
+ }
+ async function discard(trigger,text='尚未儲存的修改將遺失，確定繼續？'){return !state.dirty||await confirmAction('尚未儲存的行程',text,trigger);}
+ title.addEventListener('input',()=>{if(state.draft){state.draft.title=title.value;state.dirty=true;dirtyHint();}});
+ date.addEventListener('input',()=>{if(state.draft){state.draft.tripDate=date.value;state.dirty=true;dirtyHint();}});
+ form.addEventListener('submit',event=>{event.preventDefault();void act(()=>state.save(),'行程已儲存至帳號。');});
+ create.addEventListener('click',async()=>{if(locked()||!await discard(create))return;await act(()=>state.create(),'已建立新行程，可以開始編排。');});
+ selector.addEventListener('change',async()=>{const id=selector.value;if(!id||id===state.trip?.id)return;if(locked()||!await discard(selector)){summaries();return;}await act(()=>state.open(id),'已開啟並選定目前行程。');});
+ reload.addEventListener('click',async()=>{if(locked()||!await discard(reload))return;await act(()=>state.load(),'已重新載入帳號中的行程。');});
+ remove.addEventListener('click',async()=>{if(locked()||!state.trip)return;if(!await confirmAction('刪除行程',`確定刪除「${state.trip.title||'未命名行程'}」？${state.dirty?'未儲存的修改也會捨棄。':''}`,remove))return;await act(()=>state.removeTrip(),'行程已刪除。');});
+ previous.addEventListener('click',()=>{if(state.page>1)void act(()=>state.list(state.page-1),'已載入上一頁行程清單。');});
+ next.addEventListener('click',()=>{if(state.page*20<state.total)void act(()=>state.list(state.page+1),'已載入下一頁行程清單。');});
+ add.addEventListener('click',async()=>{if(!locked()&&await discard(add,'目前修改尚未儲存，離開前請確認是否捨棄。')){state.dirty=false;location.assign('/explore.html');}});
+ apply.addEventListener('click',async()=>{
+  if(locked()||!suggestion||!state.trip)return;
+  if(!await confirmAction('套用推薦行程',`將「${suggestion.title}」的名稱與可用站點套用到目前行程，取代現有站點${state.dirty?'及未儲存修改':''}；旅行日期保留。`,apply))return;
+  await act(async()=>{await state.apply(suggestion.id);clearMemberIntent('route');document.querySelector('#cancel-route').hidden=true;},'推薦路線已套用並保存。');
+ });
+ async function routePreview(){
+  const request=++suggestionRequest,id=new URLSearchParams(location.search).get('route');suggestion=null;controls();
+  try{const result=id?await itinerariesApi.route(id):await itinerariesApi.routes();if(request!==suggestionRequest)return;suggestion=id?result.route:result.items[0]||null;
+   document.querySelector('#suggestion-title').textContent=suggestion?.title||'目前沒有推薦路線';
+   document.querySelector('#suggestion-summary').textContent=suggestion?[suggestion.summary,...suggestion.stops.map(stop=>stop.name)].filter(Boolean).join(' → '):'可到推薦行程列表查看最新資訊。';
+   document.querySelector('#cancel-route').hidden=!id;status(routeMessage,suggestion?'套用會替換名稱與站點，日期保留；確認後才寫入帳號。':'');
+  }catch(error){status(routeMessage,error.message,true);}finally{controls();}
+ }
+ document.querySelector('#cancel-route').addEventListener('click',()=>{clearMemberIntent('route');void routePreview();});
+ async function placeIntent(){
+  const id=new URLSearchParams(location.search).get('place');if(!id)return;
+  const section=element('section',{id:'trip-place-intent',className:'member-intent','aria-label':'待確認行程地點'}),text=element('p',{role:'status'},'讀取待加入地點中…');
+  section.append(text);list.before(section);
+  const cancel=element('button',{type:'button',className:'button button-outline'},'取消加入');cancel.addEventListener('click',()=>{clearMemberIntent('place');pendingPlace=null;section.remove();});section.append(cancel);
+  try{pendingPlace=await resolvePublicAttraction(id);if(!pendingPlace){status(text,'此地點目前無法加入，請重新選擇。',true);return;}
+   status(text,`選定或新增行程後，將「${pendingPlace.name}」加入並儲存。`);
+   const button=element('button',{type:'button',className:'button button-dark',id:'confirm-place'},'加入並儲存至此行程');
+   button.addEventListener('click',()=>{if(locked()||!state.draft||!pendingPlace)return;void act(async()=>{state.add(pendingPlace);await state.save();clearMemberIntent('place');pendingPlace=null;section.remove();},'地點與行程修改已保存。');});section.append(button);controls();
+  }catch(error){status(text,error.message,true);}
+ }
+ unsavedChanges(()=>state.dirty);
+ const resume=async()=>{if(locked())return;try{const member=await readMember();if(!member){handleSessionExpiry('member');return;}if(state.member&&member.id!==state.member.id){state.reset();render();status(message,'登入身分已變更，原私人草稿已清除；請重新載入。',true);return;}if(state.dirty){status(message,'草稿保留；其他分頁可能已更新，儲存時會檢查版本。');return;}await act(()=>state.load(),'已重新確認帳號中的行程。');}catch(error){fail(error);}};
+ window.addEventListener('pageshow',event=>{if(event.persisted)void resume();});window.addEventListener('focus',()=>{void resume();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)void resume();});
+ render();await act(()=>state.load(),'已載入本人行程。');await routePreview();await placeIntent();
+}
 
-function controls() {
-  const locked = trip.busy || trip.loading || !trip.loaded;
-  list.querySelectorAll('button').forEach(button => { button.disabled = locked; });
-  document.querySelector('#confirm-place')?.toggleAttribute('disabled', locked);
-  reload.disabled = trip.busy || trip.loading;
-  more.disabled = locked; more.hidden = !trip.nextCursor;
-  list.setAttribute('aria-busy', String(trip.busy || trip.loading));
-}
-function render() {
-  list.replaceChildren(...trip.items.map((item,index) => memberItineraryStop(item,index,!trip.loaded)));
-  document.querySelector('#itinerary-empty').hidden = !trip.loaded || trip.items.length > 0;
-  document.querySelector('#trip-title').value = trip.itinerary?.title || '';
-  document.querySelector('#trip-date').value = trip.itinerary?.tripDate || '';
-  document.querySelector('#planner-user-name').textContent = trip.member?.displayName || '城市旅人';
-  const accountLink = document.querySelector('.planner-user .text-link');
-  accountLink.href = '/change-password.html'; accountLink.textContent = '更改密碼 ↗';
-  controls();
-}
-async function load(append = false, saved = false) {
-  const task = trip.load(append); controls();
-  status(message, saved ? '資料已保存，正在重新載入行程…' : '讀取本人行程中…');
-  try {
-    if (await task) { render(); status(message, saved ? '變更已保存。' : `已載入 ${trip.items.length} 個地點。`); }
-  } catch (error) {
-    render();
-    if (error.status === 401) handleSessionExpiry('member');
-    else status(message, saved ? '資料已保存，但畫面讀取失敗。請按「重新載入行程」。' : error.message, true);
-  } finally { controls(); }
-}
-async function change(id, remove = false) {
-  if (trip.busy || trip.loading || !trip.loaded) return;
-  const writing = trip.change(id, remove); controls(); status(message, '保存行程變更中…');
-  try {
-    const result = await writing;
-    if (result.busy) return;
-    if (!remove) { clearMemberIntent('place'); document.querySelector('#trip-place-intent')?.remove(); }
-    await load(false, true); message.focus();
-  } catch (error) {
-    if (!trip.loaded) render();
-    if (error.status === 401) handleSessionExpiry('member');
-    else status(message, error.message, true);
-    message.focus();
-  } finally { controls(); }
-}
-async function pendingPlace() {
-  const id = new URLSearchParams(location.search).get('place');
-  if (!id) return;
-  const request = ++pendingGeneration;
-  document.querySelector('#trip-place-intent')?.remove();
-  const section = element('section', {id:'trip-place-intent',className:'member-intent','aria-label':'待確認行程地點'});
-  const text = element('p', {role:'status'}, '確認原先選擇的地點中…'); section.append(text); list.before(section);
-  const cancel = element('button', {type:'button',className:'button button-outline'}, '取消');
-  cancel.addEventListener('click', () => { ++pendingGeneration; clearMemberIntent('place'); section.remove(); }); section.append(cancel);
-  try {
-    const place = await resolvePublicAttraction(id);
-    if (request !== pendingGeneration || !section.isConnected) return;
-    if (!place) { status(text, '此地點目前無法加入，請到城市散策重新選擇。', true); return; }
-    status(text, `是否將「${place.name}」加入目前行程？`);
-    const confirm = element('button', {type:'button',className:'button button-dark',id:'confirm-place'}, '確認加入');
-    confirm.addEventListener('click', () => { void change(place.id); }); section.append(confirm); controls();
-  } catch (error) {
-    status(text, error.message, true);
-    const retry = element('button', {type:'button',className:'button button-outline'}, '重新確認地點'); retry.addEventListener('click', () => { void pendingPlace(); }); section.append(retry);
-  }
-}
-reload.addEventListener('click', () => { void load(); });
-more.addEventListener('click', () => { void load(true); });
-list.addEventListener('click', event => { const button = event.target.closest('[data-remove-stop]'); if (button && !button.disabled) void change(button.dataset.removeStop,true); });
-const resume = () => { trip.reset(); render(); void load(); void pendingPlace(); };
-window.addEventListener('pageshow', event => { if (event.persisted) resume(); });
-window.addEventListener('focus', resume);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) resume(); });
-await load();
-await pendingPlace();
+await initializePlanner();
