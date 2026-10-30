@@ -9,6 +9,7 @@ use Yinghua\Controllers\RecommendedRouteController;
 return static function (Router $router, RecommendedRouteController $routes): void {
     $kind = IdentityKind::Admin;
     $router->add(new Route('GET', '/api/v1/routes', IdentityKind::Member, $routes->published(...)));
+    $router->add(new Route('GET', '/api/v1/routes/{id}', IdentityKind::Member, $routes->publishedOne(...)));
     $router->add(new Route('GET', '/api/v1/admin/routes/attractions', $kind, $routes->candidates(...), true));
     $router->add(new Route('GET', '/api/v1/admin/routes', $kind, $routes->listing(...), true, 'routes', 'view'));
     $router->add(new Route('POST', '/api/v1/admin/routes', $kind, $routes->create(...), true, 'routes', 'create'));

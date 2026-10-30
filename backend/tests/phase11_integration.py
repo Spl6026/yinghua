@@ -73,6 +73,7 @@ def main():
         fixture("UPDATE attractions SET status='published',name='階段十一第二站' WHERE id='"+extra+"'");publish()
         route={'title':m['prefix']+'推薦套用','status':'published','stops':[{'attractionId':m['placeId'],'suggestedTime':'10:30','note':'路線備註'},{'attractionId':extra}]}
         r=call('POST','/api/v1/admin/routes',route,expected=201,client=admin)['record'];route_id=r['id']
+        pub=call('GET','/api/v1/routes/'+route_id,client=guest)['route'];check('direct public route ordered',[s['attractionId'] for s in pub['stops']]==[m['placeId'],extra])
         t=call('POST',base+'/'+t['id']+'/routes',{'version':t['version'],'routeId':route_id})['itinerary']
         check('route replaces name and stations keeps date',t['title']==route['title'] and t['tripDate']=='2026-11-05' and len(t['items'])==2 and t['items'][0]['startTime']=='10:30' and t['items'][0]['note']=='路線備註')
         call('POST',base+'/'+foreign['id']+'/routes',{'version':foreign['version'],'routeId':route_id},expected=404)
@@ -83,6 +84,7 @@ def main():
         fixture("UPDATE attractions SET status='archived' WHERE id='"+extra+"'");publish()
         t=call('POST',base+'/'+t['id']+'/routes',{'version':t['version'],'routeId':route_id})['itinerary'];check('apply skips downed stop',len(t['items'])==1)
         call('PUT','/api/v1/admin/routes/'+route_id,{**route,'status':'draft','version':r['version'],'stops':[route['stops'][1]]},client=admin)
+        call('GET','/api/v1/routes/'+route_id,expected=404,client=guest)
         call('POST',base+'/'+t['id']+'/routes',{'version':t['version'],'routeId':route_id},expected=404)
         reauth=Client();check('relogin',reauth.login(m['prefix']+'@example.test',m['password'])[0]==200)
         check('cross-session full roundtrip',call('GET',base+'/'+t['id'],client=reauth)['itinerary']==t)

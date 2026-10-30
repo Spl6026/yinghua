@@ -1,6 +1,6 @@
 # 完整會員行程閱讀指南
 
-更新：2026-10-31。階段十一；規劃及來源見[計畫](../PHASE-11-PLAN.md)，此提交完成七個會員操作及編輯器，最終Browser／整合紀錄於11D交付。原型 `website/planner.html` 保留；實作只放 `frontend/`、`backend/`。
+更新：2026-10-31。階段十一；規劃及來源見[計畫](../PHASE-11-PLAN.md)，實際測試見[驗收](../PHASE-11-ACCEPTANCE.md)。原型 `website/planner.html` 保留；實作只放 `frontend/`、`backend/`。
 
 ## 先理解資料流
 
@@ -20,6 +20,7 @@
 | backend/src/DTO/Input.php | 共用objects增加可傳容量上限；其他呼叫仍用原100。 |
 | backend/src/Repositories/ItineraryRepository.php | 本人集合及站點、建立／保存／切換／刪除；同會員單調版本。 |
 | backend/src/Services/MemberAttractions.php | 成功公開投影及即時景點驗證；批次固定ID次序鎖定，避免每站重讀投影。 |
+| backend/src/Services/PublicRecommendedRoutes.php、Controllers/RecommendedRouteController.php、config/recommended-route-routes.php | 公開路線單筆預覽；既有列表不變。 |
 | backend/src/Composition.php、backend/phpstan.neon | 組裝與路由品質分析範圍。 |
 | frontend/pages/planner.html、assets/css/phase11.css | 保留原型hero、左右欄、編號卡片；補本人選單、頁碼、編輯／確認控制及手機重排。 |
 | frontend/assets/js/pages/planner.js | DOM、確認框、欄位錯誤、未保存提醒、地點／路線意圖及登入恢復。 |
@@ -27,15 +28,16 @@
 | frontend/assets/js/components/trip-stop-editor.js | 原型站點卡片、安全文字、時間／備註label及上下移除控制。 |
 | frontend/assets/js/api/itineraries-api.js | 沿用共用Cookie／CSRF／API錯誤客戶端，沒有第二套HTTP工具。 |
 | frontend/assets/js/core/member-actions.js | 詳情加入導向待確認planner；收藏原流程保持。 |
+| frontend/assets/js/core/route-view.js | 公開路線恢復原型套用連結。 |
 | frontend/assets/js/public.js | 完整planner由模組處理，舊示範toast／導航不再重複攔截。 |
-| backend/resources/openapi.json | 103個操作；七個新會員API及安全輸出／輸入契約。 |
+| backend/resources/openapi.json | 104個操作；新8個API及安全輸出／輸入契約。 |
 | backend/tests/phase11_fixture.py | 只建立／清理自有yinghua_test兩會員及既有隔離內容。 |
 | backend/tests/phase11_integration.py、phase11_contracts.py、phase11_queries.php | 真HTTP／MariaDB越權並行與持久化、獨立契約、回滾式EXPLAIN。 |
 | backend/tests/Unit/TripInputTest.php、frontend/tests/trip-editor-state.test.mjs | 邊界及非同步草稿狀態回歸；member-pages／route-view舊測試同步新行為。 |
 
 ## API與資料庫
 
-本提交完成七個新會員操作，列於[計畫API表](../PHASE-11-PLAN.md)。既有公開集合提供推薦；指定路線的公開單筆與列表套用入口接續11C，尚不列本提交成果。集合每頁預設20、最多100；選擇行程會更新本人current。DELETE帶JSON version，成功204沒有JSON；刪目前行程會選下一份，最後一份刪除則回空狀態。所有會員API強制member session；admin Cookie不能代替，memberId不接受客戶端指定。
+新增8個操作列於[計畫API表](../PHASE-11-PLAN.md)。集合每頁預設20、最多100；選擇行程會更新本人current。DELETE帶JSON version，成功204沒有JSON；刪目前行程會選下一份，最後一份刪除則回空狀態。所有會員API強制member session；admin Cookie不能代替，memberId不接受客戶端指定。
 
 沿用migration `016_member_itineraries.sql`的`itineraries`／`itinerary_items`，本階段無新表、欄位或migration。`tripDate→trip_date`、`startTime→planned_time`、`note→note`；`sort_order`依陣列順序重排；原有不可用站保留`id`及`snapshot_name`，新增不可用站拒絕。父子同交易，錯誤不留半份。保留軟刪父列及版本，避免刪除後重用舊版本。舊P0目前行程API讀寫同一資料，沒有複製／遷移來源。
 
@@ -45,7 +47,7 @@ E-33：先鎖會員列，再鎖行程／景點；每次修改版本大於同會�
 
 ## 環境與操作
 
-PHP 8.5／MariaDB 12.3／Docker沿用現有環境；33表327欄19 migration、68固定HTML、103 API。沒有新env、依賴、容器、公開DB port或正式設定。公開資料仍經成功generation，發布暫時失敗不從私人草稿取資料。查詢證據於11D彙整，不冒稱大規模壓測。
+PHP 8.5／MariaDB 12.3／Docker沿用現有環境；33表327欄19 migration、68固定HTML、104 API。沒有新env、依賴、容器、公開DB port或正式設定。公開資料仍經成功generation，發布暫時失敗不從私人草稿取資料。查詢證據及索引取捨見驗收，不冒稱大規模壓測。
 
 ```powershell
 docker compose run --rm --no-deps frontend

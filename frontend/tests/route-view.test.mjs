@@ -12,5 +12,6 @@ test('路線順序與站點順序保留且安全編碼',()=>{
   assert.ok(!html.includes('<script>'));
   assert.match(html,/&lt;b&gt;/);
   assert.match(html,/120 分鐘/);
-  assert.match(html,/完整路線套用將於會員旅程功能開放/);
+  assert.match(html,/href="\/planner.html\?route=a"/);
+  assert.match(html,/套用這條路線/);
 });
