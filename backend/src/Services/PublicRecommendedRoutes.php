@@ -20,4 +20,19 @@ class PublicRecommendedRoutes
         }
         return PublicCollection::page($items, $page, $pageSize, $snapshot);
     }
+
+    /** [S E15/L24；E-33] 待套用資訊只讀成功公開投影。
+     * @return array<string,mixed>
+     */
+    public function get(string $id): array
+    {
+        \Yinghua\DTO\ContentFields::uuid($id, 'id');
+        $snapshot = $this->publication->read();
+        foreach (PublicCollection::items($snapshot, 'recommendedRoutes') as $route) {
+            if (($route['id'] ?? null) === $id) {
+                return ['route' => $route,'generation' => $snapshot['generation'] ?? ''];
+            }
+        }
+        throw new \Yinghua\Exceptions\ApplicationError('NOT_FOUND', '找不到此公開推薦路線。');
+    }
 }

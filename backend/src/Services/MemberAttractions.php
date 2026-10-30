@@ -49,24 +49,41 @@ class MemberAttractions
     /** Must run inside the member write transaction, after locking its parent rows. */
     public function requireAvailable(string $id): string
     {
+        return $this->requireAvailableNames([$id])[$id];
+    }
+
+    /** [E-33] 整份行程只讀一次公開投影；固定ID次序鎖景點。
+     * @param list<string> $ids
+     * @return array<string,string>
+     */
+    public function requireAvailableNames(array $ids): array
+    {
+        if ($ids === []) {
+            return [];
+        }
         $snapshot = $this->snapshot();
         if (!$snapshot->ready) {
             throw new ApplicationError('PUBLICATION_PENDING', '公開資訊正在更新，請稍後再加入。', retryAfter: 5);
         }
-        $public = $snapshot->items[$id] ?? null;
-        $current = $this->attractions->find($id, true);
-        $stamp = $current?->values['publishAt'] ?? null;
-        if ($public === null || $current === null || $current->deletedAt !== null || $current->status !== 'published' || !is_string($stamp) || strtotime($stamp) > $this->clock->now()) {
-            throw new ApplicationError('NOT_FOUND', '此地點目前無法加入，請重新選擇。');
-        }
-        if (($public['version'] ?? null) !== $current->version) {
-            throw new ApplicationError('PUBLICATION_PENDING', '公開資訊正在更新，請稍後再加入。', retryAfter: 5);
-        }
-        $name = $public['name'] ?? null;
-        if (!is_string($name)) {
-            throw new \RuntimeException('Invalid public attraction name.');
-        }
+        $names = [];
+        sort($ids);
+        foreach (array_unique($ids) as $id) {
+            $public = $snapshot->items[$id] ?? null;
+            $current = $this->attractions->find($id, true);
+            $stamp = $current?->values['publishAt'] ?? null;
+            if ($public === null || $current === null || $current->deletedAt !== null || $current->status !== 'published' || !is_string($stamp) || strtotime($stamp) > $this->clock->now()) {
+                throw new ApplicationError('NOT_FOUND', '此地點目前無法加入，請重新選擇。');
+            }
+            if (($public['version'] ?? null) !== $current->version) {
+                throw new ApplicationError('PUBLICATION_PENDING', '公開資訊正在更新，請稍後再加入。', retryAfter: 5);
+            }
+            $name = $public['name'] ?? null;
+            if (!is_string($name)) {
+                throw new \RuntimeException('Invalid public attraction name.');
+            }
 
-        return $name;
+            $names[$id] = $name;
+        }
+        return $names;
     }
 }

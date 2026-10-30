@@ -48,6 +48,11 @@ class RecommendedRouteController
         return new Response($result->synchronized ? 200 : 202, $result->toArray());
     }
 
+    public function publishedOne(ApiContext $context): Response
+    {
+        return new Response(200, $this->publicRoutes->get($context->id()));
+    }
+
     public function published(ApiContext $context): Response
     {
         $r = $context->request;

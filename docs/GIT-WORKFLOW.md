@@ -1,5 +1,9 @@
 # Git 階段分支與功能提交
 
+階段十一（2026-10-31）依11A共用資料／版本及DTO、11B完整本人編輯／保存與套用交易、11C公開指定路線預覽及原型套用入口、11D整合驗收拆分。每筆配對契約、測試及指南；資料層準備明列不冒充HTTP成果。自身排版／格式修正歸入功能，備份`artifacts/phase11/before-functional-commits.bundle`與合併前`before-merge.bundle`，比較完整tree與原始69檔，再--no-ff回main，保留phase/11-member-itineraries，不推送。
+
+2026-10-31 最新：階段十一已依使用者授權完成本機範圍，包含本人多份行程、整份編輯保存、時間／備註／排序、推薦路線確認套用及P0資料相容。104 API／68固定頁／33表327欄／19 migration，沒有新DDL／環境。81項真實整合、66筆契約回應零錯誤、107 PHP／208 JS、P0收藏69與目前行程100通過；兩頁各1440／390／320實測並與原型對照。詳見[階段十一驗收](PHASE-11-ACCEPTANCE.md)、[計畫](PHASE-11-PLAN.md)及[檔案閱讀指南](modules/member-itineraries.md)。下方帶日期段落保留歷史；階段十二未開始，P1整體尚未簽核。
+
 2026-10-30 Browser補驗：原型導覽及刪除後焦點修正、兩項JS回歸及58項真API測試歸入10B完整路線功能；10C保留獨立契約執行器、跨模組與schema檢查及最終驗收／導讀。收整前備份 `artifacts/phase10/before-browser-fold.bundle`，最終完整tree不變、原始69檔與其他refs保留；驗收後另備份 `before-phase10-merge.bundle` 再以merge commit合併main，保留階段十分支，不推送遠端。
 
 2026-10-30 最終：階段十已補完內建 Browser 本機驗收；四頁各1440／390／320共12筆實測，另12筆原型比對。公開導覽選中及刪除後焦點兩項已修、實測與回歸通過。PHP99／342、前端200、路線58／45契約回應零錯誤；96 API／68固定頁／33表327欄／19migration。全站導讀與檔案用途見[推薦路線指南](modules/recommended-routes.md)，實際範圍與共用AA基線界線見[階段十驗收](PHASE-10-ACCEPTANCE.md)。本機範圍通過，依備份／完整tree核對程序合併並保留階段分支；完整會員套用仍留階段十一。下方帶日期段落保留歷史。

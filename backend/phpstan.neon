@@ -11,6 +11,7 @@ parameters:
         - bin/recovery.php
         - config/routes.php
         - config/member-routes.php
+        - config/itinerary-routes.php
         - config/seo-routes.php
         - config/news-admin-routes.php
         - config/offer-admin-routes.php

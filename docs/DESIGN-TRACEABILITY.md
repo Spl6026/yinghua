@@ -186,6 +186,10 @@ U-09／E-20：同一 OpeningHours 週表 DTO、Google Adapter 與前端編輯器
 
 R3-01／E-18：各景點圖片說明覆寫及 API 可寫欄位，回應規格圖片／alt 保存與 U-02 的資料重用要求；SQL 欄位及「省略保留、空白回到資產」為工程設計。R3-02／U-05：保留原型六筆順序、推薦文案與後台營業時間欄；recommendationLabel 不是新增評分業務。受控標籤回填的預覽／明確套用、交易稽核為 E-18。R3-04／E-18：新增 migration 補正雙座標 CHECK，API 原有成對驗證保留。R3-03 為必要的表單失敗與競態回歸，沒有新增後續階段業務。
 
+## E-33：階段十一完整會員行程（2026-10-31）
+
+S：功能規格E15/F15/G15/L15及E14/G14/L14/E24/G24/L24；D：API草案C21:G24、資料表建議C19:D20；原型planner名稱日期未required。沿用itineraries／itinerary_items及P0 API，沒有新表欄或遷移。新增集合／單筆／選定／套用端點、同會員跨行程單調version、UUID新增去重、完整資源PUT、成功快照與即時路線比對、確認後寫入、401／409草稿保護屬工程設計。名稱200字、備註2000字、1000站點、HH:mm及既有64KiB JSON為技術容量／表示邊界，不是Excel新增業務必填或時間衝突限制。保留既有下架站點快照，只阻止新加入不可用景點。見[計畫](PHASE-11-PLAN.md)、[閱讀指南](modules/member-itineraries.md)及[實測界線](PHASE-11-ACCEPTANCE.md)。
+
 ## E-32：階段十推薦路線工程設計（2026-10-30）
 
 S：功能規格 E14:G14/L14/E24:G24、權限矩陣 A25:F28；D：資料表建議 C17:D18與API草案 E14:G14/E33:G33。名稱必填依原始website/admin/route-add.html；主題與說明選填。站點至少一個且有效、順序不重複是Excel明文。

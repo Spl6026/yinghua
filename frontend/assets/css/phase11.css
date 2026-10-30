@@ -1,0 +1,19 @@
+/* [S E15；U-05；E-33] 沿用原型planner殼，補上多行程與站點編輯。 */
+.planner-card select{width:100%;padding:12px;background:#fff;color:var(--ink);border:1px solid var(--line);font:inherit}
+.trip-list-pager,.trip-management{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.trip-list-pager{display:grid;grid-template-columns:1fr 1fr}
+.trip-list-pager span{grid-column:1/-1;grid-row:1;font-size:13px}
+.trip-management .button,.trip-list-pager .button{padding:10px;font-size:13px;min-height:44px}
+.planner-card .full-button{margin-top:10px}
+.trip-stop-field{margin-top:14px}
+.trip-stop-field label{display:block;font-size:14px;margin-bottom:6px}
+.trip-stop-field input,.trip-stop-field textarea{display:block;width:100%;max-width:100%;padding:10px;border:1px solid var(--line);background:#fff;color:var(--ink);font:inherit}
+.trip-stop-field textarea{resize:vertical}
+.itinerary-stop .stop-info{min-width:0;overflow-wrap:anywhere}
+.itinerary-stop{grid-template-columns:47px minmax(0,1fr) 146px}
+.itinerary-stop:nth-child(n+51){content-visibility:auto;contain-intrinsic-size:auto 330px}
+.itinerary-stop .stop-actions{align-self:start;flex-wrap:wrap}
+.itinerary-stop .stop-actions button{min-width:44px;min-height:44px}
+.suggestion-card h3,.suggestion-card p,#current-trip-name{overflow-wrap:anywhere}
+.member-intent{margin-bottom:20px;padding:20px;border:1px solid var(--line);background:var(--paper)}
+@media(max-width:600px){.itinerary-stop{grid-template-columns:32px minmax(0,1fr)}.itinerary-stop .stop-actions{grid-column:2;justify-content:flex-start}.planner-card{min-width:0}}

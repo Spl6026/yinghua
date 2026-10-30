@@ -30,3 +30,5 @@
 - 2026-10-30 階段十最新：使用者另行授權，在 phase/10-recommended-routes 實作路線 CRUD／排序／公開列表，96 API／68固定頁／33表327欄／19 migration。自動化結果見 docs/PHASE-10-ACCEPTANCE.md；Browser 連線失效，實際桌面／手機／鍵盤待驗，未合併 main。完整路線套用與會員旅程仍屬階段十一，尚未授權實作。保留原始69檔及既有隔離檔刪除差異。
 
 - 2026-10-30 階段十最終：內建 Browser 已恢復並完成新增範圍實際驗收；四頁各1440／390／320共12筆，另12筆原始website比對。導覽選中與刪除後焦點已修及實測；PHP99／342、前端200、路線58／45契約回應零錯誤。96 API／68固定頁／33表327欄／19migration。本機範圍通過，備份與tree核對後依規則合併；既有正式及共用AA證據界線見docs/PHASE-10-ACCEPTANCE.md。使用者本輪另明確核准自有yinghua_test帳號routes僅view／僅create及恢復原權限測試，完成後清理。完整路線套用與階段十一仍未授權。
+
+- 2026-10-31 階段十一最新：使用者授權於phase/11-member-itineraries完成多份本人行程CRUD、全量時間備註排序、推薦路線確認套用與P0相容；104 API／68固定頁／33表327欄／19 migration，無新DDL／環境。81整合／66契約回應0錯誤、107 PHP／208 JS、既有收藏69／current100及兩頁三尺寸Browser與原型對照通過，詳見docs/PHASE-11-ACCEPTANCE.md及docs/modules/member-itineraries.md。依備份／原始69檔／完整tree驗證後merge並保留分支；階段十二尚未授權或實作，P1整體未簽核。
