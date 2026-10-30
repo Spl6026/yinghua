@@ -42,7 +42,7 @@ def main():
             result=json.loads(php(name,r"""
             $tables=(int)$db->row('SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_schema=DATABASE()')['n'];
             $migrations=(int)$db->row('SELECT COUNT(*) AS n FROM schema_migrations')['n'];
-            if($tables!==33||$migrations!==18)throw new RuntimeException('Schema counts');
+            if($tables!==33||$migrations!==count(glob('/var/www/app/database/migrations/*.sql')))throw new RuntimeException('Schema counts');
             echo json_encode(['tables'=>$tables,'migrations'=>$migrations,'members'=>(int)$db->row('SELECT COUNT(*) AS n FROM members')['n'],'attractions'=>(int)$db->row('SELECT COUNT(*) AS n FROM attractions')['n'],'favorites'=>(int)$db->row('SELECT COUNT(*) AS n FROM favorites')['n'],'stops'=>(int)$db->row('SELECT COUNT(*) AS n FROM itinerary_items')['n']]);
             """))
             assert result['members']==result['attractions']==result['favorites']==result['stops']==(1 if mode=='upgrade' else 0)

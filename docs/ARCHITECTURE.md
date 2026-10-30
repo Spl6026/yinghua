@@ -1,5 +1,11 @@
 # API 與前端分離的架構設計
 
+2026-10-30 最終：階段十已補完內建 Browser 本機驗收；四頁各1440／390／320共12筆實測，另12筆原型比對。公開導覽選中及刪除後焦點兩項已修、實測與回歸通過。PHP99／342、前端200、路線58／45契約回應零錯誤；96 API／68固定頁／33表327欄／19migration。全站導讀與檔案用途見[推薦路線指南](modules/recommended-routes.md)，實際範圍與共用AA基線界線見[階段十驗收](PHASE-10-ACCEPTANCE.md)。本機範圍通過，依備份／完整tree核對程序合併並保留階段分支；完整會員套用仍留階段十一。下方帶日期段落保留歷史。
+
+
+2026-10-30：階段十依使用者授權於 `phase/10-recommended-routes` 實作推薦路線管理與公開列表；96 API／68固定頁／33表327欄／19 migration。自動化結果見 [階段十驗收](PHASE-10-ACCEPTANCE.md)，程式閱讀見 [推薦路線指南](modules/recommended-routes.md)。內建 Browser 連線不可用，實際介面待驗，尚未合併 main；完整會員套用留階段十一。下方帶日期段落保留歷史。
+
+
 2026-10-30：階段九新增消息／優惠的Controller→HTTP應用Service→共用Editor→Repository資料流，傳輸無關PreparedContentChange讓CLI與HTTP復用驗證。news-admin-routes／offer-admin-routes分主題註冊；公開前後篇由同版snapshot投影，PHP仍只回API、前端產HTML。89操作／68固定頁，DB及環境不變；見[模組指南](modules/news-offers-admin.md)。
 
 2026-10-26：依使用者指示修正 AA-01／AA-02，新增登入到期預警／原頁重新驗證與網站導覽（分類及名稱尋找）。修正與實測範圍見 [AA 差項修正](P0-AA-REPAIRS-20261026.md)。72 API／68 固定頁／33 表 316 欄／18 migration；原型與 Excel 不動。新提示的 Windows NVDA 採證未完成：啟動主機讀屏造成干擾，已依使用者反映停止並確認程序結束，後續不再自行啟動主機讀屏；不冒稱完整 AA 已通過。

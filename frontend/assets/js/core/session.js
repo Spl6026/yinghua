@@ -42,7 +42,7 @@ const adminPages = {
   films: ['films', 'film-add', 'film-edit', '▣　新增映演場次'],
   news: ['news', 'news-add', 'news-edit', '▤　新增消息與活動'],
   offers: ['offers', 'offer-add', 'offer-edit', '♧　新增店家優惠'],
-  routes: ['routes'],
+  routes: ['routes', 'route-add', 'route-edit', '⌁　建立推薦行程'],
   admins: ['admins', 'admin-add', 'admin-edit', '♙　新增管理員'],
   permissions: ['permissions'],
   members: ['members'],

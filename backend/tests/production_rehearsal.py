@@ -92,7 +92,7 @@ def main():
         d.run(['exec','-T','-u','www-data','app','php','bin/console.php','content:publish'])
         check('first publication root and public API200',client.call('GET','/')[0]==200 and client.call('GET','/api/v1/site-settings/public')[0]==200)
         manifest=d.manifest();report['release']=manifest['version'];report['manifestCommit']=manifest['commit']
-        check('shared release 18 migrations and 67 HTML routes',len(manifest['migrations'])==18 and len([name for name in manifest['assets'] if name.endswith('.html')])==67)
+        check('shared release migration and fixed-page inventory matches source',len(manifest['migrations'])==len(list((ROOT/'backend/database/migrations').glob('*.sql'))) and len([name for name in manifest['assets'] if name.endswith('.html')])==len(list((ROOT/'frontend/pages').rglob('*.html'))))
         result=d.run(['exec','-T','app','sh','-c','test ! -e /var/www/app/tests && test ! -e /var/www/tools/vendor && test ! -e /var/www/app/.env && test ! -e /var/www/frontend-source/tests && test ! -e /var/www/app/resources/attractions-demo.json'])
         check('release excludes tests/tools/secrets/demo fixtures',result.returncode==0)
         redirect_port=next(port['published'] for port in d.config['services']['web']['ports'] if port['target']==80)

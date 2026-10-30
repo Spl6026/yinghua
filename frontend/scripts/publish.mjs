@@ -7,6 +7,7 @@ import { openingHoursLines } from '../assets/js/core/opening-hours.js';
 import { weeklyFilms, filmRows, filmCards, filmDetail, screeningPeriodLabel } from '../assets/js/core/film-view.js';
 import { publishNews } from './public-news.mjs';
 import { publishOffers } from './public-offers.mjs';
+import { routeCards } from '../assets/js/core/route-view.js';
 import { contentNeighbors } from '../assets/js/core/content-neighbors.js';
 import { homeNewsRows } from '../assets/js/core/home-view.js';
 import { renderSeoHead } from './seo-head.mjs';
@@ -58,6 +59,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_,name) => {
     const template = templates[name];
     if (template === undefined) throw new Error('Unknown template');
+    if (name === 'SITE_HEADER' && canonicalPath === '/routes.html') return template.replace('href="/planner.html"','class="active" aria-current="page" href="/planner.html"');
     if (name === 'SITE_HEADER' && (canonicalPath.startsWith('/offers.html') || canonicalPath.startsWith('/offers/'))) return template.replace('href="/offers.html"','class="active" aria-current="page" href="/offers.html"');
     if (name === 'SITE_HEADER' && (/^\/(?:events|activities|city-news)\.html/.test(canonicalPath) || canonicalPath.startsWith('/news/'))) return template.replace('href="/events.html"','class="active" aria-current="page" href="/events.html"');
     if (name === 'SITE_HEADER' && (path === '/cinema.html' || path.startsWith('/films/'))) return template.replace('href="/cinema.html"','class="active" aria-current="page" href="/cinema.html"');
@@ -134,13 +136,18 @@ if (!existing) {
     await publishNews(source,snapshot,page);
   }
   if(offersEnabled) await publishOffers(source,snapshot,page);
+  if(Array.isArray(snapshot.recommendedRoutes)) {
+    let html=await readFile(join(source,'pages/routes.html'),'utf8');
+    html=html.replace(/<div class="route-cards" id="route-cards">\s*<\/div>/,()=>'<div class="route-cards" id="route-cards">'+routeCards(snapshot.recommendedRoutes)+'</div>');
+    await page('/routes.html',html,'推薦行程｜映畫竹塹','參考新竹主題散步推薦行程，查看有序景點與預估時間。');
+  }
   if(snapshot.home) home=home.replace('</body>',()=>`<script type="application/json" id="home-publication">${json({...snapshot.home,generation:snapshot.generation})}</script></body>`);
   await page('/index.html',home,'映畫竹塹｜新竹城市影像與旅行指南','從新竹市影像博物館出發，探索城市散策、在地美食與新竹旅行。',featured);
   const indexTemplate=await readFile(join(source,'pages/site-map.html'),'utf8');
   await page('/site-map.html',indexTemplate.replace('<div id="public-content-index"></div>',()=>`<div id="public-content-index">${renderPublicContentIndex(snapshot)}</div>`),
     '網站導覽｜映畫竹塹','依分類瀏覽或按名稱尋找映畫竹塹已發布的景點、電影、活動消息與店家優惠。',undefined,'/site-map.html',false);
   // [E-28] 新增的非內容固定公開頁也進同一 generation；保護頁使用安全靜態 shell。
-  const managedPaths=new Set(['/index.html','/explore.html','/food.html','/museum.html','/cinema.html','/events.html','/activities.html','/city-news.html','/offers.html','/site-map.html']);
+  const managedPaths=new Set(['/index.html','/explore.html','/food.html','/museum.html','/cinema.html','/events.html','/activities.html','/city-news.html','/offers.html','/routes.html','/site-map.html']);
   for(const entry of seoCatalog.filter(entry=>!entry.protected&&!entry.template&&!managedPaths.has(entry.path))){
     let html;try{html=await readFile(join(source,'pages',entry.path.slice(1)),'utf8');}catch(error){if(error.code==='ENOENT')continue;throw error;}
     await page(entry.path,html,entry.title,entry.description,undefined,entry.path,false);

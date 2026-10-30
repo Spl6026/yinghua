@@ -1,5 +1,13 @@
 # Git 階段分支與功能提交
 
+2026-10-30 Browser補驗：原型導覽及刪除後焦點修正、兩項JS回歸及58項真API測試歸入10B完整路線功能；10C保留獨立契約執行器、跨模組與schema檢查及最終驗收／導讀。收整前備份 `artifacts/phase10/before-browser-fold.bundle`，最終完整tree不變、原始69檔與其他refs保留；驗收後另備份 `before-phase10-merge.bundle` 再以merge commit合併main，保留階段十分支，不推送遠端。
+
+2026-10-30 最終：階段十已補完內建 Browser 本機驗收；四頁各1440／390／320共12筆實測，另12筆原型比對。公開導覽選中及刪除後焦點兩項已修、實測與回歸通過。PHP99／342、前端200、路線58／45契約回應零錯誤；96 API／68固定頁／33表327欄／19migration。全站導讀與檔案用途見[推薦路線指南](modules/recommended-routes.md)，實際範圍與共用AA基線界線見[階段十驗收](PHASE-10-ACCEPTANCE.md)。本機範圍通過，依備份／完整tree核對程序合併並保留階段分支；完整會員套用仍留階段十一。下方帶日期段落保留歷史。
+
+
+2026-10-30：階段十依使用者授權於 `phase/10-recommended-routes` 實作推薦路線管理與公開列表；96 API／68固定頁／33表327欄／19 migration。自動化結果見 [階段十驗收](PHASE-10-ACCEPTANCE.md)，程式閱讀見 [推薦路線指南](modules/recommended-routes.md)。內建 Browser 連線不可用，實際介面待驗，尚未合併 main；完整會員套用留階段十一。下方帶日期段落保留歷史。
+
+
 2026-10-30：階段八依本機P0工程界線完成後已以merge commit d674baf合併，前置備份artifacts/phase9-planning/before-phase8-merge.bundle。階段九另分phase/09-news-offers-admin，按共用typed編輯準備、9A消息、9B優惠與共享店家、9C前後篇、9D整合驗收五筆交付。格式／按鈕／代理自身修正歸回相應功能；整理前artifacts/phase9/before-history-fold.bundle及合併前artifacts/phase9/before-merge.bundle、原始69檔與完整tree必須核對，保留階段分支，不推送。實際範圍見[驗收](PHASE-9-ACCEPTANCE.md)。
 
 2026-10-26 AA-01／AA-02 修正依既有自身修正規則歸回 P0 驗證提交；工具準備提交仍保留，main／其他階段／原始 69 檔不變。改寫前備份於 `artifacts/p0-aa-repairs-20261026/history-before-aa-fold.bundle`，核對完整 tree。新提示的主機讀屏未完成，沒有合併／推送或提前宣告整體 AA 通過。

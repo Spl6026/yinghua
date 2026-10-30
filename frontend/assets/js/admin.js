@@ -12,6 +12,8 @@ import { initializeAttractionForm } from './pages/attraction-form.js';
 import { initializeSeoSettings } from './pages/seo-settings.js';
 import { initializeContentList } from './pages/content-list.js';
 import { initializeContentForm } from './pages/content-form.js';
+import { initializeRouteList } from './pages/route-list.js';
+import { initializeRouteForm } from './pages/route-form.js';
 
 initializeMenus();
 const main = document.querySelector('.admin-content');
@@ -55,6 +57,8 @@ try {
     else if (page === 'settings') await initializeSeoSettings(identity);
     else if (page === 'news' || page === 'offers') await initializeContentList(identity, module);
     else if (['news-add','news-edit','offer-add','offer-edit'].includes(page)) await initializeContentForm(identity, module, page);
+    else if (page === 'routes') await initializeRouteList(identity);
+    else if (page === 'route-add' || page === 'route-edit') await initializeRouteForm(identity, page);
   }
 } catch (error) { status(message, error.message, true); message.focus(); }
 finally { main.removeAttribute('aria-busy'); }

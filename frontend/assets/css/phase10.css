@@ -1,0 +1,11 @@
+/* [S E24；U-05；E-32] 沿用原型表單、卡片；補足有序站點的鍵盤控制。 */
+.route-stops{padding-left:1.5rem;scroll-margin-top:6rem}
+.route-stop{padding:1rem 0;border-bottom:1px solid var(--line)}
+.route-stop h2{font-size:1.2rem;overflow-wrap:anywhere}
+.route-stop-actions,.route-candidates,.route-picker-actions{display:flex;flex-wrap:wrap;gap:.6rem;margin-top:1rem}
+.route-candidates .button{white-space:normal;overflow-wrap:anywhere;text-align:left}
+.route-picker-actions input{flex:1;min-width:0}
+.route-card p,.route-card h3{overflow-wrap:anywhere}
+.route-card .route-stop-links{padding-left:1.2rem}
+.route-picker-actions .button,.route-stop-actions .button{min-height:44px}
+.route-card{content-visibility:auto;contain-intrinsic-size:auto 400px}

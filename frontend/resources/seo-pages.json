@@ -76,7 +76,7 @@
     "label": "推薦行程",
     "title": "推薦行程｜映畫竹塹",
     "description": "參考新竹一日遊與主題散步推薦行程，串聯影像博物館、老城美食與城市景點。",
-    "protected": true,
+    "protected": false,
     "template": false
   },
   {

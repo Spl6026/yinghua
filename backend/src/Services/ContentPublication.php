@@ -24,6 +24,7 @@ class ContentPublication
         private readonly ?\Yinghua\Repositories\NewsRepository $news = null,
         private readonly ?\Yinghua\Repositories\OfferRepository $offers = null,
         private readonly ?SeoPublication $seo = null,
+        private readonly ?\Yinghua\Repositories\RecommendedRouteRepository $routes = null,
     ) {}
 
     /** @template T
@@ -124,6 +125,9 @@ class ContentPublication
                 return [...$item,'validity' => $state,'active' => $state === 'active'];
             }, $this->offers->published($now));
             $data['offerAliases'] = $this->offers->aliases($now);
+        }
+        if ($this->routes !== null) {
+            $data['recommendedRoutes'] = \Yinghua\Policies\RecommendedRouteSelection::project($this->routes->published(), $data['items']);
         }
         $data['detailNeighbors'] = \Yinghua\Policies\NeighborSelection::project($data);
         $data['home'] = \Yinghua\Policies\HomeSelection::fromSnapshot($data, $window)->toArray();
