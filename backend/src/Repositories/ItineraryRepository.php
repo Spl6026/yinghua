@@ -19,18 +19,16 @@ class ItineraryRepository
         return $values === null ? null : $this->map($values);
     }
 
-    public function findOwned(string $memberId, string $id): ?MemberItinerary
+    public function findOwned(string $memberId, string $id, bool $lock = false): ?MemberItinerary
     {
-        $values = $this->database->row("SELECT id,member_id,title,trip_date,version FROM itineraries WHERE member_id=:member AND id=:id AND status='active' AND deleted_at IS NULL", ['member' => $memberId, 'id' => $id]);
+        $values = $this->database->row("SELECT id,member_id,title,trip_date,version FROM itineraries WHERE member_id=:member AND id=:id AND status='active' AND deleted_at IS NULL" . ($lock ? ' FOR UPDATE' : ''), ['member' => $memberId, 'id' => $id]);
 
         return $values === null ? null : $this->map($values);
     }
 
     public function createCurrent(string $memberId, string $id): MemberItinerary
     {
-        $this->database->execute('INSERT INTO itineraries(id,member_id,current_slot) VALUES(:id,:member,1)', ['id' => $id, 'member' => $memberId]);
-
-        return $this->findOwned($memberId, $id) ?? throw new \RuntimeException('Created itinerary missing.');
+        return $this->createOwned($memberId, $id, '我的旅行計畫', null);
     }
 
     public function item(string $memberId, string $id, string $attractionId): ?ItineraryStop
@@ -60,12 +58,82 @@ class ItineraryRepository
 
     public function advance(string $memberId, string $id): MemberItinerary
     {
-        $this->database->execute('UPDATE itineraries SET version=version+1,updated_at=UTC_TIMESTAMP() WHERE member_id=:member AND id=:id AND deleted_at IS NULL', ['member' => $memberId, 'id' => $id]);
+        $this->database->execute('UPDATE itineraries SET version=:version,updated_at=UTC_TIMESTAMP() WHERE member_id=:member AND id=:id AND deleted_at IS NULL', ['version' => $this->nextVersion($memberId),'member' => $memberId, 'id' => $id]);
 
         return $this->findOwned($memberId, $id) ?? throw new \RuntimeException('Updated itinerary missing.');
     }
 
     private const string ITEM_SELECT = 'SELECT i.id,i.attraction_id,i.sort_order,i.planned_time,i.note,i.snapshot_name FROM itinerary_items i JOIN itineraries t ON t.id=i.itinerary_id';
+
+    /** [E-33] 寫入呼叫端先鎖會員；同會員版本單調遞增，保護只送version的P0請求。 */
+    private function nextVersion(string $memberId): int
+    {
+        $row = new Row($this->database->row('SELECT COALESCE(MAX(version),0) AS version FROM itineraries WHERE member_id=:member', ['member' => $memberId]) ?? []);
+        return $row->integer('version') + 1;
+    }
+
+    /** @return array{items:list<MemberItinerary>,total:int} */
+    public function collection(string $memberId, int $page, int $size): array
+    {
+        $where = "member_id=:member AND status='active' AND deleted_at IS NULL";
+        $count = new Row($this->database->row('SELECT COUNT(*) AS total FROM itineraries WHERE ' . $where, ['member' => $memberId]) ?? []);
+        $rows = $this->database->rows('SELECT id,member_id,title,trip_date,version FROM itineraries WHERE ' . $where . ' ORDER BY updated_at DESC,id DESC LIMIT :size OFFSET :offset', ['member' => $memberId,'size' => $size,'offset' => ($page - 1) * $size]);
+        return ['items' => array_map($this->map(...), $rows),'total' => $count->integer('total')];
+    }
+
+    /** @return list<ItineraryStop> */
+    public function allItems(string $memberId, string $id): array
+    {
+        return array_map($this->mapItem(...), $this->database->rows(self::ITEM_SELECT . " WHERE t.member_id=:member AND t.id=:id AND t.status='active' AND t.deleted_at IS NULL ORDER BY i.sort_order", ['member' => $memberId,'id' => $id]));
+    }
+
+    public function createOwned(string $memberId, string $id, string $title, ?string $date): MemberItinerary
+    {
+        $version = $this->nextVersion($memberId);
+        $this->database->execute('UPDATE itineraries SET current_slot=NULL WHERE member_id=:member AND current_slot=1', ['member' => $memberId]);
+        try {
+            $this->database->execute('INSERT INTO itineraries (id,member_id,title,trip_date,current_slot,version) VALUES (:id,:member,:title,:date,1,:version)', ['id' => $id,'member' => $memberId,'title' => $title,'date' => $date,'version' => $version]);
+        } catch (\PDOException $error) {
+            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+                throw new \Yinghua\Exceptions\ContentConflict('Itinerary identity unavailable.', previous: $error);
+            }
+            throw $error;
+        }
+        return $this->findOwned($memberId, $id) ?? throw new \RuntimeException('Created itinerary missing.');
+    }
+
+    public function selectCurrent(string $memberId, string $id): MemberItinerary
+    {
+        if ($this->current($memberId)?->id === $id) {
+            return $this->findOwned($memberId, $id) ?? throw new \RuntimeException('Itinerary missing.');
+        }
+        $this->database->execute('UPDATE itineraries SET current_slot=NULL WHERE member_id=:member AND current_slot=1', ['member' => $memberId]);
+        $this->database->execute('UPDATE itineraries SET current_slot=1,version=:version,updated_at=UTC_TIMESTAMP() WHERE member_id=:member AND id=:id AND deleted_at IS NULL AND status=\'active\'', ['version' => $this->nextVersion($memberId),'member' => $memberId,'id' => $id]);
+        return $this->findOwned($memberId, $id) ?? throw new \RuntimeException('Selected itinerary missing.');
+    }
+
+    /** @param list<ItineraryStop> $items */
+    public function saveOwned(string $memberId, string $id, string $title, ?string $date, array $items): MemberItinerary
+    {
+        $this->database->execute('UPDATE itineraries SET title=:title,trip_date=:date WHERE member_id=:member AND id=:id AND deleted_at IS NULL', ['title' => $title,'date' => $date,'member' => $memberId,'id' => $id]);
+        $this->database->execute('DELETE i FROM itinerary_items i JOIN itineraries t ON t.id=i.itinerary_id WHERE t.member_id=:member AND t.id=:id AND t.deleted_at IS NULL', ['member' => $memberId,'id' => $id]);
+        foreach ($items as $item) {
+            $this->database->execute("INSERT INTO itinerary_items (id,itinerary_id,attraction_id,sort_order,planned_time,note,snapshot_name) SELECT :item,t.id,:place,:position,:time,:note,:name FROM itineraries t WHERE t.member_id=:member AND t.id=:id AND t.deleted_at IS NULL AND t.status='active'", ['item' => $item->id,'place' => $item->attractionId,'position' => $item->sortOrder,'time' => $item->plannedTime,'note' => $item->note,'name' => $item->snapshotName,'member' => $memberId,'id' => $id]);
+        }
+        return $this->advance($memberId, $id);
+    }
+
+    public function deleteOwned(string $memberId, string $id): void
+    {
+        $wasCurrent = $this->current($memberId)?->id === $id;
+        $this->database->execute("UPDATE itineraries SET deleted_at=UTC_TIMESTAMP(),current_slot=NULL,status='deleted',version=:version WHERE member_id=:member AND id=:id AND deleted_at IS NULL", ['version' => $this->nextVersion($memberId),'member' => $memberId,'id' => $id]);
+        if ($wasCurrent) {
+            $next = $this->collection($memberId, 1, 1)['items'][0] ?? null;
+            if ($next !== null) {
+                $this->selectCurrent($memberId, $next->id);
+            }
+        }
+    }
 
     /** @param array<string,mixed> $values */
     private function map(array $values): MemberItinerary

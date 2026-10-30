@@ -90,10 +90,10 @@ readonly class Input
     }
 
     /** @return list<array<string, mixed>> */
-    public function objects(string $key): array
+    public function objects(string $key, int $maximum = 100): array
     {
         $values = $this->values[$key] ?? null;
-        if (!is_array($values) || !array_is_list($values) || count($values) > 100) {
+        if (!is_array($values) || !array_is_list($values) || count($values) > $maximum) {
             throw ApplicationError::invalid($key, '請提供有效清單。');
         }
         $result = [];
