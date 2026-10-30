@@ -144,6 +144,10 @@ readonly class Composition
             new \Yinghua\Controllers\OfferMerchantController(new \Yinghua\Services\OfferMerchants($merchantRecords, $merchantEditor, $authorization, $transactions, $publication)),
         );
 
+        /** @var Closure(Router,\Yinghua\Controllers\RecommendedRouteController):void $recommendedRoutes */
+        $recommendedRoutes = require dirname(__DIR__) . '/config/recommended-route-routes.php';
+        $recommendedRoutes($router, new \Yinghua\Controllers\RecommendedRouteController(new \Yinghua\Services\RecommendedRoutes(new \Yinghua\Repositories\RecommendedRouteRepository($database), $authorization, $transactions, $publication, $events), new \Yinghua\Services\PublicRecommendedRoutes($publication)));
+
         $neighborController = new \Yinghua\Controllers\PublicNeighborController(new \Yinghua\Services\PublicNeighbors($publication));
         foreach (['attractions','films','news','offers'] as $topic) {
             $router->add(new \Yinghua\Http\Route('GET', '/api/v1/' . $topic . '/{slug}/neighbors', \Yinghua\Models\IdentityKind::Member, $neighborController->{$topic}(...)));
@@ -170,7 +174,7 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)));
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database));
     }
 
     public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands

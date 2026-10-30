@@ -11,15 +11,15 @@
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/phase2.css">
+<link rel="stylesheet" href="/assets/css/phase10.css">
 </head>
 <body data-module="routes" data-action="view" data-page="routes">
 <a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
 <main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / ROUTES</p><h1>推薦行程</h1><p>此功能將於後續階段提供。</p></div></div>
-<section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
-</section>
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT / ROUTES</p><h1>推薦行程</h1><p>組合景點成為主題路線，維護發布狀態與顯示順序。</p></div><a id="new-route" class="button button-dark" href="/admin/route-add.html">＋ 建立推薦行程</a></div>
+<section class="admin-panel"><div class="admin-form-grid"><div class="admin-field"><label for="route-query">搜尋行程名稱</label><input type="search" id="route-query" maxlength="255"></div><div class="admin-field"><label for="route-status">發布狀態</label><select id="route-status"><option value="">全部</option><option value="draft">草稿</option><option value="published">已發布</option><option value="archived">下架</option></select></div></div>
+<p id="route-list-status" role="status" tabindex="-1" class="form-status"></p><div class="table-scroll" role="region" aria-label="推薦行程清單" tabindex="0"><table class="admin-table"><thead><tr><th scope="col">行程名稱</th><th scope="col">主題</th><th scope="col">景點數</th><th scope="col">排序</th><th scope="col">狀態</th><th scope="col">操作</th></tr></thead><tbody id="route-rows"></tbody></table></div>
+<div class="route-picker-actions"><button type="button" class="button button-outline" id="route-previous">上一頁</button><span id="route-page"></span><button type="button" class="button button-outline" id="route-next">下一頁</button></div></section>
 </div>
 </div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
 <script type="module" src="/assets/js/admin.js"></script></body>

@@ -96,7 +96,7 @@ if (!document.body.dataset.managedFilms) document.querySelector('#cinema-list')?
 if (!document.body.dataset.managedFilms) render('.screening-grid', films.slice(0, 3), filmCard, '目前沒有本週映演場次。');
 renderNews();
 if(!document.body.dataset.managedOffers)render('#offers-list', offers, offerCard, '目前沒有上架中的店家優惠。');
-render('#route-cards', routes, routeCard, '目前沒有推薦行程。');
+if(!document.body.dataset.managedRoutes)render('#route-cards', routes, routeCard, '目前沒有推薦行程。');
 renderSearch();
 initializeDetails();
 reveal();
