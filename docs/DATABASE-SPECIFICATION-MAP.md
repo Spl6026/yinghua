@@ -1,5 +1,7 @@
 # 資料表與原始 Excel 對照
 
+2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
+
 階段十二的indexModifiedAt是成功快照內部中繼資料，PublishedRecord.updatedAt是DTO屬性，均非新DB欄位。復用既有updated_at與SEO文件時間；沒有新資料表、索引或migration。
 
 2026-10-31 最新：階段十二依授權完成JSON-LD、同版robots／sitemap／分片及P1本機整合。104個PHP JSON API保持，另3個Nginx爬蟲GET，共107個HTTP契約；68固定HTML／33表327欄／19 migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255項與181契約回應、索引369項、官方Validator七型別0錯誤／警告、Browser21筆及40個body保留通過。U-21指定網域未定先完成本機，正式Search Console／Bing／分享仍交接；P2階段十三未開始。詳見[計畫](PHASE-12-PLAN.md)、[驗收](PHASE-12-ACCEPTANCE.md)及[架構與檔案指南](modules/search-index.md)。下方帶日期段落保留歷史。
@@ -131,3 +133,7 @@ DDL 參照 [MariaDB ALTER TABLE 官方語法](https://mariadb.com/docs/server/re
 MariaDB 12.3.3 實際 EXPLAIN：管理排序選 film_admin；公開查詢選 film_admin 並有 filesort；場次批次選 film_start 的 range；當次開始時間碰撞查詢以 film_admin＋film_start 查找。樣本小，不把估計 1–2 筆當成大資料效能證明，未另增索引或壓測宣稱；screening_start 保留開始時間索引用途。performance_schema 為 OFF，沒有為此重啟共用資料庫。
 
 升級前主／測試庫備份：被 Git 忽略的 artifacts/phase4-before-migrations-20261019.sql。`film_schema_upgrade.py` 新建隨機 fresh／upgrade 測試庫，驗證 24 表／12 migration、重跑、最少電影、FK／同片唯一及舊會員／景點保留；最後清除自有測試庫與暫時授權，沒有 DROP 使用者主庫／固定測試庫。正常升級沿用 db:migrate，完整命令見驗收與全站導讀。
+
+## 階段十三搜尋投影（E-35）
+
+功能規格E18/G18/L18要求搜尋；資料表建議未指定搜尋表。新增019_public_search.sql／search_documents共11欄，公開generation／type／resource_id主鍵及文字／URL白名單，無業務外鍵或新增編輯限制。舊19份migration不變，總34表338欄／20份。EXPLAIN實測後移除未使用額外索引，只留PRIMARY；內容／媒體／設定仍是來源，還原後content:publish重建。來源與逐欄用途見[搜尋指南](modules/site-search.md)。

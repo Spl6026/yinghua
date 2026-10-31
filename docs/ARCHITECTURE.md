@@ -1,5 +1,7 @@
 # API 與前端分離的架構設計
 
+2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
+
 2026-10-31 最新：階段十二依授權完成JSON-LD、同版robots／sitemap／分片及P1本機整合。104個PHP JSON API保持，另3個Nginx爬蟲GET，共107個HTTP契約；68固定HTML／33表327欄／19 migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255項與181契約回應、索引369項、官方Validator七型別0錯誤／警告、Browser21筆及40個body保留通過。U-21指定網域未定先完成本機，正式Search Console／Bing／分享仍交接；P2階段十三未開始。詳見[計畫](PHASE-12-PLAN.md)、[驗收](PHASE-12-ACCEPTANCE.md)及[架構與檔案指南](modules/search-index.md)。下方帶日期段落保留歷史。
 
 2026-10-31 最新：階段十一已依使用者授權完成本機範圍，包含本人多份行程、整份編輯保存、時間／備註／排序、推薦路線確認套用及P0資料相容。104 API／68固定頁／33表327欄／19 migration，沒有新DDL／環境。81項真實整合、66筆契約回應零錯誤、107 PHP／208 JS、P0收藏69與目前行程100通過；兩頁各1440／390／320實測並與原型對照。詳見[階段十一驗收](PHASE-11-ACCEPTANCE.md)、[計畫](PHASE-11-PLAN.md)及[檔案閱讀指南](modules/member-itineraries.md)。下方帶日期段落保留歷史；階段十二未開始，P1整體尚未簽核。
@@ -213,3 +215,7 @@ Nginx 提供前端 HTML／CSS／JS／公開圖片，只有 /api/v1/* 轉給 PHP 
 - ContentPublication 一次取時刻，將公開來源及 HomeSelection 的結果放入同一 generation。HomeContent 是首頁 DTO；WeeklyFilmSelection 同時供首頁與電影 API 使用。Node 使用相同 home 投影生成 HTML，原生 JS 的 news／offers 共用列表控制器與主題 view。
 
 設計沿用 [Fowler Service Layer](https://martinfowler.com/eaaCatalog/serviceLayer.html)／[Repository](https://martinfowler.com/eaaCatalog/repository.html) 的責任區分，具體類別與發布快照為本案 E-26；Excel 的資料表／API 草案維持 D，不冒稱 Spring Boot 或 Excel 指定 PHP 目錄。
+
+## 全站搜尋：同版公開讀模型
+
+SearchController → SearchQuery → PublicSearch → SearchRepository，PHP提供JSON。SearchDocument將已發布四主題快照轉成白名單；SQL投影交易完成後才啟用HTML，成功後清舊版。搜尋與發布共鎖，讀取只查同generation，保留既有失敗503政策。前端search.js共用api-client／session／UI，search-state管URL與競爭，search-card為不載入prototype的純元件。這是現有Service／Repository／DTO與可重建公開投影的延伸，不新增框架或第二套編輯來源；詳見[逐檔指南](modules/site-search.md)。

@@ -35,6 +35,7 @@
 | frontend/tests/search-state.test.mjs | URL往返、先後請求競爭、過時錯誤、清空與失敗恢復。 |
 | frontend/tests/search-card.test.mjs | XSS文字、外部／javascript／錯誤主題URL拒絕及館舍實際路徑。 |
 | backend/tests/phase13_profile.py | 實際WHERE／排序／分頁與count的EXPLAIN／ANALYZE、版本及觀測界線。 |
+| backend/tests/phase13_verify_cleanup.py | 只讀核對自有內容殘留、索引版本／主鍵及全部migration checksum。 |
 
 ## API與資料表
 
