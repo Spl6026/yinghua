@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-11-01 階段十三進度：13A交付公開搜尋投影準備，新增一張可重建search_documents、019 migration及同版發布，詳見[投影指南](modules/search-projection.md)／[計畫](PHASE-13-PLAN.md)。34表338欄／20 migration；PHP API仍104，爬蟲GET仍3。13B的API與原型搜尋頁、13C整合驗收尚待後續提交，不宣告整階段完成；無新env／依賴／服務。
+
 2026-10-31 P1另輪驗收：依原始Excel的11列P1重跑階段9–12；255項真API／181筆契約、369項索引、224 JS／107 PHP與PHPStan／PHPat通過。18頁各三尺寸、網站與原型共108筆版型量測；會員套用後保存並重新登入載回、消息／優惠公開同步及鍵盤流程完成。本輪無新功能缺陷／程式／DDL／環境變更；正式平台依U-21交接，P2未開始。詳見[本輪P1驗收](P1-ACCEPTANCE-20261031.md)，下方日期段落保留歷史。
 
 2026-10-31 最新：階段十二依授權完成JSON-LD、同版robots／sitemap／分片及P1本機整合。104個PHP JSON API保持，另3個Nginx爬蟲GET，共107個HTTP契約；68固定HTML／33表327欄／19 migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255項與181契約回應、索引369項、官方Validator七型別0錯誤／警告、Browser21筆及40個body保留通過。U-21指定網域未定先完成本機，正式Search Console／Bing／分享仍交接；P2階段十三未開始。詳見[計畫](PHASE-12-PLAN.md)、[驗收](PHASE-12-ACCEPTANCE.md)及[架構與檔案指南](modules/search-index.md)。下方帶日期段落保留歷史。

@@ -178,7 +178,7 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database));
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database), new \Yinghua\Repositories\SearchRepository($database, new PdoTransactions($database)));
     }
 
     public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands

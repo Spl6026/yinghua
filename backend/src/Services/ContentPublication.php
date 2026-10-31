@@ -25,6 +25,7 @@ class ContentPublication
         private readonly ?\Yinghua\Repositories\OfferRepository $offers = null,
         private readonly ?SeoPublication $seo = null,
         private readonly ?\Yinghua\Repositories\RecommendedRouteRepository $routes = null,
+        private readonly ?\Yinghua\Repositories\SearchRepository $search = null,
     ) {}
 
     /** @template T
@@ -43,7 +44,10 @@ class ContentPublication
         try {
             $snapshot = $this->projection();
             $id = $this->publications->begin($this->generation($snapshot));
+            // [S G18；E-35] 完整交易寫入同版公開索引，HTML成功後才清舊版。
+            $this->search?->replace($this->generation($snapshot), \Yinghua\DTO\SearchDocument::project($snapshot));
             $this->renderer->render($snapshot);
+            $this->search?->prune($this->generation($snapshot));
             $this->publications->finish($id, true);
 
             return true;
