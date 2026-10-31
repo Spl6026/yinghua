@@ -186,6 +186,10 @@ U-09／E-20：同一 OpeningHours 週表 DTO、Google Adapter 與前端編輯器
 
 R3-01／E-18：各景點圖片說明覆寫及 API 可寫欄位，回應規格圖片／alt 保存與 U-02 的資料重用要求；SQL 欄位及「省略保留、空白回到資產」為工程設計。R3-02／U-05：保留原型六筆順序、推薦文案與後台營業時間欄；recommendationLabel 不是新增評分業務。受控標籤回填的預覽／明確套用、交易稽核為 E-18。R3-04／E-18：新增 migration 補正雙座標 CHECK，API 原有成對驗證保留。R3-03 為必要的表單失敗與競態回歸，沒有新增後續階段業務。
 
+## U-21／E-34：階段十二SEO與P1界線（2026-10-31）
+
+U-21：使用者明確選擇「尚未決定，先完成本機」，正式網域、Search Console／Bing與分享平台留正式交接。S：功能規格E31:G33/L31/L33、SEO規格B13:F14及既有保護頁規則；D：API草案40–42。JSON-LD白名單factory、同成功generation的XML／robots、共用索引判斷、50,000筆／50MiB分片、可信lastmod與無時間省略、失敗503及獨立詞彙檢查是E-34。不得把未提供的作者、評分、價格、場地地址或SEO摘要當可見真實資料，也不增加業務必填。見[階段十二計畫](PHASE-12-PLAN.md)及[指南](modules/search-index.md)。
+
 ## E-33：階段十一完整會員行程（2026-10-31）
 
 S：功能規格E15/F15/G15/L15及E14/G14/L14/E24/G24/L24；D：API草案C21:G24、資料表建議C19:D20；原型planner名稱日期未required。沿用itineraries／itinerary_items及P0 API，沒有新表欄或遷移。新增集合／單筆／選定／套用端點、同會員跨行程單調version、UUID新增去重、完整資源PUT、成功快照與即時路線比對、確認後寫入、401／409草稿保護屬工程設計。名稱200字、備註2000字、1000站點、HH:mm及既有64KiB JSON為技術容量／表示邊界，不是Excel新增業務必填或時間衝突限制。保留既有下架站點快照，只阻止新加入不可用景點。見[計畫](PHASE-11-PLAN.md)、[閱讀指南](modules/member-itineraries.md)及[實測界線](PHASE-11-ACCEPTANCE.md)。

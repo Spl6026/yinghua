@@ -14,6 +14,7 @@ import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
 import { renderPublicContentIndex } from './public-content-index.mjs';
+import {resolveSeo} from '../assets/js/core/seo-resolver.js';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -52,7 +53,10 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   html=renderPolicyVersion(html,snapshot.policyVersion||'local-development-v1');
   if (!html.includes('/assets/css/phase6.css')) html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css"></head>');
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'');
-  html = renderSeoHead(html,{path:canonicalPath,title,description,item,seo:snapshot.seo,catalog:seoCatalog,origin:snapshot.origin,publicImages});
+  const context={path:canonicalPath,title,description,item,seo:snapshot.seo,catalog:seoCatalog,origin:snapshot.origin,publicImages,published:true,unavailable:canonicalPath==='/museum.html'&&!item,modifiedAt:snapshot.indexModifiedAt?.[canonicalPath]};
+  let meta=resolveSeo(context);
+  if(context.unavailable)meta={...meta,robots:'noindex,follow'};
+  html = renderSeoHead(html,context,meta);
   html = html.replace('</head>','<noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>');
   if(managed)html = html.replace('<body>', `<body data-managed-attractions="true"${filmEnabled?' data-managed-films="true"':''}${newsEnabled?' data-managed-news="true"':''}${offersEnabled?' data-managed-offers="true"':''}>`);
   html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"></head>');

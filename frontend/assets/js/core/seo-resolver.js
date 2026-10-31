@@ -12,10 +12,21 @@ export function canonicalPath(value){
   return path+(query.size?'?'+query:'');
 }
 
+// [S SEO E7／G33；E-34] 發布與爬蟲索引共用保護邊界，不靠robots授權。
+export function isProtectedSeoPage(path,catalog=[]){
+  const pathname=new URL(path,'https://seo.invalid').pathname;
+  return pathname.startsWith('/admin/')||Boolean(catalog.find(page=>page.path===pathname)?.protected)||/^\/(?:login|register|forgot-password|reset-password|change-password|planner|favorites|search)\.html$/.test(pathname);
+}
+
+export function isIndexablePublication(context,meta){
+  const path=new URL(context.path,'https://seo.invalid').pathname;
+  return context.published===true&&!context.unavailable&&!isProtectedSeoPage(path,context.catalog)&&!/^\/(?:api|_content_pages)(?:\/|$)/.test(path)&&!/(?:^|[,\s])(?:noindex|none)(?:$|[,\s])/i.test(meta.robots);
+}
+
 export function resolveSeo({path,title='',description='',item,seo={},catalog=[],origin='http://localhost:8080',publicImages=[]}){
   const pathname=new URL(path,'https://seo.invalid').pathname;
   const preset=catalog.find(page=>page.path===pathname);
-  const protectedPage=pathname.startsWith('/admin/')||Boolean(preset?.protected)||/^\/(?:login|register|forgot-password|reset-password|change-password|planner|favorites|search)\.html$/.test(pathname);
+  const protectedPage=isProtectedSeoPage(path,catalog);
   const type=pathname==='/museum.html'?'attraction':pathname.startsWith('/places/')?'attraction':pathname.startsWith('/films/')?'film':pathname.startsWith('/news/')?'news':pathname.startsWith('/offers/')?'offer':null;
   const pattern=type?'/'+({attraction:'places',film:'films',news:'news',offer:'offers'}[type])+'/*.html':null;
   const overrides=Array.isArray(seo.overrides)?seo.overrides:[];
