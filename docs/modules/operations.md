@@ -1,5 +1,7 @@
 # 部署與運維閱讀指南
 
+2026-10-31：階段十二已完成同成功generation的JSON-LD、robots與sitemap，沒有獨立索引資料表或備份。沿DB／媒體／release的content:publish可一起重建；原規則及正式平台交接維持。新檔案用途／命令見[索引指南](search-index.md)，實際結果見[階段十二驗收](../PHASE-12-ACCEPTANCE.md)。
+
 2026-10-30 複驗：本機長駐publisher未載入階段九PHP，公開快照缺detailNeighbors而被版本閘門拒絕；新程序DB唯讀連線正常。依本文件重啟既有publisher後由watch自行同步，恢復公開入口；本輪未手動在主庫執行content:publish，未變更業務資料、服務定義或環境變數。
 
 ## 2026-10-25 發布順序與安全診斷修正

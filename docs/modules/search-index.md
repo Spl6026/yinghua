@@ -1,6 +1,6 @@
 # 結構化資料與爬蟲索引閱讀指南
 
-更新：2026-10-31，階段十二。需求與取捨見[計畫](../PHASE-12-PLAN.md)，12C整合驗收另行交付，JSON-LD可先讀[工廠導讀](structured-data.md)。原始website不變，PHP維持API-only。
+更新：2026-10-31，階段十二。需求與取捨見[計畫](../PHASE-12-PLAN.md)，實際結果見[驗收](../PHASE-12-ACCEPTANCE.md)，JSON-LD可先讀[工廠導讀](structured-data.md)。原始website不變，PHP維持API-only。
 
 ## 從一筆發布看架構
 
@@ -29,6 +29,7 @@
 | frontend/tests/structured-data.test.mjs、crawler-index.test.mjs、public-list-seo.test.mjs | 白名單、真假內容、私頁、XSS、日期、XML、renderer失敗、50,000容量／分片，以及真列表控制器分類／頁碼／返回同步graph。 |
 | backend/tests/schema_vocabulary.py | 用官方Schema.org詞彙獨立檢查本次graph的類別、domain／range、引用與日期／URL。不是Google Rich Results引擎。 |
 | backend/tests/phase12_integration.py | 真HTTP／MariaDB驗證內容、索引、lastmod、改名301、下架404、失敗503、復原與原SEO資料復原；可留下自有Browser內容。 |
+| backend/tests/phase12_regression.py | 重跑階段9／10／11真API與獨立契約，使用命名隔離fixture，沒有重設root密碼。 |
 | backend/tests/phase12_published_inventory.py | 不修改資料、無JS，從實際sitemap逐頁檢查200／canonical／OG／Twitter與官方詞彙；適用清理後或正式交接。 |
 
 ## JSON-LD如何取資料
@@ -62,6 +63,7 @@ docker compose exec -T -u www-data app-test php bin/console.php content:publish
 New-Item -ItemType Directory -Force artifacts/phase12
 Invoke-WebRequest https://schema.org/version/latest/schemaorg-current-https.jsonld -OutFile artifacts/phase12/schemaorg-current-https.jsonld
 python -X utf8 backend/tests/phase11_fixture.py
+python -X utf8 backend/tests/phase12_regression.py --dependency-path artifacts/p0-full-20261028/deps
 python -X utf8 backend/tests/phase12_integration.py --schema-vocabulary artifacts/phase12/schemaorg-current-https.jsonld
 python -X utf8 backend/tests/phase11_fixture.py --cleanup
 python -X utf8 backend/tests/phase12_published_inventory.py --schema-vocabulary artifacts/phase12/schemaorg-current-https.jsonld --output artifacts/phase12/published-inventory.json

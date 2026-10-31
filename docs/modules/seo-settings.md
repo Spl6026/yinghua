@@ -1,5 +1,7 @@
 # SEO 設定與 HTML 發布閱讀指南
 
+2026-10-31：階段十二已完成同成功generation的JSON-LD、robots與sitemap，沒有獨立索引資料表或備份。沿DB／媒體／release的content:publish可一起重建；原規則及正式平台交接維持。新檔案用途／命令見[索引指南](search-index.md)，實際結果見[階段十二驗收](../PHASE-12-ACCEPTANCE.md)。
+
 ## 2026-10-25 R03：列表切換沿用已發布 SEO
 
 來源為功能規格 E30／E32／L32、工程 E-29。以前只有第一次產生 HTML 使用覆寫，分類／換頁卻自行寫入固定品牌標題。現在 [seo-head.mjs](../../frontend/scripts/seo-head.mjs) 在消息／優惠頁附 `public-list-seo` JSON：只含已發布預設、目前主題覆寫、該頁 catalog 及公開媒體白名單；字串的 `<`／`>`／`&` 編碼，其他內容覆寫不送出。

@@ -32,3 +32,7 @@
 - 2026-10-30 階段十最終：內建 Browser 已恢復並完成新增範圍實際驗收；四頁各1440／390／320共12筆，另12筆原始website比對。導覽選中與刪除後焦點已修及實測；PHP99／342、前端200、路線58／45契約回應零錯誤。96 API／68固定頁／33表327欄／19migration。本機範圍通過，備份與tree核對後依規則合併；既有正式及共用AA證據界線見docs/PHASE-10-ACCEPTANCE.md。使用者本輪另明確核准自有yinghua_test帳號routes僅view／僅create及恢復原權限測試，完成後清理。完整路線套用與階段十一仍未授權。
 
 - 2026-10-31 階段十一最新：使用者授權於phase/11-member-itineraries完成多份本人行程CRUD、全量時間備註排序、推薦路線確認套用與P0相容；104 API／68固定頁／33表327欄／19 migration，無新DDL／環境。81整合／66契約回應0錯誤、107 PHP／208 JS、既有收藏69／current100及兩頁三尺寸Browser與原型對照通過，詳見docs/PHASE-11-ACCEPTANCE.md及docs/modules/member-itineraries.md。依備份／原始69檔／完整tree驗證後merge並保留分支；階段十二尚未授權或實作，P1整體未簽核。
+
+- 2026-10-31 階段十二最新：已依使用者授權於phase/12-seo-indexing完成JSON-LD、同版robots／sitemap及分片、P1本機整合；104 PHP API＋3爬蟲GET＝107 HTTP契約，68固定頁／33表327欄／19migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255／181契約、索引369、官方Schema.org Validator七型別及Browser21筆／40頁body保留通過。U-21正式網域未定先完成本機，Search Console／Bing／正式分享列交接，不冒稱通過；見docs/PHASE-12-ACCEPTANCE.md及docs/modules/search-index.md。備份／原始69檔／完整tree核對後以merge commit回main並保留階段分支；階段十三未授權實作。
+
+- 2026-10-31 P1另輪驗收：使用者要求重驗，11列P1、255真API／181契約、369索引、224 JS／107 PHP／分層、18頁各三尺寸網站及原型共108筆與重新登入持久保存完成；無新程式／DDL／環境變更。正式平台依U-21交接，見docs/P1-ACCEPTANCE-20261031.md；驗收併入階段十二整合交付，P2階段十三未開始。
