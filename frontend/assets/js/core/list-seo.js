@@ -1,4 +1,5 @@
 import {resolveSeo} from './seo-resolver.js';
+import {structuredDataGraph,jsonLdForHtml} from './structured-data.js';
 
 // [S：E30/E32/L32；E-29] 初載、分類、分頁共用發布時的 SEO 規則及同版公開設定。
 export function readPublicListSeo(documentRoot=document){
@@ -24,5 +25,12 @@ export function updatePublicListSeo(context,path,title,description,documentRoot=
     'meta[name="twitter:image"]':['content',meta.imageUrl],
   };
   for(const [selector,[attribute,value]]of Object.entries(attributes))documentRoot.querySelector(selector)?.setAttribute(attribute,value);
+  // [S G31／L33；E-34] 更新伺服器已有graph，不另產一套或保留舊分類／頁碼。
+  const schema=documentRoot.querySelector('script[type="application/ld+json"]');
+  if(schema){
+    const graph=structuredDataGraph({...context,path,published:true},meta);
+    if(graph)schema.textContent=jsonLdForHtml(graph);
+    else schema.remove();
+  }
   return meta;
 }

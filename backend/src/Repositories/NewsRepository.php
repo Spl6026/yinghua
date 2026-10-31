@@ -127,6 +127,6 @@ class NewsRepository
             'eventStartAt' => ContentMapping::iso(is_string($values['event_starts_at'] ?? null) ? $values['event_starts_at'] : null),
             'eventEndAt' => ContentMapping::iso(is_string($values['event_ends_at'] ?? null) ? $values['event_ends_at'] : null),
             'eventLabel' => $row->string('event_label'),'eventLocation' => $row->string('event_location')];
-        return new NewsPost($row->string('id'), $row->integer('version'), $fields, $public);
+        return new NewsPost($row->string('id'), $row->integer('version'), $fields, $public, ContentMapping::iso($row->string('updated_at')));
     }
 }

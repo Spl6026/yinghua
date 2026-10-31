@@ -10,8 +10,8 @@ readonly class Offer extends PublishedRecord
     /** @param array<string,string|int|null> $fields
      * @param array<string,mixed> $values
      */
-    public function __construct(string $id, int $version, array $fields, array $values, public bool $merchantAvailable = true)
+    public function __construct(string $id, int $version, array $fields, array $values, public bool $merchantAvailable = true, ?string $updatedAt = null)
     {
-        parent::__construct($id, $version, $fields, $values);
+        parent::__construct($id, $version, $fields, $values, $updatedAt);
     }
 }

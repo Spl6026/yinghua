@@ -34,7 +34,7 @@ class SeoPublication
             static fn(SeoOverride $item): bool => $item->type === SeoResource::Page || isset($ids[$item->key()]),
         ));
 
-        return ['version' => $document->version,'defaults' => $document->defaults->toArray(),
+        return ['version' => $document->version,'updatedAt' => $document->updatedAt,'defaults' => $document->defaults->toArray(),
             'overrides' => array_map(static fn(SeoOverride $item): array => $item->toArray(), $public)];
     }
 }

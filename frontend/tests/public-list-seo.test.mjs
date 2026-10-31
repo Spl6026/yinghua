@@ -5,14 +5,17 @@ import vm from 'node:vm';
 import {renderSeoHead} from '../scripts/seo-head.mjs';
 import {newsListTitle,newsListDescription} from '../assets/js/core/news-view.js';
 import {updatePublicListSeo} from '../assets/js/core/list-seo.js';
+import {resolveSeo} from '../assets/js/core/seo-resolver.js';
+import {structuredDataGraph} from '../assets/js/core/structured-data.js';
 
 const settings={defaults:{titleSuffix:'｜測試品牌',canonicalOrigin:'https://canonical.example.test',description:'全站摘要'},
   overrides:[{target:{type:'page',path:'/events.html'},title:'管理員指定消息標題',description:'管理員指定摘要'},
     {target:{type:'news',id:'unrelated'},title:'不該出現在 context'}]};
 const catalog=[{path:'/events.html',title:'新竹現場',description:'消息主題摘要'}];
 const context=(seo=settings)=>({origin:'http://localhost:8081',catalog,seo});
-function documentFixture(){
-  const values={};return {values,title:'',querySelector:selector=>({setAttribute:(name,value)=>{values[selector+':'+name]=value;}})};
+function documentFixture(graph=null){
+  const values={},schema=graph?{textContent:JSON.stringify(graph),remove(){this.removed=true;}}:null;
+  return {values,schema,title:'',querySelector:selector=>selector==='script[type="application/ld+json"]'?schema:{setAttribute:(name,value)=>{values[selector+':'+name]=value;}}};
 }
 
 test('實際發布的 context 只帶目前頁面覆寫，JSON 不可結束 script',()=>{
@@ -40,9 +43,10 @@ test('分類、第二頁及返回第一頁與初次發布 head 相同，尊重�
   }
 });
 
-const controllerSources=await Promise.all(['core/seo-resolver.js','core/list-seo.js','core/public-list-controller.js'].map(path=>readFile(new URL('../assets/js/'+path,import.meta.url),'utf8')));
+const controllerSources=await Promise.all(['core/seo-resolver.js','core/structured-data.js','core/list-seo.js','core/public-list-controller.js'].map(path=>readFile(new URL('../assets/js/'+path,import.meta.url),'utf8')));
 function controllerFixture(){
-  const events={},historyChanges=[],navigations=[],meta=documentFixture(),notice={textContent:'',focus(){this.focused=true;}},select={value:''};
+  const initial={...context(),path:'/events.html',published:true};
+  const events={},historyChanges=[],navigations=[],meta=documentFixture(structuredDataGraph(initial,resolveSeo(initial))),notice={textContent:'',focus(){this.focused=true;}},select={value:''};
   const form={querySelector:()=>select,addEventListener:(name,fn)=>{events['form:'+name]=fn;}};
   select.addEventListener=(name,fn)=>{events[name]=fn;};
   const list={innerHTML:'原始列表',setAttribute(){},removeAttribute(){}};
@@ -62,9 +66,28 @@ function controllerFixture(){
 test('真實控制器分類／popstate 都保留後台 title，換 generation 改讀新發布頁',async()=>{
   const f=controllerFixture();f.select.value='event';f.events.change();await f.settle();
   assert.equal(f.doc.title,'管理員指定消息標題');assert.equal(f.historyChanges.length,1);assert.equal(f.list.innerHTML,'新列表');
+  assert.equal(JSON.parse(f.doc.schema.textContent)['@graph'].find(n=>n['@type']==='WebPage').url,'https://canonical.example.test/events.html?type=event');
   f.events.popstate();await f.settle();assert.equal(f.doc.title,'管理員指定消息標題');assert.equal(f.historyChanges.length,1);
   f.state.result={...f.state.result,generation:'b'};f.select.value='city';f.events.change();await f.settle();
   assert.deepEqual(f.navigations,['/events.html?type=city']);assert.equal(f.historyChanges.length,1);
+});
+
+test('分類、第二頁及返回的JSON-LD與當前canonical／標題同步且不重複',()=>{
+  const initial={...context(),path:'/events.html',published:true};
+  const doc=documentFixture(structuredDataGraph(initial,resolveSeo(initial)));
+  for(const path of ['/events.html?type=city&page=2','/events.html?type=event','/events.html']){
+    const meta=updatePublicListSeo(context(),path,'動態列表','摘要',doc);
+    const graph=JSON.parse(doc.schema.textContent),pages=graph['@graph'].filter(n=>n['@type']==='WebPage');
+    assert.equal(pages.length,1);assert.equal(pages[0].url,meta.canonical);assert.equal(pages[0]['@id'],meta.canonical+'#webpage');assert.equal(pages[0].name,doc.title);
+  }
+});
+
+test('動態noindex移除已有graph，沒有server graph時不臆造一份',()=>{
+  const initial={...context(),path:'/offers.html',published:true};
+  const doc=documentFixture(structuredDataGraph(initial,resolveSeo(initial)));
+  updatePublicListSeo({origin:initial.origin,seo:{defaults:{robots:'noindex,follow'}}},'/offers.html','優惠','摘要',doc);
+  assert.equal(doc.schema.removed,true);
+  const empty=documentFixture();updatePublicListSeo(context(),'/events.html','消息','摘要',empty);assert.equal(empty.schema,null);
 });
 
 test('優惠第二頁也保留品牌／覆寫，canonical 不改成 localhost',()=>{

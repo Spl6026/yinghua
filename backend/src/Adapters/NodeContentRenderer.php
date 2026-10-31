@@ -31,7 +31,7 @@ class NodeContentRenderer implements ContentRenderer
             $source . '/scripts/public-offers.mjs',$source . '/assets/js/core/offer-view.js',
             $source . '/assets/js/core/route-view.js',
             $source . '/pages/offers.html',...glob($source . '/pages/offers/*.html') ?: [],
-            $source . '/scripts/seo-head.mjs',$source . '/assets/js/core/seo-resolver.js',$source . '/resources/seo-pages.json',
+            $source . '/scripts/seo-head.mjs',$source . '/scripts/structured-data.mjs',$source . '/assets/js/core/structured-data.js',$source . '/scripts/crawler-index.mjs',$source . '/assets/js/core/seo-resolver.js',$source . '/resources/seo-pages.json',
             $source . '/scripts/policy-pages.mjs',
             ...glob($source . '/pages/*.html') ?: []];
         $hash = hash_init('sha256');
