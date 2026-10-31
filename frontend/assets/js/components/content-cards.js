@@ -107,14 +107,6 @@ export function routeCard(item) {
   return card;
 }
 
-export function searchHit(item, kind, description, fallback) {
-  const card = element('article', { className: 'route-card search-hit' });
-  const link = element('a', { className: 'text-link', href: detailHref(item, fallback) }, '閱讀詳情 ');
-  link.append(element('span', {}, '↗'));
-  card.append(element('p', { className: 'eyebrow' }, kind), element('h3', {}, item.name || item.title), element('p', {}, description), link);
-  return card;
-}
-
 export function itineraryStop(item, index) {
   const stop = element('article', { className: 'itinerary-stop' });
   const info = element('div', { className: 'stop-info' });

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Repositories;
 
 use Yinghua\Contracts\Transactions;
-use Yinghua\DTO\SearchDocument;
+use Yinghua\DTO\{SearchDocument, SearchQuery};
 
 /** [S G18；E-35] 只搜尋成功公開投影，使用綁定參數，不拼接關鍵字。 */
 class SearchRepository
@@ -31,4 +31,17 @@ class SearchRepository
         $this->database->execute('DELETE FROM search_documents WHERE generation<>:generation', ['generation' => $generation]);
     }
 
+    /** @return array<string,mixed> */
+    public function search(string $generation, SearchQuery $query): array
+    {
+        $where = 'generation=:generation AND LOCATE(LOWER(:q),LOWER(search_text))>0';
+        $params = ['generation' => $generation,'q' => $query->q];
+        if ($query->type !== '') {
+            $where .= ' AND resource_type=:type';
+            $params['type'] = $query->type;
+        }
+        $total = new Row($this->database->row('SELECT COUNT(*) AS total FROM search_documents WHERE ' . $where, $params) ?? []);
+        $items = $this->database->rows('SELECT resource_id AS id,resource_type AS type,title,summary,slug,url,thumbnail,thumbnail_alt AS thumbnailAlt FROM search_documents WHERE ' . $where . ' ORDER BY type_order,CASE WHEN title=:exact THEN 0 ELSE 1 END,resource_id LIMIT :limit OFFSET :offset', [...$params,'exact' => $query->q,'limit' => $query->pageSize,'offset' => ($query->page - 1) * $query->pageSize]);
+        return ['items' => $items,'total' => $total->integer('total'),'page' => $query->page,'pageSize' => $query->pageSize,'generation' => $generation];
+    }
 }

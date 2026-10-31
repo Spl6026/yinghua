@@ -2,7 +2,7 @@
 import { memberNavigation } from './core/session.js';
 import { element, toast } from './core/ui.js';
 import { places, films, news, offers, routes } from './data/prototype.js';
-import { placeCard, cinemaRow, filmCard, newsCard, offerCard, routeCard, searchHit } from './components/content-cards.js';
+import { placeCard, cinemaRow, filmCard, newsCard, offerCard, routeCard } from './components/content-cards.js';
 import { initializeDetails } from './pages/public-details.js';
 import { mountMemberActions } from './core/member-actions.js';
 
@@ -27,21 +27,17 @@ function render(selector, items, factory, empty) {
   if (!items.length) node.append(element('p', { className: 'empty-results' }, empty));
 }
 const path = location.pathname;
-const isSearch = path === '/search.html';
 let category = path === '/food.html' ? '美食' : 'all';
 const placeSearch = document.querySelector('#place-search');
 const areaFilter = document.querySelector('#area-filter');
-const queryInput = document.querySelector('#query-input');
 const newsFilter = document.querySelector('#news-filter');
 if (newsFilter && path === '/activities.html') newsFilter.value = '活動';
 if (newsFilter && path === '/city-news.html') newsFilter.value = '城市消息';
 const initialQuery = new URLSearchParams(location.search).get('q') || '';
 if (placeSearch) placeSearch.value = initialQuery;
-if (queryInput) queryInput.value = initialQuery;
 
 function renderPlaces() {
   if (document.body.dataset.managedAttractions) return;
-  if (isSearch) return;
   const query = (placeSearch?.value ?? initialQuery).trim().toLowerCase();
   const area = areaFilter?.value || 'all';
   const visible = places.filter(item => (category === 'all' || item.category === category) && (area === 'all' || item.area === area) && `${item.name} ${item.desc} ${item.type}`.toLowerCase().includes(query));
@@ -67,28 +63,6 @@ function renderNews() {
 }
 newsFilter?.addEventListener('change', renderNews);
 
-function renderSearch() {
-  if (!isSearch) return;
-  const query = queryInput.value.trim().toLowerCase();
-  const grid = document.querySelector('#place-grid');
-  grid.replaceChildren();
-  if (!query) { grid.append(element('p', { className: 'empty-results' }, '輸入關鍵字，即可搜尋景點、美食、片單與城市消息。')); return; }
-  for (const [items, fields, kind, text, fallback] of [
-    [places, ['name', 'desc', 'type', 'area'], item => item.category, item => item.desc, item => '/place-detail.html?id=' + item.id],
-    [films, ['name', 'genre', 'desc'], () => '本週映演', item => item.desc, item => '/film-detail.html?id=' + films.indexOf(item)],
-    [offers, ['title', 'merchant', 'discount', 'desc'], () => '店家優惠', item => item.discount, item => '/offer-detail.html?id=' + item.id],
-    [news, ['title', 'type', 'desc'], item => item.type, item => item.desc, item => '/news-detail.html?id=' + news.indexOf(item)],
-  ]) {
-    items.filter(item => fields.map(field => item[field] || '').join(' ').toLowerCase().includes(query))
-      .forEach(item => grid.append(searchHit(item, kind(item), text(item), fallback(item))));
-  }
-  if (!grid.children.length) grid.append(element('p', { className: 'empty-results' }, '沒有找到符合條件的資料，請試試景點名稱、電影片名或活動關鍵字。'));
-}
-document.querySelector('#standalone-search')?.addEventListener('submit', event => {
-  event.preventDefault();
-  history.replaceState(null, '', path + '?q=' + encodeURIComponent(queryInput.value));
-  renderSearch();
-});
 
 renderPlaces();
 if (!document.body.dataset.managedFilms) render('#cinema-list', films, cinemaRow, '目前沒有本週映演場次。');
@@ -97,7 +71,6 @@ if (!document.body.dataset.managedFilms) render('.screening-grid', films.slice(0
 renderNews();
 if(!document.body.dataset.managedOffers)render('#offers-list', offers, offerCard, '目前沒有上架中的店家優惠。');
 if(!document.body.dataset.managedRoutes)render('#route-cards', routes, routeCard, '目前沒有推薦行程。');
-renderSearch();
 initializeDetails();
 reveal();
 

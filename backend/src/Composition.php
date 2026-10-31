@@ -171,6 +171,8 @@ readonly class Composition
         $seoRoutes = require dirname(__DIR__) . '/config/seo-routes.php';
         $seoRoutes($router, $seoController, new \Yinghua\Controllers\PublicSiteSettingsController(new \Yinghua\Services\PublicSiteSettings($publication)));
 
+        $search = new \Yinghua\Controllers\SearchController(new \Yinghua\Services\PublicSearch($publication, new \Yinghua\Repositories\SearchRepository($database, $transactions)));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/search', \Yinghua\Models\IdentityKind::Member, $search->listing(...)));
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 

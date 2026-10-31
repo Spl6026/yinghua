@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "映畫竹塹 API（階段二至十二）",
-    "version": "12.0.0",
+    "version": "13.0.0",
     "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。\n\nE-29：成功驗證既有 session 的回應（含業務 403／409／422）可帶 X-Session-Kind、X-Session-Owner、X-Session-Server-Time、X-Session-Expires-At、X-Session-Idle-Expires-At。匿名／401 不提供；以 auth/me 的 200 回應及 components.headers 為定義。時間為 Unix 秒，期限資訊不是登入憑證；不改 JSON、閒置／絕對上限、CSRF 或權限規則。登入後先取得 auth/me；到期重新登入不自動重送原業務操作。\n\nE-33：會員完整行程沿用P0資料；版本為同會員單調遞增。POST的可選id供網路重試去重；PUT是全量站點保存，名稱／日期／時間／備註業務上選填，title與items出現在PUT required僅表示完整資源結構。64KiB JSON、200字名稱、2000字備註、1000站點為工程容量邊界。保留既有不可用站點快照，但拒絕新加入下架／已刪景點。路線預覽GET不修改會員；POST套用保留旅行日期。\n\nE-34：104個PHP JSON API保持；另三個根目錄爬蟲GET資源由Nginx供應同成功generation的文字／XML，合計107個OpenAPI操作。這三個資源不是PHP View，不沿用JSON回應／requestId契約。正式canonical網域未定時使用APP_URL本機替代，外部平台驗證另行交接。"
   },
   "servers": [
@@ -18519,6 +18519,292 @@
             }
           }
         ]
+      }
+    },
+    "/api/v1/search": {
+      "get": {
+        "operationId": "searchPublicContent",
+        "summary": "[S E18/G18/L18; E-35] 搜尋同版公開內容，字面包含／類型分組／穩定分頁",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "maxLength": 255,
+              "default": ""
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "",
+                "place",
+                "food",
+                "film",
+                "news",
+                "offer"
+              ],
+              "default": ""
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000,
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功公開快照的搜尋結果，空q回空清單",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "pageSize",
+                    "generation",
+                    "requestId"
+                  ],
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "id",
+                          "type",
+                          "title",
+                          "summary",
+                          "slug",
+                          "url",
+                          "thumbnail",
+                          "thumbnailAlt"
+                        ],
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          },
+                          "summary": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string"
+                          },
+                          "thumbnail": {
+                            "type": "string"
+                          },
+                          "thumbnailAlt": {
+                            "type": "string"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "place",
+                              "food",
+                              "film",
+                              "news",
+                              "offer"
+                            ]
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "page": {
+                      "type": "integer",
+                      "minimum": 1
+                    },
+                    "pageSize": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 100
+                    },
+                    "generation": {
+                      "type": "string",
+                      "pattern": "^[a-f0-9]{64}$"
+                    },
+                    "requestId": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB 或圖片超過 8 MiB／整份上傳超過 10 MiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本尚未同步、產生失敗或地圖供應服務不可用",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
