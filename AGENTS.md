@@ -36,3 +36,5 @@
 - 2026-10-31 階段十二最新：已依使用者授權於phase/12-seo-indexing完成JSON-LD、同版robots／sitemap及分片、P1本機整合；104 PHP API＋3爬蟲GET＝107 HTTP契約，68固定頁／33表327欄／19migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255／181契約、索引369、官方Schema.org Validator七型別及Browser21筆／40頁body保留通過。U-21正式網域未定先完成本機，Search Console／Bing／正式分享列交接，不冒稱通過；見docs/PHASE-12-ACCEPTANCE.md及docs/modules/search-index.md。備份／原始69檔／完整tree核對後以merge commit回main並保留階段分支；階段十三未授權實作。
 
 - 2026-10-31 P1另輪驗收：使用者要求重驗，11列P1、255真API／181契約、369索引、224 JS／107 PHP／分層、18頁各三尺寸網站及原型共108筆與重新登入持久保存完成；無新程式／DDL／環境變更。正式平台依U-21交接，見docs/P1-ACCEPTANCE-20261031.md；驗收併入階段十二整合交付，P2階段十三未開始。
+
+- 2026-11-01 階段十三：依使用者授權於phase/13-site-search完成全站搜尋、同版公開投影與原型互動。105 PHP API＋3爬蟲GET＝108 HTTP契約；68頁／34表338欄／20migration，無新env／依賴／服務。230 JS／112 PHP（370斷言）、113整合／28契約、P1 255／181契約與15筆Browser通過；新019只有PRIMARY，按實際EXPLAIN選擇。見docs/PHASE-13-ACCEPTANCE.md及docs/modules/site-search.md。依備份／原始69檔／完整tree核對後merge並保留分支；階段十四／十五未授權或實作，P2整體未完成。

@@ -1,5 +1,7 @@
 # Git 階段分支與功能提交
 
+2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
+
 2026-10-31 最新：階段十二依授權完成JSON-LD、同版robots／sitemap／分片及P1本機整合。104個PHP JSON API保持，另3個Nginx爬蟲GET，共107個HTTP契約；68固定HTML／33表327欄／19 migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255項與181契約回應、索引369項、官方Validator七型別0錯誤／警告、Browser21筆及40個body保留通過。U-21指定網域未定先完成本機，正式Search Console／Bing／分享仍交接；P2階段十三未開始。詳見[計畫](PHASE-12-PLAN.md)、[驗收](PHASE-12-ACCEPTANCE.md)及[架構與檔案指南](modules/search-index.md)。下方帶日期段落保留歷史。
 
 階段十一（2026-10-31）依11A共用資料／版本及DTO、11B完整本人編輯／保存與套用交易、11C公開指定路線預覽及原型套用入口、11D整合驗收拆分。每筆配對契約、測試及指南；資料層準備明列不冒充HTTP成果。自身排版／格式修正歸入功能，備份`artifacts/phase11/before-functional-commits.bundle`與合併前`before-merge.bundle`，比較完整tree與原始69檔，再--no-ff回main，保留phase/11-member-itineraries，不推送。
@@ -174,3 +176,7 @@
 r5／r6與最後還原target映像的來源為262201dd3fea36cbb483fd892e95d5610b99b88d，該提交保留為本分支祖先，不再改寫而讓已驗映像失去來源。後續只整合未封入映像的驗證工具／文件。保留原始第一提交、main／遠端refs及防毒隔離差異；未宣告全階段驗收，尚未merge main。完整驗收後才再次備份、核對tree並 --no-ff 合併，保留階段分支。
 
 2026-10-30 使用者再次複驗後，店家分頁狀態與3項行為測試歸回9B，30筆Browser及API／190項前端與環境恢復紀錄歸回9D；保留原五筆功能界線與單一階段九merge。改寫前備份artifacts/phase9/before-recheck-fold-20261030.bundle，核對原始69檔、最終tree及其他分支；不推送遠端。
+
+## 階段十三交付
+
+13A先交付同版公開搜尋投影準備；13B交付完整搜尋API與原型頁、契約／測試／中文指南；13C收錄本機整合、P1回歸、清理與全站導讀。自身錯誤併回所屬功能，不多留修錯進度提交。合併前備份verify、核對tree與原始69檔，保留階段分支與單一merge，不推送。原有防毒隔離參考檔差異不納入。

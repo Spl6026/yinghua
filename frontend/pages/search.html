@@ -24,6 +24,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"映畫竹塹","description":"從新竹市影像博物館出發，探索電影、美食、活動與城市旅行。","inLanguage":"zh-Hant-TW"}</script>
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/phase2.css">
+<link rel="stylesheet" href="/assets/css/phase13.css">
 </head>
 <body>
 <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -38,18 +39,24 @@
 <form class="standalone-search" id="standalone-search">
 <label for="query-input">搜尋景點、餐廳、優惠或活動</label>
 <div class="search-modal-row">
-<input id="query-input" type="search" placeholder="例如：影像博物館、咖啡、市集">
+<input id="query-input" name="q" type="search" maxlength="255" autocomplete="off" placeholder="例如：影像博物館、咖啡、市集" aria-describedby="search-help">
 <button class="button button-dark" type="submit">搜尋 ↗</button>
 </div>
+<p id="search-help">搜尋字詞最多255字，可搜尋一個中文字。</p>
+<label for="search-type">結果類型</label>
+<select id="search-type" name="type"><option value="">全部類型</option><option value="place">景點</option><option value="food">美食</option><option value="film">電影</option><option value="news">消息與活動</option><option value="offer">店家優惠</option></select>
 </form>
-<div class="search-results" id="place-grid">
+<p id="search-status" class="empty-results form-status search-results" role="status" aria-live="polite" tabindex="-1">輸入關鍵字，即可搜尋景點、美食、片單與城市消息。</p>
+<div class="search-results" id="search-results" aria-busy="false">
 </div>
+<div class="search-results"><button type="button" class="button button-outline" id="search-retry" hidden>重新搜尋</button><nav id="search-pagination" aria-label="搜尋結果分頁"></nav></div>
+<noscript><p class="search-results">搜尋需要啟用JavaScript；也可使用<a href="/site-map.html">網站導覽</a>尋找已發布內容。</p></noscript>
 </section>
 </div>
 </main>{{SITE_FOOTER}}<div class="toast" id="toast" role="status" aria-live="polite">
 </div>
 </div>
-<script type="module" src="/assets/js/public.js">
+<script type="module" src="/assets/js/pages/search.js">
 </script>
 </body>
 </html>

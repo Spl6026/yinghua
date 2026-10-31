@@ -171,6 +171,8 @@ readonly class Composition
         $seoRoutes = require dirname(__DIR__) . '/config/seo-routes.php';
         $seoRoutes($router, $seoController, new \Yinghua\Controllers\PublicSiteSettingsController(new \Yinghua\Services\PublicSiteSettings($publication)));
 
+        $search = new \Yinghua\Controllers\SearchController(new \Yinghua\Services\PublicSearch($publication, new \Yinghua\Repositories\SearchRepository($database, $transactions)));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/search', \Yinghua\Models\IdentityKind::Member, $search->listing(...)));
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 
@@ -178,7 +180,7 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database));
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database), new \Yinghua\Repositories\SearchRepository($database, new PdoTransactions($database)));
     }
 
     public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands
