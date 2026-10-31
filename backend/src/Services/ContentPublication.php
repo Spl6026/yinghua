@@ -101,7 +101,7 @@ class ContentPublication
     {
         $now = $this->clock?->now() ?? time();
         $window = \Yinghua\DTO\ScreeningWindow::current($now);
-        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),'policyVersion' => $this->config->string('TERMS_VERSION', 'local-development-v1'),
+        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),'policyVersion' => $this->config->string('TERMS_VERSION', 'local-development-v1'),'indexModifiedAt' => [],
             'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published($now)),
             'aliases' => $this->attractions->aliases($now)];
         // [E-25] 景點與電影共享 generation；本週邊界使無編輯的換週也會發布。
@@ -111,19 +111,23 @@ class ContentPublication
             $data['filmPeriod'] = $window->toArray();
         }
         if ($this->news !== null) {
-            $data['news'] = array_map(static fn(\Yinghua\DTO\NewsPost $post): array => $post->publicArray(), $this->news->published($now));
+            $posts = $this->news->published($now);
+            $data['news'] = array_map(static fn(\Yinghua\DTO\NewsPost $post): array => $post->publicArray(), $posts);
+            $data['indexModifiedAt'] = $this->indexDates($posts);
             $data['newsAliases'] = $this->news->aliases($now);
         }
         if ($this->offers !== null) {
             $today = \Yinghua\Policies\OfferValidity::day($now);
             $data['offerDate'] = $today;
+            $offers = $this->offers->published($now);
+            $data['indexModifiedAt'] = [...$data['indexModifiedAt'], ...$this->indexDates($offers)];
             $data['offers'] = array_map(static function (\Yinghua\DTO\Offer $offer) use ($today): array {
                 $item = $offer->publicArray();
                 $from = is_string($item['validFrom'] ?? null) ? $item['validFrom'] : null;
                 $to = is_string($item['validTo'] ?? null) ? $item['validTo'] : null;
                 $state = \Yinghua\Policies\OfferValidity::state($from, $to, $today);
                 return [...$item,'validity' => $state,'active' => $state === 'active'];
-            }, $this->offers->published($now));
+            }, $offers);
             $data['offerAliases'] = $this->offers->aliases($now);
         }
         if ($this->routes !== null) {
@@ -148,5 +152,21 @@ class ContentPublication
         }
 
         return $generation;
+    }
+
+    /** [S F33；E-34] 只取已發布記錄的真修改時間；不增加公開JSON API欄位或查詢。
+     * @param list<\Yinghua\DTO\PublishedRecord> $records
+     * @return array<string,string>
+     */
+    private function indexDates(array $records): array
+    {
+        $dates = [];
+        foreach ($records as $record) {
+            $url = $record->publicArray()['url'] ?? null;
+            if (is_string($url) && $record->updatedAt !== null) {
+                $dates[$url] = $record->updatedAt;
+            }
+        }
+        return $dates;
     }
 }

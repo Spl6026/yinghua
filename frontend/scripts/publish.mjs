@@ -15,6 +15,7 @@ import { renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
 import { renderPublicContentIndex } from './public-content-index.mjs';
 import {resolveSeo} from '../assets/js/core/seo-resolver.js';
+import {crawlerEntry,buildSitemaps,robotsText} from './crawler-index.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] || '/var/www/publication');
@@ -47,6 +48,7 @@ await mkdir(root, { recursive: true });
 // 已完成的 generation 不覆寫，避免正在讀取的版本遭原地修改。
 let existing = false;
 try { existing = JSON.parse(await readFile(join(root,'.snapshot.json'),'utf8')).generation === snapshot.generation; } catch {}
+const indexEntries=[];
 
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
   if(snapshot.detailNeighbors?.[path])html=html.replace('</main>',()=>contentNeighbors(snapshot.detailNeighbors[path])+'</main>');
@@ -75,6 +77,8 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   await mkdir(dirname(target),{recursive:true});
   html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
   await writeFile(target,annotateEnglishPassages(html));
+  const entry=crawlerEntry(context,meta);
+  if(entry)indexEntries.push(entry);
 }
 
 if (!existing) {
@@ -156,6 +160,10 @@ if (!existing) {
     let html;try{html=await readFile(join(source,'pages',entry.path.slice(1)),'utf8');}catch(error){if(error.code==='ENOENT')continue;throw error;}
     await page(entry.path,html,entry.title,entry.description,undefined,entry.path,false);
   }
+  // [S E33/G33；E-34] 索引與HTML全部成功才啟用；不掃dist或舊generation。
+  const canonicalOrigin=snapshot.seo?.defaults?.canonicalOrigin||snapshot.origin;
+  for(const [name,xml] of buildSitemaps(indexEntries,canonicalOrigin))await writeFile(join(root,name),xml);
+  await writeFile(join(root,'robots.txt'),robotsText(canonicalOrigin));
   // 寫完所有頁面最後才放快照，避免半成品被當成可重用版本。
   await writeFile(join(root,'.snapshot.json'),JSON.stringify(snapshot));
 }

@@ -12,7 +12,7 @@ use Yinghua\Exceptions\ContentConflict;
 /** [D：資料表建議 16；E-26] 主題查詢／型別映射／歷史網址集中管理。 */
 class OfferRepository
 {
-    private const string SELECT = "SELECT n.*,m.storage_key,m.alt AS media_alt,c.status AS merchant_status,c.deleted_at AS merchant_deleted_at,c.name AS merchant_name,c.district AS merchant_district,c.address AS merchant_address,c.phone AS merchant_phone,c.website AS merchant_website FROM offers n LEFT JOIN media_assets m ON m.id=n.cover_media_id JOIN merchants c ON c.id=n.merchant_id";
+    private const string SELECT = "SELECT n.*,m.storage_key,m.alt AS media_alt,c.status AS merchant_status,c.deleted_at AS merchant_deleted_at,c.updated_at AS merchant_updated_at,c.name AS merchant_name,c.district AS merchant_district,c.address AS merchant_address,c.phone AS merchant_phone,c.website AS merchant_website FROM offers n LEFT JOIN media_assets m ON m.id=n.cover_media_id JOIN merchants c ON c.id=n.merchant_id";
 
     public function __construct(private readonly Database $database) {}
 
@@ -132,6 +132,7 @@ class OfferRepository
                 'phone' => $row->string('merchant_phone'),'website' => $row->string('merchant_website')],
             'discount' => $row->string('discount_text'),'description' => $row->string('description'),'terms' => $row->string('terms'),
             'validFrom' => $fields['valid_from'],'validTo' => $fields['valid_to']];
-        return new Offer($row->string('id'), $row->integer('version'), $fields, $public, $row->string('merchant_status') === 'active' && ($values['merchant_deleted_at'] ?? null) === null);
+        $modifiedAt = max($row->string('updated_at'), $row->string('merchant_updated_at'));
+        return new Offer($row->string('id'), $row->integer('version'), $fields, $public, $row->string('merchant_status') === 'active' && ($values['merchant_deleted_at'] ?? null) === null, ContentMapping::iso($modifiedAt));
     }
 }

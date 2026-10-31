@@ -88,5 +88,6 @@ for (const source of await pages(join(root, 'pages'))) {
 await cp(join(root, 'assets'), join(output, 'assets'), { recursive: true });
 await mkdir(join(output, 'assets/js/core'), { recursive: true });
 await writeFile(join(output, 'assets/js/core/routes.js'), `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`);
-await writeFile(join(output, 'robots.txt'), 'User-agent: *\nDisallow: /admin/\nDisallow: /api/\nDisallow: /reset-password.html\n');
+// [S E33；E-34] 真robots由成功publication供應；build不放過時sitemap網址。
+await writeFile(join(output, 'robots.txt'), 'User-agent: *\nDisallow: /admin/\n');
 console.log(`Built ${routes.length} HTML routes with shared templates.`);
