@@ -29,10 +29,33 @@ def make_target(source,project,port):
 def data_snapshot(d):
     tables=sql(d,'SELECT table_name FROM information_schema.tables WHERE table_schema=DATABASE() ORDER BY table_name').splitlines()
     excluded={'sessions','password_reset_tokens','captcha_challenges','content_publications'}
-    return {table:hashlib.sha256(sql(d,'SELECT * FROM `'+table+'` ORDER BY 1,2').encode()).hexdigest() for table in tables if table not in excluded}
+    result={}
+    for table in tables:
+        if table in excluded:continue
+        # [E-38] Search is regenerated with a fresh publication generation on restore.
+        # Compare every public field, not the expected-to-change generation identifier.
+        fields='resource_type,resource_id,type_order,title,summary,search_text,slug,url,thumbnail,thumbnail_alt' if table=='search_documents' else '*'
+        result[table]=hashlib.sha256(sql(d,'SELECT '+fields+' FROM `'+table+'` ORDER BY 1,2').encode()).hexdigest()
+    return result
+
+
+def extended_delivery(source,root,prefix,member,published,second):
+    """[E-38] Later modules must contain real data before the backup is taken."""
+    body=root.call('GET','/api/v1/admin/settings')[1]
+    settings={key:body[key] for key in ['version','seoVersion','siteName','description','values']}
+    settings['values'].update(contactEmail='delivery@example.test',termsVersion='delivery-v1',privacyVersion='delivery-v1',termsText='Delivery recovery terms',privacyText='Delivery recovery privacy')
+    check('delivery general settings published',root.call('PUT','/api/v1/admin/settings',settings)[0]==200)
+    code,route,_=root.call('POST','/api/v1/admin/routes',{'title':prefix+' route','status':'published','stops':[{'attractionId':second,'suggestedTime':'10:30','note':'second first'},{'attractionId':published,'suggestedTime':'11:30','note':'first second'}]})
+    check('delivery ordered route created',code==201)
+    other=str(uuid.uuid4())
+    sql(source,"INSERT INTO itineraries(id,member_id,title,version,current_slot) VALUES('"+other+"','"+member+"','Second saved trip',7,NULL)")
+    sql(source,"INSERT INTO itinerary_items(id,itinerary_id,attraction_id,sort_order,planned_time,note,snapshot_name) VALUES('"+str(uuid.uuid4())+"','"+other+"','"+published+"',1,'13:45:00','Second trip note','Recovery place')")
+    source.run(['exec','-T','-u','www-data','app','php','bin/console.php','content:publish'])
+    check('delivery searchable projection populated',int(sql(source,'SELECT COUNT(*) FROM search_documents').strip())>=2)
+    return route['record']['id']
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--env-file',required=True);parser.add_argument('--project',required=True);options=parser.parse_args()
+    parser=argparse.ArgumentParser();parser.add_argument('--env-file',required=True);parser.add_argument('--project',required=True);parser.add_argument('--extended-delivery',action='store_true');options=parser.parse_args()
     if not options.project.startswith('spl-p0-'):raise RuntimeError('Owned rehearsal only')
     source=Deployment(options.env_file,options.project);source.preflight();source.readiness(True)
     origin=source.config['services']['app']['environment']['APP_URL']
@@ -68,6 +91,7 @@ def main():
     member_client=Client(origin,tls/'fullchain.pem');member_client.token=member_client.call('GET','/api/v1/auth/csrf')[1]['token']
     check('source member login',member_client.call('POST','/api/v1/auth/login',{'email':email,'password':password})[0]==200)
     source.run(['exec','-T','-u','www-data','app','php','bin/console.php','content:publish'])
+    route_id=extended_delivery(source,root,prefix,member,published,second) if options.extended_delivery else None
     before=data_snapshot(source);source_media=source.media()
     backup=ROOT/('artifacts/phase8-backup-'+secrets.token_hex(4));backup_report=source.backup(backup)
     check('database/media/release backup verifies',verify_backup(backup)[0]['media']==source_media)
@@ -103,6 +127,11 @@ def main():
         refused('root trigger protection survives logical restore',lambda:sql(target,"UPDATE admin_users SET account='must-fail' WHERE is_root=1"))
         root.token=root.call('GET','/api/v1/admin/auth/csrf')[1]['token']
         check('retained password still logs in after revocation',root.call('POST','/api/v1/admin/auth/login',{'account':'admin','password':password})[0]==200)
+        if options.extended_delivery:
+            check('delivery general policy and contact restored',restored_client.call('GET','/api/v1/site-settings/public')[1]['general']['contactEmail']=='delivery@example.test')
+            check('delivery ordered route restored',any(row['id']==route_id and len(row['stops'])==2 for row in restored_client.call('GET','/api/v1/routes')[1]['items']))
+            check('delivery multiple trips retained',sql(target,"SELECT COUNT(*) FROM itineraries WHERE member_id='"+member+"'").strip()=='2')
+            check('delivery search rebuilt and serves published content',restored_client.call('GET','/api/v1/search?q=Recovery')[1]['total']>=2)
         failed=make_target(options.env_file,'spl-p0-pubfail-'+secrets.token_hex(3),18445);report['publicationFailureTarget']=failed.project
         failed.run(['exec','-T','app','chmod','0555','/var/www/publication'])
         try:
