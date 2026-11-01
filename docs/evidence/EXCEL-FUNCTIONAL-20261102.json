@@ -1,0 +1,1586 @@
+{
+  "date": "2026-11-02",
+  "sourceWorkbookSha256": "d445ae7f8478b10fc938f91d9bcf85802dc48bcc3487dd01664ae06cfbaeeef5",
+  "cases": [
+    {
+      "id": "MEDIA-ALT-MIME",
+      "sources": [
+        "功能規格!E7:L7",
+        "功能規格!E20:L20",
+        "功能規格!E21:L21",
+        "功能規格!E29:L29"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PLACE-DRAFT-HIDDEN",
+      "sources": [
+        "功能規格!E5:L5",
+        "功能規格!E13:L13",
+        "功能規格!E19:L19",
+        "功能規格!E20:L20"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PLACE-SLUG-UNIQUE",
+      "sources": [
+        "功能規格!E13:L13",
+        "功能規格!E20:L20"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PLACE-COORDINATE-URL-VALIDATION",
+      "sources": [
+        "功能規格!E6:L6",
+        "功能規格!E13:L13"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PLACE-CATEGORY-DISTRICT-SEARCH",
+      "sources": [
+        "功能規格!E13:L13"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MUSEUM-FIELDS",
+      "sources": [
+        "功能規格!E6:L6"
+      ],
+      "passed": true
+    },
+    {
+      "id": "FILM-DRAFT-HIDDEN",
+      "sources": [
+        "功能規格!E7:L7",
+        "功能規格!E8:L8",
+        "功能規格!E21:L21"
+      ],
+      "passed": true
+    },
+    {
+      "id": "FILM-VALID-TIMES-OVERLAP",
+      "sources": [
+        "功能規格!E7:L7",
+        "功能規格!E21:L21"
+      ],
+      "passed": true
+    },
+    {
+      "id": "FILM-WEEK-POSTER-SCREENINGS",
+      "sources": [
+        "功能規格!E7:L7",
+        "功能規格!E21:L21"
+      ],
+      "passed": true
+    },
+    {
+      "id": "NEWS-TYPE-AND-DATES",
+      "sources": [
+        "功能規格!E9:L9",
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "NEWS-XSS-SANITIZED",
+      "sources": [
+        "功能規格!E10:L10",
+        "功能規格!E22:L22",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "NEWS-DRAFT-FUTURE-EXCLUDED",
+      "sources": [
+        "功能規格!E9:L9",
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "NEWS-CATEGORY-PAGINATION",
+      "sources": [
+        "功能規格!E9:L9"
+      ],
+      "passed": true
+    },
+    {
+      "id": "OFFER-TERM-DATE-MERCHANT",
+      "sources": [
+        "功能規格!E11:L11",
+        "功能規格!E23:L23"
+      ],
+      "passed": true
+    },
+    {
+      "id": "OFFER-ACTIVE-ONLY",
+      "sources": [
+        "功能規格!E11:L11",
+        "功能規格!E23:L23"
+      ],
+      "passed": true
+    },
+    {
+      "id": "NEWS-OFFER-SEPARATION",
+      "sources": [
+        "功能規格!E9:L9",
+        "功能規格!E11:L11",
+        "功能規格!E22:L22",
+        "功能規格!E23:L23"
+      ],
+      "passed": true
+    },
+    {
+      "id": "OFFER-EXPIRED-DETAIL",
+      "sources": [
+        "功能規格!E12:L12"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROUTE-EMPTY-DUPLICATE-UNAVAILABLE",
+      "sources": [
+        "功能規格!E24:L24"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROUTE-PUBLIC-SORT",
+      "sources": [
+        "功能規格!E14:L14",
+        "功能規格!E24:L24"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PLACE-REFERENCE-DELETE-SAFE",
+      "sources": [
+        "功能規格!E19:L19"
+      ],
+      "passed": true
+    },
+    {
+      "id": "HOME-SYNCHRONIZED",
+      "sources": [
+        "功能規格!E5:L5"
+      ],
+      "passed": true
+    },
+    {
+      "id": "FILMS-DIRECT-DETAIL",
+      "sources": [
+        "功能規格!E8:L8"
+      ],
+      "passed": true
+    },
+    {
+      "id": "FILMS-NEIGHBOR-STRUCTURE",
+      "sources": [
+        "功能規格!E8:L8",
+        "功能規格!E29:L29"
+      ],
+      "passed": true
+    },
+    {
+      "id": "NEWS-DIRECT-DETAIL",
+      "sources": [
+        "功能規格!E10:L10"
+      ],
+      "passed": true
+    },
+    {
+      "id": "NEWS-NEIGHBOR-STRUCTURE",
+      "sources": [
+        "功能規格!E10:L10",
+        "功能規格!E29:L29"
+      ],
+      "passed": true
+    },
+    {
+      "id": "OFFERS-DIRECT-DETAIL",
+      "sources": [
+        "功能規格!E12:L12"
+      ],
+      "passed": true
+    },
+    {
+      "id": "OFFERS-NEIGHBOR-STRUCTURE",
+      "sources": [
+        "功能規格!E12:L12",
+        "功能規格!E29:L29"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ATTRACTIONS-DIRECT-DETAIL",
+      "sources": [
+        "功能規格!E13:L13"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ATTRACTIONS-NEIGHBOR-STRUCTURE",
+      "sources": [
+        "功能規格!E13:L13",
+        "功能規格!E29:L29"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-PLACE",
+      "sources": [
+        "功能規格!E18:L18"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-FOOD",
+      "sources": [
+        "功能規格!E18:L18"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-FILM",
+      "sources": [
+        "功能規格!E18:L18"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-NEWS",
+      "sources": [
+        "功能規格!E18:L18"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-OFFER",
+      "sources": [
+        "功能規格!E18:L18"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-LITERAL-XSS",
+      "sources": [
+        "功能規格!E18:L18",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-LENGTH",
+      "sources": [
+        "功能規格!E18:L18"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-WRONG-CAPTCHA-FIELD-ERROR",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-TERMS-REQUIRED",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-PERSISTED",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-ONCE-LOGOUT",
+      "sources": [
+        "功能規格!E16:L16",
+        "功能規格!E17:L17"
+      ],
+      "passed": true
+    },
+    {
+      "id": "LOGIN-NONENUMERATION",
+      "sources": [
+        "功能規格!E17:L17"
+      ],
+      "passed": true
+    },
+    {
+      "id": "LOGIN-ROTATION-NO-PASSWORD",
+      "sources": [
+        "功能規格!E17:L17"
+      ],
+      "passed": true
+    },
+    {
+      "id": "LOGOUT-OLD-SESSION-401",
+      "sources": [
+        "功能規格!E17:L17"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-EXPIRED-CAPTCHA",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-DUPLICATE-EMAIL",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "TRIP-ORDER-TIME-NOTE",
+      "sources": [
+        "功能規格!E15:L15"
+      ],
+      "passed": true
+    },
+    {
+      "id": "TRIP-OWNER-ISOLATION",
+      "sources": [
+        "功能規格!E15:L15"
+      ],
+      "passed": true
+    },
+    {
+      "id": "TRIP-DUPLICATE-DISALLOWED",
+      "sources": [
+        "功能規格!E15:L15"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROUTE-APPLY",
+      "sources": [
+        "功能規格!E14:L14",
+        "功能規格!E15:L15",
+        "功能規格!E24:L24"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MEMBER-PERSISTENCE-AFTER-RELOGIN",
+      "sources": [
+        "功能規格!E13:L13",
+        "功能規格!E15:L15"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ADMIN-EDIT",
+      "sources": [
+        "功能規格!E26:L26"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PERMISSION-SERVER-ENFORCED",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PERMISSION-PERSISTED",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROOT-SERVER-IMMUTABLE",
+      "sources": [
+        "功能規格!E26:L26"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ADMIN-RESERVED-ACCOUNT",
+      "sources": [
+        "功能規格!E26:L26"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ADMIN-SOFT-DELETE-REVOKES",
+      "sources": [
+        "功能規格!E26:L26"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MEMBERS-MASK-MINIMAL",
+      "sources": [
+        "功能規格!E25:L25"
+      ],
+      "passed": true
+    },
+    {
+      "id": "AUDIT-RECORDED",
+      "sources": [
+        "功能規格!E19:L19",
+        "功能規格!E26:L26",
+        "功能規格!E27:L27",
+        "功能規格!E28:L28"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SETTINGS-EMAIL-KEY-WHITELIST",
+      "sources": [
+        "功能規格!E28:L28"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SETTINGS-CSRF",
+      "sources": [
+        "功能規格!E17:L17",
+        "功能規格!E28:L28",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SETTINGS-PUBLIC-POLICIES",
+      "sources": [
+        "功能規格!E28:L28"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SETTINGS-STALE-VERSION",
+      "sources": [
+        "功能規格!E28:L28"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEO-REJECT-CANONICALORIGIN",
+      "sources": [
+        "功能規格!E30:L30",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEO-REJECT-ROBOTS",
+      "sources": [
+        "功能規格!E30:L30",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEO-REJECT-OGIMAGEURL",
+      "sources": [
+        "功能規格!E30:L30",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SETTINGS-RELOGIN-PERSISTENCE",
+      "sources": [
+        "功能規格!E28:L28",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEO-NOJS-HEAD-OVERRIDE",
+      "sources": [
+        "功能規格!E30:L30",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEO-OG-TWITTER-FAVICON",
+      "sources": [
+        "功能規格!E30:L30"
+      ],
+      "passed": true
+    },
+    {
+      "id": "PRIVATE-NOINDEX",
+      "sources": [
+        "功能規格!E30:L30",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "JSONLD-/index.html",
+      "sources": [
+        "功能規格!E31:L31"
+      ],
+      "passed": true
+    },
+    {
+      "id": "JSONLD-/museum.html",
+      "sources": [
+        "功能規格!E31:L31"
+      ],
+      "passed": true
+    },
+    {
+      "id": "JSONLD-/films/p8uid20b924f-film-a.html",
+      "sources": [
+        "功能規格!E31:L31"
+      ],
+      "passed": true
+    },
+    {
+      "id": "JSONLD-/news/p8uid20b924f-event-a.html",
+      "sources": [
+        "功能規格!E31:L31"
+      ],
+      "passed": true
+    },
+    {
+      "id": "JSONLD-/offers/p8uid20b924f-offer-a.html",
+      "sources": [
+        "功能規格!E31:L31"
+      ],
+      "passed": true
+    },
+    {
+      "id": "JSONLD-/places/p8uid20b924f-food.html",
+      "sources": [
+        "功能規格!E31:L31"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROBOTS-SITEMAP-PUBLISHED-ONLY",
+      "sources": [
+        "功能規格!E33:L33"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SETTINGS-AUDIT",
+      "sources": [
+        "功能規格!E28:L28",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "news-EDIT-PUBLISH-9663ec93-60af-4230-a9d2-37614b3b242a",
+      "sources": [
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "news-UNPUBLISH-9663ec93-60af-4230-a9d2-37614b3b242a",
+      "sources": [
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "news-DELETE-9663ec93-60af-4230-a9d2-37614b3b242a",
+      "sources": [
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "news-EDIT-PUBLISH-9bbcb692-cc6b-477f-902f-9c80bbaeb676",
+      "sources": [
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "news-UNPUBLISH-9bbcb692-cc6b-477f-902f-9c80bbaeb676",
+      "sources": [
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "news-DELETE-9bbcb692-cc6b-477f-902f-9c80bbaeb676",
+      "sources": [
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "offers-EDIT-PUBLISH-3a6a252b-361c-4ee4-ae73-186456001e24",
+      "sources": [
+        "功能規格!E23:L23"
+      ],
+      "passed": true
+    },
+    {
+      "id": "offers-UNPUBLISH-3a6a252b-361c-4ee4-ae73-186456001e24",
+      "sources": [
+        "功能規格!E23:L23"
+      ],
+      "passed": true
+    },
+    {
+      "id": "offers-DELETE-3a6a252b-361c-4ee4-ae73-186456001e24",
+      "sources": [
+        "功能規格!E23:L23"
+      ],
+      "passed": true
+    },
+    {
+      "id": "films-EDIT-PUBLISH-f0807813-0a8d-42c2-adb3-0136ab895330",
+      "sources": [
+        "功能規格!E21:L21"
+      ],
+      "passed": true
+    },
+    {
+      "id": "films-UNPUBLISH-f0807813-0a8d-42c2-adb3-0136ab895330",
+      "sources": [
+        "功能規格!E21:L21"
+      ],
+      "passed": true
+    },
+    {
+      "id": "films-DELETE-f0807813-0a8d-42c2-adb3-0136ab895330",
+      "sources": [
+        "功能規格!E21:L21"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MUSEUM-UPDATE-SYNCHRONIZED",
+      "sources": [
+        "功能規格!E6:L6"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SCREENING-REMOVE-SYNCHRONIZED",
+      "sources": [
+        "功能規格!E7:L7",
+        "功能規格!E21:L21"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MAP-UNSAFE-0",
+      "sources": [
+        "功能規格!E20:L20",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MAP-UNSAFE-1",
+      "sources": [
+        "功能規格!E20:L20",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MAP-UNSAFE-2",
+      "sources": [
+        "功能規格!E20:L20",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MAP-UNSAFE-3",
+      "sources": [
+        "功能規格!E20:L20",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MAP-UNSAFE-4",
+      "sources": [
+        "功能規格!E20:L20",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MAP-NO-AUTOSAVE",
+      "sources": [
+        "功能規格!E20:L20"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MAP-LIVE-PREVIEW",
+      "sources": [
+        "功能規格!E20:L20"
+      ],
+      "passed": true,
+      "actual": {
+        "status": 200,
+        "candidates": 1,
+        "hasPlaceId": true,
+        "referenceTextSaved": false
+      }
+    },
+    {
+      "id": "ANONYMOUS-MANAGEMENT-member",
+      "sources": [
+        "功能規格!E17:L17",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ANONYMOUS-MANAGEMENT-admin",
+      "sources": [
+        "功能規格!E17:L17",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "LOGIN-CSRF-ORIGIN",
+      "sources": [
+        "功能規格!E17:L17",
+        "功能規格!E34:L34"
+      ],
+      "passed": true
+    },
+    {
+      "id": "SEARCH-PAGING-SPECIAL",
+      "sources": [
+        "功能規格!E18:L18"
+      ],
+      "passed": true
+    },
+    {
+      "id": "LOGIN-RATE-LOCK",
+      "sources": [
+        "功能規格!E17:L17"
+      ],
+      "passed": true,
+      "actual": {
+        "badAttempts": [
+          401,
+          401,
+          401,
+          401,
+          401,
+          429
+        ],
+        "correctWhileLocked": 429
+      }
+    },
+    {
+      "id": "CAPTCHA-SESSION-BOUND",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "CAPTCHA-EMAIL-BOUND",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-CONFIRM-MISSING",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "REGISTER-CONFIRM-MISMATCH",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "CAPTCHA-EMAIL-RATE",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "CAPTCHA-IMAGE-NO-ANSWER",
+      "sources": [
+        "功能規格!E16:L16"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROLE-TEMPLATES-AVAILABLE",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROLE-MATRIX-6",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A6:F6",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-7",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A7:F7",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-8",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A8:F8",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-10",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A10:F10",
+        "expected": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-11",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A11:F11",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-12",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A12:F12",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-14",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A14:F14",
+        "expected": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-15",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A15:F15",
+        "expected": [
+          "create",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-16",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A16:F16",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-18",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A18:F18",
+        "expected": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-19",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A19:F19",
+        "expected": [
+          "create",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-20",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A20:F20",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-22",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A22:F22",
+        "expected": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-23",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A23:F23",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-24",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A24:F24",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-26",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A26:F26",
+        "expected": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-27",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A27:F27",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-28",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A28:F28",
+        "expected": [
+          "view"
+        ],
+        "actual": [
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-30",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A30:F30",
+        "expected": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "create",
+          "delete",
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-31",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A31:F31",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-32",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A32:F32",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-34",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A34:F34",
+        "expected": [
+          "edit",
+          "view"
+        ],
+        "actual": [
+          "edit",
+          "view"
+        ]
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-35",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A35:F35",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-36",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A36:F36",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-38",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A38:F38",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-39",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A39:F39",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-40",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A40:F40",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-42",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A42:F42",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-43",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A43:F43",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "ROLE-MATRIX-44",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true,
+      "actual": {
+        "cell": "權限矩陣!A44:F44",
+        "expected": [],
+        "actual": []
+      }
+    },
+    {
+      "id": "HOME-NO-MIXED-GENERATION",
+      "sources": [
+        "功能規格!E5:L5"
+      ],
+      "passed": true
+    },
+    {
+      "id": "HOME-BLOCK-ERROR-STATES",
+      "sources": [
+        "功能規格!E5:L5"
+      ],
+      "passed": true
+    },
+    {
+      "id": "BROWSER-NEWS-SAVE-PERSISTED",
+      "sources": [
+        "功能規格!E22:L22"
+      ],
+      "passed": true
+    },
+    {
+      "id": "BROWSER-TEMPLATE-UPLOAD-SAVE-DELETE",
+      "sources": [
+        "功能規格!E19:L19",
+        "功能規格!E20:L20"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MEMBER-PAGING-SEARCH",
+      "sources": [
+        "功能規格!E25:L25"
+      ],
+      "passed": true
+    },
+    {
+      "id": "MEMBER-DIRECTORY-NO-EXPORT",
+      "sources": [
+        "功能規格!E25:L25"
+      ],
+      "passed": true
+    },
+    {
+      "id": "EACH-REQUEST-REVOKED-RIGHTS",
+      "sources": [
+        "功能規格!E25:L25",
+        "功能規格!E27:L27",
+        "功能規格!E28:L28",
+        "功能規格!E32:L32"
+      ],
+      "passed": true
+    },
+    {
+      "id": "DASHBOARD-NO-UNAUTHORIZED-COUNTS",
+      "sources": [
+        "功能規格!E27:L27"
+      ],
+      "passed": true
+    },
+    {
+      "id": "ROOT-PERMISSIONS-IMMUTABLE",
+      "sources": [
+        "功能規格!E26:L26",
+        "功能規格!E27:L27"
+      ],
+      "passed": true
+    },
+    {
+      "id": "INTERNAL-ERROR-ASSET-NOT-PUBLIC",
+      "sources": [
+        "功能規格!E5:L5"
+      ],
+      "passed": true
+    }
+  ],
+  "caseCount": 150,
+  "emptyHome": [
+    {
+      "text": "博物館參觀資訊更新中",
+      "passed": true
+    },
+    {
+      "text": "目前沒有已發布的精選景點",
+      "passed": true
+    },
+    {
+      "text": "目前沒有本週映演場次",
+      "passed": true
+    },
+    {
+      "text": "目前沒有已發布的活動與消息",
+      "passed": true
+    }
+  ],
+  "browser": [
+    {
+      "case": "place-delete-focus",
+      "url": "http://localhost:8081/admin/places.html",
+      "remaining": 0,
+      "focus": {
+        "id": "place-list-status",
+        "text": "資料與公開頁面已同步。"
+      }
+    },
+    {
+      "case": "film-delete-focus",
+      "focus": {
+        "id": "film-list-status",
+        "text": "資料與公開頁面已同步。"
+      },
+      "remaining": 0
+    },
+    {
+      "case": "news-delete-focus",
+      "focus": {
+        "id": "content-list-status",
+        "text": "資料與公開頁面已同步。"
+      },
+      "remaining": 0
+    },
+    {
+      "case": "offer-delete-focus",
+      "focus": {
+        "id": "content-list-status",
+        "text": "資料與公開頁面已同步。"
+      },
+      "remaining": 0
+    },
+    {
+      "case": "home-image-failure-fallback",
+      "nodes": [
+        {
+          "label": "Excel驗收自有圖片",
+          "rendered": "url(\"/assets/image-placeholder.svg\")"
+        }
+      ]
+    },
+    {
+      "case": "admin-delete-focus",
+      "focus": {
+        "id": "page-status",
+        "text": "共 407 筆管理員。"
+      },
+      "remaining": 0
+    },
+    {
+      "case": "root-controls-hidden",
+      "rows": [
+        "\n管理員名稱\n登入帳號\n電子郵件\n權限範本\n帳號狀態\n操作\n",
+        "系統管理員adminroot@example.test系統管理員固定保護不可編輯／刪除"
+      ],
+      "actions": 0,
+      "buttons": 0
+    },
+    {
+      "case": "home-error-mobile",
+      "width": 390,
+      "overflow": false,
+      "sections": [
+        "館舍介紹館舍介紹暫時無法載入，請稍後重試。查看館舍介紹 ↗",
+        "精選景點精選景點暫時無法載入，請稍後重試。查看精選景點 ↗",
+        "本週映演本週映演暫時無法載入，請稍後重試。查看本週映演 ↗",
+        "最新活動與消息最新活動與消息暫時無法載入，請稍後重試。查看最新活動與消息 ↗"
+      ]
+    },
+    {
+      "case": "home-error-retry-recovery",
+      "url": "http://localhost:8081/index.html",
+      "headings": [
+        "在城市裡，遇見一場好電影。\n",
+        "老戲院的光，還在照著新竹。\n",
+        "留一個晚上，給電影。",
+        "p8uid20b924f 電影驗收",
+        "p8uid20b924f 電影一",
+        "看完電影，沿著香氣走。",
+        "這週末，一起出門吧。",
+        "把喜歡的地方，排成一趟旅行。",
+        "從一個主題，開始你的城市故事。"
+      ]
+    },
+    {
+      "case": "home-error-final-three-sizes",
+      "sizes": [
+        {
+          "h1": "首頁暫時無法載入",
+          "overflow": false,
+          "sections": 4,
+          "width": 1440
+        },
+        {
+          "h1": "首頁暫時無法載入",
+          "overflow": false,
+          "sections": 4,
+          "width": 390
+        },
+        {
+          "h1": "首頁暫時無法載入",
+          "overflow": false,
+          "sections": 4,
+          "width": 320
+        }
+      ]
+    },
+    {
+      "case": "home-news-opens-new-tab",
+      "originUrl": "http://localhost:8081/index.html",
+      "articleUrl": "http://localhost:8081/news/old-town-notice.html",
+      "headings": [
+        "舊城街區步行環境改善公告"
+      ]
+    },
+    {
+      "case": "main-after-authorized-publish",
+      "url": "http://localhost:8080/",
+      "headings": [
+        "在城市裡，遇見一場好電影。\n",
+        "老戲院的光，還在照著新竹。\n",
+        "留一個晚上，給電影。",
+        "光的形狀",
+        "看完電影，沿著香氣走。",
+        "這週末，一起出門吧。",
+        "把喜歡的地方，排成一趟旅行。",
+        "從一個主題，開始你的城市故事。"
+      ],
+      "newsTarget": "_blank"
+    }
+  ],
+  "cleanup": {
+    "cleaned": true,
+    "remainingOwnedContent": {
+      "attractions": 0,
+      "films": 0,
+      "news_posts": 0,
+      "offers": 0,
+      "routes": 0,
+      "merchants": 0
+    },
+    "settingsRestored": true,
+    "museumRestored": true,
+    "ownedAccountsDisabled": true,
+    "auditRetained": true
+  },
+  "quality": {
+    "frontendTests": 278,
+    "phpTests": 122,
+    "phpAssertions": 409,
+    "staticArchitecture": "passed"
+  },
+  "formalPlatformsVerified": false,
+  "fullAARecertifiedThisRun": false,
+  "httpIntegrity": {
+    "fixedPages": 68,
+    "assets": 25,
+    "httpChecks": 93,
+    "issues": []
+  },
+  "mainUpdateAuthorized": true,
+  "integrity": {
+    "tables": 34,
+    "columns": 338,
+    "migrations": 20,
+    "checksumsMatch": true,
+    "originalFilesUnchanged": 69,
+    "documentPathsChecked": 1533,
+    "missingDocumentPaths": [],
+    "cleanup": true
+  }
+}

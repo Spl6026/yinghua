@@ -11,6 +11,8 @@ const article={id:'newest',slug:'newest',type:'city',title:'消息 $& <script>',
 test('首頁沿用消息三列樣式，正確區分台北跨年發布／活動日期',()=>{
   const html=homeNewsRows([article]);
   assert.match(html,/class="event-row reveal in-view"/);
+  assert.match(html,/target="_blank" rel="noopener noreferrer"/);
+  assert.match(html,/aria-label="閱讀消息 \$&amp; &lt;script&gt;（另開新分頁）"/);
   assert.match(html,/發布日期 2027\/01\/01/);
   assert.match(html,/<b>01<\/b><small>JAN \/ FRI/);
   assert.match(html,/城市消息/);assert.doesNotMatch(html,/<script>/);

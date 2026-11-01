@@ -17,3 +17,5 @@ GET /api/v1/admin/audit-logs?page=：重新讀取目前操作者、驗證dashboa
 | backend/tests/phase14_integration.py | 真DB數量、隱藏模組完全不洩漏、HTTP非root拒絕、既有root的CLI唯讀成功投影 |
 
 沿用各內容表／members／audit_logs，無新migration。root成功路徑以隔離DB既有root在可信CLI唯讀Service驗證，沒有建立root驗收帳號、變更正式帳號或簽發root Browser cookie。一般帳號Browser不顯示稽核面板。實際HTTP／UI證據界線見[驗收](../PHASE-14-ACCEPTANCE.md)。
+
+2026-11-02重驗修正：最近更新與root稽核的DB無offset時間明確按UTC解析，用共用utc-display.js轉Asia/Taipei，欄位標示台北。API／排序／DB不變，跨日跨年、offset與未知值回歸通過；真Browser13:59:07→21:59:07及三尺寸確認，見[完整重驗](../P0-P1-P2-REVERIFICATION-20261102.md)。

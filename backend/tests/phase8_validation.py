@@ -11,7 +11,7 @@ results=[]
 try:
     for name in names:
         start=time.monotonic();result=subprocess.run([sys.executable,str(ROOT/'backend/tests'/str(name+'.py')),'--dependency-path',options.dependency_path],cwd=ROOT,capture_output=True,text=True,encoding='utf8')
-        (ROOT/('artifacts/phase8-'+name+'.log')).write_text(result.stdout,encoding='utf8')
+        (ROOT/('artifacts/phase8-'+name+'.log')).write_text(result.stdout+result.stderr,encoding='utf8')
         row={'suite':name,'exitCode':result.returncode,'seconds':round(time.monotonic()-start,2)};results.append(row);print(json.dumps(row),flush=True)
         if result.returncode:raise RuntimeError('Fixed suite failed: '+name+'; inspect its isolated evidence before resuming')
 finally:(ROOT/'artifacts/phase8-validation-results.json').write_text(json.dumps(results,indent=2),encoding='utf8')

@@ -4,6 +4,7 @@ import { api } from './api-client.js';
 import { element, status, toast } from './ui.js';
 import { MemberResourceState } from './member-resource-state.js';
 import { recoverSession } from './session-expiry.js';
+import { PendingWrites } from './pending-writes.js';
 
 // [E-27] 只處理受管景點 UUID；原型陣列索引不直接當正式資料識別。
 export const isAttractionId = id => /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
@@ -13,6 +14,18 @@ export const readMember = async () => {
 };
 const state = new MemberResourceState(memberResourcesApi, readMember);
 let bound = false, pendingGeneration = 0;
+const favoriteWrites=new PendingWrites();
+let navigationGeneration=0;
+async function navigateAfterFavorites(target){
+  const request=++navigationGeneration;
+  if(favoriteWrites.active){
+    toast('正在保存收藏，完成後前往頁面…');
+    const confirmed=await favoriteWrites.confirmed();
+    if(request!==navigationGeneration)return;
+    if(!confirmed){toast('無法確認收藏已保存，請留在本頁重新確認收藏狀態後再前往。');return;}
+  }
+  location.assign(target);
+}
 const favoriteButtons = () => [...document.querySelectorAll('[data-favorite]')];
 const knownIds = () => favoriteButtons().map(button => button.dataset.favorite).filter(isAttractionId);
 
@@ -98,27 +111,31 @@ async function toggleFavorite(button) {
     clearMemberIntent('pendingFavorite'); document.querySelector('#member-favorite-intent')?.remove(); toast('此地點已在收藏中。'); return;
   }
   button.disabled = true;
-  try {
-    const result = await state.favorite(id);
-    if (result.login) loginForMemberAction('favorite', id);
-    else if (result.changed) {
-      toast(result.saved ? '已加入收藏。' : '已取消收藏。');
-      if (new URLSearchParams(location.search).get('pendingFavorite') === id) {
-        clearMemberIntent('pendingFavorite'); document.querySelector('#member-favorite-intent')?.remove();
+  return favoriteWrites.run(async()=>{
+    try {
+      const result = await state.favorite(id);
+      if (result.login) loginForMemberAction('favorite', id);
+      else if (result.changed) {
+        toast(result.saved ? '已加入收藏。' : '已取消收藏。');
+        if (new URLSearchParams(location.search).get('pendingFavorite') === id) {
+          clearMemberIntent('pendingFavorite'); document.querySelector('#member-favorite-intent')?.remove();
+        }
+        document.dispatchEvent(new CustomEvent('member-favorite-change', {detail:{attractionId:id}}));
       }
-      document.dispatchEvent(new CustomEvent('member-favorite-change', {detail:{attractionId:id}}));
-    }
-  } catch (error) {
-    if (error.status === 401) loginForMemberAction('favorite', id);
-    else toast(error.message);
-  } finally { paint(); }
+      return result.changed===true;
+    } catch (error) {
+      if (error.status === 401) loginForMemberAction('favorite', id);
+      else toast(error.message);
+      return false;
+    } finally { paint(); }
+  });
 }
 
 async function addStop(button) {
   const id = button.dataset.addStop;
   if (!isAttractionId(id)) return;
   // [S E15；E-33] 到planner確認選定行程後才保存；匿名由共用登入安全返回。
-  location.assign('/planner.html?place='+encodeURIComponent(id));
+  await navigateAfterFavorites('/planner.html?place='+encodeURIComponent(id));
 }
 
 export async function mountMemberActions() {
@@ -129,7 +146,15 @@ export async function mountMemberActions() {
       if (button && !button.disabled) { event.preventDefault(); void toggleFavorite(button); }
       const stop = event.target.closest('[data-add-stop]');
       if (stop && !stop.disabled) { event.preventDefault(); void addStop(stop); }
+      const link=event.target.closest('a[href]');
+      if(link&&favoriteWrites.active&&!event.defaultPrevented&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey&&!event.button&&(!link.target||link.target==='_self')&&!link.hasAttribute('download')){
+        const target=new URL(link.href,location.href);
+        if(target.origin===location.origin&&(target.pathname!==location.pathname||target.search!==location.search)){
+          event.preventDefault();void navigateAfterFavorites(target.href);
+        }
+      }
     });
+    window.addEventListener('beforeunload',event=>{if(favoriteWrites.active){event.preventDefault();event.returnValue='';}});
     const resume = () => { ++state.generation; state.member = undefined; state.statuses.clear(); paint(); void refreshFavorites(); };
     window.addEventListener('pageshow', event => { if (event.persisted) resume(); });
     window.addEventListener('focus', resume);

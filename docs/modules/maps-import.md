@@ -1,5 +1,7 @@
 # Google Maps 候選匯入閱讀指南
 
+2026-11-01 最新補充：U-23已啟動摘要／介紹補位。管理自填欄位仍照實保存；摘要可摘錄自家介紹，空介紹的公開詳情可即時顯示獨立 Google 原文，無內容安全降級。不是把Google原文存入網站介紹。新增API、檔案、配額與操作見[補位指南](attraction-content-fallback.md)；下方日期內容保留原模組歷史範圍。
+
 U-10／E-21新增地址結構行政區、HTTP官網及原文簡介參考，由GooglePlaceMapper／MapCandidate負責映射；網站介紹不被自動覆蓋。關聯已可見，名稱／地址／座標變更須管理員確認或解除，後端GooglePlaceLinkPolicy另行校驗。完整檔案與API語意見 [地圖欄位與關聯指南](google-place-fields.md)，本輪結果見 [改善計畫](../MAP-IMPORT-IMPROVEMENTS.md)。
 
 U-09／E-20：營業時間 FieldMask 增 regularOpeningHours.periods，GoogleOpeningHours Adapter 依 day／hour／minute 轉成本站週表，人工與匯入共用同一編輯器；weekdayDescriptions 只在無法安全映射時提供人工參考。缺資料為未知，24/7 獨立處理，常態週表不使用 currentOpeningHours。完整規則見 [營業時間指南](opening-hours.md)。

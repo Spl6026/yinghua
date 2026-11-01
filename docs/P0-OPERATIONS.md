@@ -1,5 +1,7 @@
 # P0 部署與運維
 
+2026-11-01更新：現行封裝已涵蓋階段十三／十四；階段十五重驗17項冷啟動、32項擴充還原與9項回退，見[驗收](PHASE-15-ACCEPTANCE.md)。正式環境與安全差項尚未簽核；既有server交接見[清單](PRODUCTION-HANDOFF.md)。下方P0日期描述保留當時演練背景，命令仍由現有CLI驗證。
+
 更新：2026-10-24。E-29 工程基線，實作／演練進行中；尚未正式部署。PHP8.5.12官方映像與 MariaDB12.3 pinned digest沿用已確認版本，實作日核對[PHP公告](https://www.php.net/releases/8_5_12.php)／[MariaDB發布紀錄](https://mariadb.com/docs/release-notes/community-server/12.3/12.3.3)。這不等於映像漏洞掃描已通過。
 
 ## 發布設定

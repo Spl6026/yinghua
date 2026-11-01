@@ -16,3 +16,5 @@
 | frontend/tests/member-directory.test.mjs | 摘要焦點、舊回應不得蓋新結果、載入失敗恢復 |
 
 既有Composition／admin.js為組裝入口；API完整契約在backend/resources/openapi.json。無新表／migration／環境變數。MariaDB12.3實際EXPLAIN在小資料集為ALL＋filesort；包含式搜尋本就需掃描，未據此新增大量索引或宣稱大規模效能通過。真資料庫／越權與原型驗收統一見[階段十四驗收](../PHASE-14-ACCEPTANCE.md)。
+
+2026-11-02重驗修正：會員加入時間沿共用utc-display.js以台北時區呈現，列表與摘要一致且標明台北；不變動遮罩與API資料。13:53:46 UTC→21:53:46，實際查詢／摘要與正反向Tab／Escape返回通過。新增formatter與VM真依賴配合回歸，最終267 JS，見[完整重驗](../P0-P1-P2-REVERIFICATION-20261102.md)。

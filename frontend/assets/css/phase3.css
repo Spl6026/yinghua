@@ -44,3 +44,12 @@
 /* [S E20／E-24] 保留原型配色，讓範例選單與操作於窄畫面換行。 */
 #place-samples .url-import{grid-template-columns:minmax(0,1fr) auto auto}#place-samples select{min-width:0;width:100%}
 @media(max-width:760px){#place-samples .url-import{grid-template-columns:1fr}}
+
+/* [U-23／E-40] 原文來源與自家內容分開，窄版不截短Google原文。 */
+.google-summary-reference,.attraction-content-preview{padding:16px;border:1px solid var(--line);margin:16px 0;overflow-wrap:anywhere}
+.google-summary-reference .google-editorial-summary{white-space:pre-wrap}
+.google-summary-reference a{display:block;margin-top:8px;text-decoration:underline}
+.google-maps-attribution{font:400 14px/1.5 var(--sans);color:#5e5e5e;white-space:nowrap;letter-spacing:normal}
+.attraction-content-preview p{white-space:pre-wrap;font-size:14px}
+
+.attraction-content-preview{grid-column:1/-1}.attraction-content-preview summary{cursor:pointer;font-size:14px}.attraction-content-preview .button{margin-top:8px}

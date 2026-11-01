@@ -19,7 +19,13 @@ def main():
     actual = {tuple(item) for item in json.loads(result.stdout)}
     documented = {(method.upper(), path) for path, value in spec['paths'].items()
                   for method in value if method in {'get', 'post', 'put', 'delete', 'patch'}}
-    assert actual == documented, (actual - documented, documented - actual)
+    # [E-34] 爬蟲檔案由Nginx而非PHP Router提供，分別驗證，不能將三個GET誤判為PHP漏路由。
+    crawler = {('GET', '/robots.txt'), ('GET', '/sitemap.xml'), ('GET', '/sitemap-{part}.xml')}
+    assert documented - crawler == actual, (actual - documented, documented - crawler - actual)
+    assert crawler <= documented
+    from attractions_integration import raw
+    for path, expected in [('/robots.txt', 200), ('/sitemap.xml', 200), ('/sitemap-999.xml', 404)]:
+        assert raw(Client(), path)[0] == expected, ('crawler route', path)
     fixture(password, 'root')
     root = Client('admin')
     assert root.login('admin')[0] == 200
@@ -51,7 +57,7 @@ def main():
     count += 1
     shape(guest, '/api/v1/attractions/' + public_item['slug'], 'PublicAttractionRecord')
     shape(guest, '/api/v1/museum', 'PublicAttractionRecord')
-    print(json.dumps({'contractChecks': count, 'routeOperations': len(actual)}))
+    print(json.dumps({'contractChecks': count + 3, 'routeOperations': len(actual), 'crawlerOperations': len(crawler)}))
 
 
 if __name__ == '__main__':
