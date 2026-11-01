@@ -1,3 +1,4 @@
+import {initializeMemberDirectory} from './pages/member-directory.js';
 import { initializeFilmList } from './pages/film-list.js';
 import { initializeFilmForm } from './pages/film-form.js';
 import { authApi } from './api/auth-api.js';
@@ -47,7 +48,8 @@ try {
     const { module, action, page } = document.body.dataset;
     if (!hasPermission(identity, module, action)) {
       main.replaceChildren(element('h1', {}, '無法存取'), element('p', {}, '你尚未取得此功能的權限，請聯絡管理員。'));
-    } else if (page === 'admins') await initializeAdmins(identity);
+    } else if (page === 'members') await initializeMemberDirectory();
+    else if (page === 'admins') await initializeAdmins(identity);
     else if (page === 'admin-add' || page === 'admin-edit') await initializeAdminForm(identity, page);
     else if (page === 'permissions') await initializePermissions(identity);
     else if (page === 'films') await initializeFilmList(identity);

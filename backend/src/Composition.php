@@ -173,6 +173,8 @@ readonly class Composition
 
         $search = new \Yinghua\Controllers\SearchController(new \Yinghua\Services\PublicSearch($publication, new \Yinghua\Repositories\SearchRepository($database, $transactions)));
         $router->add(new \Yinghua\Http\Route('GET', '/api/v1/search', \Yinghua\Models\IdentityKind::Member, $search->listing(...)));
+        $directory = new \Yinghua\Controllers\MemberDirectoryController(new \Yinghua\Services\MemberDirectory(new \Yinghua\Repositories\MemberDirectoryRepository($database), $authorization));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/members', \Yinghua\Models\IdentityKind::Admin, $directory->listing(...), true, 'members', 'view'));
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 

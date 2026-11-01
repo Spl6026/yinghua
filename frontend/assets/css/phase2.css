@@ -92,3 +92,5 @@ button,a,input,select{touch-action:manipulation}
 .public-index-group li{margin-bottom:12px;overflow-wrap:anywhere}
 .public-index a{text-decoration:underline;text-underline-offset:4px}
 .footer-bottom{flex-wrap:wrap}
+
+#member-summary-text{white-space:pre-line;overflow-wrap:anywhere}

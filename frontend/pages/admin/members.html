@@ -15,12 +15,15 @@
 <body data-module="members" data-action="view" data-page="members">
 <a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
 <main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / MEMBERS</p><h1>會員管理</h1><p>此功能將於後續階段提供。</p></div></div>
-<section class="admin-panel">
-<h2>尚未開放</h2>
-<p>此功能將於後續階段提供。</p>
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT / MEMBERS</p><h1>會員管理</h1><p>依最小權限查詢會員資料；姓名與信箱已遮罩。</p></div></div>
+<section class="admin-panel" aria-labelledby="member-list-title">
+<h2 id="member-list-title">會員列表</h2>
+<form id="member-search" class="admin-toolbar" role="search"><div class="admin-field"><label for="member-query">搜尋會員名稱或電子郵件</label><input id="member-query" name="q" type="search" maxlength="80" disabled autocomplete="off"></div><button class="button button-dark" type="submit" id="member-submit" disabled>搜尋</button><button class="button button-outline" type="button" id="member-retry" disabled>重新載入</button></form>
+<p id="member-status" role="status" tabindex="-1"></p>
+<div class="table-scroll" tabindex="0" role="region" aria-label="會員列表，可水平捲動"><table class="admin-table"><caption class="sr-only">會員查詢結果，個資已遮罩</caption><thead><tr><th scope="col">會員名稱</th><th scope="col">電子郵件</th><th scope="col">加入日期</th><th scope="col">狀態</th><th scope="col">操作</th></tr></thead><tbody id="member-rows"></tbody></table></div>
+<div class="pagination"><button type="button" class="button button-outline" id="member-previous" disabled>上一頁</button><span id="member-page"></span><button type="button" class="button button-outline" id="member-next" disabled>下一頁</button></div>
 </section>
 </div>
-</div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
+</div></div></main><dialog id="member-summary" aria-labelledby="member-summary-title" aria-describedby="member-summary-text"><form method="dialog"><h2 id="member-summary-title">會員基本資料</h2><p id="member-summary-text"></p><button class="button button-dark" value="close" autofocus>關閉</button></form></dialog>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>
 <script type="module" src="/assets/js/admin.js"></script></body>
 </html>
