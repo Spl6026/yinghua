@@ -1,3 +1,4 @@
+import {renderFontHead} from './font-head.mjs';
 // [E-12] 固定 HTML 在前端建置時組合；PHP 不輸出任何畫面。
 import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -81,6 +82,7 @@ for (const source of await pages(join(root, 'pages'))) {
   const target = join(output, route);
   await mkdir(dirname(target), { recursive: true });
   // [S G34／B15；E-29] 各頁共用期限監看；API 事件可在入口載入前暫存於記憶體。
+  html=renderFontHead(html);
   html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
   await writeFile(target, annotateEnglishPassages(html));
   routes.push(`/${route}`);

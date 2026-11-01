@@ -25,12 +25,12 @@ class Node {
 }
 async function fixture(page,search=''){
   const nodes=new Map(),node=id=>{if(!nodes.has(id))nodes.set(id,new Node());return nodes.get(id);};
-  const data={member:{id:'a',displayName:'甲'},writes:[],trip:null,replacements:[],reads:0};
+  const data={creates:0,member:{id:'a',displayName:'甲'},writes:[],trip:null,replacements:[],reads:0};
   const docEvents=new Map(),windowEvents=new Map();
   const api={favorites:async()=>({items:[],nextCursor:null}),itinerary:async()=>{data.reads++;return {itinerary:data.trip,nextCursor:null};},addStop:async(id,version)=>{data.writes.push({id,version});return {version:version+1};},removeStop:async(id,version)=>{data.writes.push({id,version});return {version:version+1};}};
   const document={hidden:false,querySelector:node,addEventListener:(name,fn)=>docEvents.set(name,fn)};
-  const trips={list:async()=>{data.reads++;return{items:data.trip?[data.trip]:[],total:data.trip?1:0,page:1,currentId:data.trip?.id||null};},get:async()=>({itinerary:data.trip}),routes:async()=>({items:[]}),save:async(id,body)=>{data.writes.push(body);data.trip={...data.trip,...body,version:body.version+1};return{itinerary:data.trip};}};
-  const sandbox={document,URLSearchParams,CurrentTripState,TripEditorState,itinerariesApi:trips,memberResourcesApi:api,readMember:async()=>data.member,requireSession:async()=>data.member,
+  const trips={create:async()=>{data.creates++;data.trip={id:'new-trip',title:'',tripDate:null,items:[],version:1,isCurrent:true};return {itinerary:data.trip};},list:async()=>{data.reads++;return{items:data.trip?[data.trip]:[],total:data.trip?1:0,page:1,currentId:data.trip?.id||null};},get:async()=>({itinerary:data.trip}),routes:async()=>({items:[]}),save:async(id,body)=>{data.writes.push(body);data.trip={...data.trip,...body,version:body.version+1};return{itinerary:data.trip};}};
+  const sandbox={attractionPicker:(_host,options)=>{data.picker=options;return {open:async()=>{data.pickerOpen=true;}};},document,URLSearchParams,CurrentTripState,TripEditorState,itinerariesApi:trips,memberResourcesApi:api,readMember:async()=>data.member,requireSession:async()=>data.member,
     location:{search,replace:url=>data.replacements.push(url)},loginLocation:()=>'/login.html',handleSessionExpiry:()=>data.replacements.push('/login.html'),
     window:{addEventListener:(name,fn)=>windowEvents.set(name,fn)},clearMemberIntent:()=>{data.intentCleared=true;},resolvePublicAttraction:async()=>({id:'place-a',name:'公開地點'}),
     element:(tag,attrs={},text)=>{const n=new Node(tag);Object.assign(n,attrs);if(attrs.id)nodes.set('#'+attrs.id,n);n.textContent=text;return n;},status:(n,text,error)=>{n.textContent=text;n.error=error;},
@@ -70,4 +70,16 @@ test('行程換帳號會清除原私人站點，不以另一帳號覆蓋草稿',
   f.windowEvents.get('focus')();await settle();assert.equal(f.node('#itinerary-list').children.length,1);
   f.data.member={id:'b'};f.docEvents.get('visibilitychange')();await settle();assert.equal(f.node('#itinerary-list').children.length,0);
   assert.match(f.node('#trip-status').textContent,/登入身分已變更/);
+});
+
+test('新增地點留在原頁，直接開始編排時才建立行程，最後由儲存送出站點',async()=>{
+  const f=await fixture('planner');await f.node('#add-stop').emit('click');assert.equal(f.data.pickerOpen,true);assert.equal(f.data.creates,0);assert.equal(f.data.replacements.length,0);
+  await f.data.picker.onChoose({id:'place-a',name:'公開景點'});assert.equal(f.data.creates,1);assert.equal(f.data.writes.length,0);assert.equal(f.data.picker.isSelected('place-a'),true);
+  f.node('#trip-form').emit('submit');await settle();assert.equal(f.data.writes.length,1);assert.equal(f.data.writes[0].items[0].attractionId,'place-a');assert.equal(f.data.replacements.length,0);
+});
+
+test('初次載入、重新聚焦與背景讀取失敗不把焦點送到頁尾',async()=>{
+  const f=await fixture('planner');assert.notEqual(f.node('#trip-status').focused,true);
+  f.windowEvents.get('focus')();await settle();assert.notEqual(f.node('#trip-status').focused,true);
+  f.trips.list=async()=>{throw new Error('背景讀取失敗');};f.windowEvents.get('focus')();await settle();assert.match(f.node('#trip-status').textContent,/背景讀取失敗/);assert.notEqual(f.node('#trip-status').focused,true);
 });

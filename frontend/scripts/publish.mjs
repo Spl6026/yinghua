@@ -1,3 +1,4 @@
+import {renderFontHead} from './font-head.mjs';
 import {escapeHtml} from '../assets/js/core/content-view.js';
 // [E-12／E-18] 由 PHP CLI／API 交付已驗證資料；只在前端產生 HTML。
 // 每個 generation 含完整公開投影與頁面，成功寫完後才原子切換 current。
@@ -80,6 +81,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   if (managed && filmEnabled) html = html.replace('</body>', () => `<script type="application/json" id="film-publication">${json({generation:snapshot.generation,total:filmItems.length,period:snapshot.filmPeriod})}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`);
   const target = join(root,path.slice(1));
   await mkdir(dirname(target),{recursive:true});
+  html=renderFontHead(html);
   html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
   await writeFile(target,annotateEnglishPassages(html));
   const entry=crawlerEntry(context,meta);

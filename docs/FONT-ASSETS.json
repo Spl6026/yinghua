@@ -1,0 +1,37 @@
+{
+  "source": "https://github.com/google/fonts",
+  "license": "SIL Open Font License 1.1; original OFL notices retained",
+  "fontTools": "4.68.0",
+  "files": [
+    {
+      "path": "frontend/assets/fonts/NotoSansTC-common.woff2",
+      "bytes": 546908,
+      "sha256": "85aa3a861f5244589321ad6145a0158ce914eb5dc755925175826c526acbdb09"
+    },
+    {
+      "path": "frontend/assets/fonts/NotoSansTC.woff2",
+      "bytes": 5423720,
+      "sha256": "26ac06fc569f84d9eae5aa0acceda8aa8a48374aa52bc05f21500bbc77005ed4"
+    },
+    {
+      "path": "frontend/assets/fonts/NotoSerifTC-common.woff2",
+      "bytes": 740088,
+      "sha256": "37505dca25741638c78b83346c266ce48e867821acf937afebf370597d104bd2"
+    },
+    {
+      "path": "frontend/assets/fonts/NotoSerifTC.woff2",
+      "bytes": 7657004,
+      "sha256": "14a1ee11c1178b172c624351d677b42e5fe9f1383268dd3d8e59d2a54c606e15"
+    },
+    {
+      "path": "frontend/assets/fonts/OFL-NotoSansTC.txt",
+      "bytes": 4387,
+      "sha256": "babcfe66c8a098b2fa279bc724a3a342f8124f77ce18941fbcc1bbb39823cded"
+    },
+    {
+      "path": "frontend/assets/fonts/OFL-NotoSerifTC.txt",
+      "bytes": 4350,
+      "sha256": "5e0da210fb04058a8c0087985d2d456b931c2579811a49655721d3cf0c36b6d6"
+    }
+  ]
+}

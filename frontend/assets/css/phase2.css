@@ -103,3 +103,18 @@ button,a,input,select{touch-action:manipulation}
 #operations .stat-card strong{font-variant-numeric:tabular-nums}
 
 #member-summary-text{white-space:pre-line;overflow-wrap:anywhere}
+
+/* [U：保留website頁首樣式；E-37] 僅保留中性載入／重試，不新增下拉選單。 */
+.account-loading{display:inline-block;color:var(--muted);font-size:13px;line-height:44px;white-space:nowrap}
+.account-retry{border:1px solid var(--line);background:transparent;padding:10px;font:inherit;cursor:pointer}
+.admin-page-heading{align-items:flex-start;flex-wrap:wrap;gap:16px}
+.admin-page-heading>div{flex:1;min-width:min(100%,220px)}
+.admin-page-heading h1{font:500 clamp(24px,2.4vw,30px)/1.5 var(--serif);margin:0 0 8px;overflow-wrap:anywhere}
+.admin-panel-heading{flex-wrap:wrap;align-items:flex-start;gap:8px}
+.admin-panel-heading h2,.admin-panel-heading h3{font-size:20px;line-height:1.5;margin:0;min-width:0}
+.admin-panel-heading span{max-width:100%;line-height:1.7}
+.admin-field,.form-field{min-width:0}
+.admin-field textarea,.form-field textarea{font:inherit;line-height:1.7}
+.form-status,.helper-text,.admin-content p{overflow-wrap:anywhere}
+.footer-bottom{gap:12px 24px;flex-wrap:wrap}
+@media(max-width:760px){.admin-page-heading>div{flex-basis:100%}.admin-panel-heading{display:block}.admin-panel-heading span{display:block;margin-top:6px}}
