@@ -1,6 +1,23 @@
 # 全站架構與檔案功能導讀
 
-2026-11-01 補位實作：U-23／E-40完成自填摘要優先、自家介紹120字摘錄、已關聯且介紹留空的Google即時原文備援，以及後台收合預覽。新增112 PHP＋3爬蟲GET＝115 HTTP契約；68固定頁／34表338欄／20 migration維持，沒有新DDL／env／runtime依賴。原值不回寫，Google不進DB／HTML／SEO／搜尋／localStorage。詳見[逐檔閱讀指南](modules/attraction-content-fallback.md)與[補位計畫交付狀態](ATTRACTION-CONTENT-FALLBACK-PLAN.md)。
+2026-11-02最新：依原始Excel七張工作表完成[30列功能核實](EXCEL-FUNCTIONAL-VERIFICATION-20261102.md)，150個不同API／DB案例、四區塊空狀態與Browser操作；修復五類後台刪除後焦點、首頁分區錯誤／重試及首頁消息新分頁一致性。278 JS、122 PHP／409斷言與分層分析通過；正式平台及完整AA基線界線見報告。使用者明確核准後已套用本機8080，不修改主庫業務資料。
+
+本輪新增`frontend/scripts/home-error-view.mjs`由build產出內部`frontend/dist/home-unavailable.response`，Nginx僅在首頁發布gate失敗時以503供應四區塊錯誤，不供舊資料或可索引JSON-LD；它不是新固定頁／API。`frontend/tests/admin-delete-focus.test.mjs`與`home-error-view.test.mjs`驗證取消／成功焦點及失敗畫面；既有`home-publication.test.mjs`加查首頁消息新分頁／編碼。四個管理列表腳本刪除後聚焦現存status，`home-view.js`保留原型三列樣式並補新分頁提示。無新表／migration／env／依賴，115 HTTP／68固定頁／34表338欄／20 migration保持；原始website不變。
+
+操作仍為`docker compose run --rm --no-deps frontend node scripts/build.mjs`、`docker compose exec -T -u www-data app-test php bin/console.php content:publish`及標準Docker測試。Nginx變動需依既有server程序套用；首頁內部錯誤回應的交接見[正式server指南](PRODUCTION-HANDOFF.md)。本輪設定／館舍／自有資料均已還原清理，逐例非敏感證據見[機讀紀錄](evidence/EXCEL-FUNCTIONAL-20261102.json)。
+
+2026-11-02 P0／P1／P2本機重驗完成：Excel16／11／3項分別驗證，補完整P0回歸、14固定套件及168筆有效Browser三尺寸；收藏快速離頁與後台UTC呈現已修復，122 PHP／409斷言、最終267 JS通過。115 HTTP／68頁／34表338欄／20migration保持，正式與AA基線界線見[完整重驗](P0-P1-P2-REVERIFICATION-20261102.md)。以下帶日期紀錄為歷史。
+
+2026-11-01 階段十五本機收尾通過：U-23摘要／介紹補位與E-39首幀字型鎖定已實作；14固定套件全通過，122 PHP／409斷言、最終260 JS、補位47檢查／14契約＋8真DB、真Google與6筆新UI三尺寸／鍵盤通過。真5秒延遲標題像素差0，關閉已重現的晚換字形；不承諾整頁通用零CLS。112 PHP＋3爬蟲GET＝115 HTTP契約，68頁／34表338欄／20 migration，無新DDL／env／依賴。依備份及tree核對規則merge main、保留階段分支；正式平台及server安全仍按U-18／U-21交接，不表示正式上線。見[最終本機驗收](PHASE-15-ACCEPTANCE.md#最終本機收尾補位與字型修正後)及[補位指南](modules/attraction-content-fallback.md)。以下帶日期內容為歷史。
+
+## 本輪新增共用前端檔案（E-41）
+
+- frontend/assets/js/core/pending-writes.js：協調已啟動收藏寫入與站內導覽；member-actions.js等待確認、失敗留頁。
+- frontend/assets/js/core/utc-display.js：將UTC資料庫字串明確轉台北顯示；operations-overview.js與member-directory.js共用，列表／摘要／稽核標示台北。
+- frontend/tests/pending-writes.test.mjs／utc-display.test.mjs與既有member-intent／member-directory／operations回歸：等待、失敗、跨日與有offset資料。最終267 JS通過。
+- backend/tests/attractions_integration.py／content_contract.py／seo_publication_integration.py／phase8_validation.py：舊fixture與路由／公開設定盤點跟上現行schema，完整記錄stderr；不改網站規則。
+
+沒有新增資料表／migration／環境。Docker前端build命令保持；完整回歸與正式差項見上方重驗報告。
 
 ## 階段十五追加檔案與操作入口
 
@@ -23,18 +40,6 @@ docker compose restart publisher
 ```
 
 測試只在yinghua_test，以具名前綴fixture執行content_fallback_validation.py／交付14套件，再phase14_cleanup.py；完整命令與權限／配額界線見補位指南及[交付工具](modules/delivery-validation.md)。正式網域、SMTP、Google專案及server安全保持交接，不因本機功能通過宣稱正式上線。
-
-2026-11-01 字型修正：E-39用首幀字型選擇，晚到字型不再切換當頁；真5秒延遲下標題像素差0，熱快取仍可使用Noto。新增assets/js/font-boot.js與單元測試，head helper／發布版本同步，無API／DDL／env變更。本機收尾仍進行中，詳見[介面指南](modules/interface-stability.md)。
-
-2026-11-01再次驗證最新：階段十五13套件與24筆新增Browser量測通過，無新功能失敗；但5秒延遲字型、排除動畫與背景後仍重現晚變字形／粗細，U-22視覺穩定重新開啟。字級／外框一致不能當字型已解決。此輪僅驗證及更新文件，未改應用；階段十五仍留分支。詳見[本輪結論](PHASE-15-ACCEPTANCE.md#使用者要求再次驗證本輪最新結論)，正式服務／安全差項保持。
-
-2026-11-01 階段十五最新：已實作固定交付執行器、30列Excel矩陣、擴充政策／路線／多行程復原與操作／server交接手冊。本機13套件、196筆Browser量測及18筆原型對照、17冷啟動／32還原／9回退通過；110 PHP＋3爬蟲GET、68頁／34表338欄／20 migration不變。階段十四已合併main；階段十五保留分支，正式服務／server安全與極慢首訪CLS未簽核，不能宣告全案正式交付。詳見[階段十五驗收](PHASE-15-ACCEPTANCE.md)、[工具導讀](modules/delivery-validation.md)及[安全差項](PHASE-15-SECURITY-REVIEW.md)。下方帶日期內容為歷史。
-
-2026-11-01 階段十五進行中：新增 scripts/validation/delivery.py 固定驗證入口、backend/tests/phase15_access.py 匿名邊界、30列矩陣及操作／正式server交接文件；業務API113 HTTP／68頁／34表338欄／20 migration及環境不變。新增檔案與操作命令見[交付工具指南](modules/delivery-validation.md)，目前結果見[階段十五驗收](PHASE-15-ACCEPTANCE.md)，操作見[後台手冊](ADMIN-OPERATING-GUIDE.md)及[server交接](PRODUCTION-HANDOFF.md)。尚未完成正式交付。
-
-2026-11-01 最新：階段十四新版Browser補驗18筆與會員摘要鍵盤／行程保存重載通過，本機範圍確認；冷首幀CLS與正式服務不冒稱通過。詳見[階段十四最新結論](PHASE-14-ACCEPTANCE.md#最新補驗結論)。使用者已授權規劃並實作階段十五，依合併與獨立分支規則處理。下方帶日期記錄保留歷史。
-
-2026-11-01 階段十四進行中：使用者已授權會員查詢、一般設定與營運後台，並追加U-22的排版／載入穩定及原頁行程操作改善。110 PHP API＋3爬蟲GET＝113 HTTP契約，68頁／34表338欄／20 migration；無DDL／env／runtime依賴新增。73項真DB／27契約、政策5項、252 JS／116 PHP（381斷言）、PHPStan／PHPat與P1 181契約已通過。新增本機字型資產。U-22最後畫面／鍵盤／冷載入仍待內建Browser恢復後實測；先前9＋9筆版型證據只代表追加改善前，不能冒稱最新介面通過。階段尚未完成、未合併main、階段十五未開始。 詳見[計畫](PHASE-14-PLAN.md)與[本輪證據及待驗](PHASE-14-ACCEPTANCE.md)。
 
 
 ## 階段十四目前架構與檔案入口

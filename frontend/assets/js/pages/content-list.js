@@ -35,7 +35,8 @@ export async function initializeContentList(identity,module) {
           remove.addEventListener('click',async()=>{
             if(busy||!allowed('delete')||!await confirmAction('刪除內容',`確定刪除「${item.title}」？公開列表與相鄰連結會同步更新。`,remove))return;
             busy=true;controls();remove.disabled=true;
-            try{const result=await service.delete(item.id,item.version);await load();status(message,result.publication.message,result.publication.status!=='succeeded');}
+            // [S G34；E] 公開同步與列表重載完成後，焦點移到仍存在的結果訊息。
+            try{const result=await service.delete(item.id,item.version);await load();status(message,result.publication.message,result.publication.status!=='succeeded');message.focus();}
             catch(error){handleAdminError(error,message);}finally{busy=false;controls();remove.disabled=!allowed('delete');}
           });actions.append(document.createTextNode('　'),remove);
         }

@@ -1,4 +1,5 @@
 import {renderFontHead} from './font-head.mjs';
+import {homeErrorView} from './home-error-view.mjs';
 // [E-12] 固定 HTML 在前端建置時組合；PHP 不輸出任何畫面。
 import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -85,6 +86,8 @@ for (const source of await pages(join(root, 'pages'))) {
   html=renderFontHead(html);
   html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
   await writeFile(target, annotateEnglishPassages(html));
+  // [S G5；E] 內部503回應資產，不列入固定公開頁／sitemap／正常發布資料。
+  if(route==='index.html')await writeFile(join(output,'home-unavailable.response'),annotateEnglishPassages(homeErrorView(html)));
   routes.push(`/${route}`);
 }
 await cp(join(root, 'assets'), join(output, 'assets'), { recursive: true });

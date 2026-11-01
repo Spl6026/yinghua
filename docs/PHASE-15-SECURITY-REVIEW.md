@@ -32,3 +32,7 @@ Google原文只存在當次回應與DOM，以textContent完整呈現，提供者
 新增真MariaDB八項涵蓋限速、並行拒絕與請求中下架；HTTP含原值不回寫、未發布404、任意ID query拒絕、view-only403及CSRF／外站Origin拒絕。Google替身涵蓋429／無內容／錯誤／缺key；另真Google實測available，只存48字長度等元資料。新UI依web-design-guidelines審查來源區、換行、焦點、aria-live與狀態；送出不丟失焦點、輸入後不顯示舊預覽。
 
 本次沒有新依賴、DDL、env、權限種類或公開DB port；未重新掃描映像或執行整個Semgrep／Gitleaks，前表與歷史靜態掃描是已標日期的基線，不能冒稱本輪全綠。正式政策應補Google服務條款／隱私相關揭露，見交接清單。
+
+## 2026-11-02 重驗增量
+
+P0完整認證／權限／輸入與公開內容安全套件在全新具名副本完成；P1/P2、67匿名操作及兩種登入登出亦重跑。收藏離頁修正只等既有CSRF與身分檢核寫入確認，不使用keepalive、不寫私人storage或自動重送；站內URL比較同origin，修飾鍵／新頁／下載不攔截，失敗保留原頁。共用時區格式器只處理呈現，不改DB／API／權限。Composer正式lock本輪audit無公告；沒有重掃Semgrep／Gitleaks／OS映像，不消除前表HIGH／CRITICAL正式差項。詳見[三優先級重驗](P0-P1-P2-REVERIFICATION-20261102.md)。

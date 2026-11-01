@@ -1,5 +1,9 @@
 # 全站30項驗收矩陣
 
+最新逐列結果：[Excel完整功能核實（2026-11-02）](EXCEL-FUNCTIONAL-VERIFICATION-20261102.md)列出每列E／G／L原文、實際操作、案例ID、沿用基線與正式待驗；150個不同真API／DB案例，三項差異修正後無未關閉本機失敗。不能以本表舊「本輪」欄取代新報告。
+
+2026-11-02重驗：本表30列已依優先級補完整本機回歸與Browser，結果、修正及正式差項見[完整重驗](P0-P1-P2-REVERIFICATION-20261102.md)；下方原「本輪」欄保留階段十五首次採證分工。
+
 2026-11-01。唯讀核對原始Excel「功能規格」5–34列；下表的規則／驗收來源為G列／L列，頁面為B列，資料表I列保持建議性質。實作API詳見[OpenAPI](../backend/resources/openapi.json)，實際資料表見[資料庫對照](DATABASE-SPECIFICATION-MAP.md)。不以本表或測試反推新增必填規則。
 
 「本輪／有效基線」清楚區分；列入套件不等於通過，最新執行結果見[階段十五驗收](PHASE-15-ACCEPTANCE.md)。正式HTTPS／SMTP／Google配額及外部平台仍列交接。

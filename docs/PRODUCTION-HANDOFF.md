@@ -8,6 +8,8 @@ PHP 8.5相容版本與PDO MySQL、mbstring、gd；套件版本以backend/compose
 
 資料庫、媒體、publication與固定frontend輸出分開；PHP使用者需寫media與publication，不能讓公開靜態root曝露backend、.env、vendor、SQL、tests或備份。frontend/scripts、共用字型head helper及assets/js/font-boot.js要同版完整部署。環境變數依`.env.example`及`compose.production.yaml`逐一對照；秘密由server保護設定供應，APP_KEY在既有庫升級不得重設。
 
+2026-11-02補充（S功能規格G5／E-42）：build另輸出`home-unavailable.response`作內部首頁503回應，必須隨同版frontend部署。既有server將`/`／`/index.html`的發布gate不可用映射到此回應，維持503與noindex；四個內容區塊各有錯誤提示／重試，不供應舊快照。參考`docker/nginx/default.conf`的精確首頁及internal location，禁止直接公開該回應檔；JSON API仍維持原有JSON錯誤，不轉成HTML。本機兩站已套用／驗證，正式server需核對等價路由，不要求使用Docker。
+
 ## 首次部署順序
 
 1. 取得已核准的HTTPS origin、DNS／憑證、正式SMTP寄件資料、Google Places API設定、素材授權及政策文字。備份秘密於受保護位置。

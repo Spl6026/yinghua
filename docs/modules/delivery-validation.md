@@ -1,5 +1,7 @@
 # 交付驗證工具閱讀指南
 
+2026-11-02追加：完整原始Excel E／G／L逐列結果見[功能核實](../EXCEL-FUNCTIONAL-VERIFICATION-20261102.md)，非敏感150案例與Browser結果見[機讀證據](../evidence/EXCEL-FUNCTIONAL-20261102.json)。`frontend/tests/admin-delete-focus.test.mjs`實際執行五類列表成功／取消handler共十案；`home-error-view.test.mjs`驗證四區塊錯誤／重試、noindex及去舊內容。真503與恢復另由HTTP／Browser驗收，不能只用產頁測試當服務通過。內部錯誤資產及路由用途見PROJECT-GUIDE與正式交接。
+
 2026-11-01，E-38。此模組只提供工程CLI，不增加網站API或業務資料表。
 
 `scripts/validation/delivery.py` 是入口：先核對原始交付69檔、OpenAPI 115操作、68固定頁、20 migration、字型SHA256與`.env`忽略；integration再依固定順序執行PHP／分層、JS、維運邊界、匿名拒絕、P1契約、搜尋、內容補位、一般設定／政策、SEO／索引與HTTP資產／HTML。每次建立獨立忽略目錄，保存退出碼、時間、log SHA256及來源commit；第一個失敗即停止，不把舊綠色紀錄當本輪結果。

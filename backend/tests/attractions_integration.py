@@ -152,7 +152,8 @@ def main():
     cli('content:tick')
     check('schedule tick activates HTML',raw(guest,'/places/'+prefix+'-scheduled.html')[0]==200)
     route_id=str(uuid.uuid4())
-    fixture("INSERT INTO routes (id,title) VALUES ('"+route_id+"','P0 reference test')")
+    # [E-32] P1路線schema已要求slug；保留P0的景點引用刪除檢查，不依賴舊表的缺省值。
+    fixture("INSERT INTO routes (id,slug,title) VALUES ('"+route_id+"','p0-reference-"+route_id+"','P0 reference test')")
     fixture("INSERT INTO route_attractions (route_id,attraction_id,sort_order) VALUES ('"+route_id+"','"+identifier+"',1)")
     check('referenced attraction delete blocked',root.call('DELETE',path,{'version':item['version']})[0]==409)
     fixture("DELETE FROM route_attractions WHERE route_id='"+route_id+"'")

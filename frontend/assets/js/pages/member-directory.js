@@ -1,6 +1,7 @@
 import {api} from '../core/api-client.js';
 import {element,status} from '../core/ui.js';
 import {handleAdminError} from '../core/session.js';
+import {formatUtcDateTime} from '../core/utc-display.js';
 
 // [S：E25/G25；E-36] 唯讀查詢；回應已遮罩，DOM 不保存完整個資。
 export async function initializeMemberDirectory(){
@@ -17,7 +18,7 @@ export async function initializeMemberDirectory(){
       const result=await api('/api/v1/admin/members?'+new URLSearchParams({q:query.value,page:String(page)}),{kind:'admin'});
       if(request!==generation)return;
       total=result.total;rows.replaceChildren();
-      for(const member of result.items){const row=element('tr');for(const value of [member.displayName,member.email,member.joinedAt,{active:'啟用',disabled:'停用'}[member.status]||member.status])row.append(element('td',{},value));const actions=element('td'),view=element('button',{type:'button',className:'table-actions','aria-label':'查看 '+member.displayName+' 會員資料'},'查看');view.addEventListener('click',()=>{trigger=view;document.querySelector('#member-summary-text').textContent=`會員識別：${member.memberId}\n名稱：${member.displayName}\n電子郵件：${member.email}\n加入日期：${member.joinedAt}\n狀態：${member.status==='active'?'啟用':'停用'}`;dialog.showModal();});actions.append(view);row.append(actions);rows.append(row);}
+      for(const member of result.items){const row=element('tr');for(const value of [member.displayName,member.email,formatUtcDateTime(member.joinedAt),{active:'啟用',disabled:'停用'}[member.status]||member.status])row.append(element('td',{},value));const actions=element('td'),view=element('button',{type:'button',className:'table-actions','aria-label':'查看 '+member.displayName+' 會員資料'},'查看');view.addEventListener('click',()=>{trigger=view;document.querySelector('#member-summary-text').textContent=`會員識別：${member.memberId}\n名稱：${member.displayName}\n電子郵件：${member.email}\n加入日期（台北）：${formatUtcDateTime(member.joinedAt)}\n狀態：${member.status==='active'?'啟用':'停用'}`;dialog.showModal();});actions.append(view);row.append(actions);rows.append(row);}
       if(!result.items.length){const row=element('tr');row.append(element('td',{colspan:'5'},'沒有符合條件的會員。'));rows.append(row);}
       document.querySelector('#member-page').textContent=`第 ${page} 頁，共 ${total} 筆`;status(message,`已載入 ${result.items.length} 筆會員。`);
     }catch(error){if(request!==generation)return;rows.replaceChildren();total=0;document.querySelector('#member-page').textContent='載入失敗';handleAdminError(error,message);}

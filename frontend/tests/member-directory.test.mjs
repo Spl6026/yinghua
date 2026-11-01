@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
+import {formatUtcDateTime} from '../assets/js/core/utc-display.js';
 const source=(await readFile(new URL('../assets/js/pages/member-directory.js',import.meta.url),'utf8')).replace(/^import .*;\r?\n/gm,'').replace('export async function','async function');
 class Node{
   constructor(){this.children=[];this.listeners={};this.value='';this.disabled=false;this.textContent='';}
@@ -19,7 +20,7 @@ const result=name=>({items:[{memberId:'uuid',displayName:name,email:'m＊＊＊@
 async function fixture(){
   const nodes=Object.fromEntries(['member-submit','member-status','member-rows','member-query','member-previous','member-next','member-summary','member-summary-text','member-page','member-search','member-retry'].map(id=>['#'+id,new Node()]));
   const state={calls:0,response:async()=>result('王＊＊＊')};
-  const sandbox={URLSearchParams,document:{querySelector:key=>nodes[key]},setTimeout,clearTimeout,api:async()=>{state.calls++;return state.response();},element:(_tag,attrs,text)=>Object.assign(new Node(),attrs,{textContent:text}),status:(node,text)=>{node.textContent=text;},handleAdminError:(error,node)=>{node.textContent=error.message;}};
+  const sandbox={formatUtcDateTime,URLSearchParams,document:{querySelector:key=>nodes[key]},setTimeout,clearTimeout,api:async()=>{state.calls++;return state.response();},element:(_tag,attrs,text)=>Object.assign(new Node(),attrs,{textContent:text}),status:(node,text)=>{node.textContent=text;},handleAdminError:(error,node)=>{node.textContent=error.message;}};
   vm.createContext(sandbox);vm.runInContext(source,sandbox);await sandbox.initializeMemberDirectory();return {nodes,state};
 }
 test('查看只使用遮罩資料，關閉摘要後焦點返回原按鈕',async()=>{

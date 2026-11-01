@@ -47,6 +47,8 @@ export async function initializeAttractionList(identity) {
               const result = await attractionsApi.delete(item.id, item.version);
               await load();
               status(message, result.publication.message, result.publication.status !== 'succeeded');
+              // [S G34；E] 被刪除的按鈕已離開 DOM，將焦點交給現有結果訊息。
+              message.focus();
             } catch (error) { handleAdminError(error, message); }
             finally { busy = false; controls(); remove.disabled = !writable('delete'); }
           });

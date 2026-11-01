@@ -50,3 +50,9 @@ font-head.mjs讓固定頁與公開產頁都在主樣式之前直接載入本機f
 fonts.css 的完整字型改為 Extended 獨立 family，不放在現行顯示 font stack，罕用字由系統補字，避免完整字型晚到又替換字形；四個原有 font 檔、OFL 與 SHA256 沒有改動。快取熱載入仍可使用 Noto；冷首訪可能使用系統字型，此取捨是避免晚換字造成使用者所見收縮。NodeContentRenderer 將 boot.js／fonts.css 納入發布版本，固定與動態頁共用相同 head。
 
 [font-boot.test.mjs](../../frontend/tests/font-boot.test.mjs) 驗早就緒／晚到／失敗。內建 Browser 同樣5秒真延遲、純色背景且關閉動畫，標題截圖前後像素差0，第一張早於字型回應；正常快取頁亦確認 fonts-ready 與 Noto。這關閉可重現的晚變字形缺陷，不宣稱所有網路與整頁所有內容的 CLS 為0。證據見階段十五驗收末節。
+
+## 2026-11-02：重驗修正（E-41）
+
+實際重現收藏後立即導覽造成請求中斷。[pending-writes.js](../../frontend/assets/js/core/pending-writes.js)提供可重用的進行中寫入協調器；member-actions.js只在收藏真正寫入時追蹤，站內連結及安排進旅行等待確認成功才導覽，失敗留頁；關分頁／reload警示未完成寫入。不以keepalive跳過CSRF／session、不離線重送、不寫localStorage。新分頁／下載／修飾鍵及同頁hash維持原行為。相同快速離頁Browser複測已從0筆改為1筆，加入成功／失敗及等待回歸。
+
+[utc-display.js](../../frontend/assets/js/core/utc-display.js)共用UTC→Asia/Taipei格式，供儀表板／稽核與會員列表／摘要，表頭標示台北；不改API或DB。前端最終267項通過，完整本輪範圍見[三優先級重驗](../P0-P1-P2-REVERIFICATION-20261102.md)。
