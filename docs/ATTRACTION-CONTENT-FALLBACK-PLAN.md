@@ -1,61 +1,27 @@
-# 景點摘要與介紹自動補位計畫
+# 景點摘要與介紹自動補位計畫／交付狀態
 
-2026-10-18。**狀態：兩欄選填已完成；自動補位依使用者指示延後處理。自家摘要摘錄、預覽及 Google 即時備援未實作，保留計畫，待後續安排。**
+2026-11-01。U-23：使用者明確要求啟動原先延後的補位。**自家摘錄、後台預覽及 Google 即時原文備援已實作**，本機結果見[階段十五驗收](PHASE-15-ACCEPTANCE.md)，逐檔與操作見[補位指南](modules/attraction-content-fallback.md)。2026-10-18 的 U-11／E-22 討論當時僅是計畫，不回寫成階段三早已完成。
 
-U-11：使用者要求規劃「列表摘要／景點介紹沒填時，自動帶入 Google 資訊之類的內容」。這是對 U-10「Google 簡介只供後台參考」的後續擴充討論。以下優先順序、端點與呈現方式是 E-22 工程提案，不是 Excel 的硬性要求。
+## 本輪範圍與來源
 
-2026-10-18使用者決定：「自動補位先記著，之後再做」。尚未指定實作階段；不納入本次階段三完成條件，後續另行啟動。現行維持選填、留空照實保存及輸出，Google原文仍僅供後台參考。
+Excel 為欄位限制基準；U-11／U-23 決定自填優先、空白補位。E-40 決定120字摘錄、API、限速及即時顯示技術。這些不是 Excel 新增必填，也不阻擋草稿或發布。
 
-## 本輪已完成：兩欄選填
+| 位置 | 已實作順序 |
+| --- | --- |
+| 列表摘要 | 自填摘要 → 自填介紹的最多120字 Unicode 摘錄 → 原型看介紹連結 |
+| 景點介紹／首頁博物館介紹 | 自填介紹 → 已關聯 Google 地點的即時原文 → 尚未提供介紹 |
+| 後台預覽 | 收起的小區塊；明確點擊才呼叫後端相同政策，顯示來源；不儲存、不在打字時請求 Google |
 
-U-11：使用者後續指出兩欄尚未選填，本輪已同步調整新增／編輯表單與 AttractionInput；空字串、空白字元及省略欄位都保存為空字串，null／非文字與超長內容仍拒絕。PUT 沿用完整表單替換語意，省略這兩欄也會清空，回應仍固定包含字串欄位。資料庫現有 NOT NULL 允許空字串，實際 MariaDB 驗證通過，沒有新增 migration 或端點。
+原欄位照實保存，清空後恢復補位。Google 原文不截短／改寫、不寫回摘要或介紹，不進 DB、HTML 發布檔、SEO、JSON-LD、搜尋、日誌或本機儲存。公開卡片不逐筆請求 Google。預覽只顯示 Google 備援資格，不保證該地點實際有簡介；真原文由已發布詳情即時載入。
 
-[optional_content_integration.py](../backend/tests/optional_content_integration.py) 驗證留空新增／清空重讀／後補、各自選填、超長／錯誤型別不改版本、匿名／越權／唯讀、版本衝突、空內容公開 API／HTML 及下架。本輪沒有實作下列自動選擇規則，現階段空白即為空白，Google 仍只供後台參考。
+## 分層與資料
 
-## 建議行為（尚未實作）
+共用 AttractionContentPolicy／DTO 負責自家文字；Controller 管 HTTP／權限，AttractionSummary Service 核對已發布版本與 DB，再經 PlaceSummaryProvider／GoogleSummaryProvider 呼叫固定供應商；Repository 管真 DB 及並行鎖。前端只負責畫面及安全原文呈現。
 
-採「自填優先、空白時補位」，不覆蓋原有文字。空白包含只有空格／換行；兩個欄位各自判斷。清空自填內容後恢復備援，重新帶入 Google 地點不改動已寫好的網站文案。
+新增 POST /api/v1/admin/attractions/content-preview 與 GET /api/v1/attractions/{slug}/google-summary，契約同步更新。沿用 Google key、auth_rate_limits 與既有欄位，沒有新表／migration／env／服務／runtime 依賴。115 HTTP 契約、68頁、34表338欄、20 migration。
 
-| 位置 | 顯示順序 | 建議呈現 |
-| --- | --- | --- |
-| 列表摘要 | 自填摘要 → 自填介紹的短摘錄 → 查看景點介紹的連結 | 自家介紹擷取約120字，依實際卡片調整；按 Unicode 字元處理，保留原介紹。沒有自家文字時不把 Google 原文截短或拼湊成網站摘要 |
-| 景點介紹 | 自填介紹 → 已關聯地點的 Google 簡介原文 → 尚未提供介紹 | Google 原文在獨立的小區塊完整顯示，標示 Google Maps 與提供者；不出現可修改的 Google 文字欄位 |
+## 驗收與交接
 
-因此，兩欄都空白而有 Google 簡介時，訪客從列表點入詳情便能看到 Google 原文；列表仍保留原型的卡片尺寸。若未來要求列表也直接顯示 Google 全文，要另外評估可展開卡片及多筆即時 API 費用，不預設把每張卡片都接一次 Google。
+涵蓋自填優先、空白／Unicode／長文、介紹更新後摘錄更新、原值不回寫、未發布／下架、越權／CSRF、真 MariaDB 限速／並行、Google 429／錯誤／缺 key、原文與來源標示。桌面1440／手機390及320已實際看新增／詳情區塊。真 Google 測試只保留48字長度等元資料，沒有保存原文。完整結果以驗收文件最後一節為準。
 
-Google 簡介可能不存在，不能保證每個地點都有長篇介紹，也不以評論或 AI 改寫補成所謂 Google 官方內容。
-
-## 後台表單
-
-- 摘要／介紹改為選填；摘要提示「留空時使用景點介紹的摘錄」。
-- 有關聯時，介紹提示「留空時嘗試顯示 Google 原文；Google 未提供時顯示尚未提供介紹」。人工未關聯時用一般提示，不增加大區塊。
-- 提供小型「目前顯示預覽」，區分自填／自動摘錄／Google 原文／無內容；Google 預覽沿用目前候選回應，有需要才明確更新，不隨打字重新請求。
-- 草稿可留白；發布前提示是否缺乏自家介紹，以及 Google 不可用的結果。建議提示不阻擋發布，不把第三方即時可用性當發布交易的必要條件。圖片等既有發布條件照原規則。
-- 解除／換地點時清除原地點的即時原文，保留管理員自填文字；唯讀模擬不能修改內容。
-
-## API、分層與資料庫
-
-1. 共用 `AttractionContentPolicy`（暫名）集中自家文案選擇／摘錄規則，供公開 API、HTML 發布及後台預覽使用；後端計算為準，前端不另定不同優先順序。中文標點／換行／安全文字編碼需一致。
-2. 現有 AttractionInput 放寬兩欄最小長度，保留500／20000字上限；Repository 保存管理員原始輸入，不把自動摘錄回寫成手填摘要，否則日後改介紹會留下過時摘要。
-3. 公開 API 明確區分自填值與顯示結果／來源，更新 OpenAPI；Google 原文不混入網站自填欄位，也不公開內部 Place ID。
-4. 預計新增 `GET /api/v1/attractions/{slug}/google-summary`：Controller → 備援 Service → Repository 確認景點目前已公開且有關聯 → 共用 Google HTTP Adapter → 簡介 DTO。只按伺服器保存的 ID 查詢，不能讓匿名者傳任意 Place ID 或 URL 消耗配額。沒有自動備援需求、未發布、下架或不存在的資料不呼叫 Google。
-5. 回應只含可用狀態、原文、來源與安全的 Google Maps 連結；使用 `Cache-Control: no-store`，不保存至 DB、檔案、日誌、localStorage 或 Service Worker。服務端限制請求速率／並行數，設定供應商配額；失敗時前端顯示一般替代文案，不洩漏金鑰與 Google 錯誤內容。
-6. 不新增業務表；原有 summary／description 欄位保留。實作前檢查 schema 約束是否接受空字串，必要時用 migration 放寬，不把改 DB 約束當作已完成。
-
-## 靜態發布與失敗處理
-
-目前公開頁由 `frontend/scripts/publish.mjs` 預先產生 HTML。自填內容及自家介紹摘錄仍寫進可索引 HTML；Google 備援在訪客開啟需要它的詳情頁時，再由原生 JS 呼叫 API，完整原文只存在目前頁面。首頁博物館介紹若使用相同資料，也要沿用相同規則並納入驗收。
-
-Google 原文不寫入預產生 HTML、SEO description、JSON-LD 或網站自填資料；不可為了無 JS 的 SEO 再建立 Google 內容副本。無 JS、逾時、配額不足、無簡介時，仍顯示網站原有名稱／地址等內容、一般空值提示及可用地圖連結，整頁正常運作。自填文字優先出現，不因 Google 載入而覆蓋或閃動。
-
-## 實作順序與驗收
-
-1. 自家內容補位：選填驗證、共用選擇／摘錄規則、API 契約、表單預覽、卡片／詳情／博物館 HTML。此步可獨立驗證，不依賴 Google 連線。
-2. Google 即時備援：專用 API、DTO／Adapter 共用、限速與配額、來源標示、詳情頁載入與失敗狀態。與自家文案保存分開，沿用階段三分支並按完整功能提交。
-3. 驗收矩陣：兩欄皆填／各自留白／皆空白、空白字元、長中文與特殊字元、修改介紹後摘要更新、換地點／解除、唯讀／越權／版本衝突，以及 Google 無簡介／429／逾時／金鑰未設定。確認未發布地點不消耗配額，原文不落庫、不進發布檔或 SEO。桌面／手機比對原型卡片，實測焦點與載入版面。
-
-實作時依規則使用 PHP modernization、管理 API 安全審查與 UI skills；PHP／JS 工具在 Docker 執行，保存流程做真實 MariaDB／HTTP 測試。完整補位功能尚未執行上述驗收；本輪選填的實際結果見 PHASE-3-ACCEPTANCE.md。
-
-## 參考與限制
-
-Google [Place resource](https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places) 明定 editorialSummary 原文呈現、不可修改。[Places API 政策](https://developers.google.com/maps/documentation/places/web-service/policies) 規範保存限制、Place ID 例外與來源標示。因此本方案採即時原文備援，而非自動填入可任意修改、長期保存的網站文案。實作前再次核對適用帳戶條款及實際配額；即時請求會有額外費用，也不保證 Google 文字可作網站 SEO 內容。
+正式 Google 專案仍需設定計費配額／key 來源限制及正式政策條款，不把本機 available 當整個平台正式驗證通過。參考 [Place resource](https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places) 的 editorialSummary 原文要求及 [Places 政策](https://developers.google.com/maps/documentation/places/web-service/policies) 的保存／來源規範。

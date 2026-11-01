@@ -105,6 +105,16 @@ readonly class Composition
         $filmScreens = new \Yinghua\Repositories\FilmScreeningRepository($database);
         $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, $filmScreens), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy(), $filmScreens, new \Yinghua\Policies\ScreeningStartPolicy()));
         $router = new Router();
+        // [U-23／E-40] 補位預覽與即時Google原文分開；不增加資料表。
+        $content = new \Yinghua\Controllers\AttractionContentController(new \Yinghua\Services\AttractionSummary(
+            new PublicAttractions($publication),
+            new AttractionRepository($database),
+            new \Yinghua\Adapters\GoogleSummaryProvider(new CurlGoogleHttp($mapPolicy), $this->config),
+            $limiter,
+            new \Yinghua\Repositories\ExternalRequestSlot($database),
+        ), $authorization);
+        $router->add(new \Yinghua\Http\Route('POST', '/api/v1/admin/attractions/content-preview', \Yinghua\Models\IdentityKind::Admin, $content->preview(...), true));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/attractions/{slug}/google-summary', \Yinghua\Models\IdentityKind::Member, $content->summary(...)));
         /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController,\Yinghua\Controllers\PublicOfferController,\Yinghua\Controllers\PublicHomeController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
         $routes(

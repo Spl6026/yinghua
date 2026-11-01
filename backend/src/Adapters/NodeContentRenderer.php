@@ -37,6 +37,7 @@ class NodeContentRenderer implements ContentRenderer
         $hash = hash_init('sha256');
         // [E-35] 搜尋投影規則更新亦重建同版HTML與MariaDB索引。
         $files[] = dirname(__DIR__) . '/DTO/SearchDocument.php';
+        $files[] = dirname(__DIR__) . '/Policies/AttractionContentPolicy.php';
         foreach ($files as $path) {
             if (!hash_update_file($hash, $path)) {
                 throw new RuntimeException('Cannot read publication templates.');

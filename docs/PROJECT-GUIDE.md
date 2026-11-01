@@ -1,5 +1,29 @@
 # 全站架構與檔案功能導讀
 
+2026-11-01 補位實作：U-23／E-40完成自填摘要優先、自家介紹120字摘錄、已關聯且介紹留空的Google即時原文備援，以及後台收合預覽。新增112 PHP＋3爬蟲GET＝115 HTTP契約；68固定頁／34表338欄／20 migration維持，沒有新DDL／env／runtime依賴。原值不回寫，Google不進DB／HTML／SEO／搜尋／localStorage。詳見[逐檔閱讀指南](modules/attraction-content-fallback.md)與[補位計畫交付狀態](ATTRACTION-CONTENT-FALLBACK-PLAN.md)。
+
+## 階段十五追加檔案與操作入口
+
+Controller→Service／Policy→Repository／Adapter分層、PHP API-only與原型殼維持。公開景點／城市卡片／首頁博物館共用AttractionContentPolicy；publicArray增加authoredContent與contentSource，管理欄位保持原值。GoogleSummaryProvider只請求editorialSummary／attributions，AttractionSummary核對已發布版本並沿用限速表；ExternalRequestSlot用MariaDB命名鎖。完整逐檔表見上方指南。
+
+| 範圍 | 新入口／用途 |
+| --- | --- |
+| 後台新增／編輯景點 | POST /api/v1/admin/attractions/content-preview；create或edit、CSRF、唯讀模擬禁止；小型預覽不儲存 |
+| 公開景點／首頁博物館 | GET /api/v1/attractions/{slug}/google-summary；只按伺服器保存的關聯，no-store、失敗保留空狀態 |
+| 前端共用 | components/attraction-content-preview.js、google-summary.js與phase3.css；按鈕保留焦點、舊預覽不覆蓋後續輸入 |
+| 字型 | assets/js/font-boot.js、fonts.css與font-head.mjs；首幀選字型、晚到不替換；[字型指南](modules/interface-stability.md) |
+| 回歸 | backend/tests/content_fallback_validation.py串真DB probe與HTTP契約；frontend/tests新增font-boot／google-summary／attraction-content-preview |
+
+環境仍PHP 8.5／MariaDB 12.3／Docker，本次沿用GOOGLE_PLACES_API_KEY，不重新初始化帳號或資料庫。部署需同版build與content:publish，長駐publisher需restart才能載入新PHP類別。根目錄命令：
+
+```text
+docker compose run --rm --no-deps frontend node scripts/build.mjs
+docker compose exec -T -u www-data app php bin/console.php content:publish
+docker compose restart publisher
+```
+
+測試只在yinghua_test，以具名前綴fixture執行content_fallback_validation.py／交付14套件，再phase14_cleanup.py；完整命令與權限／配額界線見補位指南及[交付工具](modules/delivery-validation.md)。正式網域、SMTP、Google專案及server安全保持交接，不因本機功能通過宣稱正式上線。
+
 2026-11-01 字型修正：E-39用首幀字型選擇，晚到字型不再切換當頁；真5秒延遲下標題像素差0，熱快取仍可使用Noto。新增assets/js/font-boot.js與單元測試，head helper／發布版本同步，無API／DDL／env變更。本機收尾仍進行中，詳見[介面指南](modules/interface-stability.md)。
 
 2026-11-01再次驗證最新：階段十五13套件與24筆新增Browser量測通過，無新功能失敗；但5秒延遲字型、排除動畫與背景後仍重現晚變字形／粗細，U-22視覺穩定重新開啟。字級／外框一致不能當字型已解決。此輪僅驗證及更新文件，未改應用；階段十五仍留分支。詳見[本輪結論](PHASE-15-ACCEPTANCE.md#使用者要求再次驗證本輪最新結論)，正式服務／安全差項保持。

@@ -7,6 +7,7 @@ import { openingHoursEditor } from '../components/opening-hours-editor.js';
 import { applyPlaceCandidate } from '../core/place-candidate.js';
 import { googlePlaceLink } from '../components/google-place-link.js';
 import { renderPlaceReference } from '../components/place-reference.js';
+import { attractionContentPreview } from '../components/attraction-content-preview.js';
 
 const fields = ['slug','name','category','district','typeLabel','summary','description','hours','address','phone','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','seoTitle','seoDescription','status','imageAlt','imageSource','imageLicense','recommendationLabel'];
 
@@ -34,6 +35,7 @@ export async function initializeAttractionForm(identity, page) {
   const placeLink = googlePlaceLink(form, linkContainer, () => renderPlaceReference(reference, null));
   const writeAllowed = () => !identity.preview?.active && hasPermission(identity, 'attractions', id ? 'edit' : 'create');
   const available = () => writeAllowed() && loaded && !busy && !completed;
+  attractionContentPreview(form,available);
   const samples = attractionSamplePicker(creating ? document.querySelector('#place-samples') : null,
     form, openingEditor, available, () => {
       dirty = true; placeLink.load(); renderPlaceReference(reference, null);

@@ -2,7 +2,7 @@
 
 2026-11-01，E-38。此模組只提供工程CLI，不增加網站API或業務資料表。
 
-`scripts/validation/delivery.py` 是入口：先核對原始交付69檔、OpenAPI 113操作、68固定頁、20 migration、字型SHA256與`.env`忽略；integration再依固定順序執行PHP／分層、JS、維運邊界、匿名拒絕、P1契約、搜尋、一般設定／政策、SEO／索引與HTTP資產／HTML。每次建立獨立忽略目錄，保存退出碼、時間、log SHA256及來源commit；第一個失敗即停止，不把舊綠色紀錄當本輪結果。
+`scripts/validation/delivery.py` 是入口：先核對原始交付69檔、OpenAPI 115操作、68固定頁、20 migration、字型SHA256與`.env`忽略；integration再依固定順序執行PHP／分層、JS、維運邊界、匿名拒絕、P1契約、搜尋、內容補位、一般設定／政策、SEO／索引與HTTP資產／HTML。每次建立獨立忽略目錄，保存退出碼、時間、log SHA256及來源commit；第一個失敗即停止，不把舊綠色紀錄當本輪結果。
 
 ```text
 python scripts/validation/delivery.py inventory
@@ -18,3 +18,5 @@ python backend/tests/phase14_cleanup.py
 `docs/DELIVERY-ACCEPTANCE-MATRIX.md` 是Excel30列人工判讀入口；有效基線、實跑及正式差項分開。工具的passed僅表示所列套件，不表示Browser、完整AA、正式SMTP／Google／分享平台或實際server通過。
 
 復原工具延用`backend/tests/recovery_rehearsal.py --extended-delivery`；只操作明確自有spl-p0-* project的新資料卷。除原有媒體／收藏／權限外，加入真一般政策、排序路線及第二份行程。搜尋generation預期重建，逐欄比較公開投影而非舊generation；其餘業務表仍逐列hash核對。命令與結果見階段十五驗收及[P0維運手冊](../P0-OPERATIONS.md)。
+
+2026-11-01補充：固定14套件新增content_fallback_validation.py，串接真DB並行／限速與HTTP契約；測試Google替身與真外部驗證分開。補位功能為U-23新增應用API，與本工具本身不新增API的責任分開。詳見[補位指南](attraction-content-fallback.md)。

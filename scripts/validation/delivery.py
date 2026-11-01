@@ -34,7 +34,7 @@ def inventory():
                   for method in value if method in methods]
     pages = list((ROOT / 'frontend/pages').rglob('*.html'))
     migrations = list((ROOT / 'backend/database/migrations').glob('*.sql'))
-    assert len(operations) == 113 and len(pages) == 68 and len(migrations) == 20
+    assert len(operations) == 115 and len(pages) == 68 and len(migrations) == 20
     fonts = json.loads((ROOT / 'docs/FONT-ASSETS.json').read_text(encoding='utf8'))
     for row in fonts['files']:
         data = (ROOT / row['path']).read_bytes()
@@ -59,6 +59,7 @@ def suites(dependency_path, vocabulary):
         ('anonymous-boundaries', test('phase15_access')),
         ('p1-contracts', test('phase12_regression', '--dependency-path', dependency_path)),
         ('search', test('phase13_integration', '--dependency-path', dependency_path)),
+        ('content-fallback', test('content_fallback_validation')),
         ('operations-settings', test('phase14_integration', '--keep-browser')),
         ('policy-consent', test('phase14_policy_integration')),
         ('restore-settings', test('phase14_cleanup', '--settings-only')),

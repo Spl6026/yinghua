@@ -46,7 +46,7 @@ function fixture({creating=false,preview=false,edit=true,view=true}={}) {
     FormData:class extends Map{},confirmAction:async()=>state.confirm,
     openingHoursEditor:()=>({load(value,legacy){state.openingHours=value;state.hoursLegacy=legacy;},read:()=>state.openingHours,setDisabled:value=>{state.hoursDisabled=value;}}),
     googlePlaceLink:()=>({load(){},acceptCandidate(){state.linkConfirmed=true;},setDisabled(value){state.linkDisabled=value;},canSave:()=>!state.linkStale,confirmed:()=>Boolean(state.linkConfirmed)}),
-    renderPlaceReference:(container,item)=>{container.reference=item;},
+    attractionContentPreview:()=>{},renderPlaceReference:(container,item)=>{container.reference=item;},
     attractionSamplePicker:()=>({setDisabled(){},async load(){}}),
     attractionsApi:{get:async()=>{state.gets++;return state.get?state.get():{attraction:item};},save:async(id,body)=>{state.saves.push({id,body});return state.write?state.write():{attraction:{id:'a',version:2},publication:{status:'succeeded'}};},upload:async body=>{state.uploads.push(body);return state.upload?state.upload():{media:{id:'new-image',url:'/media/new.png',alt:'新說明',source:'新來源',license:'新授權',width:20,height:20}};},resolve:async()=>state.resolve?state.resolve():state.mapResult,retry:async()=>({message:'公開頁面已同步'})}};
   vm.createContext(sandbox);source.forEach(code=>vm.runInContext(code,sandbox));
