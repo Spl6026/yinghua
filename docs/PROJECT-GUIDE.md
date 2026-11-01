@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-11-01 階段十五進行中：新增 scripts/validation/delivery.py 固定驗證入口、backend/tests/phase15_access.py 匿名邊界、30列矩陣及操作／正式server交接文件；業務API113 HTTP／68頁／34表338欄／20 migration及環境不變。新增檔案與操作命令見[交付工具指南](modules/delivery-validation.md)，目前結果見[階段十五驗收](PHASE-15-ACCEPTANCE.md)，操作見[後台手冊](ADMIN-OPERATING-GUIDE.md)及[server交接](PRODUCTION-HANDOFF.md)。尚未完成正式交付。
+
 2026-11-01 最新：階段十四新版Browser補驗18筆與會員摘要鍵盤／行程保存重載通過，本機範圍確認；冷首幀CLS與正式服務不冒稱通過。詳見[階段十四最新結論](PHASE-14-ACCEPTANCE.md#最新補驗結論)。使用者已授權規劃並實作階段十五，依合併與獨立分支規則處理。下方帶日期記錄保留歷史。
 
 2026-11-01 階段十四進行中：使用者已授權會員查詢、一般設定與營運後台，並追加U-22的排版／載入穩定及原頁行程操作改善。110 PHP API＋3爬蟲GET＝113 HTTP契約，68頁／34表338欄／20 migration；無DDL／env／runtime依賴新增。73項真DB／27契約、政策5項、252 JS／116 PHP（381斷言）、PHPStan／PHPat與P1 181契約已通過。新增本機字型資產。U-22最後畫面／鍵盤／冷載入仍待內建Browser恢復後實測；先前9＋9筆版型證據只代表追加改善前，不能冒稱最新介面通過。階段尚未完成、未合併main、階段十五未開始。 詳見[計畫](PHASE-14-PLAN.md)與[本輪證據及待驗](PHASE-14-ACCEPTANCE.md)。
