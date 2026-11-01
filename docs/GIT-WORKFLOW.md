@@ -1,5 +1,9 @@
 # Git 階段分支與功能提交
 
+2026-11-01 最新：階段十四新版Browser補驗18筆與會員摘要鍵盤／行程保存重載通過，本機範圍確認；冷首幀CLS與正式服務不冒稱通過。詳見[階段十四最新結論](PHASE-14-ACCEPTANCE.md#最新補驗結論)。使用者已授權規劃並實作階段十五，依合併與獨立分支規則處理。下方帶日期記錄保留歷史。
+
+2026-11-01 階段十四進行中：使用者已授權會員查詢、一般設定與營運後台，並追加U-22的排版／載入穩定及原頁行程操作改善。110 PHP API＋3爬蟲GET＝113 HTTP契約，68頁／34表338欄／20 migration；無DDL／env／runtime依賴新增。73項真DB／27契約、政策5項、252 JS／116 PHP（381斷言）、PHPStan／PHPat與P1 181契約已通過。新增本機字型資產。U-22最後畫面／鍵盤／冷載入仍待內建Browser恢復後實測；先前9＋9筆版型證據只代表追加改善前，不能冒稱最新介面通過。階段尚未完成、未合併main、階段十五未開始。 詳見[計畫](PHASE-14-PLAN.md)與[本輪證據及待驗](PHASE-14-ACCEPTANCE.md)。
+
 2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
 
 2026-10-31 最新：階段十二依授權完成JSON-LD、同版robots／sitemap／分片及P1本機整合。104個PHP JSON API保持，另3個Nginx爬蟲GET，共107個HTTP契約；68固定HTML／33表327欄／19 migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255項與181契約回應、索引369項、官方Validator七型別0錯誤／警告、Browser21筆及40個body保留通過。U-21指定網域未定先完成本機，正式Search Console／Bing／分享仍交接；P2階段十三未開始。詳見[計畫](PHASE-12-PLAN.md)、[驗收](PHASE-12-ACCEPTANCE.md)及[架構與檔案指南](modules/search-index.md)。下方帶日期段落保留歷史。

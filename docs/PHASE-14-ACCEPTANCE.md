@@ -1,5 +1,39 @@
-# 階段十四驗收（進行中）
+# 階段十四驗收紀錄（進行中）
 
-2026-11-01；phase/14-operations-settings。14A–D程式已交付；U-22原頁選點、字型與帳號載入策略有自動測試。內建Browser host unavailable；舊9＋9筆版型不代表最新介面，尚未完整畫面／鍵盤／冷載入驗收，不合併main。
+2026-11-01。分支phase/14-operations-settings；基準main d02e045。已授權開發，**尚未完成整階段驗收，未合併main**。原始Excel與website保持。範圍見[計畫](PHASE-14-PLAN.md)；會員／一般設定／儀表板及U-22介面指南皆在modules/。
 
-其餘授權範圍依PHASE-14-PLAN.md逐項完成，尚未整階段驗收或合併main。正式差項沿U-21交接。
+| 已執行項目 | 結果及證據界線 |
+| --- | --- |
+| 真MariaDB／API／契約 | phase14_integration.py最新73項、27筆契約通過；會員分頁／去重／遮罩／字面搜尋、未登入／會員／越權、settings未知key／email／CSRF／409、SEO保留、政策轉義與模板文字、公開聯絡資訊、儀表板真數量／無權完全不回總量、非root403 |
+| 政策與同意 | phase14_policy_integration.py 5項通過：過期token拒絕、pending阻止註冊而不阻斷CSRF、當前政策成功註冊並保存terms／privacy兩份摘要；自有新會員已停用、session撤銷 |
+| root稽核 | 在可信CLI使用yinghua_test既有root做唯讀Service成功投影，不新增root帳號或cookie；HTTP非root403。root面板／頁界與模擬隱藏另有JS測試，沒有宣稱已做真root Browser登入 |
+| JS | Docker全部252項通過；新增帳號載入／過時回應、地點選擇去重／重試、原頁建立與明確保存、表單鎖定、409草稿、會員摘要焦點等；DOM替身不等於視覺量測 |
+| PHP | 116測試／381斷言、PHPStan最高層與PHPat分層通過；23檔PER-CS dry-run零修正。Rector只dry-run，2份Repository的括號風格建議未套用；沒有自動重構整站 |
+| P1回歸 | 消息／優惠70、推薦路線45、會員行程66，共181筆真API契約零錯誤；不是只跑新增模組 |
+| SQL／DDL | MariaDB12.3；221筆會員EXPLAIN為ALL／filesort，未把小資料掃描當大規模效能證明或大量加索引。34表338欄（含journal）、20 migration維持 |
+| 追加改善前Browser | 管理三頁1440／390／320共9筆，原型另9筆；儲存成功焦點、409保留、重新讀取取消／確認、settings.view欄位唯讀／PUT403已有實際證據。會員摘要鍵盤採證未完成 |
+| U-22最新畫面 | **待驗**。字級／換行、原頁地點挑選、帳號初始狀態與本機字型已改；新252測試可驗行為，但內建Browser目前回報host unavailable，清單、選擇與直接建立分頁皆失敗。不把早期截圖或HTTP資產當新版畫面／CLS／冷載入通過 |
+
+本輪檢查及測試只使用yinghua_test自有fixture；主站只重建與發布既有資料。字型源自Google Fonts官方OFL，同源常用子集預載、完整有效字元分流，font-display:optional；首訪可能保持系統字型，不使用整頁隱藏等待，尚未取得真網路節流／CLS量測。
+
+安全審查見[本輪安全紀錄](PHASE-14-SECURITY-REVIEW.md)。5個新JSON操作，總110 PHP＋3爬蟲GET＝113HTTP，68固定頁，無DDL／env／runtime依賴新增。網站HTTP只提供PHP API，HTML由前端輸出。
+
+正式網域／第三方驗證仍按U-21交接。本階段要在Browser恢復後補最新桌面／手機、帳號冷載入、字型、行程完整鍵盤與原型差異，再依Git規則備份／原始69檔／完整tree核對，才可merge main。階段十五未開始。
+
+
+## 本輪收尾狀態
+
+主／測試站已重建68固定頁並重新發布；10個代表頁的HTML／直接引用資產與4份字型HEAD檢查通過。這項是HTTP交付檢查，不是新版Browser畫面或CLS證據。Docker曾停止，已啟動原有Desktop及原compose服務；沒有新增環境設定。
+
+自有general／seo已還原原快照；驗收用會員／管理員停用軟刪、session撤銷，自有景點／電影／旅程／收藏／路線清理，正常稽核保留。原始69檔逐位元核對保持；git diff --check通過。未合併main的原因是最新U-22畫面待實測，不是把環境問題當網站功能缺陷。
+
+本輪依使用者補充修正：右上角恢復原有橫列／登入按鈕，行程無簡介連結獨立成行，初次與背景刷新不移焦頁尾，城市卡片底部資訊／操作以flex對齊。新增背景焦點回歸，前端252項通過；Browser仍不可用，最新畫面尚待實測。
+
+字型收縮追查：已再試內建Browser但host仍不可用；移除CSS @import鏈、預載Sans與Serif、共用早期head helper，並穩定根捲軸／文字調整。252 JS、116 PHP／381斷言及PHPStan／PHPat通過，新增adapter檔PER-CS單檔通過。10頁HTTP檢查現在也核對雙字型預載與font-face樣式早於主樣式；不等於已量測實際收縮或CLS。
+
+
+## 最新補驗結論
+
+2026-11-01 補驗：內建 Browser 已恢復。新版後台三頁及首頁／城市散策／行程頁各1440、390、320，共18筆實際量測均無整頁水平溢出；截圖與數據於 artifacts/phase14/latest-*。會員搜尋、遮罩摘要、正反向Tab／Escape／焦點返回通過；隔離會員同頁挑選景點、建立草稿、明確保存及重載名稱／備註通過，重新進入行程focus空且scrollY=0。帳號由中性確認文字變為原有橫列會員資訊。首頁三次採樣標題font-size=81px、寬620／高335.296875維持；top位移來自原型進場動畫，不把它當字型縮放。未做網路節流或連續首幀CLS量測，不宣稱所有網路條件下零跳動。原型先前9筆比對沿用，沒有把它算新版截圖。
+
+本機階段十四功能及本次介面範圍通過；正式網域／平台仍按U-21交接，字型極慢首訪量測留在階段十五效能證據邊界。重跑73項真DB／27契約、政策5項、252 JS／116 PHP（381斷言）通過。階段十五已另行授權，待備份與tree核對合併後另開分支。

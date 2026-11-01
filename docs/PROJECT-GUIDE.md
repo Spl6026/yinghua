@@ -1,6 +1,39 @@
 # 全站架構與檔案功能導讀
 
-2026-11-01 階段十四進行中：U-22改善已實作：中性帳號／同源字型／一致控制項與原頁行程選點；249 JS與116 PHP通過，最新Browser未連線，畫面尚待實測；尚未整階段驗收、未合併main。見[改善逐檔指南](modules/interface-stability.md)。
+2026-11-01 最新：階段十四新版Browser補驗18筆與會員摘要鍵盤／行程保存重載通過，本機範圍確認；冷首幀CLS與正式服務不冒稱通過。詳見[階段十四最新結論](PHASE-14-ACCEPTANCE.md#最新補驗結論)。使用者已授權規劃並實作階段十五，依合併與獨立分支規則處理。下方帶日期記錄保留歷史。
+
+2026-11-01 階段十四進行中：使用者已授權會員查詢、一般設定與營運後台，並追加U-22的排版／載入穩定及原頁行程操作改善。110 PHP API＋3爬蟲GET＝113 HTTP契約，68頁／34表338欄／20 migration；無DDL／env／runtime依賴新增。73項真DB／27契約、政策5項、252 JS／116 PHP（381斷言）、PHPStan／PHPat與P1 181契約已通過。新增本機字型資產。U-22最後畫面／鍵盤／冷載入仍待內建Browser恢復後實測；先前9＋9筆版型證據只代表追加改善前，不能冒稱最新介面通過。階段尚未完成、未合併main、階段十五未開始。 詳見[計畫](PHASE-14-PLAN.md)與[本輪證據及待驗](PHASE-14-ACCEPTANCE.md)。
+
+
+## 階段十四目前架構與檔案入口
+
+Controller → Service → Repository／DTO維持，PHP只回API。前端沿原型殼，新增邏輯用原生JS元件與既有API客戶端；所有HTTP入口在Composition組裝與OpenAPI列出。
+
+| 頁面／範圍 | API與權限 | 中文逐檔指南 |
+| --- | --- | --- |
+| /admin/members.html | GET /api/v1/admin/members；members.view；遮罩、查詢、分頁與唯讀摘要 | [會員查詢](modules/member-directory.md) |
+| /admin/settings.html／公開政策頁／共用聯絡資訊 | GET/PUT /api/v1/admin/settings；settings.view/edit；general/seo雙版本、同版發布與註冊同意 | [一般設定與政策](modules/general-site-settings.md) |
+| /admin/index.html | GET /api/v1/admin/dashboard；dashboard.view加各模組view；GET /api/v1/admin/audit-logs另限root | [儀表板與稽核](modules/operations-overview.md) |
+| 共用頁首／字型與 /planner.html | 沿既有會員／景點／行程API；原頁選點、草稿與明確儲存 | [介面穩定與行程操作](modules/interface-stability.md) |
+
+資料表：沿用members、site_settings（固定general與seo）、member_consents、audit_logs及內容表，沒有新migration。計數含既有migration journal為34表338欄，20份migration保持。Docker／PHP8.5／MariaDB12.3維持；字型、OFL授權與子集位於frontend/assets/fonts，來源及hash見[字型清單](FONT-ASSETS.json)，不依賴訪客連線到Google Fonts。
+
+操作仍在專案根目錄執行：
+
+```powershell
+docker compose up -d
+docker compose --profile test up -d app-test web-test
+docker compose run --rm --no-deps frontend
+docker compose exec -T -u www-data app php bin/console.php content:publish
+docker compose exec -T -u www-data app-test php bin/console.php content:publish
+docker compose restart publisher
+docker compose run --rm --no-deps frontend node --test tests/*.test.mjs
+docker compose exec -T app-test /var/www/tools/vendor/bin/phpunit -c phpunit.xml
+docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
+```
+
+命名隔離fixture：phase11_fixture.py建立yinghua_test自有帳號；phase14_integration.py／phase14_policy_integration.py驗證會員／設定／權限／同意；phase14_assets.py只驗HTTP資產，不是Browser；phase14_cleanup.py只還原本輪自有設定並清理自有fixture，不碰主庫或root。API測試需要先前已準備的忽略jsonschema依賴路徑，詳測試腳本。正式網域／Search Console等仍按U-21交接。
+
 
 2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
 
