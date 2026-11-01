@@ -1,5 +1,11 @@
 # 全站架構與檔案功能導讀
 
+2026-11-01 字型修正：E-39用首幀字型選擇，晚到字型不再切換當頁；真5秒延遲下標題像素差0，熱快取仍可使用Noto。新增assets/js/font-boot.js與單元測試，head helper／發布版本同步，無API／DDL／env變更。本機收尾仍進行中，詳見[介面指南](modules/interface-stability.md)。
+
+2026-11-01再次驗證最新：階段十五13套件與24筆新增Browser量測通過，無新功能失敗；但5秒延遲字型、排除動畫與背景後仍重現晚變字形／粗細，U-22視覺穩定重新開啟。字級／外框一致不能當字型已解決。此輪僅驗證及更新文件，未改應用；階段十五仍留分支。詳見[本輪結論](PHASE-15-ACCEPTANCE.md#使用者要求再次驗證本輪最新結論)，正式服務／安全差項保持。
+
+2026-11-01 階段十五最新：已實作固定交付執行器、30列Excel矩陣、擴充政策／路線／多行程復原與操作／server交接手冊。本機13套件、196筆Browser量測及18筆原型對照、17冷啟動／32還原／9回退通過；110 PHP＋3爬蟲GET、68頁／34表338欄／20 migration不變。階段十四已合併main；階段十五保留分支，正式服務／server安全與極慢首訪CLS未簽核，不能宣告全案正式交付。詳見[階段十五驗收](PHASE-15-ACCEPTANCE.md)、[工具導讀](modules/delivery-validation.md)及[安全差項](PHASE-15-SECURITY-REVIEW.md)。下方帶日期內容為歷史。
+
 2026-11-01 階段十五進行中：新增 scripts/validation/delivery.py 固定驗證入口、backend/tests/phase15_access.py 匿名邊界、30列矩陣及操作／正式server交接文件；業務API113 HTTP／68頁／34表338欄／20 migration及環境不變。新增檔案與操作命令見[交付工具指南](modules/delivery-validation.md)，目前結果見[階段十五驗收](PHASE-15-ACCEPTANCE.md)，操作見[後台手冊](ADMIN-OPERATING-GUIDE.md)及[server交接](PRODUCTION-HANDOFF.md)。尚未完成正式交付。
 
 2026-11-01 最新：階段十四新版Browser補驗18筆與會員摘要鍵盤／行程保存重載通過，本機範圍確認；冷首幀CLS與正式服務不冒稱通過。詳見[階段十四最新結論](PHASE-14-ACCEPTANCE.md#最新補驗結論)。使用者已授權規劃並實作階段十五，依合併與獨立分支規則處理。下方帶日期記錄保留歷史。

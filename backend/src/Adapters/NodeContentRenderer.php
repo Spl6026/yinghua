@@ -32,7 +32,7 @@ class NodeContentRenderer implements ContentRenderer
             $source . '/assets/js/core/route-view.js',
             $source . '/pages/offers.html',...glob($source . '/pages/offers/*.html') ?: [],
             $source . '/scripts/seo-head.mjs',$source . '/scripts/structured-data.mjs',$source . '/assets/js/core/structured-data.js',$source . '/scripts/crawler-index.mjs',$source . '/assets/js/core/seo-resolver.js',$source . '/resources/seo-pages.json',
-            $source . '/scripts/policy-pages.mjs',$source . '/scripts/font-head.mjs',
+            $source . '/scripts/policy-pages.mjs',$source . '/scripts/font-head.mjs',$source . '/assets/js/font-boot.js',$source . '/assets/css/fonts.css',
             ...glob($source . '/pages/*.html') ?: []];
         $hash = hash_init('sha256');
         // [E-35] 搜尋投影規則更新亦重建同版HTML與MariaDB索引。

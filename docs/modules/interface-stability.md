@@ -1,6 +1,6 @@
 # 介面載入與行程操作改善（U-22／E-37）
 
-2026-11-01。使用者指出字級不一致、換行／CSS遺漏、先訪客再會員與字型切換，以及行程操作不直觀。本次為使用者要求的既有功能體驗修正，並非Excel新必填或階段十五實作。
+2026-11-01。使用者指出字級不一致、換行／CSS遺漏、先訪客再會員與字型切換，以及行程操作不直觀。本次為使用者要求的既有功能體驗修正，並非Excel新必填；後續字型修正於階段十五完成。
 
 ## 載入與字型
 
@@ -39,3 +39,14 @@ font-head.mjs讓固定頁與公開產頁都在主樣式之前直接載入本機f
 
 
 使用者再回報字型收縮後，新增共用font-head.mjs，讓font-face CSS與兩套字型在主樣式之前被發現；NodeContentRenderer將此helper納入版本雜湊，避免修改後重用舊產頁。根元素另以scrollbar-gutter:stable保留捲軸寬度，text-size-adjust:100%避免手機自動文字膨脹；不限制使用者縮放。這些調整已驗產頁／資產／單元契約，實際字型收縮仍待Browser恢復後定位並量測。
+
+
+2026-11-01複驗差項：雖font-display:optional與雙預載已部署，真5秒延遲字型的隔離fixture仍出現字形／粗細晚變。font-size與DOM矩形無變化，不能因此認定視覺穩定；本項重新開啟，見[最新證據](../PHASE-15-ACCEPTANCE.md#不通過u-22字型視覺穩定)。本輪未改正式字型策略。
+
+## 階段十五：首幀字型選擇（U-22／E-39）
+
+前述 optional 失敗紀錄保留。現行 style.css 的 --sans／--serif 預設為系統字型；font-head.mjs 在主樣式前同步載入 [font-boot.js](../../frontend/assets/js/font-boot.js)，用 Font Loading API 載入兩個常用子集。只有第一個 requestAnimationFrame 前兩者已就緒，才加入 fonts-ready 選用原有 Noto；來不及就保持當頁系統字型，字型晚到不再換字。不隱藏整頁、不延後互動，也不保存跨頁身分或字型偏好。無 JS／不支援 API 同樣使用系統字型。
+
+fonts.css 的完整字型改為 Extended 獨立 family，不放在現行顯示 font stack，罕用字由系統補字，避免完整字型晚到又替換字形；四個原有 font 檔、OFL 與 SHA256 沒有改動。快取熱載入仍可使用 Noto；冷首訪可能使用系統字型，此取捨是避免晚換字造成使用者所見收縮。NodeContentRenderer 將 boot.js／fonts.css 納入發布版本，固定與動態頁共用相同 head。
+
+[font-boot.test.mjs](../../frontend/tests/font-boot.test.mjs) 驗早就緒／晚到／失敗。內建 Browser 同樣5秒真延遲、純色背景且關閉動畫，標題截圖前後像素差0，第一張早於字型回應；正常快取頁亦確認 fonts-ready 與 Noto。這關閉可重現的晚變字形缺陷，不宣稱所有網路與整頁所有內容的 CLS 為0。證據見階段十五驗收末節。
