@@ -1,0 +1,50 @@
+{
+  "date": "2026-11-02",
+  "beforeArtifactBytes": 8266427462,
+  "afterArtifactBytes": 744463113,
+  "afterArtifactFiles": 254,
+  "freedBytes": 7521964349,
+  "archivedEvidenceFiles": 45015,
+  "retiredEnvironmentFiles": 27,
+  "removedRootEntries": 1053,
+  "archiveSha256": "373a51b3dab9b46a891747aa3238b41c6ecdd577d0c6b1a86c1cc57629303edc",
+  "documentLinks": 1548,
+  "missingLinks": [],
+  "originalFilesUnchanged": 69,
+  "httpChecks": [
+    {
+      "port": 8080,
+      "path": "/",
+      "status": 200
+    },
+    {
+      "port": 8080,
+      "path": "/admin/login.html",
+      "status": 200
+    },
+    {
+      "port": 8080,
+      "path": "/api/v1/health",
+      "status": 200
+    },
+    {
+      "port": 8081,
+      "path": "/",
+      "status": 200
+    },
+    {
+      "port": 8081,
+      "path": "/admin/login.html",
+      "status": 200
+    },
+    {
+      "port": 8081,
+      "path": "/api/v1/health",
+      "status": 200
+    }
+  ],
+  "pythonVersion": "3.13.12",
+  "jsonschema": "4.26.0",
+  "openApiSchemaValid": true,
+  "operationsTests": 4
+}

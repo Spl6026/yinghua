@@ -61,12 +61,13 @@ docker compose exec -T app-test /var/www/tools/vendor/bin/phpunit -c phpunit.xml
 docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
 docker compose exec -T -u www-data app-test php bin/console.php content:publish
 New-Item -ItemType Directory -Force artifacts/phase12
-Invoke-WebRequest https://schema.org/version/latest/schemaorg-current-https.jsonld -OutFile artifacts/phase12/schemaorg-current-https.jsonld
+New-Item -ItemType Directory -Force .cache/validation | Out-Null
+Invoke-WebRequest https://schema.org/version/latest/schemaorg-current-https.jsonld -OutFile .cache/validation/schemaorg-current-https.jsonld
 python -X utf8 backend/tests/phase11_fixture.py
-python -X utf8 backend/tests/phase12_regression.py --dependency-path artifacts/p0-full-20261028/deps
-python -X utf8 backend/tests/phase12_integration.py --schema-vocabulary artifacts/phase12/schemaorg-current-https.jsonld
+python -X utf8 backend/tests/phase12_regression.py --dependency-path .cache/validation/python
+python -X utf8 backend/tests/phase12_integration.py --schema-vocabulary .cache/validation/schemaorg-current-https.jsonld
 python -X utf8 backend/tests/phase11_fixture.py --cleanup
-python -X utf8 backend/tests/phase12_published_inventory.py --schema-vocabulary artifacts/phase12/schemaorg-current-https.jsonld --output artifacts/phase12/published-inventory.json
+python -X utf8 backend/tests/phase12_published_inventory.py --schema-vocabulary .cache/validation/schemaorg-current-https.jsonld --output artifacts/phase12/published-inventory.json
 ```
 
 Schema.org詞彙來源為[官方完整JSON-LD](https://schema.org/version/latest/schemaorg-current-https.jsonld)，下載到忽略的artifacts作獨立測試輸入，不是應用程式執行依賴。更改Nginx來源設定後依既有流程產生設定、`nginx -t`再reload；正式TLS配方沿用相同模板。工具健康或Schema.org詞彙檢查不等於Google收錄／Rich Result／分享預覽已通過。

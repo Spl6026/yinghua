@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-11-02資料夾整理：原始69檔與執行環境保留；舊驗收散檔／不同版本Git備份已完整校驗歸檔，掃描映像TAR及可重建快取移除。測試依賴改用`.cache/validation/python`，字彙快照改用`.cache/validation/schemaorg-current-https.jsonld`；安裝清單集中`tools/validation/requirements.txt`，舊`backend/tests/requirements.txt`為相容入口。分類、恢復方式與可刪界線見[資料夾指南](PROJECT-STRUCTURE.md)；歷史文件原artifacts路徑對應歸檔內原路徑，不代表證據被刪除。
+
 2026-11-02最新：依原始Excel七張工作表完成[30列功能核實](EXCEL-FUNCTIONAL-VERIFICATION-20261102.md)，150個不同API／DB案例、四區塊空狀態與Browser操作；修復五類後台刪除後焦點、首頁分區錯誤／重試及首頁消息新分頁一致性。278 JS、122 PHP／409斷言與分層分析通過；正式平台及完整AA基線界線見報告。使用者明確核准後已套用本機8080，不修改主庫業務資料。
 
 本輪新增`frontend/scripts/home-error-view.mjs`由build產出內部`frontend/dist/home-unavailable.response`，Nginx僅在首頁發布gate失敗時以503供應四區塊錯誤，不供舊資料或可索引JSON-LD；它不是新固定頁／API。`frontend/tests/admin-delete-focus.test.mjs`與`home-error-view.test.mjs`驗證取消／成功焦點及失敗畫面；既有`home-publication.test.mjs`加查首頁消息新分頁／編碼。四個管理列表腳本刪除後聚焦現存status，`home-view.js`保留原型三列樣式並補新分頁提示。無新表／migration／env／依賴，115 HTTP／68固定頁／34表338欄／20 migration保持；原始website不變。
@@ -969,8 +971,8 @@ python backend/tests/mail_failure.py
 python backend/tests/origin_redirect.py
 
 # 獨立契約檢查：執行上述隔離整合套件，請勿與其他 fixture 測試並行
-python -m pip install --target artifacts/audit-jsonschema -r backend/tests/requirements.txt
-python backend/tests/openapi_contracts.py --dependency-path artifacts/audit-jsonschema --include-films
+python -m pip install --target .cache/validation/python -r backend/tests/requirements.txt
+python backend/tests/openapi_contracts.py --dependency-path .cache/validation/python --include-films
 python backend/tests/film_schema_upgrade.py
 ```
 

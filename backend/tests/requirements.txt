@@ -1,2 +1,2 @@
-# Independent OpenAPI 3.1 / JSON Schema integration verification only.
-jsonschema==4.26.0
+# Compatibility entry point; validation dependencies have one canonical list.
+-r ../../tools/validation/requirements.txt

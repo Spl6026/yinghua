@@ -55,7 +55,7 @@ docker compose run --rm --no-deps frontend node --test tests/*.test.mjs
 docker compose exec -T app-test /var/www/tools/vendor/bin/phpunit -c phpunit.xml
 docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
 python -X utf8 backend/tests/phase11_fixture.py
-python -X utf8 backend/tests/phase11_contracts.py --dependency-path artifacts/p0-full-20261028/deps
+python -X utf8 backend/tests/phase11_contracts.py --dependency-path .cache/validation/python
 docker compose exec -T app-test php tests/phase11_queries.php
 python -X utf8 backend/tests/phase11_fixture.py --cleanup
 ```

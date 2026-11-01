@@ -14,7 +14,7 @@
 
 操作：後台「網站設定」→ 修改全站預設或展開各頁覆寫 → 儲存。空的標題／摘要覆寫回繼承，勾選清空關鍵字才明確不繼承；單筆內容先搜尋／選擇加入。409 保留輸入，確認後重讀；已保存待發布可稍後重讀或 CLI content:publish 復原。不要將 API Key 填入公開驗證 token。
 
-本階段最後驗證命令：`python backend/tests/seo_settings_restart.py --dependency-path artifacts/audit-jsonschema`、`python backend/tests/policy_pages_integration.py`、`python backend/tests/seo_head_inventory.py --dependency-path artifacts/audit-jsonschema`。schema／管理／公開測試命令見各節；測試只用命名隔離環境。舊跨模組複驗用 phase6_regression.py，會員三組用 phase7_member_regression.py，後者不重試業務或網路錯誤。
+本階段最後驗證命令：`python backend/tests/seo_settings_restart.py --dependency-path .cache/validation/python`、`python backend/tests/policy_pages_integration.py`、`python backend/tests/seo_head_inventory.py --dependency-path .cache/validation/python`。schema／管理／公開測試命令見各節；測試只用命名隔離環境。舊跨模組複驗用 phase6_regression.py，會員三組用 phase7_member_regression.py，後者不重試業務或網路錯誤。
 
 更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7E 已完成本機範圍，實際結果與正式差項見 [階段七驗收](../PHASE-7-ACCEPTANCE.md)**。下方帶日期／子步驟的結果保留當時範圍。
 
@@ -54,7 +54,7 @@ GET／PUT `/api/v1/admin/settings/seo` 已加入 [seo-routes.php](../../backend/
 主庫在本機忽略的 `artifacts/phase7-before-main-migration.sql` 備份後套用 migration，主／測試庫均 33 表／18 份，未清資料／volume。尚無公開 settings GET，固定頁仍為 65；本子步驟未新增 Docker 服務或環境變數。
 
 ```powershell
-python backend/tests/seo_settings_integration.py --dependency-path artifacts/audit-jsonschema
+python backend/tests/seo_settings_integration.py --dependency-path .cache/validation/python
 docker compose run --rm --no-deps frontend node --test tests/seo-settings-page.test.mjs
 ```
 
@@ -77,7 +77,7 @@ docker compose run --rm --no-deps frontend npm run build
 docker compose restart publisher web web-test
 docker compose exec -T -u www-data app php bin/console.php content:publish
 docker compose exec -T -u www-data app-test php bin/console.php content:publish
-python backend/tests/seo_publication_integration.py --dependency-path artifacts/audit-jsonschema
+python backend/tests/seo_publication_integration.py --dependency-path .cache/validation/python
 ```
 
 7C 實測：60 項真實 HTTP／DB 檢查、12 回應契約，涵蓋四種內容、公開快照排除草稿、固定頁與分頁標籤／canonical、驗證 token、保護頁 noindex、匿名資產、發布故障不混版及復原。使用自有店家／內容，finally 恢復原設定並清理，沒有呼叫 Google。resolver／head 6 項、表單 5 項及隔離副本的真實正式 origin 建置 1 項通過；PHPStan10／PHPat、244 檔格式 dry-run 通過。瀏覽器排版與整階段回歸仍待 7E。
