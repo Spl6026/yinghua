@@ -26,7 +26,7 @@ function fixture({ kind = 'member', mode = 'login', identity, query = '', naviga
     addEventListener(type, callback) { this.listeners[type] = callback; },
     setAttribute(key, value) { this.attrs[key] = value; }, removeAttribute(key) { delete this.attrs[key]; }, reset() {},
   };
-  const node = navigation ? { className: 'member-menu', children: [], replaceChildren(...items) { this.children = items; }, append(item) { this.children.push(item); } } : null;
+  const node = navigation ? { className: 'member-menu', children: [], setAttribute(){}, removeAttribute(){}, replaceChildren(...items) { this.children = items; }, append(item) { this.children.push(item); } } : null;
   const captchaNodes = new Map(['#refresh-captcha', '#email-captcha', '#captcha-image', '#captcha-status'].map(selector => [selector, { disabled: false, hidden: false, dataset: {}, addEventListener(type, callback) { this.listener = callback; } }]));
   const sandbox = {
     URL, URLSearchParams, Date: { now: () => state.clock }, FormData: class { *[Symbol.iterator]() {} },

@@ -1,3 +1,6 @@
+import {initializeOperations} from './pages/operations-overview.js';
+import {initializeGeneralSettings} from './pages/general-settings.js';
+import {initializeMemberDirectory} from './pages/member-directory.js';
 import { initializeFilmList } from './pages/film-list.js';
 import { initializeFilmForm } from './pages/film-form.js';
 import { authApi } from './api/auth-api.js';
@@ -47,14 +50,16 @@ try {
     const { module, action, page } = document.body.dataset;
     if (!hasPermission(identity, module, action)) {
       main.replaceChildren(element('h1', {}, '無法存取'), element('p', {}, '你尚未取得此功能的權限，請聯絡管理員。'));
-    } else if (page === 'admins') await initializeAdmins(identity);
+    } else if (page === 'index') await initializeOperations(identity);
+    else if (page === 'members') await initializeMemberDirectory();
+    else if (page === 'admins') await initializeAdmins(identity);
     else if (page === 'admin-add' || page === 'admin-edit') await initializeAdminForm(identity, page);
     else if (page === 'permissions') await initializePermissions(identity);
     else if (page === 'films') await initializeFilmList(identity);
     else if (page === 'film-add' || page === 'film-edit') await initializeFilmForm(identity, page);
     else if (page === 'places') await initializeAttractionList(identity);
     else if (page === 'place-add' || page === 'place-edit') await initializeAttractionForm(identity, page);
-    else if (page === 'settings') await initializeSeoSettings(identity);
+    else if (page === 'settings') { await initializeGeneralSettings(identity); await initializeSeoSettings(identity); }
     else if (page === 'news' || page === 'offers') await initializeContentList(identity, module);
     else if (['news-add','news-edit','offer-add','offer-edit'].includes(page)) await initializeContentForm(identity, module, page);
     else if (page === 'routes') await initializeRouteList(identity);

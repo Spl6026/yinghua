@@ -92,3 +92,29 @@ button,a,input,select{touch-action:manipulation}
 .public-index-group li{margin-bottom:12px;overflow-wrap:anywhere}
 .public-index a{text-decoration:underline;text-underline-offset:4px}
 .footer-bottom{flex-wrap:wrap}
+
+/* [E-36] 沿原型面板／快捷格線；長政策標題在窄螢幕換整行。 */
+.general-settings-panel .admin-panel-heading{display:block}
+.general-settings-panel .admin-panel-heading h2,#operations .admin-panel h2{font-size:20px;line-height:1.5;margin:0 0 14px}
+.general-settings-panel .admin-panel-heading span{display:block;margin-bottom:16px}
+#operations .quick-actions a{border:1px solid #deddd4;background:#f4f2eb;padding:13px 9px;text-align:left;min-width:0;overflow-wrap:anywhere}
+#operations .quick-actions a:hover{border-color:#6c7a60;background:#eeeee5}
+#operations td{overflow-wrap:anywhere}
+#operations .stat-card strong{font-variant-numeric:tabular-nums}
+
+#member-summary-text{white-space:pre-line;overflow-wrap:anywhere}
+
+/* [U：保留website頁首樣式；E-37] 僅保留中性載入／重試，不新增下拉選單。 */
+.account-loading{display:inline-block;color:var(--muted);font-size:13px;line-height:44px;white-space:nowrap}
+.account-retry{border:1px solid var(--line);background:transparent;padding:10px;font:inherit;cursor:pointer}
+.admin-page-heading{align-items:flex-start;flex-wrap:wrap;gap:16px}
+.admin-page-heading>div{flex:1;min-width:min(100%,220px)}
+.admin-page-heading h1{font:500 clamp(24px,2.4vw,30px)/1.5 var(--serif);margin:0 0 8px;overflow-wrap:anywhere}
+.admin-panel-heading{flex-wrap:wrap;align-items:flex-start;gap:8px}
+.admin-panel-heading h2,.admin-panel-heading h3{font-size:20px;line-height:1.5;margin:0;min-width:0}
+.admin-panel-heading span{max-width:100%;line-height:1.7}
+.admin-field,.form-field{min-width:0}
+.admin-field textarea,.form-field textarea{font:inherit;line-height:1.7}
+.form-status,.helper-text,.admin-content p{overflow-wrap:anywhere}
+.footer-bottom{gap:12px 24px;flex-wrap:wrap}
+@media(max-width:760px){.admin-page-heading>div{flex-basis:100%}.admin-panel-heading{display:block}.admin-panel-heading span{display:block;margin-top:6px}}

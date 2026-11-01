@@ -15,7 +15,7 @@ class PublicationPending extends ApplicationError
     public function __construct(?array $current, array $expected)
     {
         $sections = [];
-        foreach (['origin','rendererVersion','policyVersion','items','aliases','films','filmAliases','filmPeriod','news','newsAliases','offerDate','offers','offerAliases','home','seo'] as $key) {
+        foreach (['origin','rendererVersion','policyVersion','items','aliases','films','filmAliases','filmPeriod','news','newsAliases','offerDate','offers','offerAliases','home','seo','general'] as $key) {
             if ($current !== null && ($current[$key] ?? null) !== ($expected[$key] ?? null)) {
                 $sections[] = $key;
             }

@@ -87,10 +87,11 @@ readonly class Composition
         $authorization = new Authorization($accounts, $permissions, $policy);
         $mailer = new PhpMailerAdapter($this->config);
         $captcha = new Captcha(new ChallengeRepository($database), $transactions, $limiter, $secrets, $clock, $this->config, $mailer);
-        $authentication = new Authentication($accounts, $sessions, $passwords, $limiter, $events, $transactions, $captcha, $this->config, new ConsentRepository($database));
+        $policies = new \Yinghua\Services\PublishedPolicies(new \Yinghua\Repositories\GeneralSettingsRepository($database), new NodeContentRenderer($this->config), $this->config);
+        $authentication = new Authentication($accounts, $sessions, $passwords, $limiter, $events, $transactions, $captcha, $this->config, new ConsentRepository($database), $policies);
         $passwordReset = new PasswordReset($accounts, $resets, $sessions, $passwords, $limiter, $events, $transactions, $clock, $this->config, $mailer);
         $csrf = new Csrf($this->config, $clock, $secrets);
-        $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config, new AdminPreview($accounts, $sessions, $events, $transactions));
+        $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config, new AdminPreview($accounts, $sessions, $events, $transactions), $policies);
         $roles = new RoleTemplates($permissions, $authorization);
         $permissionController = new PermissionController(new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events), $roles);
         $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));
@@ -173,6 +174,14 @@ readonly class Composition
 
         $search = new \Yinghua\Controllers\SearchController(new \Yinghua\Services\PublicSearch($publication, new \Yinghua\Repositories\SearchRepository($database, $transactions)));
         $router->add(new \Yinghua\Http\Route('GET', '/api/v1/search', \Yinghua\Models\IdentityKind::Member, $search->listing(...)));
+        $directory = new \Yinghua\Controllers\MemberDirectoryController(new \Yinghua\Services\MemberDirectory(new \Yinghua\Repositories\MemberDirectoryRepository($database), $authorization));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/members', \Yinghua\Models\IdentityKind::Admin, $directory->listing(...), true, 'members', 'view'));
+        $general = new \Yinghua\Controllers\GeneralSettingsController(new \Yinghua\Services\GeneralSiteSettings(new \Yinghua\Repositories\GeneralSettingsRepository($database), new \Yinghua\Repositories\SiteSettingsRepository($database), $authorization, $transactions, $events, $publication));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->read(...), true, 'settings', 'view'));
+        $router->add(new \Yinghua\Http\Route('PUT', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->save(...), true, 'settings', 'edit'));
+        $operations = new \Yinghua\Controllers\OperationsController(new \Yinghua\Services\OperationsOverview(new \Yinghua\Repositories\OperationsRepository($database), $authorization));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/dashboard', \Yinghua\Models\IdentityKind::Admin, $operations->read(...), true, 'dashboard', 'view'));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/audit-logs', \Yinghua\Models\IdentityKind::Admin, $operations->audits(...), true, 'dashboard', 'view'));
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 
@@ -180,7 +189,7 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database), new \Yinghua\Repositories\SearchRepository($database, new PdoTransactions($database)));
+        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database), new \Yinghua\Repositories\SearchRepository($database, new PdoTransactions($database)), new \Yinghua\Repositories\GeneralSettingsRepository($database));
     }
 
     public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands

@@ -17,3 +17,38 @@
 .suggestion-card h3,.suggestion-card p,#current-trip-name{overflow-wrap:anywhere}
 .member-intent{margin-bottom:20px;padding:20px;border:1px solid var(--line);background:var(--paper)}
 @media(max-width:600px){.itinerary-stop{grid-template-columns:32px minmax(0,1fr)}.itinerary-stop .stop-actions{grid-column:2;justify-content:flex-start}.planner-card{min-width:0}}
+
+/* [U：行程編排改善；E-37] 統一表單字級與換行，操作留在同頁。 */
+.planner-aside,.planner-card,.suggestion-card,.itinerary{min-width:0}
+.planner-card label,.trip-stop-field label{font-size:14px;line-height:1.6}
+.planner-card input,.planner-card select,.trip-stop-field input,.trip-stop-field textarea{font:inherit;font-size:16px;line-height:1.6;min-height:44px;border-color:#77796d;border-radius:0}
+.planner-card h3,.suggestion-card h3{font-size:21px;line-height:1.5}
+.planner-card p,.suggestion-card p,.trip-workflow-hint,#trip-dirty{font-size:15px;line-height:1.8;overflow-wrap:anywhere}
+.planner-user strong{font-size:16px;line-height:1.6;overflow-wrap:anywhere}
+.planner-user{flex-wrap:wrap}.planner-user>div:nth-child(2){min-width:0}
+.planner-card .button,.trip-save-bar .button,.itinerary-top .button{font-size:15px;line-height:1.5;white-space:normal}
+.trip-save-bar{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin:20px 0;padding:16px;background:var(--paper2);border:1px solid var(--line)}
+.trip-save-bar p{margin:0;flex:1;min-width:min(100%,180px)}
+.trip-save-bar .button{margin:0}
+.trip-place-picker{border:1px solid var(--line);background:var(--white);padding:20px;margin:20px 0}
+.trip-place-picker[hidden],.trip-list-pager[hidden]{display:none}
+.trip-picker-heading{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.trip-picker-heading h3{font:500 21px/1.5 var(--serif);margin:0}
+.trip-picker-search{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;margin-top:18px}
+.trip-picker-search label{grid-column:1/-1;font-size:14px}
+.trip-picker-search input{width:100%;min-width:0;font:inherit;border:1px solid #77796d;padding:10px;background:var(--white)}
+.trip-picker-place{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 0;border-bottom:1px solid var(--line)}
+.trip-picker-place>div{min-width:0;overflow-wrap:anywhere}
+.trip-picker-place h4{font:500 18px/1.5 var(--serif);margin:0 0 4px}
+.trip-picker-place p{font-size:14px;line-height:1.6;margin:0;color:var(--muted)}
+.trip-picker-place .button{font-size:14px;white-space:normal;flex-shrink:0}
+.trip-picker-pager{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:16px;font-size:14px}
+.itinerary-stop .stop-actions{display:flex;gap:8px;flex-direction:column;align-items:stretch}
+.itinerary-stop .stop-actions button{font:inherit;font-size:14px;line-height:1.5;background:transparent;border:1px solid #77796d;border-radius:0;padding:8px 10px;min-width:88px}
+@media(max-width:760px){.planner-aside{display:flex;flex-direction:column}.itinerary-top{align-items:flex-start;flex-wrap:wrap;gap:12px}.itinerary-stop .stop-actions{flex-direction:row;flex-wrap:wrap}.trip-save-bar .button{width:100%}.trip-picker-search{grid-template-columns:minmax(0,1fr)}.trip-picker-place{align-items:flex-start;flex-wrap:wrap}.trip-place-picker{padding:16px}.itinerary-stop .stop-actions button{min-width:76px}}
+
+#itinerary-list{min-height:180px}
+
+/* [U：無簡介仍保持層級；E-37] 類別與介紹連結各佔一列。 */
+.itinerary-stop .stop-info>.trip-stop-meta{display:block}
+.itinerary-stop .stop-info>.trip-stop-detail{display:block;width:fit-content;margin-top:8px;font-size:14px;line-height:1.7}

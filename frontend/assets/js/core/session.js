@@ -94,6 +94,7 @@ export async function memberNavigation() {
   initializeMenus();
   const node = document.querySelector('#member-navigation');
   if (!node) return;
+  node.setAttribute('aria-busy','true');node.replaceChildren(element('span',{className:'account-loading',role:'status'},'確認帳號中…'));
   try {
     const { member } = await authApi().me();
     if (generation !== memberNavigationVersion) return;
@@ -111,8 +112,11 @@ export async function memberNavigation() {
     if (error.status === 401) {
       node.replaceChildren(element('a', { className: 'login-button', href: '/login.html' }, '會員登入 ↗'));
       node.className = '';
-    } else toast('暫時無法確認登入狀態，請稍後重新整理。');
-  }
+    } else {
+      const retry=element('button',{type:'button',className:'account-retry'},'重新確認帳號');
+      retry.addEventListener('click',()=>void memberNavigation());node.replaceChildren(retry);
+    }
+  } finally {if(generation===memberNavigationVersion)node.removeAttribute('aria-busy');}
 }
 
 export function handleAdminError(error, message) {

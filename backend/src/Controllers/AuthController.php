@@ -34,13 +34,14 @@ class AuthController
         private readonly Csrf $csrf,
         private readonly Config $config,
         private readonly AdminPreview $preview,
+        private readonly ?\Yinghua\Services\PublishedPolicies $policies = null,
     ) {}
 
     public function csrf(ApiContext $context): Response
     {
         return new Response(200, ['token' => $this->csrf->token($context->csrf, $context->kind),
             'expiresIn' => $this->config->integer('CSRF_SECONDS', 3600),
-            'termsVersion' => $this->config->string('TERMS_VERSION', 'local-development-v1')]);
+            'termsVersion' => $this->policies?->configurationVersion() ?? $this->config->string('TERMS_VERSION', 'local-development-v1')]);
     }
 
     public function captcha(ApiContext $context): Response

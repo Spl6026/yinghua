@@ -26,6 +26,7 @@ class ContentPublication
         private readonly ?SeoPublication $seo = null,
         private readonly ?\Yinghua\Repositories\RecommendedRouteRepository $routes = null,
         private readonly ?\Yinghua\Repositories\SearchRepository $search = null,
+        private readonly ?\Yinghua\Repositories\GeneralSettingsRepository $general = null,
     ) {}
 
     /** @template T
@@ -141,6 +142,11 @@ class ContentPublication
         $data['home'] = \Yinghua\Policies\HomeSelection::fromSnapshot($data, $window)->toArray();
         if ($this->seo !== null) {
             $data['seo'] = $this->seo->project($data);
+        }
+        if ($this->general !== null) {
+            $general = $this->general->read();
+            $data['general'] = $general->toArray();
+            $data['policyVersion'] = $general->values->consentVersion($this->config->string('TERMS_VERSION', 'local-development-v1'));
         }
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 
