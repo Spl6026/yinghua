@@ -1,6 +1,6 @@
 # 全站架構與檔案功能導讀
 
-2026-11-01 階段十四進行中：會員查詢與一般設定／政策已實作，沿用site_settings與雙版本；無新DDL；尚未整階段驗收、未合併main。見[會員](modules/member-directory.md)與[一般設定逐檔指南](modules/general-site-settings.md)。
+2026-11-01 階段十四進行中：會員、一般設定與權限裁切儀表板／root最小稽核入口已實作；110 PHP API＋3爬蟲，68頁／34表338欄／20 migration；尚未整階段驗收、未合併main。見[營運指南](modules/operations-overview.md)、[一般設定](modules/general-site-settings.md)與[會員](modules/member-directory.md)。
 
 2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
 

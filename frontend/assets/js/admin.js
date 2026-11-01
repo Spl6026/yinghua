@@ -1,3 +1,4 @@
+import {initializeOperations} from './pages/operations-overview.js';
 import {initializeGeneralSettings} from './pages/general-settings.js';
 import {initializeMemberDirectory} from './pages/member-directory.js';
 import { initializeFilmList } from './pages/film-list.js';
@@ -49,6 +50,7 @@ try {
     const { module, action, page } = document.body.dataset;
     if (!hasPermission(identity, module, action)) {
       main.replaceChildren(element('h1', {}, '無法存取'), element('p', {}, '你尚未取得此功能的權限，請聯絡管理員。'));
+    } else if (page === 'index') await initializeOperations(identity);
     else if (page === 'members') await initializeMemberDirectory();
     else if (page === 'admins') await initializeAdmins(identity);
     else if (page === 'admin-add' || page === 'admin-edit') await initializeAdminForm(identity, page);

@@ -19325,6 +19325,345 @@
           }
         }
       }
+    },
+    "/api/v1/admin/dashboard": {
+      "get": {
+        "operationId": "operationsOverview",
+        "summary": "E-36；dashboard.view加各內容view權限裁切。",
+        "tags": [
+          "operations"
+        ],
+        "x-status": "implemented",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OperationsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本未就緒或暫時無法提供服務",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "E-36；dashboard.view加各內容view權限裁切。"
+      }
+    },
+    "/api/v1/admin/audit-logs": {
+      "get": {
+        "operationId": "auditDirectory",
+        "summary": "E-36；root限定，無原始JSON、IP或憑證。",
+        "tags": [
+          "operations"
+        ],
+        "x-status": "implemented",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuditDirectoryResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本未就緒或暫時無法提供服務",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "E-36；root限定，無原始JSON、IP或憑證。",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100000
+            }
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -25736,65 +26075,6 @@
         ],
         "additionalProperties": false
       },
-      "MemberDirectoryResult": {
-        "type": "object",
-        "properties": {
-          "items": {
-            "type": "array",
-            "maxItems": 20,
-            "items": {
-              "type": "object",
-              "properties": {
-                "memberId": {
-                  "type": "string"
-                },
-                "displayName": {
-                  "type": "string"
-                },
-                "email": {
-                  "type": "string"
-                },
-                "status": {
-                  "type": "string"
-                },
-                "joinedAt": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "memberId",
-                "displayName",
-                "email",
-                "status",
-                "joinedAt"
-              ],
-              "additionalProperties": false
-            }
-          },
-          "total": {
-            "type": "integer",
-            "minimum": 0
-          },
-          "page": {
-            "type": "integer",
-            "minimum": 1
-          },
-          "pageSize": {
-            "const": 20
-          },
-          "requestId": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "items",
-          "total",
-          "page",
-          "pageSize",
-          "requestId"
-        ],
-        "additionalProperties": false
-      },
       "GeneralSettingsValues": {
         "type": "object",
         "properties": {
@@ -25826,33 +26106,6 @@
           "termsText",
           "privacyText"
         ],
-        "additionalProperties": false
-      },
-      "GeneralSettingsValuesInput": {
-        "type": "object",
-        "properties": {
-          "contactEmail": {
-            "type": "string",
-            "maxLength": 254
-          },
-          "termsVersion": {
-            "type": "string",
-            "maxLength": 80
-          },
-          "privacyVersion": {
-            "type": "string",
-            "maxLength": 80
-          },
-          "termsText": {
-            "type": "string",
-            "maxLength": 20000
-          },
-          "privacyText": {
-            "type": "string",
-            "maxLength": 20000
-          }
-        },
-        "required": [],
         "additionalProperties": false
       },
       "GeneralSettingsInput": {
@@ -25931,6 +26184,228 @@
           "updatedAt",
           "requestId"
         ],
+        "additionalProperties": false
+      },
+      "MemberDirectoryResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "memberId": {
+                  "type": "string"
+                },
+                "displayName": {
+                  "type": "string"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "joinedAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "memberId",
+                "displayName",
+                "email",
+                "status",
+                "joinedAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "const": 20
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "OperationsResult": {
+        "type": "object",
+        "properties": {
+          "counts": {
+            "type": "object",
+            "properties": {
+              "films": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "news": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "offers": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "members": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "attractions": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [],
+            "additionalProperties": false
+          },
+          "recent": {
+            "type": "array",
+            "maxItems": 5,
+            "items": {
+              "type": "object",
+              "properties": {
+                "module": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "updatedAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "module",
+                "title",
+                "status",
+                "updatedAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "auditAvailable": {
+            "type": "boolean"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "counts",
+          "recent",
+          "auditAvailable",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "AuditDirectoryResult": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "maxItems": 20,
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "actorId": {
+                  "type": "string"
+                },
+                "action": {
+                  "type": "string"
+                },
+                "resourceType": {
+                  "type": "string"
+                },
+                "resourceId": {
+                  "type": "string"
+                },
+                "createdAt": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "id",
+                "actorId",
+                "action",
+                "resourceType",
+                "resourceId",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "const": 20
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "GeneralSettingsValuesInput": {
+        "type": "object",
+        "properties": {
+          "contactEmail": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "termsVersion": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "privacyVersion": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "termsText": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "privacyText": {
+            "type": "string",
+            "maxLength": 20000
+          }
+        },
+        "required": [],
         "additionalProperties": false
       }
     },

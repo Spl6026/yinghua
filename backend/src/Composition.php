@@ -179,6 +179,9 @@ readonly class Composition
         $general = new \Yinghua\Controllers\GeneralSettingsController(new \Yinghua\Services\GeneralSiteSettings(new \Yinghua\Repositories\GeneralSettingsRepository($database), new \Yinghua\Repositories\SiteSettingsRepository($database), $authorization, $transactions, $events, $publication));
         $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->read(...), true, 'settings', 'view'));
         $router->add(new \Yinghua\Http\Route('PUT', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->save(...), true, 'settings', 'edit'));
+        $operations = new \Yinghua\Controllers\OperationsController(new \Yinghua\Services\OperationsOverview(new \Yinghua\Repositories\OperationsRepository($database), $authorization));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/dashboard', \Yinghua\Models\IdentityKind::Admin, $operations->read(...), true, 'dashboard', 'view'));
+        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/audit-logs', \Yinghua\Models\IdentityKind::Admin, $operations->audits(...), true, 'dashboard', 'view'));
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 
