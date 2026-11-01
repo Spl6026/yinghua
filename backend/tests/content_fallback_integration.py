@@ -8,7 +8,7 @@ from api_integration import ROOT, Client, fixture
 from attractions_integration import body
 from phase8_browser_fixture import literal, publish
 
-sys.path.insert(0, str(ROOT / 'artifacts/p0-full-20261028/deps'))
+sys.path.insert(0, str(ROOT / '.cache/validation/python'))
 import jsonschema
 
 state = json.loads((ROOT / 'artifacts/phase8-browser-fixture.json').read_text(encoding='utf8'))

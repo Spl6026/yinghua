@@ -68,7 +68,7 @@ docker compose exec -T app-test /var/www/tools/vendor/bin/phpunit -c phpunit.xml
 docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
 docker compose run --rm --no-deps frontend node --test tests/*.test.mjs
 python -X utf8 backend/tests/phase11_fixture.py
-python -X utf8 backend/tests/phase13_integration.py --dependency-path artifacts/p0-full-20261028/deps
+python -X utf8 backend/tests/phase13_integration.py --dependency-path .cache/validation/python
 python -X utf8 backend/tests/phase11_fixture.py --cleanup
 ```
 

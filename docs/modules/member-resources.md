@@ -58,14 +58,14 @@ build.mjs 與 publish.mjs 統一加入 phase6.css 的必要操作狀態樣式；
 `phase6.css` 的 grid 子項 min-width:0 與 overflow-wrap:anywhere 防止合法長名稱把手機頁面撐寬，不截斷或改寫保存名稱；收藏卡片及待辦提示共用相同換行規則。
 
 ```powershell
-python backend/tests/member_resources_integration.py --dependency-path artifacts/audit-jsonschema-linux
-python backend/tests/member_itinerary_integration.py --dependency-path artifacts/audit-jsonschema-linux
+python backend/tests/member_resources_integration.py --dependency-path .cache/validation/python
+python backend/tests/member_itinerary_integration.py --dependency-path .cache/validation/python
 docker compose run --rm --no-deps frontend node --test
 docker compose run --rm --no-deps frontend
 docker compose exec -T -u www-data app php bin/console.php content:publish
 ```
 
-上述 dependency-path 為本機忽略的 Linux 測試依賴目錄，於 WSL 執行；Windows 使用 artifacts/audit-jsonschema，其他環境可依 tests/requirements.txt 安裝後省略參數。整合測試只建立 yinghua_test 自有會員／景點，完成後移除收藏／行程與景點、停用測試會員。6C 行程整合 100 項檢查／55 個回應契約通過，包含父子回滾、多輪並行與新增／移除競爭、管理員 session 不能讀會員資料；當次 PHP 69 項／270 斷言及前端 120 項通過。最新跨模組、前端與實際瀏覽器結果見下方 6D。
+上述 dependency-path 為本機忽略的驗證套件快取，依 tools/validation/requirements.txt 安裝。Windows／WSL及不同Python小版本需各自建立相容原生擴充，不能共用同一份二進位套件；其他環境也可安裝至自己的venv後省略參數。整合測試只建立 yinghua_test 自有會員／景點，完成後移除收藏／行程與景點、停用測試會員。6C 行程整合 100 項檢查／55 個回應契約通過，包含父子回滾、多輪並行與新增／移除競爭、管理員 session 不能讀會員資料；當次 PHP 69 項／270 斷言及前端 120 項通過。最新跨模組、前端與實際瀏覽器結果見下方 6D。
 
 ## 6D 自動化與本機瀏覽器驗收
 

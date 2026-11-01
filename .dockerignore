@@ -4,6 +4,7 @@ skills-lock.json
 .env
 .env.*
 artifacts
+.cache
 backend/storage
 backend/.build
 backend/vendor

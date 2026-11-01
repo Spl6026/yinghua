@@ -9,7 +9,7 @@
 ```text
 python scripts/validation/delivery.py inventory
 python backend/tests/phase11_fixture.py
-python scripts/validation/delivery.py integration --dependency-path artifacts/p0-full-20261028/deps --schema-vocabulary artifacts/phase12/schemaorg-current-https.jsonld
+python scripts/validation/delivery.py integration --dependency-path .cache/validation/python --schema-vocabulary .cache/validation/schemaorg-current-https.jsonld
 python backend/tests/phase14_cleanup.py
 ```
 

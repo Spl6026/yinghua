@@ -54,7 +54,7 @@
 - 註冊空表單仍聚焦 displayName，捲動完成後 top=127.5、bottom=178.5，完整在視窗內。下一次 Tab 到 email；241 高的短視窗中 email top=204.7、bottom=255.7，輸入欄下緣部分在視窗外，沒有宣稱整個元件全部可見或把即時平滑捲動位置當成最終結果。沒有輸入密碼、解驗證碼、同意條款或提交新會員。
 - 本輪沒有新應用缺陷修正或 PHP／API／DDL 變更，沒有重跑整套單元／HTTP 套件；前輪 Node 152／67 頁完整性沿用其來源與證據，不冒充今天再跑。登入後後台／會員頁的實際縮放仍未納入這 31 頁；保留前輪 320 CSS px／功能驗證的界線。
 
-證據在 `artifacts/p0-a11y-20261025-211402/zoom-reader/`：observations、summary、actions、[400% 選單](../artifacts/p0-a11y-20261025-211402/zoom-reader/menu-400.png)、[選單收合](../artifacts/p0-a11y-20261025-211402/zoom-reader/home-400.png)、[表單 Tab](../artifacts/p0-a11y-20261025-211402/zoom-reader/form-tab-400.png)。原生工具的網址辨識失敗與前次 NVDA 視窗存取授權逾時，不拿來判定網站缺陷，也不繞過工具權限。NVDA 維持停止，目前只詢問使用者何時方便回應工具存取提示，未在等待期間再啟動。**200%／400% 的上述公開頁補驗完成；實際讀屏及完整人工 AA 未完成，不合併 main／不進入 P1。** Docker／正式環境仍依 U-18 另列交接。
+證據在 `artifacts/p0-a11y-20261025-211402/zoom-reader/`：observations、summary、actions、[400% 選單](../artifacts/evidence-images/p0-a11y-20261025-211402/zoom-reader/menu-400.png)、[選單收合](../artifacts/evidence-images/p0-a11y-20261025-211402/zoom-reader/home-400.png)、[表單 Tab](../artifacts/evidence-images/p0-a11y-20261025-211402/zoom-reader/form-tab-400.png)。原生工具的網址辨識失敗與前次 NVDA 視窗存取授權逾時，不拿來判定網站缺陷，也不繞過工具權限。NVDA 維持停止，目前只詢問使用者何時方便回應工具存取提示，未在等待期間再啟動。**200%／400% 的上述公開頁補驗完成；實際讀屏及完整人工 AA 未完成，不合併 main／不進入 P1。** Docker／正式環境仍依 U-18 另列交接。
 
 ## 2026-10-25 22:02 實際 200% 縮放補驗
 
@@ -65,7 +65,7 @@
 - 註冊空表單會聚焦 displayName。原生必填提示時欄位下緣部分在視窗外，標籤與游標仍可見；Tab 可移至 email 並捲動，完成後欄位 top=246、bottom=297，位於 454 高的視窗內。第一張即時觀察仍在平滑捲動途中，後續穩定量測另存，沒有把途中位置當成最終遮擋或宣稱初始欄位完整可見。
 - NVDA 2026.2 官方簽章 portable 已實際啟動，獨立設定、silence 語音輸出、無 add-on、無統計、INFO 日誌及 no-sr-flag；語音檢視器的原生視窗存取授權逾時，沒有取得可驗證的讀屏輸出，**不算讀屏通過**。已透過官方 --quit 關閉自有 PID 43808，確認停止，未留下背景讀屏工具。
 
-證據：`artifacts/p0-a11y-20261025-211402/zoom-reader/` 的 observations、actions、reader-attempt；[200% 首頁](../artifacts/p0-a11y-20261025-211402/zoom-reader/home-200.png)、[Tab 捲動完成](../artifacts/p0-a11y-20261025-211402/zoom-reader/form-tab-200.png)。已另請使用者調至 400%；本輪末次觀察仍為 DPR=2，因此 **400% 與實際讀屏尚未完成**。不重試原生網址辨識或繞過視窗存取授權；依 U-18，環境差項繼續另列。本輪未合併 main／未開始 P1。
+證據：`artifacts/p0-a11y-20261025-211402/zoom-reader/` 的 observations、actions、reader-attempt；[200% 首頁](../artifacts/evidence-images/p0-a11y-20261025-211402/zoom-reader/home-200.png)、[Tab 捲動完成](../artifacts/evidence-images/p0-a11y-20261025-211402/zoom-reader/form-tab-200.png)。已另請使用者調至 400%；本輪末次觀察仍為 DPR=2，因此 **400% 與實際讀屏尚未完成**。不重試原生網址辨識或繞過視窗存取授權；依 U-18，環境差項繼續另列。本輪未合併 main／未開始 P1。
 
 ## 2026-10-25 21:40 網站介面補驗
 
@@ -82,7 +82,7 @@
 | 圖片文字 | 保留原圖片與排版，調整深色漸層及 caption 不透明度。館舍 inline background-image 原會覆蓋漸層，現由 museum-photo::after 獨立遮罩。核對 computed style 後，以任意圖片最亮／最暗界限計算 12 類代表樣式：普通文字最低 4.6837、金色大標最低 3.8161、館舍標籤最低 6.4543、圖片 badge 最低 6.0155；愛心圖形以 3:1 計算。僅為穩定狀態及量測區域的對比界限，不是所有動畫影格／hover／輔具的 AA 認證。 |
 | 回歸 | Docker Node **152／152**；建置完整性 **67 頁／14 資產／81 HTTP／0 issues**。長海報網址的單行 input 內部捲動單獨辨識，不當作整頁文字被裁掉。 |
 
-證據：`artifacts/p0-a11y-20261025-211402/` 的 observations、admin-loaded、keyboard-actions、hero-layout、image-backgrounds、contrast-bounds、node-tests、frontend-integrity；[桌面封面](../artifacts/p0-a11y-20261025-211402/hero-fixed-desktop.jpg)、[手機封面](../artifacts/p0-a11y-20261025-211402/hero-fixed-mobile.jpg)。初次影像紀錄的兩筆尺寸仍為 320，未充當桌面結果；1440 已另確認實測。工具的等待錯誤、未儲存導頁防護及初次僅算最亮圖片，與最終結果分開；最後 bounds 已同時計算最暗／最亮圖片。
+證據：`artifacts/p0-a11y-20261025-211402/` 的 observations、admin-loaded、keyboard-actions、hero-layout、image-backgrounds、contrast-bounds、node-tests、frontend-integrity；[桌面封面](../artifacts/evidence-images/p0-a11y-20261025-211402/hero-fixed-desktop.jpg)、[手機封面](../artifacts/evidence-images/p0-a11y-20261025-211402/hero-fixed-mobile.jpg)。初次影像紀錄的兩筆尺寸仍為 320，未充當桌面結果；1440 已另確認實測。工具的等待錯誤、未儲存導頁防護及初次僅算最亮圖片，與最終結果分開；最後 bounds 已同時計算最暗／最亮圖片。
 
 自有 fixture `p8ui27af937f` 已清理、帳號停用／session 撤銷，正常 audit 保留，未改主庫業務資料。實際瀏覽器縮放正在協助將測試分頁置前；NVDA 官方簽章套件及獨立 portable copy 已準備，未啟動／未算讀屏通過。完整人工 AA 不以 DOM 名稱檢查或對比數值替代。本輪未合併 main／未進入 P1。
 
@@ -98,7 +98,7 @@
 
 前端 **152 項測試通過**，含解析拒絕／重試／保存欄位分流，以及實際建置的四個返回標籤、管理員原入口、create-only 去向；建置 67 頁，本輪完整性 67 頁／14 資產／81 HTTP、0 issues。沒有 PHP／API 契約／DDL／Docker 設定變更，沒有將上輪全套 PHP／DB／部署冒充本輪重跑。
 
-本輪證據：`artifacts/p0-ui-fixes-20261025-195151/` 的 browser-observations、contrast-results、responsive-layout、browser-actions、node-complete、frontend-integrity。首版色值在較深底色仍有兩個候選，48 次觀察另保留 browser-first-palette；最終色值重新量測，不抹掉首次結果。代表畫面：[桌面修正](../artifacts/p0-ui-fixes-20261025-195151/fixed-place-form-desktop.jpg)、[320px 返回與欄位](../artifacts/p0-ui-fixes-20261025-195151/place-return-320.jpg)、[非空行程](../artifacts/p0-ui-fixes-20261025-195151/planner-contrast-mobile.jpg)。
+本輪證據：`artifacts/p0-ui-fixes-20261025-195151/` 的 browser-observations、contrast-results、responsive-layout、browser-actions、node-complete、frontend-integrity。首版色值在較深底色仍有兩個候選，48 次觀察另保留 browser-first-palette；最終色值重新量測，不抹掉首次結果。代表畫面：[桌面修正](../artifacts/evidence-images/p0-ui-fixes-20261025-195151/fixed-place-form-desktop.jpg)、[320px 返回與欄位](../artifacts/evidence-images/p0-ui-fixes-20261025-195151/place-return-320.jpg)、[非空行程](../artifacts/evidence-images/p0-ui-fixes-20261025-195151/planner-contrast-mobile.jpg)。
 
 具名隔離 fixture `p8ui5edd443f` 已清理、帳號停用／session 撤銷，正常 audit 保留，未改正式 root／主庫業務資料。只做前端建置，未另手動執行主 app 的 content:publish；該步驟被自動核准審查以主環境發布授權不足拒絕，未繞過。此次共用資產與固定後台頁修正不需手動重發公開業務內容。
 
@@ -169,7 +169,7 @@
 - 原型首頁「認識新竹市影像博物館」雖 href 帶 anchor，JS 實際導向 explore，現行一致，未誤列為缺陷。
 - 原型與 IAB 捲軸模式不同約有 15px 內容寬差，縮放四捨五入約 1–2px；新增重載操作也會改變 flex 標題容器寬。沒有直接當成設計缺陷；V-02 為實際操作目標不同，獨立列出。
 
-代表證據：[電影列表](../artifacts/p0-complete-20261025-141244/current-cinema-desktop-with-screenings.jpg)、[電影詳情手機](../artifacts/p0-complete-20261025-141244/current-film-detail-mobile.jpg)、[原型電影詳情](../artifacts/p0-complete-20261025-141244/original-film-detail-desktop.jpg)、[root 唯讀](../artifacts/p0-complete-20261025-141244/current-root-preview-readonly.jpg)、[現行景點表單](../artifacts/p0-complete-20261025-141244/current-place-add-desktop.jpg)、[原型景點表單](../artifacts/p0-complete-20261025-141244/original-place-add-desktop.jpg)。合成資料已清理；部分原型截圖有鍵盤測試的 skip-link 焦點，不是版面多出按鈕。截圖重繪延遲以 DOM 尺寸／穩定後畫面交叉核對。
+代表證據：[電影列表](../artifacts/evidence-images/p0-complete-20261025-141244/current-cinema-desktop-with-screenings.jpg)、[電影詳情手機](../artifacts/evidence-images/p0-complete-20261025-141244/current-film-detail-mobile.jpg)、[原型電影詳情](../artifacts/evidence-images/p0-complete-20261025-141244/original-film-detail-desktop.jpg)、[root 唯讀](../artifacts/evidence-images/p0-complete-20261025-141244/current-root-preview-readonly.jpg)、[現行景點表單](../artifacts/evidence-images/p0-complete-20261025-141244/current-place-add-desktop.jpg)、[原型景點表單](../artifacts/evidence-images/p0-complete-20261025-141244/original-place-add-desktop.jpg)。合成資料已清理；部分原型截圖有鍵盤測試的 skip-link 焦點，不是版面多出按鈕。截圖重繪延遲以 DOM 尺寸／穩定後畫面交叉核對。
 
 ## 本輪重新執行的測試
 

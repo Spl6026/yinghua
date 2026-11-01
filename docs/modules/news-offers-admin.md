@@ -33,7 +33,7 @@ docker compose exec -T app-test /var/www/tools/vendor/bin/phpunit -c phpunit.xml
 docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
 docker compose run --rm --no-deps frontend
 docker compose run --rm --no-deps frontend node --test tests/*.test.mjs
-python -X utf8 backend/tests/phase9_contracts.py --dependency-path artifacts/p0-full-20261028/deps
+python -X utf8 backend/tests/phase9_contracts.py --dependency-path .cache/validation/python
 ```
 
 `phase9_integration.py` 只使用yinghua_test／localhost8081與隔離fixture，覆蓋真實SQL、拒絕／衝突／撤權／並行寫入。`phase9_contracts.py` 獨立依OpenAPI驗證真實請求／回應，避免測試自己定義契約。`NeighborSelectionTest.php` 與 `content-neighbors.test.mjs` 覆蓋分類、順序、路徑及安全編碼。測試資料與採證位於被忽略的artifacts，不提交假密碼。

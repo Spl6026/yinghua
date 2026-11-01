@@ -3,7 +3,7 @@ import copy,json,sys,uuid,urllib.request
 from urllib.parse import urlencode
 from api_integration import ROOT,Client,fixture
 from phase8_browser_fixture import literal,publish,php
-sys.path.insert(0,str(ROOT/'artifacts/p0-full-20261028/deps'))
+sys.path.insert(0,str(ROOT/'.cache/validation/python'))
 import jsonschema
 checks=[];contracts=0
 spec=json.loads((ROOT/'backend/resources/openapi.json').read_text(encoding='utf8'));validator=jsonschema.Draft202012Validator(spec)
