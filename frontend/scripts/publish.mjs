@@ -1,3 +1,4 @@
+import {escapeHtml} from '../assets/js/core/content-view.js';
 // [E-12／E-18] 由 PHP CLI／API 交付已驗證資料；只在前端產生 HTML。
 // 每個 generation 含完整公開投影與頁面，成功寫完後才原子切換 current。
 import { readFile, writeFile, mkdir, rename, symlink, rm, realpath } from 'node:fs/promises';
@@ -58,7 +59,6 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   const context={path:canonicalPath,title,description,item,seo:snapshot.seo,catalog:seoCatalog,origin:snapshot.origin,publicImages,published:true,unavailable:canonicalPath==='/museum.html'&&!item,modifiedAt:snapshot.indexModifiedAt?.[canonicalPath]};
   let meta=resolveSeo(context);
   if(context.unavailable)meta={...meta,robots:'noindex,follow'};
-  html = renderSeoHead(html,context,meta);
   html = html.replace('</head>','<noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>');
   if(managed)html = html.replace('<body>', `<body data-managed-attractions="true"${filmEnabled?' data-managed-films="true"':''}${newsEnabled?' data-managed-news="true"':''}${offersEnabled?' data-managed-offers="true"':''}>`);
   html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"></head>');
@@ -71,6 +71,11 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     if (name === 'SITE_HEADER' && (path === '/cinema.html' || path.startsWith('/films/'))) return template.replace('href="/cinema.html"','class="active" aria-current="page" href="/cinema.html"');
     return name === 'SITE_HEADER' && (path === '/explore.html' || path === '/museum.html' || path.startsWith('/places/')) ? template.replace('href="/explore.html"','class="active" aria-current="page" href="/explore.html"') : template;
   });
+  html = renderSeoHead(html,context,meta);
+  html=renderPolicyVersion(html,snapshot.policyVersion||'local-development-v1',snapshot.general?.values);
+  html=html.replace(/(<span class="brand-copy"><strong>)[\s\S]*?(<\/strong>)/g,(_,a,b)=>a+escapeHtml(meta.siteName)+b);
+  html=html.replace(/(<span data-site-copyright>)[\s\S]*?(<\/span>)/,(_,a,b)=>a+'© 2026 '+escapeHtml(meta.siteName)+'・新竹城市生活指南'+b);
+  if(snapshot.general?.values.contactEmail)html=html.replace('<a href="/site-map.html">',()=>'<a data-site-contact href="mailto:'+escapeHtml(snapshot.general.values.contactEmail)+'">聯絡我們</a><a href="/site-map.html">');
   if(managed)html = html.replace('</body>', () => `<script type="application/json" id="attraction-publication">${json({generation:snapshot.generation,items:snapshot.items})}</script><script type="module" src="/assets/js/pages/attractions.js"></script></body>`);
   if (managed && filmEnabled) html = html.replace('</body>', () => `<script type="application/json" id="film-publication">${json({generation:snapshot.generation,total:filmItems.length,period:snapshot.filmPeriod})}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`);
   const target = join(root,path.slice(1));

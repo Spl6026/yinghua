@@ -94,3 +94,7 @@ button,a,input,select{touch-action:manipulation}
 .footer-bottom{flex-wrap:wrap}
 
 #member-summary-text{white-space:pre-line;overflow-wrap:anywhere}
+
+.general-settings-panel .admin-panel-heading{display:block}
+.general-settings-panel .admin-panel-heading h2{font-size:20px;line-height:1.5;margin:0 0 14px}
+.general-settings-panel .admin-panel-heading span{display:block;margin-bottom:16px}

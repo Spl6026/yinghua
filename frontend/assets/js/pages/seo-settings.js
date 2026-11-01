@@ -76,6 +76,7 @@ export async function initializeSeoSettings(identity){
       if(['keywords','canonicalOrigin','ogImageUrl'].includes(key))field.wrapper.className+=' full';
       (['siteName','description'].includes(key)?basic:social).grid.append(field.wrapper);
     }
+    basic.panel.hidden=Boolean(document.querySelector('#general-settings-form'));
     form.append(basic.panel,social.panel);
     const catalog=seoPanel('各頁 SEO 覆寫','展開頁面設定；空欄位繼承，保護頁不可改為允許索引。');
     const list=element('div',{className:'seo-pages-list'});catalog.panel.append(list);
@@ -91,7 +92,7 @@ export async function initializeSeoSettings(identity){
     const add=element('button',{type:'button',className:'button button-outline'},'加入單筆內容覆寫');
     add.addEventListener('click',()=>{const target=data.targets.find(target=>target.type+':'+target.id===select.value);if(!target)return;addOverride(list,{type:target.type,id:target.id},{},target.title,target);const row=rows.find(row=>targetKey(row.target)===select.value);if(row){row.detail.open=true;row.summary.focus();}dirty=true;previews();controls();});
     catalog.grid.append(search.wrapper,searchButton,select,add);form.append(catalog.panel);
-    const notice=element('p',{className:'helper-text'},'聯絡信箱、一般網站設定、條款編輯及動態網站地圖尚未開放。正式文案與網站上線驗證另行確認。');
+    const notice=element('p',{className:'helper-text'},'一般網站資訊與政策於上方分開儲存；兩區共用網站名稱與摘要。修改一區後，編輯另一區前請重新讀取，避免覆蓋他人變更。正式網址與外部平台驗證仍於上線確認。');
     const actions=element('div',{className:'admin-form-actions'});actions.append(element('button',{type:'submit',className:'button button-dark'},'儲存網站設定 ↗'));
     form.append(notice,actions);previews();controls();
   }

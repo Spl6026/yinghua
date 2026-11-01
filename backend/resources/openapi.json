@@ -18989,6 +18989,342 @@
           }
         ]
       }
+    },
+    "/api/v1/admin/settings": {
+      "get": {
+        "operationId": "generalSettingsGet",
+        "summary": "S：E28:L28。settings.view。",
+        "tags": [
+          "operations"
+        ],
+        "x-status": "implemented",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralSettingsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本未就緒或暫時無法提供服務",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "S：E28:L28。settings.view。"
+      },
+      "put": {
+        "operationId": "generalSettingsPut",
+        "summary": "settings.edit；general與seo雙版本；未知key拒絕。E-36。",
+        "tags": [
+          "operations"
+        ],
+        "x-status": "implemented",
+        "security": [
+          {
+            "adminSession": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralSettingsResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "JSON 格式錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未登入或憑證失效",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "CSRF 或權限不足",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "資料或路由不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "方法不支援",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Allow": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "版本衝突或重複資料",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "JSON 超過 64 KiB",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "須使用 application/json",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "欄位、挑戰或 token 不合法",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "操作過於頻繁",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "可重試前的秒數"
+              }
+            }
+          },
+          "500": {
+            "description": "系統錯誤",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "公開版本未就緒或暫時無法提供服務",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "description": "settings.edit；general與seo雙版本；未知key拒絕。E-36。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GeneralSettingsInput"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -23255,6 +23591,9 @@
           },
           "requestId": {
             "type": "string"
+          },
+          "general": {
+            "$ref": "#/components/schemas/GeneralSettingsValues"
           }
         },
         "required": [
@@ -23263,7 +23602,8 @@
           "verification",
           "version",
           "generation",
-          "requestId"
+          "requestId",
+          "general"
         ],
         "additionalProperties": false
       },
@@ -25451,6 +25791,144 @@
           "total",
           "page",
           "pageSize",
+          "requestId"
+        ],
+        "additionalProperties": false
+      },
+      "GeneralSettingsValues": {
+        "type": "object",
+        "properties": {
+          "contactEmail": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "termsVersion": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "privacyVersion": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "termsText": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "privacyText": {
+            "type": "string",
+            "maxLength": 20000
+          }
+        },
+        "required": [
+          "contactEmail",
+          "termsVersion",
+          "privacyVersion",
+          "termsText",
+          "privacyText"
+        ],
+        "additionalProperties": false
+      },
+      "GeneralSettingsValuesInput": {
+        "type": "object",
+        "properties": {
+          "contactEmail": {
+            "type": "string",
+            "maxLength": 254
+          },
+          "termsVersion": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "privacyVersion": {
+            "type": "string",
+            "maxLength": 80
+          },
+          "termsText": {
+            "type": "string",
+            "maxLength": 20000
+          },
+          "privacyText": {
+            "type": "string",
+            "maxLength": 20000
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "GeneralSettingsInput": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seoVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "siteName": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "values": {
+            "$ref": "#/components/schemas/GeneralSettingsValuesInput"
+          }
+        },
+        "required": [
+          "version",
+          "seoVersion",
+          "siteName",
+          "description",
+          "values"
+        ],
+        "additionalProperties": false
+      },
+      "GeneralSettingsResult": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "seoVersion": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "siteName": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500
+          },
+          "values": {
+            "$ref": "#/components/schemas/GeneralSettingsValues"
+          },
+          "updatedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "publicationReady": {
+            "type": "boolean"
+          },
+          "requestId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "version",
+          "seoVersion",
+          "siteName",
+          "description",
+          "values",
+          "updatedAt",
           "requestId"
         ],
         "additionalProperties": false
