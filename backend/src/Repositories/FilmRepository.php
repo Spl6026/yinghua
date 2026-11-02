@@ -78,7 +78,7 @@ class FilmRepository
             }
             $this->alias('/films/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Film identity already reserved.', previous: $error);
             }
             throw $error;

@@ -7,6 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\DetailUrlType;
+use Yinghua\Exceptions\ErrorCode;
 
 /**
  * 景點、電影、消息與優惠共用的詳情頁網址轉向：把先前的網址代稱或以編號開啟的詳情頁（*-detail.html?id=）轉到目前的正式詳情頁。
@@ -55,7 +56,7 @@ readonly class DetailUrlResolver
         }
         // 對照表裡指向自己的項目代表網址沒變，不能回 301 造成無限轉向。
         if (!is_string($target) || $target === $path || !preg_match($type->canonicalPattern(), $target)) {
-            throw new ApplicationError('NOT_FOUND', $type->notFoundMessage());
+            throw new ApplicationError(ErrorCode::NotFound, $type->notFoundMessage());
         }
 
         return $target;

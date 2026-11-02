@@ -78,7 +78,7 @@ class MerchantRepository
             'SELECT id FROM merchants WHERE attraction_id=:attraction AND id<>:id',
             ['attraction' => $attraction,'id' => $merchant],
         ) !== null) {
-            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此景點已連結其他店家 profile。');
+            throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::Conflict, '此景點已連結其他店家 profile。');
         }
     }
 
@@ -101,7 +101,7 @@ class MerchantRepository
                 );
             }
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Merchant identity already reserved.', previous: $error);
             }
             throw $error;

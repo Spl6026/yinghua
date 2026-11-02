@@ -15,6 +15,7 @@ use Yinghua\Policies\GoogleUrlPolicy;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\MapResolver;
 use Yinghua\Services\RateLimiter;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 測試地圖網址解析的邊界與惡意 redirect；不呼叫 Google、不消耗額度，也不能取代真實 HTTP 授權驗收。 */
 class MapResolverTest extends TestCase
@@ -70,7 +71,7 @@ class MapResolverTest extends TestCase
             $this->resolver($http)->resolve($this->actor(), 'https://www.google.com/maps?query_place_id=ChIJ_test', 'edit');
             self::fail('Expected sanitized provider error.');
         } catch (ApplicationError $error) {
-            self::assertSame('MAP_UNAVAILABLE', $error->errorCode);
+            self::assertSame(ErrorCode::MapUnavailable, $error->errorCode);
             self::assertStringNotContainsString('unit-test-key', $error->getMessage());
         }
     }
@@ -83,7 +84,7 @@ class MapResolverTest extends TestCase
             $this->resolver($http)->resolve($this->actor(), 'https://www.google.com/maps?q=新竹公園', 'edit');
             self::fail('Expected unavailable provider.');
         } catch (ApplicationError $error) {
-            self::assertSame('MAP_UNAVAILABLE', $error->errorCode);
+            self::assertSame(ErrorCode::MapUnavailable, $error->errorCode);
             self::assertStringNotContainsString('unit-test-key', $error->getMessage());
         }
     }

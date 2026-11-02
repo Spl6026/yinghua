@@ -9,6 +9,7 @@ use Yinghua\DTO\ScreeningInput;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Support\Secrets;
 use Yinghua\Support\UtcDateTime;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 電影場次的存取；與電影主檔共用同一個 PDO，一起參與同一筆交易。 */
 class FilmScreeningRepository
@@ -60,7 +61,7 @@ class FilmScreeningRepository
             );
             if ($exists !== null) {
                 throw new ApplicationError(
-                    'CONFLICT',
+                    ErrorCode::Conflict,
                     '所選日期與開始時間已有場次。',
                     ['screenings.' . $index . '.startsAt' => '此開始時間已有其他場次。'],
                 );

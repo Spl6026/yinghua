@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Http;
 
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 class Router
 {
@@ -31,8 +32,8 @@ class Router
             }
         }
         if ($allowed !== []) {
-            throw new ApplicationError('METHOD_NOT_ALLOWED', implode(', ', $allowed));
+            throw new ApplicationError(ErrorCode::MethodNotAllowed, implode(', ', $allowed));
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此 API。');
+        throw new ApplicationError(ErrorCode::NotFound, '找不到此 API。');
     }
 }

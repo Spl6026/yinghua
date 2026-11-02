@@ -100,7 +100,7 @@ try {
         $publication->read();
         $check(false);
     } catch (ApplicationError $error) {
-        $check($error->errorCode === 'PUBLICATION_PENDING');
+        $check($error->errorCode === Yinghua\Exceptions\ErrorCode::PublicationPending);
     }
     $check($publication->tick());
     $check($publication->read()['generation'] !== $oldGeneration);

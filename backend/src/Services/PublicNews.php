@@ -7,6 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\NewsQuery;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 class PublicNews
 {
@@ -33,6 +34,6 @@ class PublicNews
                 return ['article' => $item,'generation' => $snapshot['generation']];
             }
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開消息。');
+        throw new ApplicationError(ErrorCode::NotFound, '找不到此公開消息。');
     }
 }

@@ -8,6 +8,7 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Http\Kernel;
 use Yinghua\Http\Request;
 use Yinghua\Support\ErrorLog;
+use Yinghua\Exceptions\ErrorCode;
 
 require dirname(__DIR__) . '/vendor/autoload.php';
 
@@ -21,7 +22,7 @@ register_shutdown_function(static function () use (&$requestId): void {
     }
     error_log(sprintf('request=%s fatal type=%d at=%s:%d', $requestId, $error['type'], basename($error['file']), $error['line']));
     if (!headers_sent()) {
-        Kernel::error(new ApplicationError('INTERNAL_ERROR', '系統暫時無法完成操作，請稍後再試。'))->emit($requestId);
+        Kernel::error(new ApplicationError(ErrorCode::InternalError, '系統暫時無法完成操作，請稍後再試。'))->emit($requestId);
     }
 });
 try {
@@ -36,5 +37,5 @@ try {
     Kernel::error($error)->emit($requestId);
 } catch (Throwable $error) {
     ErrorLog::exception('request=' . $requestId, $error);
-    Kernel::error(new ApplicationError('INTERNAL_ERROR', '系統暫時無法完成操作，請稍後再試。'))->emit($requestId);
+    Kernel::error(new ApplicationError(ErrorCode::InternalError, '系統暫時無法完成操作，請稍後再試。'))->emit($requestId);
 }

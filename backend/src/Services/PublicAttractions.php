@@ -6,6 +6,7 @@ namespace Yinghua\Services;
 
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 公開景點查詢；API 與靜態 HTML 讀的是同一份成功發布的快照。 */
 class PublicAttractions
@@ -56,7 +57,7 @@ class PublicAttractions
                 return ['attraction' => $item];
             }
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開景點。');
+        throw new ApplicationError(ErrorCode::NotFound, '找不到此公開景點。');
     }
 
     /** @return array<string,mixed> */
@@ -67,6 +68,6 @@ class PublicAttractions
                 return ['attraction' => $item];
             }
         }
-        throw new ApplicationError('NOT_FOUND', '目前沒有已發布的博物館介紹。');
+        throw new ApplicationError(ErrorCode::NotFound, '目前沒有已發布的博物館介紹。');
     }
 }

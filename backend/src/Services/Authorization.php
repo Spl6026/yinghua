@@ -10,6 +10,7 @@ use Yinghua\Models\IdentityKind;
 use Yinghua\Policies\PermissionPolicy;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\PermissionRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 class Authorization
 {
@@ -45,7 +46,7 @@ class Authorization
             try {
                 return $this->require($actor, $module, $action);
             } catch (ApplicationError $error) {
-                if ($error->errorCode !== 'FORBIDDEN') {
+                if ($error->errorCode !== ErrorCode::Forbidden) {
                     throw $error;
                 }
             }

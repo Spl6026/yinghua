@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Http\Request;
+use Yinghua\Exceptions\ErrorCode;
 
 class RequestBoundaryTest extends TestCase
 {
@@ -27,7 +28,7 @@ class RequestBoundaryTest extends TestCase
             $request->json();
             self::fail('Unexpected key was silently ignored.');
         } catch (ApplicationError $error) {
-            self::assertSame('VALIDATION_FAILED', $error->errorCode);
+            self::assertSame(ErrorCode::ValidationFailed, $error->errorCode);
             self::assertArrayHasKey($key, $error->fieldErrors);
         }
     }

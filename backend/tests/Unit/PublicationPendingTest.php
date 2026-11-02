@@ -7,6 +7,7 @@ namespace Yinghua\Tests\Unit;
 use PHPUnit\Framework\TestCase;
 use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Http\Kernel;
+use Yinghua\Exceptions\ErrorCode;
 
 final class PublicationPendingTest extends TestCase
 {
@@ -14,7 +15,7 @@ final class PublicationPendingTest extends TestCase
     {
         $error = new PublicationPending(null, []);
         self::assertStringContainsString('publication_reason=missing_snapshot', $error->diagnostic());
-        self::assertSame('PUBLICATION_PENDING', $error->errorCode);
+        self::assertSame(ErrorCode::PublicationPending, $error->errorCode);
         self::assertSame(503, Kernel::error($error)->status);
         self::assertSame(5, $error->retryAfter);
     }

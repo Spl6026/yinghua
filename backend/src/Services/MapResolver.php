@@ -10,6 +10,7 @@ use Yinghua\Contracts\GoogleHttp;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Policies\GoogleUrlPolicy;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 從 Google 地圖網址查出候選地點資料；只回傳給前端參考，不寫入景點，也不下載 Google 照片。 */
 class MapResolver
@@ -31,7 +32,7 @@ class MapResolver
         $this->limiter->check('map-resolve', $actor->id, 10, 60);
         $key = $this->config->string('GOOGLE_PLACES_API_KEY');
         if ($key === '') {
-            throw new ApplicationError('MAP_UNAVAILABLE', '尚未設定 Google Places 金鑰，請人工輸入資料。');
+            throw new ApplicationError(ErrorCode::MapUnavailable, '尚未設定 Google Places 金鑰，請人工輸入資料。');
         }
         $seen = [];
         for ($step = 0;$step < 4;$step++) {
@@ -109,15 +110,15 @@ class MapResolver
     private function decode(int $status, string $body): array
     {
         if ($status !== 200) {
-            throw new ApplicationError('MAP_UNAVAILABLE', 'Google Places 暫時不可用，請檢查金鑰、配額與 API 啟用狀態或人工輸入。');
+            throw new ApplicationError(ErrorCode::MapUnavailable, 'Google Places 暫時不可用，請檢查金鑰、配額與 API 啟用狀態或人工輸入。');
         }
         try {
             $value = json_decode($body, true, 32, JSON_THROW_ON_ERROR);
         } catch (\JsonException) {
-            throw new ApplicationError('MAP_UNAVAILABLE', '地圖服務回應無效，可改為人工輸入。');
+            throw new ApplicationError(ErrorCode::MapUnavailable, '地圖服務回應無效，可改為人工輸入。');
         }
         if (!is_array($value)) {
-            throw new ApplicationError('MAP_UNAVAILABLE', '地圖服務回應無效。');
+            throw new ApplicationError(ErrorCode::MapUnavailable, '地圖服務回應無效。');
         }
         $result = [];
         foreach ($value as $key => $entry) {

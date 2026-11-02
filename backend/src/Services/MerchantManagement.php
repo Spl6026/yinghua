@@ -15,6 +15,7 @@ use Yinghua\Models\Account;
 use Yinghua\Policies\ImportVersion;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\MerchantRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 店家資料隸屬於優惠管理，沿用 offers 權限，不另外擴增權限矩陣。 */
 class MerchantManagement implements ContentImportService
@@ -36,14 +37,14 @@ class MerchantManagement implements ContentImportService
     {
         $before = $this->merchants->find($id, $lock);
         if ($creating === false && ($before === null || ($before->fields['deleted_at'] ?? null) !== null)) {
-            throw new ApplicationError('NOT_FOUND', '找不到此內容。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此內容。');
         }
         if ($creating === true && $before !== null) {
-            throw new ApplicationError('CONFLICT', '此識別已存在。');
+            throw new ApplicationError(ErrorCode::Conflict, '此識別已存在。');
         }
         $this->authorization->require($actor, 'offers', $before === null ? 'create' : 'edit', $lock);
         if (($before?->fields['deleted_at'] ?? null) !== null) {
-            throw new ApplicationError('CONFLICT', '此店家已刪除，不能重新使用識別。');
+            throw new ApplicationError(ErrorCode::Conflict, '此店家已刪除，不能重新使用識別。');
         }
         $input = MerchantInput::fromArray($values, $before === null);
         $fields = $input->fields;

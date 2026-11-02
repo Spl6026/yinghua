@@ -11,6 +11,7 @@ use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Support\ErrorLog;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 所有 Repository 共用同一個 PDO，寫入才能參與同一筆交易。 */
 class Database
@@ -43,7 +44,7 @@ class Database
         } catch (PDOException $error) {
             // 資料庫暫停或斷線時，不讓請求卡在預設的 30 秒逾時，也不把連線細節洩漏給使用者。
             ErrorLog::exception('database_connect', $error);
-            throw new ApplicationError('SERVICE_UNAVAILABLE', '服務暫時無法使用。');
+            throw new ApplicationError(ErrorCode::ServiceUnavailable, '服務暫時無法使用。');
         }
 
         return new self($pdo);
@@ -61,10 +62,16 @@ class Database
             $database->pdo->exec('SET SESSION innodb_lock_wait_timeout = 5, max_statement_time = 10');
         } catch (PDOException $error) {
             ErrorLog::exception('database_session_limits', $error);
-            throw new ApplicationError('SERVICE_UNAVAILABLE', '服務暫時無法使用。');
+            throw new ApplicationError(ErrorCode::ServiceUnavailable, '服務暫時無法使用。');
         }
 
         return $database;
+    }
+
+    /** 唯一鍵重複（網址代稱、電子郵件等已被使用），呼叫端會轉成較具體的衝突錯誤。 */
+    public static function isDuplicateKey(PDOException $error): bool
+    {
+        return $error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062;
     }
 
     /** @param array<string, bool|int|string|null> $parameters */

@@ -171,7 +171,7 @@ class AccountRepository
         try {
             $this->database->execute($sql, $parameters);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new AccountConflict($error);
             }
             throw $error;

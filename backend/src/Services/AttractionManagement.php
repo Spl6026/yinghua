@@ -18,6 +18,7 @@ use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Support\Secrets;
 use Yinghua\Policies\GooglePlaceLinkPolicy;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 景點的新增、編輯、刪除流程，負責權限檢查與交易；Controller 不直接處理 SQL。 */
 class AttractionManagement
@@ -69,7 +70,7 @@ class AttractionManagement
                     $before = $creating ? null : $this->target($targetId, true);
                     $input = $input->withDefaultSlug($before === null ? 'place-' . str_replace('-', '', $targetId) : $before->slug);
                     if ($before !== null && $before->version !== $input->version) {
-                        throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
+                        throw new ApplicationError(ErrorCode::Conflict, '資料已被其他人修改，請重新載入。');
                     }
                     $this->placeLinks->assertConfirmed($before, $input);
                     $media = $input->fields['media_id'];
@@ -95,7 +96,7 @@ class AttractionManagement
                     return $updated;
                 });
             } catch (ContentConflict) {
-                throw new ApplicationError('CONFLICT', '網址識別已使用或保留於歷史網址，請改用其他識別。', ['slug' => '此識別已使用。']);
+                throw new ApplicationError(ErrorCode::Conflict, '網址識別已使用或保留於歷史網址，請改用其他識別。', ['slug' => '此識別已使用。']);
             }
 
             return new AttractionWriteResult($item, $this->publication->synchronize());
@@ -109,10 +110,10 @@ class AttractionManagement
                 $fresh = $this->authorization->require($actor, 'attractions', 'delete', true);
                 $target = $this->target($id, true);
                 if ($target->version !== $version) {
-                    throw new ApplicationError('CONFLICT', '資料已變更，請重新載入。');
+                    throw new ApplicationError(ErrorCode::Conflict, '資料已變更，請重新載入。');
                 }
                 if ($this->attractions->referenced($id)) {
-                    throw new ApplicationError('CONFLICT', '此景點仍被推薦路線或店家優惠引用，請先調整關聯再刪除。');
+                    throw new ApplicationError(ErrorCode::Conflict, '此景點仍被推薦路線或店家優惠引用，請先調整關聯再刪除。');
                 }
                 $this->attractions->delete($id);
                 $this->events->content($fresh->id, 'attraction-delete', 'attraction', $id, $version, $version + 1, 'archived', $client);
@@ -133,7 +134,7 @@ class AttractionManagement
     {
         $item = $this->attractions->find($id, $lock);
         if ($item === null || $item->deletedAt !== null) {
-            throw new ApplicationError('NOT_FOUND', '找不到此景點。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此景點。');
         }
 
         return $item;

@@ -12,6 +12,7 @@ use Yinghua\Models\{Account, ContentStatus};
 use Yinghua\Repositories\{NewsRepository, EventRepository};
 use Yinghua\Support\Secrets;
 use Yinghua\Policies\OfferValidity;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 後台 HTTP 用的消息管理服務；與 CLI 匯入共用同一個 Editor，Controller 不必自行組裝匯入資料。 */
 class AdminNewsManagement
@@ -55,7 +56,7 @@ class AdminNewsManagement
                     $change = $this->editor->prepareValues($actor, $target, $values, true, $id === null);
                     // 後台編輯必須帶著相符的版本號，避免覆蓋別人的修改；CLI 的重複匯入則維持原本的冪等行為。
                     if ($id !== null && $change->version !== $change->input->version) {
-                        throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
+                        throw new ApplicationError(ErrorCode::Conflict, '資料已被其他人修改，請重新載入。');
                     }
                     if (!$change->unchanged) {
                         $this->editor->saveChange($actor, $change, $client);
@@ -63,7 +64,7 @@ class AdminNewsManagement
                     return $this->target($target);
                 });
             } catch (ContentConflict) {
-                throw new ApplicationError('CONFLICT', '網址或關聯識別已使用，請重新載入或改用其他識別。');
+                throw new ApplicationError(ErrorCode::Conflict, '網址或關聯識別已使用，請重新載入或改用其他識別。');
             }
             return new ContentWriteResult($record, $this->publication->synchronize());
         });
@@ -76,7 +77,7 @@ class AdminNewsManagement
                 $fresh = $this->authorization->require($actor, 'news', 'delete', true);
                 $before = $this->target($id, true);
                 if ($before->version !== $version) {
-                    throw new ApplicationError('CONFLICT', '資料已變更，請重新載入。');
+                    throw new ApplicationError(ErrorCode::Conflict, '資料已變更，請重新載入。');
                 }
                 $this->records->delete($id);
                 $this->events->content($fresh->id, 'news-delete', 'news', $id, $version, $version + 1, 'archived', $client);
@@ -91,7 +92,7 @@ class AdminNewsManagement
         ContentFields::uuid($id, 'id');
         $record = $this->records->find($id, $lock);
         if ($record === null || ($record->fields['deleted_at'] ?? null) !== null) {
-            throw new ApplicationError('NOT_FOUND', '找不到此內容。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此內容。');
         }
         return $record;
     }

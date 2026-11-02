@@ -26,7 +26,7 @@ class PublicationPending extends ApplicationError
         $this->diagnostic = 'publication_reason=' . ($current === null ? 'missing_snapshot' : 'projection_changed')
             . ' published=' . $hash($current['generation'] ?? null) . ' expected=' . $hash($expected['generation'] ?? null)
             . ' sections=' . ($sections === [] ? 'none' : implode(',', $sections));
-        parent::__construct('PUBLICATION_PENDING', '公開頁面正在更新，請稍後重試。', retryAfter: 5);
+        parent::__construct(ErrorCode::PublicationPending, '公開頁面正在更新，請稍後重試。', retryAfter: 5);
     }
 
     public function diagnostic(): string

@@ -7,6 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\OfferQuery;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 class PublicOffers
 {
@@ -38,6 +39,6 @@ class PublicOffers
                 return ['offer' => $item,'generation' => $snapshot['generation']];
             }
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開優惠。');
+        throw new ApplicationError(ErrorCode::NotFound, '找不到此公開優惠。');
     }
 }

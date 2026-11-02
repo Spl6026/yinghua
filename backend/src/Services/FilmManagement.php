@@ -24,6 +24,7 @@ use Yinghua\Repositories\FilmRepository;
 use Yinghua\Repositories\FilmScreeningRepository;
 use Yinghua\Repositories\MediaRepository;
 use Yinghua\Support\Secrets;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 電影寫入流程：權限檢查、版本比對，以及寫入與發布的交易範圍。 */
 class FilmManagement
@@ -65,7 +66,7 @@ class FilmManagement
                     $fresh = $this->authorization->require($actor, 'films', $creating ? 'create' : 'edit', true);
                     $before = $creating ? null : $this->target($targetId, true);
                     if ($before !== null && $before->version !== $input->version) {
-                        throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
+                        throw new ApplicationError(ErrorCode::Conflict, '資料已被其他人修改，請重新載入。');
                     }
                     $input = $input->withDefaultSlug($before === null ? 'film-' . str_replace('-', '', $targetId) : $before->slug);
                     $posterId = array_key_exists('poster_media_id', $input->fields)
@@ -105,7 +106,7 @@ class FilmManagement
                     return $updated;
                 });
             } catch (ContentConflict) {
-                throw new ApplicationError('CONFLICT', '網址識別已使用或保留於歷史網址，請改用其他識別。', ['slug' => '此識別已使用。']);
+                throw new ApplicationError(ErrorCode::Conflict, '網址識別已使用或保留於歷史網址，請改用其他識別。', ['slug' => '此識別已使用。']);
             }
             return new FilmWriteResult($film, $this->publication->synchronize());
         });
@@ -118,7 +119,7 @@ class FilmManagement
                 $fresh = $this->authorization->require($actor, 'films', 'delete', true);
                 $before = $this->target($id, true);
                 if ($before->version !== $version) {
-                    throw new ApplicationError('CONFLICT', '資料已變更，請重新載入。');
+                    throw new ApplicationError(ErrorCode::Conflict, '資料已變更，請重新載入。');
                 }
                 $this->films->delete($id);
                 $this->events->content($fresh->id, 'film-delete', 'film', $id, $version, $version + 1, 'archived', $client);
@@ -137,7 +138,7 @@ class FilmManagement
     {
         $film = $this->films->find($id, $lock);
         if ($film === null || $film->deletedAt !== null) {
-            throw new ApplicationError('NOT_FOUND', '找不到此電影。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此電影。');
         }
         return $film;
     }

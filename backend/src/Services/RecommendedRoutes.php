@@ -10,6 +10,7 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\{Account, ContentStatus};
 use Yinghua\Repositories\{EventRepository, RecommendedRouteRepository};
 use Yinghua\Support\Secrets;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 推薦路線的後台管理：權限、交易、版本比對與發布都集中在這裡，Controller 不直接操作資料庫。 */
 class RecommendedRoutes
@@ -57,7 +58,7 @@ class RecommendedRoutes
                 $fresh = $this->authorization->require($actor, 'routes', $id === null ? 'create' : 'edit', true);
                 $before = $id === null ? null : $this->target($id, true);
                 if ($before !== null && $before->version !== $input->version) {
-                    throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
+                    throw new ApplicationError(ErrorCode::Conflict, '資料已被其他人修改，請重新載入。');
                 }
                 $target = $id ?? Secrets::uuid();
                 $this->records->assertAvailable($input);
@@ -86,7 +87,7 @@ class RecommendedRoutes
                 $fresh = $this->authorization->require($actor, 'routes', 'delete', true);
                 $before = $this->target($id, true);
                 if ($before->version !== $version) {
-                    throw new ApplicationError('CONFLICT', '資料已變更，請重新載入。');
+                    throw new ApplicationError(ErrorCode::Conflict, '資料已變更，請重新載入。');
                 }
                 $this->records->delete($id);
                 $this->events->content($fresh->id, 'route-delete', 'routes', $id, $version, $version + 1, 'archived', $client);
@@ -100,7 +101,7 @@ class RecommendedRoutes
         ContentFields::uuid($id, 'id');
         $record = $this->records->find($id, $lock);
         if ($record === null || $record->deletedAt !== null) {
-            throw new ApplicationError('NOT_FOUND', '找不到此推薦路線。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此推薦路線。');
         }
         return $record;
     }

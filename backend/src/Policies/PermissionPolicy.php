@@ -7,6 +7,7 @@ namespace Yinghua\Policies;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
+use Yinghua\Exceptions\ErrorCode;
 
 class PermissionPolicy
 {
@@ -37,7 +38,7 @@ class PermissionPolicy
         $this->writableTarget($target);
         // 介面雖然已隱藏刪除自己的按鈕，伺服器端仍要拒絕，避免管理員誤刪自己的帳號而失去管理權。
         if ($actor->id === $target->id) {
-            throw new ApplicationError('FORBIDDEN', '不能刪除目前登入中的管理員帳號。');
+            throw new ApplicationError(ErrorCode::Forbidden, '不能刪除目前登入中的管理員帳號。');
         }
     }
 

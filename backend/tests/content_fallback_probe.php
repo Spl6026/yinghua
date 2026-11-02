@@ -90,7 +90,7 @@ try {
             $service->get($slug, $client);
             throw new RuntimeException('Concurrent request accepted');
         } catch (Yinghua\Exceptions\ApplicationError $error) {
-            $check('parallel request refused', $error->errorCode === 'RATE_LIMITED');
+            $check('parallel request refused', $error->errorCode === Yinghua\Exceptions\ErrorCode::RateLimited);
         }
     } finally {
         $other->release();
@@ -103,7 +103,7 @@ try {
         $service->get($slug, $client);
         throw new RuntimeException('Place quota bypassed');
     } catch (Yinghua\Exceptions\ApplicationError $error) {
-        $check('per-place quota enforced before provider', $error->errorCode === 'RATE_LIMITED' && $provider->calls === $before);
+        $check('per-place quota enforced before provider', $error->errorCode === Yinghua\Exceptions\ErrorCode::RateLimited && $provider->calls === $before);
     }
 } finally {
     $db->execute('UPDATE attractions SET google_place_id=NULL,version=version+1 WHERE id=:id', ['id' => $id]);

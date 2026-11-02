@@ -22,6 +22,7 @@ use Yinghua\Services\OfferManagement;
 use Yinghua\Services\MerchantManagement;
 use Yinghua\Support\Secrets;
 use Yinghua\Support\ErrorLog;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 只在 Docker 內由維運人員執行的內容管理 CLI；刻意不提供可從外部呼叫的 HTTP 匯入入口。 */
 class PublicContentCommands
@@ -101,7 +102,7 @@ class PublicContentCommands
             fwrite(STDOUT, json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
             return ($result['status'] ?? '') === 'saved_publication_pending' ? 4 : 0;
         } catch (ApplicationError|ContentConflict $error) {
-            $conflict = $error instanceof ContentConflict || $error->errorCode === 'CONFLICT';
+            $conflict = $error instanceof ContentConflict || $error->errorCode === ErrorCode::Conflict;
             fwrite(STDOUT, json_encode([
                 'status' => $conflict ? 'conflict' : 'validation_failed',
                 'message' => $error instanceof ApplicationError ? $error->getMessage() : '內容識別或網址衝突。',

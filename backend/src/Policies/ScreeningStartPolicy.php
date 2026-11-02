@@ -6,6 +6,7 @@ namespace Yinghua\Policies;
 
 use Yinghua\DTO\ScreeningInput;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 檢查同一部電影的場次不重複；只比較開始時間（到分鐘），不推算片長或結束時間。 */
 readonly class ScreeningStartPolicy
@@ -18,7 +19,7 @@ readonly class ScreeningStartPolicy
         foreach ($items as $index => $item) {
             $time = $item->startsAt->format('Y-m-d H:i');
             if (isset($starts[$time])) {
-                throw new ApplicationError('CONFLICT', '此電影有重複的放映時間。', ['screenings.' . $index . '.startsAt' => '放映日期與開始時間不可重複。']);
+                throw new ApplicationError(ErrorCode::Conflict, '此電影有重複的放映時間。', ['screenings.' . $index . '.startsAt' => '放映日期與開始時間不可重複。']);
             }
             if ($item->id !== null && isset($ids[$item->id])) {
                 throw ApplicationError::invalid('screenings.' . $index . '.id', '場次識別不可重複。');

@@ -8,6 +8,7 @@ use PHPUnit\Framework\TestCase;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\DetailUrlType;
 use Yinghua\Services\DetailUrlResolver;
+use Yinghua\Exceptions\ErrorCode;
 
 class DetailUrlResolverTest extends TestCase
 {
@@ -65,7 +66,7 @@ class DetailUrlResolverTest extends TestCase
             DetailUrlResolver::fromSnapshot($snapshot, $type, $original);
             self::fail('Expected NOT_FOUND for ' . $original);
         } catch (ApplicationError $error) {
-            self::assertSame('NOT_FOUND', $error->errorCode);
+            self::assertSame(ErrorCode::NotFound, $error->errorCode);
             self::assertSame($message, $error->getMessage());
         }
     }

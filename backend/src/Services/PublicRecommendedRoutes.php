@@ -33,6 +33,6 @@ class PublicRecommendedRoutes
                 return ['route' => $route,'generation' => $snapshot['generation'] ?? ''];
             }
         }
-        throw new \Yinghua\Exceptions\ApplicationError('NOT_FOUND', '找不到此公開推薦路線。');
+        throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::NotFound, '找不到此公開推薦路線。');
     }
 }

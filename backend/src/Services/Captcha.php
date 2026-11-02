@@ -16,6 +16,7 @@ use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\RegisterInput;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Repositories\ChallengeRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 class Captcha
 {
@@ -61,7 +62,7 @@ class Captcha
             $this->mailer->send($email, '映畫竹塹註冊驗證碼', "您的註冊驗證碼：{$answer}\n有效期限五分鐘。若不是您申請，請忽略此信。");
         } catch (Throwable) {
             $this->repository->revoke($id);
-            throw new ApplicationError('MAIL_UNAVAILABLE', '驗證信暫時無法寄送，請稍後再試或使用圖片驗證。');
+            throw new ApplicationError(ErrorCode::MailUnavailable, '驗證信暫時無法寄送，請稍後再試或使用圖片驗證。');
         }
 
         return new CaptchaResponse($token, gmdate('c', $expires), message: '驗證碼已寄送，請查看信箱。');

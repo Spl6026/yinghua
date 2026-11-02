@@ -20,6 +20,7 @@ use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\ResetRepository;
 use Yinghua\Repositories\SessionRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 class PasswordReset
 {
@@ -116,7 +117,7 @@ class PasswordReset
         $this->transactions->run(function () use ($account, $client, $hash): void {
             $fresh = $this->accounts->find($account->kind, $account->id, true);
             if ($fresh === null || !$fresh->isActive() || !hash_equals($fresh->passwordHash, $account->passwordHash)) {
-                throw new ApplicationError('UNAUTHENTICATED', '登入狀態已變更，請重新登入。');
+                throw new ApplicationError(ErrorCode::Unauthenticated, '登入狀態已變更，請重新登入。');
             }
             $this->accounts->savePassword($fresh->kind, $fresh->id, $hash);
             $this->tokens->revokeAll($fresh->kind, $fresh->id);

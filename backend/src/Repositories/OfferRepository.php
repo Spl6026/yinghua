@@ -97,7 +97,7 @@ class OfferRepository
             }
             $this->alias('/offers/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Content identity already reserved.', previous: $error);
             }
             throw $error;
@@ -118,7 +118,7 @@ class OfferRepository
         $alias = $this->database->row('SELECT offer_id FROM offer_aliases WHERE path=:path', ['path' => '/offers/' . $slug . '.html']);
         $other = $this->database->row('SELECT id FROM offers WHERE slug=:slug AND id<>:id', ['slug' => $slug,'id' => $id]);
         if (($alias !== null && (new Row($alias))->string('offer_id') !== $id) || $other !== null) {
-            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此優惠網址已被使用或保留。');
+            throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::Conflict, '此優惠網址已被使用或保留。');
         }
     }
 

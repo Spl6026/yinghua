@@ -16,6 +16,7 @@ use Yinghua\Policies\PermissionPolicy;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\PermissionRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 管理員個人權限矩陣的查閱與修改，含版本比對與稽核紀錄；帳號本身的增刪改由 AdminManagement 負責。 */
 class PermissionManagement
@@ -58,7 +59,7 @@ class PermissionManagement
             $target = $this->target($id, true);
             $this->policy->writableTarget($target);
             if ($target->permissionsVersion !== $input->version) {
-                throw new ApplicationError('CONFLICT', '權限已被其他人修改，請重新載入。');
+                throw new ApplicationError(ErrorCode::Conflict, '權限已被其他人修改，請重新載入。');
             }
             $this->policy->grantable($fresh, $this->permissions->effective($fresh), $input->permissions);
             $before = $this->permissions->effective($target);
@@ -78,7 +79,7 @@ class PermissionManagement
     {
         $account = $this->accounts->find(IdentityKind::Admin, $id, $lock);
         if ($account === null || $account->deletedAt !== null) {
-            throw new ApplicationError('NOT_FOUND', '找不到此管理員。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此管理員。');
         }
 
         return $account;

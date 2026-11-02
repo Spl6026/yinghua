@@ -6,6 +6,7 @@ namespace Yinghua\Services;
 
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 詳情頁的上一篇／下一篇；從發布快照計算而不即時查資料庫，避免與已產生的 HTML 版本不一致。 */
 class PublicNeighbors
@@ -35,6 +36,6 @@ class PublicNeighbors
                 'next' => $neighbors['next'] ?? null,
                 'generation' => $snapshot['generation']];
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開內容。');
+        throw new ApplicationError(ErrorCode::NotFound, '找不到此公開內容。');
     }
 }

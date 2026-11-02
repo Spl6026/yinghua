@@ -10,6 +10,7 @@ use Yinghua\DTO\GoogleSummary;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\ExternalRequestSlot;
+use Yinghua\Exceptions\ErrorCode;
 
 class AttractionSummary
 {
@@ -46,7 +47,7 @@ class AttractionSummary
         $this->limiter->check('google-summary-global', 'all', 30, 60);
         $this->limiter->check('google-summary-daily', 'all', 100, 86400);
         if (!$this->slot->acquire()) {
-            throw new ApplicationError('RATE_LIMITED', '簡介服務忙碌中，請稍後再試。', [], 5);
+            throw new ApplicationError(ErrorCode::RateLimited, '簡介服務忙碌中，請稍後再試。', [], 5);
         }
         try {
             $result = $this->provider->fetch($placeId);

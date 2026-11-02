@@ -13,6 +13,7 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Repositories\ItineraryRepository;
 use Yinghua\Support\Secrets;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 會員的「目前行程」視為一個整體處理；先鎖住行程主表並比對版本，避免多個分頁同時編輯互相覆蓋。 */
 class CurrentItinerary
@@ -33,7 +34,7 @@ class CurrentItinerary
             $itinerary = $this->itineraries->current($member->id);
             if ($position !== null
                 && ($itinerary === null || $position['id'] !== $itinerary->id || $position['version'] !== $itinerary->version)) {
-                throw new ApplicationError('CONFLICT', '行程已變更，請重新載入後繼續。');
+                throw new ApplicationError(ErrorCode::Conflict, '行程已變更，請重新載入後繼續。');
             }
             if ($itinerary === null) {
                 return new CurrentItineraryPage(null, [], null);
@@ -68,7 +69,7 @@ class CurrentItinerary
                 return new ItineraryWriteResult($before->id, $before->version, $attractionId, false);
             }
             if (($before->version ?? 0) !== $input->version) {
-                throw new ApplicationError('CONFLICT', '行程已變更，請重新載入再加入。');
+                throw new ApplicationError(ErrorCode::Conflict, '行程已變更，請重新載入再加入。');
             }
             $name = $this->attractions->requireAvailable($attractionId);
             $current = $before ?? $this->itineraries->createCurrent($member->id, Secrets::uuid());
@@ -88,7 +89,7 @@ class CurrentItinerary
                 return new ItineraryWriteResult($before?->id, $before->version ?? 0, $attractionId, false);
             }
             if ($before->version !== $input->version) {
-                throw new ApplicationError('CONFLICT', '行程已變更，請重新載入再移除。');
+                throw new ApplicationError(ErrorCode::Conflict, '行程已變更，請重新載入再移除。');
             }
             $this->itineraries->remove($member->id, $before->id, $attractionId);
             $after = $this->itineraries->advance($member->id, $before->id);

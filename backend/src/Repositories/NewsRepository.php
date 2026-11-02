@@ -88,7 +88,7 @@ class NewsRepository
             }
             $this->alias('/news/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Content identity already reserved.', previous: $error);
             }
             throw $error;
@@ -110,7 +110,7 @@ class NewsRepository
         $alias = $this->database->row('SELECT news_post_id FROM news_aliases WHERE path=:path', ['path' => $path]);
         $other = $this->database->row('SELECT id FROM news_posts WHERE slug=:slug AND id<>:id', ['slug' => $slug,'id' => $id]);
         if ($slug === 'coffee-walk' || ($alias !== null && (new Row($alias))->string('news_post_id') !== $id) || $other !== null) {
-            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此消息網址已被使用或保留。');
+            throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::Conflict, '此消息網址已被使用或保留。');
         }
     }
 
