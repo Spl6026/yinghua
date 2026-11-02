@@ -1,4 +1,4 @@
-// [E-26] Node 發布與瀏覽器共用字元編碼、日期及圖片外觀。
+// Node 發布流程與瀏覽器共用字元編碼、日期格式及圖片呈現。
 export const escapeHtml = value =>
   String(value ?? '').replace(
     /[&<>"']/g,

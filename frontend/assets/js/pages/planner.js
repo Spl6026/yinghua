@@ -7,7 +7,7 @@ import { handleSessionExpiry } from '../core/session.js';
 import { element, status, formErrors, unsavedChanges } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 
-// [S E15/L24；E-33] 完整編輯器：server版本與未保存草稿分離，不用localStorage當正式資料。
+// 完整的行程編輯器：伺服器版本與未保存草稿分開，不把 localStorage 當正式資料。
 export async function initializePlanner() {
   const state = new TripEditorState(itinerariesApi, readMember),
     form = document.querySelector('#trip-form'),

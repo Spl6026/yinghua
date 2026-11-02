@@ -1,4 +1,4 @@
-// [U-22／E-37] 在主樣式前發現兩套字型，不經CSS @import再發起字型樣式請求。
+// 在主樣式之前就宣告兩套字型，避免等 CSS @import 才發出字型樣式請求。
 const paths = ['/assets/fonts/NotoSansTC-common.woff2', '/assets/fonts/NotoSerifTC-common.woff2'];
 export function renderFontHead(html) {
   html = html.replace(

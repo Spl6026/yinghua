@@ -31,8 +31,8 @@ export function formErrors(form, error) {
   });
   let first;
   for (const [name, message] of Object.entries(error.fieldErrors || {})) {
-    // [U-09／E-20] 複合表單（例如整週營業時間）也須顯示具體錯誤並可取得焦點。
-    // [S：G34；E-29] 地圖解析等獨立欄位群組亦可共用，不清除其他表單區塊的錯誤。
+    // 複合表單（例如整週營業時間）也要顯示具體錯誤並能取得焦點；
+    // 地圖解析等獨立欄位群組也共用這段邏輯，且不會清除其他表單區塊的錯誤。
     const input =
       [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) ||
       form.elements?.namedItem(name);
@@ -109,10 +109,10 @@ export function initializeMenus() {
     const button = document.querySelector(selector);
     const menu = document.querySelector(target);
     if (!button || !menu || initializedNavigation.has(button)) continue;
-    // [E-14] 認證狀態刷新可重複呼叫，但相同導覽只綁定一次。
+    // 認證狀態刷新可能重複呼叫，但同一個導覽只綁定一次事件。
     initializedNavigation.add(button);
     const closedLabel = button.getAttribute('aria-label');
-    // [S 功能規格 G34／E-29] 被裁切／移出畫面的手機選單不可留下隱形 Tab 停駐點。
+    // 手機選單被裁切或移出畫面時，不能留下看不見的 Tab 停駐點。
     const mobile = matchMedia('(max-width: 760px)');
     const synchronizeFocusability = () => {
       menu.inert = mobile.matches && button.getAttribute('aria-expanded') !== 'true';
@@ -154,7 +154,7 @@ export function initializeMenus() {
   });
 }
 
-// [U-24] 新增／編輯成功後會導回列表；以本分頁 sessionStorage 暫存一次性成功訊息，列表載入後顯示。
+// 新增／編輯成功後會導回列表，所以把一次性的成功訊息暫存在本分頁的 sessionStorage，列表載入後再顯示。
 const flashKey = 'yinghua-admin-flash';
 export function flash(message) {
   try {

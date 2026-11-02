@@ -1,4 +1,4 @@
-// [S：L28；E-36] 靜態認證／會員頁只更新共用識別；不覆寫各頁 SEO。
+// 靜態的認證／會員頁只更新共用的網站識別資訊，不覆寫各頁自己的 SEO。
 export async function initializeSiteInformation() {
   if (!document.querySelector('.site-footer')) return;
   try {

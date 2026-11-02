@@ -11,7 +11,7 @@ import {
 import { submitForm, status } from './core/ui.js';
 
 const { authKind: kind, authMode: mode } = document.body.dataset;
-// [E-27] 登入／註冊切換仍保留經白名單檢查的收藏或行程待辦；不自動執行。
+// 在登入與註冊之間切換時，保留已通過白名單檢查的收藏或行程待辦，但不自動執行。
 if (kind === 'member' && (mode === 'login' || mode === 'register')) {
   const switchLink = document.querySelector('.account-switch a');
   if (switchLink)
@@ -49,7 +49,7 @@ function updateSubmit() {
   if (logoutButton) logoutButton.disabled = checkingSession || submitting || signingOut || completed;
 }
 updateSubmit();
-// [U-13／E-14] 更改密碼頁可登出換帳號，與提交共用互斥狀態。
+// 更改密碼頁可以登出換帳號；登出與送出共用同一個互斥狀態。
 logoutButton?.addEventListener('click', async () => {
   if (checkingSession || submitting || signingOut || completed) return;
   signingOut = true;
@@ -71,12 +71,12 @@ logoutButton?.addEventListener('click', async () => {
     updateSubmit();
   }
 });
-// [E-07] 一次性憑證只在記憶體；先清掉網址 fragment，再發任何網路請求。
+// 一次性憑證只放在記憶體；先清掉網址的 fragment，再發出任何網路請求，避免憑證外洩。
 const resetToken =
   mode === 'reset-password' ? new URLSearchParams(location.hash.slice(1)).get('token') : null;
 if (mode === 'reset-password') history.replaceState(null, '', location.pathname);
 
-// [U-24] 使用者手動換驗證碼時清除舊答案的欄位錯誤；提交失敗後自動換新圖但保留錯誤說明。
+// 使用者手動換驗證碼時清除舊答案的欄位錯誤；送出失敗後自動換新圖，但保留錯誤說明。
 function clearAnswerError() {
   const answer = form.elements.answer;
   answer?.removeAttribute?.('aria-invalid');
@@ -130,7 +130,7 @@ form.addEventListener('submit', async event => {
     return;
   }
   if (submitting || !canSubmit() || submit.disabled) return;
-  // [E-14] 包含 Enter 的提交入口共用此鎖；成功後離頁／重新登入，不重送。
+  // 所有送出入口（包含按 Enter）共用這個鎖；成功後會離開頁面或重新登入，不會重送。
   submitting = true;
   updateSubmit();
   try {
@@ -175,7 +175,7 @@ form.addEventListener('submit', async event => {
         canSubmit,
         onError: error => {
           if (error.retryAfter > 0) retryUntil = Date.now() + Math.min(error.retryAfter, 86400) * 1000;
-          // [U-24] 驗證碼一次性；註冊失敗後舊 token 不可再用，自動換新圖片避免使用者重送必定失敗。
+          // 驗證碼只能使用一次，註冊失敗後舊 token 已失效；自動換新圖片，避免使用者重送必定失敗的請求。
           if (
             mode === 'register' &&
             !captchaByEmail &&
@@ -206,7 +206,7 @@ if (mode === 'change-password') {
     checkingSession = !identity || Boolean(preview);
     if (logoutButton) logoutButton.hidden = checkingSession;
     if (identity && returnLink && !credentialsChanged && !preview) {
-      // [U-13] 更改前可返回；成功撤銷 session 後顯示重新登入。
+      // 更改前可以返回；成功後 session 已被撤銷，改為顯示重新登入。
       returnLink.hidden = false;
       if (kind === 'admin') returnLink.href = adminDestination(identity);
     }

@@ -1,4 +1,4 @@
-// [S：E13／G15；E-27] 本人資源薄封裝；沿用既有 Cookie、CSRF 與錯誤邊界。
+// 會員本人資源的薄封裝；沿用既有的 Cookie、CSRF 與錯誤處理。
 import { api } from '../core/api-client.js';
 
 export const memberResourcesApi = {

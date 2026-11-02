@@ -6,7 +6,7 @@ export const robotsChoices = [
   ['noindex,nofollow', '不索引、不追蹤'],
 ];
 
-// [S：E32／G34；E-28] 所有值以 DOM property 寫入，不把名稱／驗證 token 當 HTML。
+// 所有值都以 DOM property 寫入，避免把網站名稱或驗證 token 當成 HTML 解析。
 export function seoField(
   label,
   name,

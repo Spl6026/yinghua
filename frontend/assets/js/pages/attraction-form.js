@@ -136,7 +136,7 @@ export async function initializeAttractionForm(identity, page) {
       form.elements.imageAlt.value = attraction.imageAlt;
       form.elements.imageSource.value = attraction.imageSource;
       form.elements.imageLicense.value = attraction.imageLicense;
-      // [E-18] 確認放棄修改後，待上傳檔案也必須與伺服器資料一起重置。
+      // 確認放棄修改後，待上傳的檔案也要和伺服器資料一起重置。
       form.elements.image.value = '';
       photo(attraction.image);
       version = attraction.version;
@@ -255,7 +255,7 @@ export async function initializeAttractionForm(identity, page) {
     } finally {
       busy = false;
       controls();
-      // [S：E34/G34；E-29] 還原可操作狀態後再聚焦，API 原因以純文字關聯解析欄。
+      // 先把控制項恢復為可操作再聚焦；API 回傳的原因以純文字關聯到解析欄位。
       if (failure) mapErrors(failure);
     }
   });

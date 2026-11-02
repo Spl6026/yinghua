@@ -1,6 +1,6 @@
 import { escapeHtml as e } from './content-view.js';
 
-// [S E29/G29；P renderArticleNeighbors；E-31] 只呈現同版後端結果，不自行重排或混入草稿。
+// 只呈現後端在同一發布版本算出的上一篇／下一篇，不自行重排，也不混入草稿。
 export function contentNeighbors(neighbors) {
   if (!neighbors) return '';
   const cards = [

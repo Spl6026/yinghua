@@ -6,7 +6,7 @@ import { MemberResourceState } from './member-resource-state.js';
 import { recoverSession } from './session-expiry.js';
 import { PendingWrites } from './pending-writes.js';
 
-// [E-27] 只處理受管景點 UUID；原型陣列索引不直接當正式資料識別。
+// 只處理受管景點的 UUID；原型陣列的索引不能當成正式資料的識別碼。
 export const isAttractionId = id =>
   /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
 export const readMember = async () => {
@@ -82,7 +82,7 @@ export function loginForMemberAction(kind, id) {
   location.assign('/login.html?returnTo=' + encodeURIComponent(target.pathname + target.search));
 }
 
-// 舊 planner?place=1..6 與登入待辦才使用公開資料查找；一般卡片狀態走批次本人 API。
+// 只有舊的 planner?place=1..6 網址與登入後待辦才查公開資料；一般卡片狀態走本人資源的批次 API。
 export async function resolvePublicAttraction(id) {
   if (!isAttractionId(id) && !/^[1-6]$/.test(id || '')) return null;
   for (let page = 1; ; page++) {
@@ -207,7 +207,7 @@ async function toggleFavorite(button) {
 async function addStop(button) {
   const id = button.dataset.addStop;
   if (!isAttractionId(id)) return;
-  // [S E15；E-33] 到planner確認選定行程後才保存；匿名由共用登入安全返回。
+  // 到 planner 確認選定的行程後才保存；未登入者由共用登入流程安全返回。
   await navigateAfterFavorites('/planner.html?place=' + encodeURIComponent(id));
 }
 

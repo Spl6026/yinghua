@@ -82,7 +82,7 @@ export function offerMerchants(identity, form, available, setBusy, changed) {
     page++;
     void load();
   });
-  // [U-24] 店家面板不是獨立 form；伺服器欄位錯誤逐欄顯示於對應輸入下方，不只顯示「請檢查輸入內容」。
+  // 店家面板不是獨立的 form，伺服器回傳的欄位錯誤要逐一顯示在對應輸入框下方，而不是只顯示「請檢查輸入內容」。
   function fieldErrors(errors = {}) {
     for (const node of document.querySelectorAll('[id^="merchant-"].merchant-invalid')) {
       node.classList.remove('merchant-invalid');

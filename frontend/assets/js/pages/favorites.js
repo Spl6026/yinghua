@@ -4,7 +4,7 @@ import { element, status } from '../core/ui.js';
 import { mountMemberActions } from '../core/member-actions.js';
 import { placeCard, attractionCardData } from '../components/content-cards.js';
 
-// [E-27] 私人收藏與公開卡片分開；不可用時不從草稿補出名稱或圖片。
+// 私人收藏與公開卡片分開處理；收藏項目不可用時，不從草稿補出名稱或圖片。
 const list = document.querySelector('#favorites-list');
 const message = document.querySelector('#favorites-status');
 const previous = document.querySelector('#favorites-previous');

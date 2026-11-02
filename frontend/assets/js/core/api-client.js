@@ -1,4 +1,4 @@
-// [E-02／E-13] Cookie、CSRF、錯誤與逾時處理只有一份；狀態不存 localStorage。
+// Cookie、CSRF、錯誤與逾時處理都集中在這裡；狀態不存在 localStorage。
 import { recordSessionResponse, sessionSnapshot, sessionEpoch } from './session-events.js';
 export class ApiError extends Error {
   constructor(status, payload, retryAfter) {

@@ -4,7 +4,7 @@ import { handleAdminError } from '../core/session.js';
 import { confirmAction } from './dialog.js';
 import { applyAttractionSample } from '../core/attraction-sample.js';
 
-// [S：功能規格 E20／E-24] 讀取 DB 範例、確認後試填；任何情況都不自動保存。
+// 讀取資料庫中的範例景點，使用者確認後才試填表單；任何情況下都不會自動儲存。
 export function attractionSamplePicker(container, form, openingEditor, canEdit, onApplied) {
   if (!container) return { setDisabled() {}, async load() {} };
   const select = container.querySelector('select');

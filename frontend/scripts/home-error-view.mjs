@@ -1,4 +1,4 @@
-// [S 功能規格 G5/L5；E] 同版發布不可用時，保留各模組錯誤狀態；不展示原型或舊內容。
+// 同一版本的發布資料不可用時，保留各模組的錯誤狀態，不展示原型或舊內容。
 export function homeErrorView(shell) {
   const blocks = [
     ['museum', '館舍介紹', '/museum.html'],

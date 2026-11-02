@@ -1,4 +1,4 @@
-// [S G34／B15；E-29] 分類瀏覽與名稱尋找是兩種入口；只搜尋同一公開 HTML 的標題，不取私人或草稿資料。
+// 分類瀏覽與名稱搜尋是兩種入口；只搜尋同一份公開 HTML 的標題，不讀取私人或草稿資料。
 export const normalizedIndexQuery = value => value.normalize('NFKC').trim().toLocaleLowerCase('zh-TW');
 if (typeof document !== 'undefined') {
   const form = document.querySelector('#public-index-search'),

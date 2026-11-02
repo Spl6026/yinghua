@@ -1,6 +1,6 @@
 import { escapeHtml as e } from './content-view.js';
 
-// [S E14/G14；U-05] 保留原型 route-card，補上實際有序站點及時間。
+// 保留原型的 route-card 版型，並補上實際的站點順序與時間。
 export function routeCards(items) {
   if (!items.length) return '<p class="empty-results">目前沒有推薦行程。</p>';
   return items

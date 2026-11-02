@@ -35,7 +35,7 @@ export function crawlerEntry(context, meta) {
     url.hash
   )
     throw new Error('Invalid sitemap canonical');
-  // [S SEO E14；E-34] 集合／固定頁沒有可靠的內容修改時間，不用build時間冒充。
+  // 集合頁與固定頁沒有可靠的內容修改時間，不用建置時間冒充。
   const detail =
     url.pathname === '/museum.html' || /^\/(?:places|films|news|offers)\/[^/]+\.html$/.test(url.pathname);
   const content = detail ? validTimestamp(context.item?.updatedAt || context.modifiedAt) : null;
@@ -46,7 +46,7 @@ export function crawlerEntry(context, meta) {
 
 export function robotsText(origin) {
   const root = crawlerOrigin(origin);
-  // [S E33/G33；D G40] 私頁由noindex及授權處理，robots不代替存取控制。
+  // 私人頁面由 noindex 與授權機制處理，robots 不能取代存取控制。
   return `User-agent: *\nDisallow: /admin/\nSitemap: ${root}/sitemap.xml\n`;
 }
 

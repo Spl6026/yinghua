@@ -1,4 +1,4 @@
-// [E-12] 原始詳情頁與上一篇／下一篇版型，使用交付的唯讀內容。
+// 原始詳情頁與上一篇／下一篇版型，使用原始交付的唯讀內容。
 import { element } from '../core/ui.js';
 import { places, films, news, offers } from '../data/prototype.js';
 import { detailHref, imageBlock } from '../components/content-cards.js';

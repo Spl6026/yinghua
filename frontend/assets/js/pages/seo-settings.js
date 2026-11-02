@@ -113,7 +113,7 @@ export async function initializeSeoSettings(identity) {
     detail.append(grid);
     const inputs = {};
     for (const [field, title, max, type] of overrideFields) {
-      // [U-24] 保護頁為固定靜態 shell，發布不重新套用覆寫；全部欄位鎖定，避免預覽顯示實際不會生效的標題。
+      // 保護頁是固定的靜態 shell，發布時不會套用覆寫值；因此鎖定全部欄位，避免預覽顯示實際上不會生效的標題。
       const locked =
         Boolean(page.protected) ||
         (field === 'canonicalPath' && (target.type !== 'page' || target.path.includes('*')));
@@ -330,7 +330,7 @@ export async function initializeSeoSettings(identity) {
       controls();
     }
   }
-  // [U-24] 一般設定儲存後版本前進；SEO 區無未存修改時自動重讀，有修改則提示重新讀取以免覆蓋共用欄位。
+  // 一般設定儲存後版本號會前進；SEO 區若沒有未存修改就自動重讀，有修改則提示重新讀取，以免覆蓋共用欄位。
   document.addEventListener('settings-section-saved', event => {
     if (event.detail?.section === 'seo') return;
     if (!dirty && !busy) void load();
@@ -403,7 +403,7 @@ export async function initializeSeoSettings(identity) {
         const detail = input?.closest('details');
         if (detail) detail.open = true;
       }
-      // [E-28] 請求已結束，先恢復控制項，再將焦點交給第一個錯誤欄位。
+      // 請求已結束，先恢復控制項，再把焦點交給第一個錯誤欄位。
       busy = false;
       controls();
       status(message, error.message, true);

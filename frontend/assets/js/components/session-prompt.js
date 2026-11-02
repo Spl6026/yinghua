@@ -1,6 +1,6 @@
 import { element } from '../core/ui.js';
 
-// [S G34／B15；E-29] 專用模態框不取代表單，也不把未儲存內容寫入瀏覽器儲存空間。
+// 登入期限專用的對話框，不取代原本的表單，也不把未儲存內容寫入瀏覽器儲存空間。
 export function sessionPrompt(onSubmit, onDismiss, onSettled) {
   const dialog = element('dialog', {
     id: 'session-prompt',
@@ -10,7 +10,7 @@ export function sessionPrompt(onSubmit, onDismiss, onSettled) {
     'aria-describedby': 'session-prompt-message',
   });
   const form = element('form', { className: 'session-prompt-form', method: 'post' });
-  // [S G34／B15；E-29] 初始焦點讀出提示與說明；Tab 才進入操作，不只先讀按鈕。
+  // 初始焦點放在提示與說明上，讓螢幕閱讀器先讀出內容，而不是只讀按鈕；按 Tab 才進入操作。
   const title = element('h2', {
     id: 'session-prompt-title',
     tabindex: '-1',
@@ -33,7 +33,7 @@ export function sessionPrompt(onSubmit, onDismiss, onSettled) {
     'aria-live': 'polite',
     className: 'form-status',
   });
-  // [S G34／L34；E-29] 錯誤與處理進度分開，錯誤可獨立播報及由密碼欄關聯取得。
+  // 錯誤訊息與處理進度分開，錯誤可以單獨播報，也能透過密碼欄的關聯讀到。
   const errorMessage = element('p', {
     id: 'session-prompt-error',
     tabindex: '-1',

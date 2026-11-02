@@ -1,4 +1,4 @@
-// [E-12] 重現原始 website/js/app.js 的唯讀卡片結構；資料以 textContent 安全輸出。
+// 重現原始網站 js/app.js 的唯讀卡片結構；資料一律以 textContent 輸出，避免插入 HTML。
 import { element } from '../core/ui.js';
 import { places, films, detailLinks } from '../data/prototype.js';
 
@@ -25,7 +25,7 @@ export function attractionCardData(item) {
 export function placeCard(item) {
   const card = element('article', { className: 'place-card reveal' });
   const image = imageBlock('place-image', item.image, item.name);
-  // [S：G34／E-27] 圖片區含收藏按鈕，使用 group 避免 img 語意隱藏互動子元素。
+  // 圖片區內含收藏按鈕，所以用 role="group"；若用 img 語意會把互動子元素從無障礙樹隱藏。
   image.setAttribute('role', 'group');
   image.append(
     element('span', { className: 'place-type' }, item.type || item.category),
@@ -49,7 +49,7 @@ export function placeCard(item) {
     element('button', { type: 'button', 'data-add-stop': item.id }, '＋ 行程')
   );
   details.append(element('span', {}, '◷ ' + (item.hours || '依店家公告')), actions);
-  // [U-11／E-18] 選填內容留空時省略空段落及分隔符號，不自動補入介紹。
+  // 選填內容留空時省略空段落與分隔符號，不自動補上介紹文字。
   body.append(
     element('span', { className: 'place-area' }, [item.area, item.rating].filter(Boolean).join('　/　')),
     element('h3', {}, item.name)

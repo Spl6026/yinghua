@@ -3,7 +3,7 @@ import { element, status } from '../core/ui.js';
 import { handleAdminError } from '../core/session.js';
 import { formatUtcDateTime } from '../core/utc-display.js';
 
-// [S：E25/G25；E-36] 唯讀查詢；回應已遮罩，DOM 不保存完整個資。
+// 唯讀查詢；API 回應已遮罩個資，DOM 也不保存完整的個人資料。
 export async function initializeMemberDirectory() {
   const message = document.querySelector('#member-status'),
     rows = document.querySelector('#member-rows');

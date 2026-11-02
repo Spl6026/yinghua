@@ -6,7 +6,7 @@ const escape = value =>
     /[&<>"']/g,
     char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]
   );
-// [S：E30／SEO E17；E-28] HTML 只有一個標籤擁有者；所有動態值均編碼。
+// HTML 中每個 SEO 標籤只有一個負責寫入的地方；所有動態值都會編碼。
 export function renderSeoHead(html, context, meta = resolveSeo(context)) {
   html = html
     .replace(/<title\b[^>]*>[\s\S]*?<\/title>/gi, '')
@@ -19,7 +19,7 @@ export function renderSeoHead(html, context, meta = resolveSeo(context)) {
     )
     .replace(/<link\b[^>]*>/gi, tag => (/rel\s*=\s*["']canonical["']/i.test(tag) ? '' : tag));
   html = html.replace(/<script type="application\/json" id="public-list-seo">[\s\S]*?<\/script>/g, '');
-  // [S G31；E-34] build原型與舊graph不能疊加到真實已發布資料。
+  // 建置時的原型與舊 graph 不能疊加到實際已發布的資料上。
   html = html.replace(
     /<script\b[^>]*\btype\s*=\s*["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi,
     ''

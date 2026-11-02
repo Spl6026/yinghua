@@ -1,4 +1,4 @@
-// [E-27] 收藏狀態協調器：API／身分為明確依賴，可直接測試逾時、競態與換帳號。
+// 收藏狀態協調器：API 與目前身分都以參數注入，方便直接測試逾時、競態與切換帳號。
 export class MemberResourceState {
   constructor(api, readIdentity) {
     this.api = api;

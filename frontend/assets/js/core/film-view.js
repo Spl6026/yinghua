@@ -1,4 +1,4 @@
-// [S：功能規格 7/21；U-05／16；E-25] Node 發布與瀏覽器共用原型電影渲染。
+// Node 發布流程與瀏覽器共用原型的電影版面渲染。
 const e = value =>
   String(value ?? '').replace(
     /[&<>"']/g,
@@ -30,7 +30,7 @@ export function screeningPeriodLabel(period) {
 }
 const cover = (film, className) => {
   const url = film.image || '/assets/image-placeholder.svg';
-  // [U-05] 原型首頁與片單的海報各有不同遮色層，詳情保持原圖。
+  // 原型首頁與片單的海報各有不同的遮色層，詳情頁則維持原圖。
   const tint =
     className === 'film-art'
       ? 'linear-gradient(0deg,rgba(16,24,19,.28),rgba(16,24,19,.04)),'
@@ -87,6 +87,6 @@ export function filmDetail(film) {
       return `<div>${e(film.genre || '城市放映')}・<time datetime="${e(s.startsAt)}">${e(d.full)}　${e(d.time)}</time>${ticket ? `　<a class="text-link" href="${e(ticket)}" target="_blank" rel="noopener noreferrer">前往售票 ↗</a>` : ''}</div>`;
     })
     .join('');
-  // [U-05／S：功能規格 7/21] 沿用原型的公告段落與類型／場次資訊列；多場次逐列呈現真實資料。
+  // 沿用原型的公告段落與類型／場次資訊列；多個場次逐列呈現實際資料。
   return `<section class="section-pad detail-page">${cover(film, 'detail-cover')}<div class="detail-body"><p class="eyebrow">IMAGE MUSEUM / SCREENING</p><h1>${e(film.title)}</h1><p class="detail-lead">${e(film.synopsis).replaceAll('\n', '<br>')}</p><p>實際片單、票價與放映時間請以新竹市影像博物館公告為準。</p><div class="detail-meta film-screenings" role="group" aria-label="放映場次">${screenings || `<div>${e(film.genre || '城市放映')}・目前尚未安排場次。</div>`}</div>${film.ticketUrl && !screenings ? `<p><a class="text-link" href="${e(film.ticketUrl)}" target="_blank" rel="noopener noreferrer">前往售票 ↗</a></p>` : ''}<div class="detail-actions"><a class="button button-dark" href="/cinema.html">回到本週映演 ↗</a><a class="text-link" href="/planner.html">安排進旅行 <span>→</span></a></div></div></section>`;
 }

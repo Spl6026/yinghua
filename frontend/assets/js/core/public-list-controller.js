@@ -1,7 +1,7 @@
 import { contentPager, pageHref, fallbackContentImages } from './content-view.js';
 import { readPublicListSeo, updatePublicListSeo } from './list-seo.js';
 
-// [E-26] 消息／優惠只共用換頁、URL、競態、錯誤重試與焦點；主題呈現由呼叫端傳入。
+// 消息與優惠只共用換頁、URL、競態處理、錯誤重試與焦點管理；各主題的呈現方式由呼叫端傳入。
 export function initializePublicList({
   stateSelector,
   listSelector,

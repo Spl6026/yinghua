@@ -1,4 +1,4 @@
-// [S：功能規格 13；E-18] 初次內容由 HTML 提供，篩選與分頁使用公開 API。
+// 初次內容由靜態 HTML 提供，篩選與換頁才呼叫公開 API。
 import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 import { placeCard, attractionCardData as cardData } from '../components/content-cards.js';
@@ -49,7 +49,7 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
           grid.setAttribute('role', 'tabpanel');
           grid.setAttribute('aria-labelledby', button.id);
         }
-        // [E-18] 美食原型的分類沒有數字 span；共用載入不能因此中斷。
+        // 美食原型的分類沒有數字 span，共用載入流程不能因此中斷。
         const count = button.querySelector('span');
         if (counts && count) count.textContent = String(counts[value || 'all'] || 0).padStart(2, '0');
       });

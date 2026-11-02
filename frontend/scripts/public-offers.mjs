@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { offerCards, offerDetail } from '../assets/js/core/offer-view.js';
 import { contentPager, pageHref, jsonForHtml } from '../assets/js/core/content-view.js';
 
-// [S：功能規格 11；E-26] 預設有效列表與仍發布的歷史詳情分開處理。
+// 預設的有效優惠列表與仍在發布中的歷史詳情頁分開處理。
 export async function publishOffers(source, snapshot, page) {
   const template = await readFile(join(source, 'pages/offers.html'), 'utf8');
   const items = snapshot.offers.filter(item => item.active);

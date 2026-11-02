@@ -1,7 +1,7 @@
 import { element } from '../core/ui.js';
 import { confirmAction } from './dialog.js';
 
-// [U-10／E-21] 本次確認只屬表單命令；已保存內容的比較仍由後端政策執行。
+// 這裡的確認只影響表單送出的內容；與已保存內容的比較仍由後端規則負責。
 export function googlePlaceLink(form, container, onDetach = () => {}) {
   const place = form.elements.googlePlaceId;
   const snapshot = () =>
@@ -40,7 +40,7 @@ export function googlePlaceLink(form, container, onDetach = () => {}) {
   const stale = () => Boolean(place.value) && snapshot() !== baseline;
   function render() {
     const linked = Boolean(place.value);
-    // [U-10] 人工建立不顯示關聯區；技術識別碼及解除操作按需展開。
+    // 人工建立的景點不顯示關聯區；技術識別碼與解除關聯的操作需要時才展開。
     container.hidden = !linked;
     if (!linked) details.open = false;
     identifier.textContent = linked ? 'Place ID：' + place.value : '';

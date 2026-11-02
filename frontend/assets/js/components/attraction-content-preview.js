@@ -1,7 +1,7 @@
 import { api } from '../core/api-client.js';
 import { element } from '../core/ui.js';
 
-// [U-23／E-40] 明確按預覽才請求後端共用政策，不隨每次打字送出Google請求。
+// 按下預覽才請後端套用共用規則，不會每次打字都送出 Google 請求。
 export function attractionContentPreview(form, canPreview) {
   const host = element('details', {
     className: 'attraction-content-preview',

@@ -2,7 +2,7 @@ import { element } from '../core/ui.js';
 import { screeningStart, screeningFields } from '../core/screening-time.js';
 import { confirmAction } from './dialog.js';
 
-/** [S：功能規格 21；U-16] 編輯表單集合，按儲存才寫入；ID 與輸入不因重新編號遺失。 */
+/** 場次編輯集合：按下儲存才寫入；重新編號時不會遺失既有 ID 與輸入內容。 */
 export function screeningEditor(container, onChange = () => {}) {
   let rows = [],
     disabled = false,

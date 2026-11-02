@@ -1,4 +1,4 @@
-// [S：SEO D5–D9／E16；E-28] 純資料解析，供建置、發布與管理預覽共用。
+// 純資料的 SEO 解析邏輯，由建置、發布與後台預覽共用。
 export const seoDefaults = {
   siteName: '映畫竹塹',
   titleSuffix: '｜映畫竹塹',
@@ -29,7 +29,7 @@ export function canonicalPath(value) {
   return path + (query.size ? '?' + query : '');
 }
 
-// [S SEO E7／G33；E-34] 發布與爬蟲索引共用保護邊界，不靠robots授權。
+// 發布與爬蟲索引共用同一道保護頁邊界；私人頁面的保護不依賴 robots。
 export function isProtectedSeoPage(path, catalog = []) {
   const pathname = new URL(path, 'https://seo.invalid').pathname;
   return (

@@ -100,7 +100,7 @@ export async function initializeContentList(identity, module) {
             busy = true;
             controls();
             remove.disabled = true;
-            // [S G34；E] 公開同步與列表重載完成後，焦點移到仍存在的結果訊息。
+            // 公開同步與列表重新載入完成後，把焦點移到仍存在的結果訊息。
             try {
               const result = await service.delete(item.id, item.version);
               await load();

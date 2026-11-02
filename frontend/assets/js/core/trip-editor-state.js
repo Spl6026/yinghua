@@ -1,4 +1,4 @@
-// [S E15/G15；E-33] 草稿與已保存版本分開；所有權改變會清除私人草稿。
+// 草稿與已保存版本分開管理；登入者改變時會清除前一人的私人草稿。
 export class TripEditorState {
   constructor(api, readIdentity, newId = () => crypto.randomUUID()) {
     this.api = api;

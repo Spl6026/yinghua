@@ -92,7 +92,7 @@ export async function initializeAdmins(identity) {
               )
                 return;
               button.disabled = true;
-              // [S G34；E] 被刪除列重建後，聚焦現存結果而非消失的刪除按鈕。
+              // 列表重建後被刪除的按鈕已不存在，改為聚焦現有的結果訊息。
               try {
                 await adminApi.remove(account.id, account.version);
                 await load();

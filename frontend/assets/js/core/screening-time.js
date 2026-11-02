@@ -1,4 +1,4 @@
-// [U-16／E-25] 表單日期時間屬台北；不依操作電腦時區猜測日期。
+// 表單上的日期時間一律視為台北時間，不依操作者電腦的時區推測日期。
 export function screeningStart(date, time, index = 0) {
   if (!date && !time) return null;
   const fail = message => {

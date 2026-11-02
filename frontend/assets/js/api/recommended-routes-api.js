@@ -1,7 +1,7 @@
 import { api } from '../core/api-client.js';
 
 const base = '/api/v1/admin/routes';
-// [S H14/H24；E-32] 路線與候選景點使用 routes 權限，無須景點管理權。
+// 路線與候選景點都使用 routes 權限，不需要另外具備景點管理權。
 export const recommendedRoutesApi = {
   list: query => api(base + '?' + new URLSearchParams(query), { kind: 'admin' }),
   get: id => api(base + '/' + encodeURIComponent(id), { kind: 'admin' }),

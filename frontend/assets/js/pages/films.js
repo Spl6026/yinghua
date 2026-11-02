@@ -2,7 +2,7 @@ import { api } from '../core/api-client.js';
 import { filmRows, screeningPeriodLabel } from '../core/film-view.js';
 import { element, status } from '../core/ui.js';
 
-// [E-25] 初始內容由相同 generation 的 HTML 提供；換頁失敗不回填原型資料。
+// 初始內容由同一發布版本的 HTML 提供；換頁失敗時不回填原型資料。
 const list = document.querySelector('#cinema-list');
 const snapshot = document.querySelector('#film-publication');
 if (list && snapshot) {

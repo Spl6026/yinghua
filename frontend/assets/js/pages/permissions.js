@@ -134,7 +134,7 @@ export async function initializePermissions(identity) {
     submitForm(
       form,
       async () => {
-        // [E-14] 保存使用提交時的對象與版本；切換後不覆蓋另一人的矩陣。
+        // 保存時使用送出當下的對象與版本，避免切換對象後覆蓋到另一個人的權限矩陣。
         const destination = matrix.adminId;
         const version = matrix.version;
         const generation = loadVersion;

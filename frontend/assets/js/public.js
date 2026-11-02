@@ -1,4 +1,4 @@
-// [E-12／E-27] 共用導覽與未交付頁的展示；受管內容與會員資料交由各模組的真實 API。
+// 共用導覽與尚未串接頁面的展示；受管內容與會員資料交給各模組呼叫真實 API。
 import { memberNavigation } from './core/session.js';
 import { element, toast } from './core/ui.js';
 import { places, films, news, offers, routes } from './data/prototype.js';
@@ -14,7 +14,7 @@ import { initializeDetails } from './pages/public-details.js';
 import { mountMemberActions } from './core/member-actions.js';
 
 void memberNavigation();
-// [S：G29；U-24] 上一篇／下一篇縮圖為靜態發布 HTML，圖片失效時與主圖同樣改用替代圖，不留破圖。
+// 上一篇／下一篇的縮圖是靜態發布的 HTML；圖片載入失敗時和主圖一樣換成替代圖，不留下破圖。
 const placeholder = '/assets/image-placeholder.svg';
 function useImageFallback(image) {
   if (!image.closest?.('.article-neighbor') || image.dataset.fallback) return;

@@ -1,4 +1,4 @@
-// [U-09／E-20] 人工輸入與 Google 候選共用七天模型；不解析語系文字。
+// 人工輸入與 Google 候選共用同一個七天營業時間模型；不解析各語系的文字描述。
 export const openingWeek = [1, 2, 3, 4, 5, 6, 0];
 export const openingDayNames = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
 export function emptyOpeningHours(note = '') {

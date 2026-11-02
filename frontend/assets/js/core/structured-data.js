@@ -2,7 +2,7 @@ import { isIndexablePublication } from './seo-resolver.js';
 
 const text = value => (typeof value === 'string' ? value.trim() : '');
 
-// [S E31/G31／SEO E13；E-34] 只取可見內容白名單；不傳整份DB或SEO覆寫作正文。
+// 只從白名單取用頁面上可見的內容；不把整份資料庫內容或 SEO 覆寫值當成正文。
 function contentEntity(path, item, canonical, context) {
   if (!item) return null;
   let entity;
@@ -42,7 +42,7 @@ function contentEntity(path, item, canonical, context) {
       entity.description = text(item.description) || text(item.discount);
     if (text(item.merchant?.name))
       entity.seller = { '@type': 'Organization', name: text(item.merchant.name) };
-    // [U-01／E-34] 日期欄為台北日曆日，validTo包含當日，不造價格／庫存。
+    // 日期欄位是台北的日曆日，validTo 包含當天；不自行產生價格或庫存資訊。
     if (validDay(item.validFrom)) entity.validFrom = item.validFrom + 'T00:00:00+08:00';
     if (validDay(item.validTo)) entity.validThrough = item.validTo + 'T23:59:59+08:00';
   } else return null;

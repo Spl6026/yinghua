@@ -3,7 +3,7 @@ export function confirmAction(title, message, trigger = document.activeElement) 
   document.querySelector('#confirm-title').textContent = title;
   document.querySelector('#confirm-message').textContent = message;
   return new Promise(resolve => {
-    // [S G34／串接總覽 B15；E-29] 明確循環兩端，避免原生 Tab 導航移到瀏覽器工具列。
+    // 明確處理焦點在頭尾兩端的循環，避免原生 Tab 把焦點移到瀏覽器工具列。
     const cycleFocus = event => {
       if (event.key !== 'Tab') return;
       const buttons = [...dialog.querySelectorAll('button:not([disabled])')];

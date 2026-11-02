@@ -122,7 +122,7 @@ export async function initializeFilmList(identity) {
               const result = await filmsApi.delete(item.id, item.version);
               await load();
               status(message, result.publication.message, result.publication.status !== 'succeeded');
-              // [S G34；E] 刪除後原按鈕不再存在，焦點返回列表結果。
+              // 刪除後原按鈕已不存在，把焦點移回列表結果。
               message.focus();
             } catch (error) {
               handleAdminError(error, message);

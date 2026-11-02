@@ -1,6 +1,6 @@
 import { element } from '../core/ui.js';
 
-// [U-24] 候選卡先顯示來源；確認帶入後由共用匯入流程補齊空白欄位。
+// 候選卡先顯示資料來源；使用者確認帶入後，由共用匯入流程補齊空白欄位。
 export function renderPlaceReference(container, item) {
   container.replaceChildren();
   container.hidden = !item;

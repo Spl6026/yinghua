@@ -1,6 +1,6 @@
 import { element } from '../core/ui.js';
 
-// [S E15；原型站點卡片；E-33] 值只經textContent／input.value，不插入使用者HTML。
+// 站點卡片的值只透過 textContent／input.value 寫入，不插入使用者提供的 HTML。
 export function tripStopEditor(item, index, total, { disabled, onMove, onRemove, onEdit }) {
   const name = item.attraction?.name || item.snapshotName,
     node = element('article', { className: 'itinerary-stop' }),

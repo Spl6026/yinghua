@@ -1,7 +1,7 @@
 import { renderFontHead } from './font-head.mjs';
 import { escapeHtml } from '../assets/js/core/content-view.js';
-// [E-12／E-18] 由 PHP CLI／API 交付已驗證資料；只在前端產生 HTML。
-// 每個 generation 含完整公開投影與頁面，成功寫完後才原子切換 current。
+// 由 PHP CLI／API 提供已驗證的資料，HTML 只在前端產生。
+// 每個 generation 都包含完整的公開資料與頁面，全部寫完後才以原子操作切換 current。
 import { readFile, writeFile, mkdir, rename, symlink, rm, realpath } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -51,7 +51,7 @@ const e = value =>
 const url = item => (item.isMuseum ? '/museum.html' : `/places/${item.slug}.html`);
 const json = value =>
   JSON.stringify(value).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
-// [U-01／E-18] 資料庫保存 UTC，網站日期依台北時區顯示。
+// 資料庫保存 UTC 時間，網站上的日期依台北時區顯示。
 const localDate = value =>
   new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Taipei',
@@ -59,10 +59,10 @@ const localDate = value =>
     month: '2-digit',
     day: '2-digit',
   }).format(new Date(value));
-// [S：G34／E-27] 含收藏控制的圖片區需保留互動子元素於無障礙樹。
+// 含收藏控制的圖片區，要讓互動子元素保留在無障礙樹中。
 const image = (item, className) =>
   `<div class="${className}" data-image-url="${e(item.image)}" role="${className === 'place-image' ? 'group' : 'img'}" aria-label="${e(item.imageAlt || item.name)}" style="background-image:url(&quot;${e(item.image || '/assets/image-placeholder.svg')}&quot;)"></div>`;
-// [U-11／E-18] 選填文字不補位；與瀏覽器卡片一致，省略空段落與多餘分隔符號。
+// 選填文字不補預設內容；與瀏覽器端卡片一致，省略空段落與多餘的分隔符號。
 const card = item =>
   `<article class="place-card reveal in-view">${image(item, 'place-image').replace('</div>', () => `<span class="place-type">${e(item.typeLabel || item.category)}</span><button type="button" class="favorite-button" aria-label="收藏${e(item.name)}" aria-pressed="false" data-favorite="${e(item.id)}">♡</button></div>`)}<div class="place-body"><span class="place-area">${[item.district, item.recommendationLabel || '在地推薦'].filter(Boolean).map(e).join('　/　')}</span><h3>${e(item.name)}</h3>${item.summary ? `<p>${e(item.summary)}</p>` : ''}<div class="place-details"><span>◷ ${e(item.hours || '依店家公告')}</span><span class="place-actions"><a href="${e(url(item))}">看介紹 ↗</a><button type="button" data-add-stop="${e(item.id)}">＋ 行程</button></span></div></div></article>`;
 const templates = Object.fromEntries(
@@ -340,13 +340,13 @@ if (!existing) {
         /(<div class="cinema-list" id="cinema-list">)[\s\S]*?(<\/div>)/,
         (_, open, close) => open + filmRows(filmItems.slice(0, 20)) + close
       )
-      // [S E7／L7；E-29] 依穩定欄位更新週期，保留語言標示，不依賴原型純文字。
+      // 以穩定的 id 定位並更新放映週期，保留英文的語言標示，不依賴原型的純文字內容。
       .replace(
         /(<p\b[^>]*\bid="film-period"[^>]*>)[\s\S]*?(<\/p>)/,
         (_, open, close) => `${open}<bdi lang="en">THIS WEEK</bdi> · ${e(weekLabel)}${close}`
       )
       .replace('※ 場次為示意資料', '實際放映資訊請以最新公告為準。');
-    // [S：串接總覽 B7／E6/L6；E-29] 與館舍詳情共用同一快照和週表，不另存開放時間。
+    // 與館舍詳情共用同一份快照與週表，不另外保存開放時間。
     const visit = museum
       ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${e(museum.name)}</h2><p>${[
           museum.address,
@@ -365,7 +365,7 @@ if (!existing) {
       '本週映演｜映畫竹塹',
       '查看影像博物館本週放映日期、時間、電影介紹與海報。'
     );
-    // [U-05] 採原型電影專用頁殼，保留「本週映演」導覽，不沿用城市散策頁。
+    // 電影頁採用原型的電影專用頁殼，保留「本週映演」導覽，不沿用城市散策頁。
     const filmTemplate = await readFile(join(source, 'pages/films/window-sunday.html'), 'utf8');
     for (const film of snapshot.films) {
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(film.slug)) throw new Error('Invalid film slug');
@@ -410,7 +410,7 @@ if (!existing) {
       () =>
         `<script type="application/json" id="home-publication">${json({ ...snapshot.home, generation: snapshot.generation })}</script></body>`
     );
-  // [U-24] 與原型及後台 SEO 目錄同一標題；舊字串以品牌開頭又被加後綴，造成「映畫竹塹」重複。
+  // 與原型及後台 SEO 目錄使用同一個標題；舊字串以品牌開頭又被加上後綴，會讓「映畫竹塹」重複出現。
   await page(
     '/index.html',
     home,
@@ -431,7 +431,7 @@ if (!existing) {
     '/site-map.html',
     false
   );
-  // [E-28] 新增的非內容固定公開頁也進同一 generation；保護頁使用安全靜態 shell。
+  // 非內容型的固定公開頁也放進同一個 generation；保護頁使用安全的靜態 shell。
   const managedPaths = new Set([
     '/index.html',
     '/explore.html',
@@ -457,7 +457,7 @@ if (!existing) {
     }
     await page(entry.path, html, entry.title, entry.description, undefined, entry.path, false);
   }
-  // [S E33/G33；E-34] 索引與HTML全部成功才啟用；不掃dist或舊generation。
+  // 索引與 HTML 全部成功才啟用此版本；不掃描 dist 或舊的 generation。
   const canonicalOrigin = snapshot.seo?.defaults?.canonicalOrigin || snapshot.origin;
   for (const [name, xml] of buildSitemaps(indexEntries, canonicalOrigin))
     await writeFile(join(root, name), xml);

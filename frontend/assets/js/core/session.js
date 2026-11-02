@@ -3,7 +3,7 @@ import { routes } from './routes.js';
 import { element, initializeMenus, toast } from './ui.js';
 import { recoverSession } from './session-expiry.js';
 
-// [E-04] 僅允許已建置的站內頁面；不把 query 直接當 redirect URL。
+// 只允許導向已建置的站內頁面，不把 query 直接當成 redirect URL，避免開放式重導向。
 export function returnTo(kind, fallback = kind === 'admin' ? '/admin/index.html' : '/index.html') {
   const value = new URLSearchParams(location.search).get('returnTo');
   if (!value || !value.startsWith('/') || value.startsWith('//') || /[\\\x00-\x1f]/.test(value))
@@ -26,7 +26,7 @@ export function loginLocation(kind) {
   return base + '?returnTo=' + encodeURIComponent(location.pathname + location.search);
 }
 
-// [U-13／E-04] 已登入者離開登入／註冊頁，不增加首次登入改密碼門檻。
+// 已登入者離開登入／註冊頁時，不額外加上首次登入必須改密碼的門檻。
 export async function redirectAuthenticated(kind = 'member') {
   try {
     const identity = await authApi(kind).me();
@@ -46,7 +46,7 @@ export function hasPermission(identity, module, action) {
   );
 }
 
-// [S E27／E-14] 檢視與新增互相獨立；共用登入、側欄與表單離開位置，不擴大 API 權限。
+// 檢視與新增權限各自獨立；共用登入、側欄與表單離開位置，但不擴大 API 權限。
 const adminPages = {
   dashboard: ['index'],
   attractions: ['places', 'place-add', 'place-edit', '⌖　新增景點'],
@@ -138,7 +138,7 @@ export async function memberNavigation() {
       }
     });
     node.append(button);
-    // [U-24] 手機寬度把會員連結放進漢堡選單，避免與品牌標誌擠在 65px 頁首而折行。
+    // 手機寬度時把會員連結放進漢堡選單，避免在 65px 高的頁首和品牌標誌擠在一起而折行。
     const navigation = document.querySelector('#primary-nav');
     if (navigation) {
       navigation.querySelector('.nav-account')?.remove();

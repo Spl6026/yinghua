@@ -1,4 +1,4 @@
-// [S：功能規格 13/19/20；D：API草案；E-18] 正式景點／媒體／解析共用介面。
+// 景點、媒體與地圖網址解析共用的 API 介面。
 import { api } from '../core/api-client.js';
 const base = '/api/v1/admin/attractions';
 export const attractionsApi = {

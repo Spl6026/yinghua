@@ -4,7 +4,7 @@ import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, formErrors, unsavedChanges } from '../core/ui.js';
 import { seoField, seoPanel } from '../components/seo-fields.js';
 
-// [S：E28/G28；E-36] 與 SEO 共用名稱／摘要；不同文件有獨立衝突保護。
+// 網站名稱與摘要和 SEO 設定共用，但兩份文件各自有獨立的衝突保護。
 export async function initializeGeneralSettings(identity) {
   const form = document.querySelector('#general-settings-form'),
     message = document.querySelector('#general-status');
@@ -122,7 +122,7 @@ export async function initializeGeneralSettings(identity) {
       for (const input of fields.values()) input.disabled = !writable;
     }
   });
-  // [U-24] 兩區共用網站名稱／摘要與版本；SEO 區儲存後，一般區若無未存修改即自動重讀，避免下次儲存被誤判為他人更新。
+  // 兩區共用網站名稱、摘要與版本號；SEO 區儲存後，若一般區沒有未存的修改就自動重讀，避免下次儲存被誤判為他人更新。
   document.addEventListener('settings-section-saved', event => {
     if (event.detail?.section !== 'general' && !dirty && !busy) void load();
   });

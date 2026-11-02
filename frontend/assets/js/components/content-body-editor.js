@@ -1,7 +1,7 @@
 import { element, status } from '../core/ui.js';
 import { escapeHtml } from '../core/content-view.js';
 
-// [S G10/G22；E-31] 原生工具列只協助編輯；伺服器Sanitizer仍是唯一安全邊界。
+// 原生工具列只是輔助編輯；真正的安全邊界仍是伺服器端的 HTML Sanitizer。
 export function initializeContentBodyEditor(form, service, module, available, setBusy, changed) {
   const input = form.elements.body;
   if (!input) return;

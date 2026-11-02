@@ -1,7 +1,7 @@
 import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 
-// [U：行程操作改善；E-37] 原頁選地點，不導航離開或丟棄尚未儲存的編排。
+// 在原頁面選擇地點，不導航離開，也不丟棄尚未儲存的行程編排。
 export function attractionPicker(host, { onChoose, isSelected, isDisabled }) {
   const panel = element('section', {
     className: 'trip-place-picker',

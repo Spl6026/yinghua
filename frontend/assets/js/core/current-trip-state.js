@@ -1,4 +1,4 @@
-// [E-27] 目前行程只管理已保存版本；不在 localStorage 建立另一份資料。
+// 目前行程只管理伺服器上已保存的版本，不在 localStorage 另存一份。
 export class CurrentTripState {
   constructor(api, readIdentity) {
     this.api = api;
@@ -66,7 +66,7 @@ export class CurrentTripState {
       this.nextCursor = null;
       return result;
     } catch (error) {
-      // 409 必須重讀；網路逾時不能假設伺服器沒有保存。
+      // 409 代表版本衝突，必須重新讀取；網路逾時則不能假設伺服器沒有保存。
       if (error.status === 409 || error.status === 0 || error.status === 401) this.reset();
       throw error;
     } finally {

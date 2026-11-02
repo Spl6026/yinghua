@@ -1,6 +1,6 @@
 import { escapeHtml } from '../assets/js/core/content-view.js';
 
-// [S：G16/G28；E-36] 純文字政策永不當作 HTML 執行；後台未填時保留頁面預設條款（U-25 改為面向大眾的預設文案）。
+// 純文字政策內容絕不當作 HTML 執行；後台未填寫時保留頁面預設、面向大眾的條款文案。
 export function renderPolicyVersion(html, version = '2026-11-02', general) {
   html = html.replaceAll('{{TERMS_VERSION}}', () => escapeHtml(version));
   const kind = html.includes('data-policy-kind="terms"')

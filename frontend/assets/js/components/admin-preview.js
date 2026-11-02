@@ -2,7 +2,7 @@ import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 import { handleAdminError } from '../core/session.js';
 
-// [U-06／E-16] 原版左下選單，資料與切換皆由 API 提供；不儲存假身分。
+// 沿用原版左下角的身分預覽選單；資料與切換都由 API 提供，前端不保存假身分。
 export async function initializeAdminPreview(identity) {
   const preview = identity.preview;
   if (!identity.admin.isRoot && !preview?.active) return;

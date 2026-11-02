@@ -25,7 +25,7 @@ import { initializeRouteList } from './pages/route-list.js';
 import { initializeRouteForm } from './pages/route-form.js';
 
 initializeMenus();
-// [U-24] 瀏覽器原生驗證攔下下一次送出時，清掉上一輪伺服器錯誤，避免畫面同時顯示已過時的錯誤。
+// 瀏覽器原生驗證攔下下一次送出時，先清掉上一輪的伺服器錯誤，避免畫面同時出現過時的錯誤。
 document.addEventListener(
   'invalid',
   event => {

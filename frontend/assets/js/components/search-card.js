@@ -1,6 +1,6 @@
 import { element } from '../core/ui.js';
 
-// [S E18/L18；E-35] 沿原型search-hit結構的純卡片，不載入示範陣列。
+// 沿用原型 search-hit 結構的純呈現卡片，不載入示範資料陣列。
 export function searchCard(item, label) {
   const card = element('article', { className: 'route-card search-hit' });
   card.append(

@@ -10,7 +10,7 @@ function safeLink(value) {
   }
 }
 
-// [U-23／E-40] 原文只留在目前DOM；不覆寫網站介紹、SEO或任何儲存欄位。
+// Google 原文只顯示在目前的 DOM，不覆寫網站介紹、SEO 或任何儲存欄位。
 export async function loadGoogleSummary(host, fetcher = api) {
   host.setAttribute('aria-live', 'polite');
   host.setAttribute('aria-busy', 'true');

@@ -1,6 +1,6 @@
 import { renderFontHead } from './font-head.mjs';
 import { homeErrorView } from './home-error-view.mjs';
-// [E-12] 固定 HTML 在前端建置時組合；PHP 不輸出任何畫面。
+// 固定 HTML 頁面在前端建置時組合，PHP 不輸出任何畫面。
 import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,7 +31,7 @@ async function pages(directory) {
   return result;
 }
 const routes = [];
-// [U-05／E-29] 內容新增／編輯頁保留原型的上方返回列表；其他後台仍查看網站。
+// 內容新增／編輯頁保留原型上方的「返回列表」連結，其他後台頁則維持「查看網站」。
 const adminBackLinks = {
   'admin/route-add.html': ['/admin/routes.html', '← 返回推薦行程'],
   'admin/route-edit.html': ['/admin/routes.html', '← 返回推薦行程'],
@@ -44,7 +44,7 @@ const adminBackLinks = {
   'admin/film-add.html': ['/admin/films.html', '← 返回本週映演'],
   'admin/film-edit.html': ['/admin/films.html', '← 返回本週映演'],
 };
-// [U-03 / E-12] 保留原型各頁導覽的 active 樣式；food/search/auth 原版沒有選中項目。
+// 保留原型各頁導覽的 active 樣式；food、search、auth 原版本來就沒有選中項目。
 const navigationSections = {
   '/explore.html': ['explore.html', 'museum.html', 'place-detail.html', 'places/'],
   '/cinema.html': ['cinema.html', 'film-detail.html', 'films/'],
@@ -58,7 +58,7 @@ for (const source of await pages(join(root, 'pages'))) {
   if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
   }
-  // [U-24／E-43] 一致性樣式最後載入，統一各階段樣式表遺留的字級與欄位高度差異。
+  // 一致性樣式最後載入，用來統一各樣式表遺留的字級與欄位高度差異。
   if (!html.includes('/assets/css/ui-consistency.css')) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/ui-consistency.css">\n</head>');
   }
@@ -102,7 +102,7 @@ for (const source of await pages(join(root, 'pages'))) {
   html = html.replace(/<input\b[^>]*type="password"[^>]*>/g, match =>
     match.replace(/\s(?:minlength|maxlength)="\d+"/g, '')
   );
-  // [S：SEO E7/E17；E-28] 固定／保護頁與發布頁共用 head，任何 query 均不含私人資料。
+  // 固定頁、保護頁與發布頁共用同一套 head；任何 query 都不含私人資料。
   html = renderSeoHead(html, {
     path: '/' + route,
     title: html.match(/<title>([^<]*)<\/title>/)?.[1],
@@ -113,14 +113,14 @@ for (const source of await pages(join(root, 'pages'))) {
   if (html.includes('{{')) throw new Error(`Unresolved template: ${route}`);
   const target = join(output, route);
   await mkdir(dirname(target), { recursive: true });
-  // [S G34／B15；E-29] 各頁共用期限監看；API 事件可在入口載入前暫存於記憶體。
+  // 各頁共用登入期限監看；API 事件可以在入口程式載入前先暫存在記憶體。
   html = renderFontHead(html);
   html = html.replace(
     '</body>',
     '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
   );
   await writeFile(target, annotateEnglishPassages(html));
-  // [S G5；E] 內部503回應資產，不列入固定公開頁／sitemap／正常發布資料。
+  // 內部使用的 503 回應頁資產，不列入固定公開頁、sitemap 或正常發布資料。
   if (route === 'index.html')
     await writeFile(join(output, 'home-unavailable.response'), annotateEnglishPassages(homeErrorView(html)));
   routes.push(`/${route}`);
@@ -131,6 +131,6 @@ await writeFile(
   join(output, 'assets/js/core/routes.js'),
   `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`
 );
-// [S E33；E-34] 真robots由成功publication供應；build不放過時sitemap網址。
+// 真正的 robots.txt 由成功的發布版本提供；建置階段不放入可能過時的 sitemap 網址。
 await writeFile(join(output, 'robots.txt'), 'User-agent: *\nDisallow: /admin/\n');
 console.log(`Built ${routes.length} HTML routes with shared templates.`);

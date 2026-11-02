@@ -1,6 +1,6 @@
 import { api } from '../core/api-client.js';
 const base = '/api/v1/me/itineraries';
-// [S H15；E-33] 本人資源只由session辨識，沒有memberId輸入。
+// 本人行程只由 session 辨識身分，所以 API 不接受 memberId 參數。
 export const itinerariesApi = {
   list: (page = 1) => api(base + '?' + new URLSearchParams({ page: String(page), pageSize: '20' })),
   get: id => api(base + '/' + encodeURIComponent(id)),

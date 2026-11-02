@@ -1,4 +1,4 @@
-// [E-29] 使用相對的單調時鐘；不受使用者電腦時鐘與伺服器時區差異影響。
+// 使用相對的單調時鐘計算期限，不受使用者電腦時鐘或伺服器時區差異影響。
 export class SessionDeadline {
   constructor(now = () => performance.now()) {
     this.now = now;

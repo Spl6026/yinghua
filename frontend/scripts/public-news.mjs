@@ -1,4 +1,4 @@
-// [S：功能規格 9；E-17／26] 各分類所有頁均由成功快照產生，query 重整不退回第一頁。
+// 每個分類的所有頁面都從成功的快照產生，重新整理帶 query 的網址時不會退回第一頁。
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import {

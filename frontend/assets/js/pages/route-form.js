@@ -3,7 +3,7 @@ import { hasPermission, handleAdminError, adminDestination } from '../core/sessi
 import { element, status, formErrors, submitForm, unsavedChanges, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 
-// [S E24/G24；E-32] 陣列次序是站點順序；按鈕同時支援滑鼠與鍵盤，無需拖曳。
+// 陣列順序就是站點順序；排序按鈕同時支援滑鼠與鍵盤，不需要拖曳。
 export async function initializeRouteForm(identity, page) {
   const form = document.querySelector('#route-form'),
     message = document.querySelector('#route-form-status');

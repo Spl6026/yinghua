@@ -22,10 +22,10 @@ export async function initializeAdminForm(identity, page) {
   let loaded = creating;
   const readOnly = Boolean(identity.preview?.active);
   const save = form.querySelector('[type="submit"]');
-  // [E-14] 固定管理員會以保護說明取代表單；先保留控制項參照，避免讀取已移除節點。
+  // 固定管理員會以保護說明取代表單，所以先保留控制項參照，避免讀取已被移除的節點。
   const reload = document.querySelector('#reload-admin');
   const message = form.querySelector('.form-status');
-  // [E-14] 讀取失敗、重試與保存共用狀態；不能靠 finally 無條件開啟保存。
+  // 讀取失敗、重試與保存共用同一個狀態；不能在 finally 裡無條件重新開放保存。
   function updateControls() {
     save.disabled = readOnly || loading || saving || !loaded;
     form.querySelectorAll('input,select').forEach(input => {
@@ -39,13 +39,13 @@ export async function initializeAdminForm(identity, page) {
   });
   async function load() {
     if (creating) return;
-    // [U-25] 缺少編號時直接說明，不呈現底層 API 錯誤。
+    // 網址缺少編號時直接說明，不顯示底層的 API 錯誤。
     if (!id) {
       status(message, '找不到要編輯的管理員，請返回清單重新開啟。', true);
       return;
     }
     const generation = ++loadVersion;
-    // [E-14] 只採用最後一次讀取，避免較慢的舊回應覆蓋新版本。
+    // 只採用最後一次讀取的結果，避免較慢的舊回應覆蓋新資料。
     loading = true;
     loaded = false;
     updateControls();
@@ -63,7 +63,7 @@ export async function initializeAdminForm(identity, page) {
       version = admin.version;
       loaded = true;
       dirty = false;
-      // [E-14] 新資料已取代草稿，舊欄位錯誤也須清除。
+      // 新資料已取代草稿，舊的欄位錯誤也要一併清除。
       formErrors(form, { fieldErrors: {} });
       status(message, '資料已載入。');
     } catch (error) {

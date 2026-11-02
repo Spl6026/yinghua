@@ -1,6 +1,6 @@
 import { element } from '../core/ui.js';
 
-// [D：C20；E-27] 私有快照以文字輸出；下架後不從草稿重建地點資訊。
+// 私人行程快照以純文字輸出；地點下架後不從草稿重建地點資訊。
 export function memberItineraryStop(item, index, disabled = false) {
   const node = element('article', { className: 'itinerary-stop' });
   const info = element('div', { className: 'stop-info' });

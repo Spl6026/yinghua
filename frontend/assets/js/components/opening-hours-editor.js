@@ -1,7 +1,7 @@
 import { element } from '../core/ui.js';
 import { emptyOpeningHours, openingWeek, openingDayNames } from '../core/opening-hours.js';
 
-// [U-09／E-20] 單一編輯器處理手動建檔、讀回及 Google 候選；最後規則由 API 驗證。
+// 同一個編輯器處理手動建檔、讀回已存資料及套用 Google 候選；最終規則仍由 API 驗證。
 export function openingHoursEditor(container) {
   let disabled = false;
   const rows = new Map();

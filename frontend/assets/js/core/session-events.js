@@ -1,4 +1,4 @@
-// [S G34／B15；E-29] 僅在記憶體保存期限與本人識別；不保存密碼、Cookie 或 token。
+// 只在記憶體中保存登入期限與本人識別資訊；不保存密碼、Cookie 或 token。
 const sessions = new Map();
 const listeners = new Set();
 const epochs = new Map();

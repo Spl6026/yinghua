@@ -1,6 +1,6 @@
 import { api } from '../core/api-client.js';
 
-// [S H22/H23；E-31] 只有兩個明確主題，不能以任意名稱組裝管理端點。
+// 只接受兩個明確的主題，避免用任意名稱組出管理端點。
 export function contentAdminApi(module) {
   if (!['news', 'offers'].includes(module)) throw new Error('不支援的內容模組。');
   const base = '/api/v1/admin/' + module;

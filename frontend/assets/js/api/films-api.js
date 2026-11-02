@@ -1,4 +1,4 @@
-// [S：功能規格 21；E-25] 電影 API；媒體沿用同一受控上傳端點。
+// 電影 API；媒體上傳沿用同一個受控的上傳端點。
 import { api } from '../core/api-client.js';
 const base = '/api/v1/admin/films';
 export const filmsApi = {
