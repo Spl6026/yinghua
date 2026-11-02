@@ -19,9 +19,23 @@ class NodeContentRenderer implements ContentRenderer
         $this->directory = $config->string('PUBLICATION_PATH', '/var/www/publication');
     }
 
+    /** 正式映像建置時預先算好的版本；映像內的原始檔不會再變，不必每次請求重新雜湊。 */
+    public const PRECOMPUTED_VERSION_FILE = '.renderer-version';
+
     public function version(): string
     {
         $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
+        $precomputed = @file_get_contents($source . '/' . self::PRECOMPUTED_VERSION_FILE);
+        if (is_string($precomputed) && preg_match('/^[a-f0-9]{64}$/', trim($precomputed)) === 1) {
+            return trim($precomputed);
+        }
+
+        return $this->computeVersion($source);
+    }
+
+    /** 依發布相關檔案的內容計算版本；開發環境每次重新計算，改檔後立即生效。 */
+    public function computeVersion(string $source): string
+    {
         // 發布結果由這些目錄的檔案決定：發布腳本、頁面與共用模板、SEO 目錄，以及前端資產。
         // 發布頁引用的 CSS／JS 網址帶有依 assets/ 內容算出的版本號，所以任何資產改動都要重新發布；
         // 字型檔名本身就是版本，不納入。逐一掃描整個目錄，新增檔案時不必再回來維護清單。

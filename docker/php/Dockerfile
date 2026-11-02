@@ -111,6 +111,8 @@ COPY backend/database ./database
 COPY backend/resources/openapi.json backend/resources/role-templates.json ./resources/
 COPY --from=release-frontend /release/frontend /var/www/frontend-source
 COPY --from=release-frontend /release/release.json /var/www/release.json
+# 映像內的前端原始檔不會再變，發布版本雜湊在建置時算一次，執行期直接讀取。
+RUN php bin/renderer-version.php /var/www/frontend-source
 CMD ["php-fpm"]
 
 FROM nginx:1.30.6-alpine-slim@sha256:d9322bba63c6cfc63dc9e86522fd4f95fd4d9020a02b5bced282bbf38b8c3960 AS release-web

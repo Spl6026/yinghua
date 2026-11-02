@@ -13,3 +13,4 @@ __pycache__/
 *.inspect.ndjson
 !website/映畫竹塹_後台工程串接功能規格.xlsx.inspect.ndjson
 *.log
+frontend/.renderer-version
