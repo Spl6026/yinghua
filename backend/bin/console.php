@@ -135,6 +135,11 @@ try {
                     if (!$publication->tick()) {
                         fwrite(STDERR, "Publication pending; retrying.\n");
                     }
+                } catch (PDOException $error) {
+                    // 資料庫重新啟動後，這個長駐程序手上的連線就失效了，之後每一輪都會失敗。
+                    // 直接結束，讓容器的 restart 策略重新啟動並建立新連線。
+                    fwrite(STDERR, "Publication worker lost its database connection; exiting so it restarts.\n");
+                    exit(1);
                 } catch (Throwable $error) {
                     fwrite(STDERR, 'Publication worker (' . $error::class . ").\n");
                 }
