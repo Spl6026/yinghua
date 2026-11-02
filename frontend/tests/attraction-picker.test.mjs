@@ -4,10 +4,15 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { apiModules } from './support/api-modules.mjs';
 const source = (
-  await readFile(new URL('../assets/js/components/attraction-picker.js', import.meta.url), 'utf8')
+  await Promise.all(
+    ['core/paged-list.js', 'components/attraction-picker.js'].map(path =>
+      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
+    )
+  )
 )
+  .join('\n')
   .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace('export function', 'function');
+  .replace(/\bexport /g, '');
 class Node {
   constructor() {
     this.children = [];

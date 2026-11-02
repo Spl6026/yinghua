@@ -7,8 +7,8 @@ import { apiModules } from './support/api-modules.mjs';
 
 const code = (
   await Promise.all(
-    ['core/ui.js', 'core/content-view.js', 'core/film-view.js', 'pages/films.js'].map(path =>
-      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
+    ['core/ui.js', 'core/content-view.js', 'core/film-view.js', 'core/paged-list.js', 'pages/films.js'].map(
+      path => readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
     )
   )
 ).map(text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));

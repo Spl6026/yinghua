@@ -4,9 +4,16 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { apiModules } from './support/api-modules.mjs';
 
-const source = (await readFile(new URL('../assets/js/pages/attractions.js', import.meta.url), 'utf8'))
+const source = (
+  await Promise.all(
+    ['core/paged-list.js', 'pages/attractions.js'].map(path =>
+      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
+    )
+  )
+)
+  .join('\n')
   .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace(/^export .*;\r?\n/gm, '');
+  .replace(/\bexport /g, '');
 const template = await readFile(new URL('../pages/food.html', import.meta.url), 'utf8');
 const settle = () => new Promise(resolve => setImmediate(resolve));
 

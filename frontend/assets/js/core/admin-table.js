@@ -3,58 +3,7 @@
 import { element, status } from './ui.js';
 import { hasPermission, handleAdminError } from './session.js';
 import { confirmAction } from '../components/dialog.js';
-
-/**
- * 只保留最後一次請求的分頁讀取：較慢的舊回應不會蓋掉較新的結果；
- * 目前頁碼超過總頁數（例如刪掉最後一頁唯一一筆）時自動退回最後一頁再讀一次。
- */
-export function createPagedList({ fetchPage, render, onError, onBusy = () => {}, pageSize = 20 }) {
-  const state = { page: 1, total: 0, pageSize, busy: false };
-  let generation = 0;
-  async function load() {
-    const request = ++generation;
-    state.busy = true;
-    onBusy(state);
-    try {
-      const result = await fetchPage({ page: state.page, pageSize: state.pageSize });
-      if (request !== generation) return;
-      state.total = result.total;
-      state.pageSize = result.pageSize || state.pageSize;
-      const lastPage = Math.max(1, Math.ceil(state.total / state.pageSize));
-      if (state.page > lastPage) {
-        state.page = lastPage;
-        await load();
-        return;
-      }
-      render(result, state);
-    } catch (error) {
-      if (request === generation) onError(error);
-    } finally {
-      if (request === generation) {
-        state.busy = false;
-        onBusy(state);
-      }
-    }
-  }
-  return {
-    state,
-    load,
-    // 篩選條件改變時回到第一頁。
-    reset() {
-      state.page = 1;
-      return load();
-    },
-    goTo(page) {
-      if (state.busy) return;
-      const lastPage = Math.max(1, Math.ceil(state.total / state.pageSize));
-      if (page < 1 || page > lastPage) return;
-      state.page = page;
-      return load();
-    },
-    hasPrevious: () => state.page > 1,
-    hasNext: () => state.page * state.pageSize < state.total,
-  };
-}
+import { createPagedList } from './paged-list.js';
 
 /** 發布狀態的顯示文字，所有內容列表用同一套用語。 */
 export function publicationLabel(item, now = Date.now()) {
