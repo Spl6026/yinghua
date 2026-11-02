@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
+use Yinghua\Support\UtcDateTime;
+
 readonly class PreparedImport
 {
     /** @param list<string> $warnings */
@@ -29,7 +31,7 @@ readonly class PreparedImport
         $values = ['id' => $this->item->id,...$this->item->values];
         $publish = $this->input->fields['publish_at'] ?? null;
         if ($this->creating && is_string($publish)) {
-            $values['publishAt'] = str_replace(' ', 'T', $publish) . '+00:00';
+            $values['publishAt'] = UtcDateTime::iso($publish);
         }
         return $values;
     }

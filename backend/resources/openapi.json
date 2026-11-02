@@ -20454,12 +20454,6 @@
               "null"
             ]
           },
-          "mustChangePassword": {
-            "type": "boolean",
-            "deprecated": true,
-            "const": false,
-            "description": "U-13：舊欄位保留相容，固定為 false，不再有首登門檻。"
-          },
           "version": {
             "type": "integer",
             "minimum": 1
@@ -20478,7 +20472,6 @@
           "status",
           "isRoot",
           "roleId",
-          "mustChangePassword",
           "version",
           "permissionsVersion"
         ]
@@ -21512,9 +21505,6 @@
           "imageLicense": {
             "type": "string"
           },
-          "legacyImage": {
-            "type": "string"
-          },
           "recommendationLabel": {
             "type": "string",
             "maxLength": 80
@@ -21576,7 +21566,6 @@
           "imageAlt",
           "imageSource",
           "imageLicense",
-          "legacyImage",
           "recommendationLabel",
           "openingHours",
           "phone",

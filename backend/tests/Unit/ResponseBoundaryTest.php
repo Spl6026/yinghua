@@ -27,7 +27,6 @@ class ResponseBoundaryTest extends TestCase
             'active',
             false,
             $kind === IdentityKind::Admin ? 'viewer' : null,
-            false,
             2,
             3,
             'internal-deleted-at',
@@ -37,7 +36,7 @@ class ResponseBoundaryTest extends TestCase
     public function testAccountSummaryDoesNotRetainInternalAccountOrSecrets(): void
     {
         $summary = AccountSummary::fromAccount($this->account(IdentityKind::Admin));
-        self::assertSame(['id', 'kind', 'account', 'email', 'displayName', 'status', 'isRoot', 'roleId', 'mustChangePassword', 'version', 'permissionsVersion'], array_keys($summary->toArray()));
+        self::assertSame(['id', 'kind', 'account', 'email', 'displayName', 'status', 'isRoot', 'roleId', 'version', 'permissionsVersion'], array_keys($summary->toArray()));
         foreach (get_object_vars($summary) as $value) {
             self::assertNotInstanceOf(Account::class, $value);
         }

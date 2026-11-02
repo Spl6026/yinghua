@@ -118,7 +118,7 @@ def main():
     check('server HTML canonical and SEO',f'rel="canonical" href="{ORIGIN}/places/{prefix}.html"' in html and 'property="og:url"' in html)
     check('published image anonymous',raw(guest,media['url'])[0]==200)
     check('old version rejected',root.call('PUT',path,update)[0]==409)
-    check('public projection omits admin fields',all(key not in guest.call('GET','/api/v1/attractions/'+prefix)[1]['attraction'] for key in ['status','deletedAt','googlePlaceId','legacyImage']))
+    check('public projection omits admin fields',all(key not in guest.call('GET','/api/v1/attractions/'+prefix)[1]['attraction'] for key in ['status','deletedAt','googlePlaceId']))
     update.update(version=item['version'],slug=prefix+'-renamed',name='已改名景點 '+prefix)
     item,result=write(root,update,identifier)
     # urllib 會跟著永久 301 轉址，最終位置必須指向新的 slug。

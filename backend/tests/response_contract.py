@@ -7,7 +7,7 @@ from api_integration import Client, ROOT, admin_body, challenge, fixture, passwo
 
 
 SUMMARY = {'id', 'kind', 'account', 'email', 'displayName', 'status', 'isRoot', 'roleId',
-           'mustChangePassword', 'version', 'permissionsVersion'}
+           'version', 'permissionsVersion'}
 checks = []
 
 

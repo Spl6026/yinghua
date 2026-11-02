@@ -8,6 +8,7 @@ use Yinghua\DTO\FilmScreening;
 use Yinghua\DTO\ScreeningInput;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Support\Secrets;
+use Yinghua\Support\UtcDateTime;
 
 /** 電影場次的存取；與電影主檔共用同一個 PDO，一起參與同一筆交易。 */
 class FilmScreeningRepository
@@ -36,7 +37,7 @@ class FilmScreeningRepository
             $ticket = $row->string('ticket_url');
             $result[$row->string('film_id')][] = new FilmScreening(
                 $row->string('id'),
-                str_replace(' ', 'T', $row->string('starts_at')) . '+00:00',
+                UtcDateTime::iso($row->string('starts_at')),
                 $ticket,
                 $ticket !== '' ? $ticket : $row->string('default_ticket'),
             );

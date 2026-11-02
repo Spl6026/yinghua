@@ -39,13 +39,12 @@ return static function (
             $kind,
             $auth->logout(...),
             true,
-            allowPasswordChange: true,
             allowPreviewControl: true,
         ));
-        $router->add(new Route('GET', $prefix . 'me', $kind, $auth->me(...), true, allowPasswordChange: true, allowPreviewControl: true));
+        $router->add(new Route('GET', $prefix . 'me', $kind, $auth->me(...), true, allowPreviewControl: true));
         $router->add(new Route('POST', $prefix . 'forgot-password', $kind, $auth->forgotPassword(...)));
         $router->add(new Route('POST', $prefix . 'reset-password', $kind, $auth->resetPassword(...)));
-        $router->add(new Route('POST', $prefix . 'change-password', $kind, $auth->changePassword(...), true, allowPasswordChange: true));
+        $router->add(new Route('POST', $prefix . 'change-password', $kind, $auth->changePassword(...), true));
     }
     $router->add(new Route('GET', '/api/v1/auth/captcha', IdentityKind::Member, $auth->captcha(...)));
     $router->add(new Route('POST', '/api/v1/auth/captcha/email', IdentityKind::Member, $auth->emailCaptcha(...)));

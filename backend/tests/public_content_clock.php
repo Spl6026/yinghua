@@ -8,6 +8,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Yinghua\Adapters\NodeContentRenderer;
 use Yinghua\Config;
 use Yinghua\Contracts\Clock;
+use Yinghua\Contracts\Transactions;
 use Yinghua\DTO\MerchantInput;
 use Yinghua\DTO\NewsInput;
 use Yinghua\DTO\OfferInput;
@@ -19,11 +20,17 @@ use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\Database;
 use Yinghua\Repositories\FilmRepository;
 use Yinghua\Repositories\FilmScreeningRepository;
+use Yinghua\Repositories\GeneralSettingsRepository;
 use Yinghua\Repositories\MerchantRepository;
 use Yinghua\Repositories\NewsRepository;
 use Yinghua\Repositories\OfferRepository;
 use Yinghua\Repositories\PublicationRepository;
+use Yinghua\Repositories\RecommendedRouteRepository;
+use Yinghua\Repositories\SearchRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Services\ContentPublication;
+use Yinghua\Services\SeoPublication;
 use Yinghua\Services\PublicOffers;
 use Yinghua\Support\Secrets;
 
@@ -70,6 +77,16 @@ try {
         $clock,
         $news,
         $offers,
+        new SeoPublication(new SeoSettingsRepository($db), new SeoOverrideRepository($db)),
+        new RecommendedRouteRepository($db),
+        // 外層測試交易最後會回滾，搜尋索引寫入直接沿用該交易，不另開巢狀交易。
+        new SearchRepository($db, new class implements Transactions {
+            public function run(callable $operation): mixed
+            {
+                return $operation();
+            }
+        }),
+        new GeneralSettingsRepository($db),
     );
     $public = new PublicOffers($publication);
     $clock->value = (int) strtotime('2026-10-22T23:59:59+08:00');

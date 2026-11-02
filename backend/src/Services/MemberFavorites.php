@@ -11,6 +11,7 @@ use Yinghua\DTO\FavoriteWriteResult;
 use Yinghua\DTO\MemberPageInput;
 use Yinghua\Models\Account;
 use Yinghua\Repositories\FavoriteRepository;
+use Yinghua\Support\UtcDateTime;
 
 /** 收藏與取消收藏是兩個明確的動作；不用 toggle，避免請求重送時把狀態又切回去。 */
 class MemberFavorites
@@ -35,7 +36,7 @@ class MemberFavorites
             $items = [];
             foreach ($records as $record) {
                 $items[] = ['attractionId' => $record->attractionId,
-                    'savedAt' => str_replace(' ', 'T', $record->createdAt) . '+00:00',
+                    'savedAt' => UtcDateTime::iso($record->createdAt),
                     ...$snapshot->view($record->attractionId)];
             }
             $last = $records === [] ? null : $records[array_key_last($records)];

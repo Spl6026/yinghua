@@ -70,7 +70,7 @@ class EventRepository
     private function masked(array $values): array
     {
         $safe = array_intersect_key($values, array_flip(['id', 'kind', 'status', 'isRoot', 'roleId',
-            'mustChangePassword', 'version', 'permissionsVersion', 'deleted', 'permissions']));
+            'version', 'permissionsVersion', 'deleted', 'permissions']));
         foreach (['account', 'email', 'displayName'] as $field) {
             if (isset($values[$field]) && is_string($values[$field])) {
                 $safe[$field . 'Hash'] = $this->secrets->keyed('audit-' . $field, $values[$field]);

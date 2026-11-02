@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Yinghua\Adapters;
 
-use PDO;
 use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Contracts\DatabaseHealthProbe;
+use Yinghua\Repositories\Database;
 
 /** 健康檢查用獨立的短連線，不執行 DDL 或 seed；也不能先組裝需要資料庫的認證 Kernel。 */
 readonly class PdoDatabaseHealthProbe implements DatabaseHealthProbe
@@ -24,13 +24,7 @@ readonly class PdoDatabaseHealthProbe implements DatabaseHealthProbe
         // mysqlnd 的連線與讀取要分開設逾時；finally 會還原這個 FPM 請求的 ini 設定。
         $previous = ini_set('mysqlnd.net_read_timeout', '2');
         try {
-            $pdo = new PDO(
-                'mysql:host=' . $host . ';port=' . $this->config->integer('DB_PORT', 3306) . ';dbname=' . $name . ';charset=utf8mb4',
-                $this->config->string('DB_USERNAME', 'spl'),
-                $this->config->string('DB_PASSWORD'),
-                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false,
-                    PDO::ATTR_TIMEOUT => 2, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC],
-            );
+            $pdo = Database::open($this->config);
             $pdo->exec('SET SESSION max_statement_time=2,lock_wait_timeout=2');
             $query = $pdo->query('SELECT 1');
             if ($query === false || (int) $query->fetchColumn() !== 1) {

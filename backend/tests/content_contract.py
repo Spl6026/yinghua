@@ -53,7 +53,7 @@ def main():
     assert public['items']
     public_item = public['items'][0]
     assert set(public_item) == set(spec['components']['schemas']['PublicAttraction']['properties'])
-    assert not {'status', 'deletedAt', 'googlePlaceId', 'legacyImage'} & set(public_item)
+    assert not {'status', 'deletedAt', 'googlePlaceId'} & set(public_item)
     count += 1
     shape(guest, '/api/v1/attractions/' + public_item['slug'], 'PublicAttractionRecord')
     shape(guest, '/api/v1/museum', 'PublicAttractionRecord')

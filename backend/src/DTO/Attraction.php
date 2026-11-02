@@ -39,7 +39,7 @@ readonly class Attraction
         $summary = is_string($this->values['summary'] ?? null) ? $this->values['summary'] : '';
         $description = is_string($this->values['description'] ?? null) ? $this->values['description'] : '';
         $content = \Yinghua\Policies\AttractionContentPolicy::select($summary, $description, !empty($this->values['googlePlaceId']));
-        return [...array_diff_key($this->values, array_flip(['deletedAt','status','googlePlaceId','legacyImage'])),
+        return [...array_diff_key($this->values, array_flip(['deletedAt','status','googlePlaceId'])),
             'summary' => $content->summary, 'description' => $content->description,
             'authoredContent' => ['summary' => $summary, 'description' => $description], 'contentSource' => $content->sources()];
     }

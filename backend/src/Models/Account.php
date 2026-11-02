@@ -17,7 +17,6 @@ readonly class Account
         public string $status,
         public bool $isRoot,
         public ?string $roleId,
-        public bool $mustChangePassword,
         public int $version,
         public int $permissionsVersion,
         public ?string $deletedAt,

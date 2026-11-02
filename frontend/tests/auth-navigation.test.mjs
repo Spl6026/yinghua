@@ -177,7 +177,7 @@ function fixture({
         async login() {
           state.submits++;
           await state.write();
-          return identity || { admin: { mustChangePassword: false } };
+          return identity || { admin: {} };
         },
         async change() {
           state.submits++;
@@ -266,19 +266,19 @@ test('已登入會員開註冊頁直接返回，不建立新驗證碼', async ()
   assert.deepEqual(f.state.redirects, ['/index.html']);
 });
 test('後台登入頁使用管理員 session，不借會員身分判斷', async () => {
-  const f = fixture({ kind: 'admin', identity: { admin: { mustChangePassword: false } } });
+  const f = fixture({ kind: 'admin', identity: { admin: {} } });
   await f.initialize();
   assert.deepEqual(f.state.calls, ['admin']);
   assert.deepEqual(f.state.redirects, ['/admin/index.html']);
 });
-test('管理員與唯讀模擬皆回後台，不使用舊首登旗標', async () => {
+test('管理員與唯讀模擬登入後都回到後台', async () => {
   for (const [preview, destination] of [
     [false, '/admin/index.html'],
     [true, '/admin/index.html'],
   ]) {
     const f = fixture({
       kind: 'admin',
-      identity: { admin: { mustChangePassword: true }, preview: { active: preview } },
+      identity: { admin: {}, preview: { active: preview } },
     });
     await f.initialize();
     assert.deepEqual(f.state.redirects, [destination]);
@@ -312,7 +312,7 @@ test('未更改密碼的正常會員／管理員保留返回首頁／後台', as
     const f = fixture({
       kind,
       mode: 'change-password',
-      identity: { member: {}, admin: { mustChangePassword: false } },
+      identity: { member: {}, admin: {} },
     });
     await f.initialize();
     assert.equal(f.link.hidden, false);
@@ -323,7 +323,7 @@ test('管理員改密碼前可返回，成功後顯示重新登入連結', async
   const f = fixture({
     kind: 'admin',
     mode: 'change-password',
-    identity: { admin: { mustChangePassword: true } },
+    identity: { admin: {} },
   });
   await f.initialize();
   assert.equal(f.link.hidden, false);
@@ -337,14 +337,14 @@ test('改密碼頁可登出換帳號，等待登出時不更改密碼或重送',
   const f = fixture({
     kind: 'admin',
     mode: 'change-password',
-    identity: { admin: { mustChangePassword: true } },
+    identity: { admin: {} },
   });
   const identity = deferred();
   f.state.me = () => identity.promise;
   const ready = f.initialize();
   await f.logout.listener();
   assert.equal(f.state.logouts, 0);
-  identity.resolve({ admin: { mustChangePassword: true } });
+  identity.resolve({ admin: {} });
   await ready;
   assert.equal(f.link.hidden, false);
   assert.equal(f.logout.hidden, false);
@@ -367,7 +367,7 @@ test('改密碼期間不能登出，登出失敗可重試，失效session則回�
   const f = fixture({
     kind: 'admin',
     mode: 'change-password',
-    identity: { admin: { mustChangePassword: false } },
+    identity: { admin: {} },
     realSubmit: true,
   });
   await f.initialize();
@@ -390,7 +390,7 @@ test('改密碼期間不能登出，登出失敗可重試，失效session則回�
   const expired = fixture({
     kind: 'admin',
     mode: 'change-password',
-    identity: { admin: { mustChangePassword: false } },
+    identity: { admin: {} },
   });
   await expired.initialize();
   expired.state.logout = async () => {

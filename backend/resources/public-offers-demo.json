@@ -4,7 +4,7 @@
     {
       "id": "05000000-0000-4000-8300-000000000101",
       "legacyId": 101,
-      "originalAttractionLegacy": 3,
+      "attractionLegacyId": 3,
       "title": "或者工藝櫥窗｜散步小禮",
       "slug": "or-crafts",
       "discount": "出示映畫竹塹頁面，贈限定小禮",
@@ -21,7 +21,7 @@
     {
       "id": "05000000-0000-4000-8300-000000000102",
       "legacyId": 102,
-      "originalAttractionLegacy": 6,
+      "attractionLegacyId": 6,
       "title": "山房選物所｜生活選物 9 折",
       "slug": "shanfang",
       "discount": "消費滿額享 9 折",
@@ -38,7 +38,7 @@
     {
       "id": "05000000-0000-4000-8300-000000000103",
       "legacyId": 103,
-      "originalAttractionLegacy": 5,
+      "attractionLegacyId": 5,
       "title": "秋日咖啡散步地圖限定",
       "slug": "autumn-coffee",
       "discount": "出示活動頁面享季節飲品小驚喜",

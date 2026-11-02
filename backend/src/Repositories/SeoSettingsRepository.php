@@ -9,14 +9,15 @@ use Yinghua\DTO\SeoDefaults;
 use Yinghua\DTO\SeoSettingsDocument;
 
 /** 目前只開放 seo 這個設定 key，不接受外部傳入任意 key。 */
-class SiteSettingsRepository
+class SeoSettingsRepository
 {
     public function __construct(private readonly Database $database) {}
 
-    public function read(bool $lock = false, bool $publishedOnly = false): SeoSettingsDocument
+    public function read(bool $lock = false): SeoSettingsDocument
     {
+        // 儲存時一律寫入 published=1，因此讀取不再另外篩選發布狀態。
         $values = $this->database->row(
-            "SELECT value_json,version,updated_at FROM site_settings WHERE `key`='seo'" . ($publishedOnly ? ' AND published=1' : '') . ($lock ? ' FOR UPDATE' : ''),
+            "SELECT value_json,version,updated_at FROM site_settings WHERE `key`='seo'" . ($lock ? ' FOR UPDATE' : ''),
         );
         if ($values === null) {
             return new SeoSettingsDocument(0, new SeoDefaults());

@@ -9,7 +9,7 @@ use Yinghua\DTO\SeoOverride;
 use Yinghua\Models\SeoResource;
 
 /** 只查 SEO 選擇器需要的識別資料，不讀正文；SQL 中的表名／欄名一律來自 enum。 */
-class SeoContentRepository
+class SeoTargetRepository
 {
     public function __construct(private readonly Database $database) {}
 

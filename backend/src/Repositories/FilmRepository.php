@@ -9,6 +9,7 @@ use Yinghua\DTO\Film;
 use Yinghua\DTO\FilmInput;
 use Yinghua\DTO\FilmPage;
 use Yinghua\Exceptions\ContentConflict;
+use Yinghua\Support\UtcDateTime;
 
 /** 電影查詢共用同一套映射；場次改為批次載入，避免 N+1 查詢。 */
 class FilmRepository
@@ -150,8 +151,8 @@ class FilmRepository
             $data['posterLicense'] = $row->nullableString('poster_license') ?? $row->nullableString('media_license') ?? '';
             $data['version'] = $row->integer('version');
             $data['legacyId'] = ($values['legacy_id'] ?? null) === null ? null : $row->integer('legacy_id');
-            $data['publishAt'] = str_replace(' ', 'T', $row->string('publish_at')) . '+00:00';
-            $data['updatedAt'] = str_replace(' ', 'T', $row->string('updated_at')) . '+00:00';
+            $data['publishAt'] = UtcDateTime::iso($row->string('publish_at'));
+            $data['updatedAt'] = UtcDateTime::iso($row->string('updated_at'));
             $data['deletedAt'] = $row->nullableString('deleted_at');
             $data['url'] = '/films/' . $row->string('slug') . '.html';
 

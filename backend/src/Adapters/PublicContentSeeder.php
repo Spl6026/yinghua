@@ -43,18 +43,18 @@ class PublicContentSeeder
                 $results = [];
                 $merchantIds = [];
                 foreach ($merchantRows as $item) {
-                    $key = $item->values['originalAttractionLegacy'] ?? null;
+                    $key = $item->values['attractionLegacyId'] ?? null;
                     if (!is_int($key) || !in_array($key, [3,5,6], true)) {
                         throw new \RuntimeException('Unexpected merchant demonstration source.');
                     }
-                    $existing = $this->merchantRepository->forAttractionLegacy($key) ?? $this->merchantRepository->find($item->id, true);
+                    $existing = $this->merchantRepository->forAttractionLegacyId($key) ?? $this->merchantRepository->find($item->id, true);
                     if ($existing !== null) {
                         $merchantIds[$key] = $existing->id;
                         $results[] = ['id' => $existing->id,'action' => 'preserved','module' => 'merchants'];
                         continue;
                     }
                     $fields = $item->values;
-                    unset($fields['originalAttractionLegacy']);
+                    unset($fields['attractionLegacyId']);
                     $change = $this->merchants->prepare($actor, new ImportItem($item->id, $fields), true);
                     $this->merchants->save($actor, $change, $client);
                     $merchantIds[$key] = $item->id;
@@ -81,13 +81,13 @@ class PublicContentSeeder
                         $results[] = ['id' => $item->id,'action' => 'preserved','module' => 'offers'];
                         continue;
                     }
-                    $key = $item->values['originalAttractionLegacy'] ?? null;
+                    $key = $item->values['attractionLegacyId'] ?? null;
                     $legacy = $item->values['legacyId'] ?? null;
                     if (!is_int($key) || !isset($merchantIds[$key]) || !is_int($legacy) || $legacy < 101 || $legacy > 103) {
                         throw new \RuntimeException('Unexpected offer demonstration source.');
                     }
                     $fields = [...$item->values,'merchantId' => $merchantIds[$key]];
-                    unset($fields['legacyId'], $fields['originalAttractionLegacy']);
+                    unset($fields['legacyId'], $fields['attractionLegacyId']);
                     $change = $this->offers->prepare($actor, new ImportItem($item->id, $fields), true);
                     $this->offers->save($actor, $change, $client);
                     $this->offerRepository->demoIdentity($item->id, $legacy);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Services;
 
+use Yinghua\DTO\PublicCollection;
 use Yinghua\DTO\FilmQuery;
 use Yinghua\Exceptions\ApplicationError;
 
@@ -16,7 +17,7 @@ class PublicFilms
     public function listing(FilmQuery $query): array
     {
         $snapshot = $this->publication->read();
-        $items = \Yinghua\Policies\WeeklyFilmSelection::select($this->items($snapshot), $query->window);
+        $items = \Yinghua\Policies\WeeklyFilmSelection::select(PublicCollection::items($snapshot, 'films'), $query->window);
 
         return ['items' => array_slice($items, ($query->page - 1) * $query->pageSize, $query->pageSize),
             'total' => count($items),'page' => $query->page,'pageSize' => $query->pageSize,
@@ -27,7 +28,7 @@ class PublicFilms
     public function get(string $slug): array
     {
         $snapshot = $this->publication->read();
-        foreach ($this->items($snapshot) as $item) {
+        foreach (PublicCollection::items($snapshot, 'films') as $item) {
             if (($item['slug'] ?? null) === $slug) {
                 return ['film' => $item,'generation' => $snapshot['generation']];
             }
@@ -46,7 +47,7 @@ class PublicFilms
             parse_str(is_string($queryString) ? $queryString : '', $query);
             $id = $query['id'] ?? null;
             if (is_string($id)) {
-                foreach ($this->items($snapshot) as $item) {
+                foreach (PublicCollection::items($snapshot, 'films') as $item) {
                     $legacy = $item['legacyId'] ?? null;
                     if (($item['id'] ?? null) === $id || (is_int($legacy) && (string) $legacy === $id)) {
                         $target = $item['url'] ?? null;
@@ -60,31 +61,5 @@ class PublicFilms
         }
 
         return $target;
-    }
-
-    /** @param array<string,mixed> $snapshot
-     * @return list<array<string,mixed>>
-     */
-    private function items(array $snapshot): array
-    {
-        $rows = $snapshot['films'] ?? [];
-        if (!is_array($rows)) {
-            throw new \RuntimeException('Invalid film projection.');
-        }
-        $result = [];
-        foreach ($rows as $row) {
-            if (!is_array($row)) {
-                throw new \RuntimeException('Invalid film projection row.');
-            }
-            $item = [];
-            foreach ($row as $key => $value) {
-                if (is_string($key)) {
-                    $item[$key] = $value;
-                }
-            }
-            $result[] = $item;
-        }
-
-        return $result;
     }
 }

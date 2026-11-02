@@ -18,7 +18,6 @@ readonly class Route
         public bool $authenticated = false,
         public ?string $module = null,
         public ?string $action = null,
-        public bool $allowPasswordChange = false,
         public bool $allowPreviewControl = false,
     ) {}
 

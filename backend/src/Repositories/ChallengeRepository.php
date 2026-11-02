@@ -52,7 +52,6 @@ class ChallengeRepository
 
         return new Challenge(
             $row->string('id'),
-            $row->string('mode'),
             $row->string('answer_hmac'),
             $row->string('session_binding_hash'),
             $row->nullableString('recipient_hash'),

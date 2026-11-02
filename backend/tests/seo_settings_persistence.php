@@ -9,9 +9,9 @@ use Yinghua\Config;
 use Yinghua\DTO\SeoDefaults;
 use Yinghua\DTO\SeoOverride;
 use Yinghua\Models\SeoResource;
-use Yinghua\Repositories\ContentSeoRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\Database;
-use Yinghua\Repositories\SiteSettingsRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 
 $db = Database::connect(new Config());
 if (($db->row('SELECT DATABASE() AS name')['name'] ?? '') !== 'yinghua_test') {
@@ -37,8 +37,8 @@ $reject = static function (callable $action) use ($check): void {
     }
     throw new RuntimeException('Expected SEO database constraint rejection.');
 };
-$settings = new SiteSettingsRepository($db);
-$overrides = new ContentSeoRepository($db);
+$settings = new SeoSettingsRepository($db);
+$overrides = new SeoOverrideRepository($db);
 $before = [$settings->read()->toArray(), array_map(static fn(SeoOverride $item): array => $item->toArray(), $overrides->all())];
 $db->pdo->beginTransaction();
 try {

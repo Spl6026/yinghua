@@ -19,7 +19,6 @@ readonly class AccountSummary
         public string $status,
         public bool $isRoot,
         public ?string $roleId,
-        public bool $mustChangePassword,
         public int $version,
         public int $permissionsVersion,
     ) {}
@@ -35,7 +34,6 @@ readonly class AccountSummary
             $account->status,
             $account->isRoot,
             $account->roleId,
-            $account->mustChangePassword,
             $account->version,
             $account->permissionsVersion,
         );
@@ -48,7 +46,6 @@ readonly class AccountSummary
             'id' => $this->id, 'kind' => $this->kind->value, 'account' => $this->account,
             'email' => $this->email, 'displayName' => $this->displayName, 'status' => $this->status,
             'isRoot' => $this->isRoot, 'roleId' => $this->roleId,
-            'mustChangePassword' => $this->mustChangePassword,
             'version' => $this->version, 'permissionsVersion' => $this->permissionsVersion,
         ];
     }

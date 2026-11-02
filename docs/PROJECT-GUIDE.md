@@ -181,7 +181,7 @@ docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c php
 
 2026-10-24 階段七 7C：公開 settings GET 與同版 SEO head 已建立，合計 71 個操作／33 表／18 migration／65 固定頁。PublicSiteSettings 只回成功 generation 的白名單，SeoPublication 過濾草稿覆寫，ContentPublication／NodeContentRenderer 納入設定與模板；build／publish／管理預覽共用 seo-resolver.js／seo-head.mjs。Nginx 保留公開 gate，管理／認證／私人 shell 不受發布故障阻擋；Compose frontend 僅轉傳既有 APP_URL，沒有新變數或服務。檔案、60 項／12 契約及命令見 [SEO 指南](modules/seo-settings.md#7c-同版公開設定與-html-head)。條款頁與整階段／實際畫面驗收尚未完成，完整 JSON-LD／索引與一般設定仍未開放。
 
-2026-10-24 階段七 7B：管理 SEO GET／PUT、settings 原型表單、版本／權限／同交易 audit 已建立，API 共 70；主庫備份後升級，主／測試均 33 表／18 migration，固定頁仍 65。Controller → SeoSettings → SiteSettingsRepository／ContentSeoRepository；SeoContentRepository 批次目標與權限篩選、SeoSettingsResult 限定輸出；前端 seo-settings-api／seo-fields／seo-settings／phase7.css 分別包 HTTP、欄位、互動與必要樣式。詳細檔案與 74 項／32 契約、5 項表單行為驗證見 [SEO 指南](modules/seo-settings.md#7b-管理設定與原型表單)。公開 GET／head 整合仍在 7C，不把 publicationReady=false 當已完成發布，整階段未驗收。
+2026-10-24 階段七 7B：管理 SEO GET／PUT、settings 原型表單、版本／權限／同交易 audit 已建立，API 共 70；主庫備份後升級，主／測試均 33 表／18 migration，固定頁仍 65。Controller → SeoSettings → SeoSettingsRepository／SeoOverrideRepository；SeoTargetRepository 批次目標與權限篩選、SeoSettingsResult 限定輸出；前端 seo-settings-api／seo-fields／seo-settings／phase7.css 分別包 HTTP、欄位、互動與必要樣式。詳細檔案與 74 項／32 契約、5 項表單行為驗證見 [SEO 指南](modules/seo-settings.md#7b-管理設定與原型表單)。公開 GET／head 整合仍在 7C，不把 publicationReady=false 當已完成發布，整階段未驗收。
 
 2026-10-24 階段七 7A：依授權建立 `phase/07-seo-settings-head`。017 新增 site_settings／content_seo，DTO／enum／Repository／URL 與目標規則、共用頁面 catalog 及資料層測試已建立，見 [SEO 閱讀指南](modules/seo-settings.md)。測試庫 33 表／18 migration，主庫暫為 31／17；API 仍 68／固定頁 65，尚無可用 SEO API 或設定 UI。空庫／保留會員內容收藏行程升級、重跑、14 項 rollback 與輸入單元通過。沒有新增 Docker 服務、套件、port 或環境變數，整階段仍在實作。
 
@@ -195,7 +195,7 @@ docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c php
 
 2026-10-23 階段六 6C：新增三個目前行程 API，合計 68 個操作。`CurrentItineraryController` → `CurrentItinerary` → `ItineraryRepository` 負責本人讀取、加入／移除、父子交易與版本衝突；`CurrentItineraryPage`／`ItineraryWriteResult` 限定輸出。前端 `current-trip-state.js` 管保存版本、舊回應與身分變更，`pages/planner.js` 管讀取／確認／保存提示，`components/member-itinerary.js` 沿用原型站點版型。`member-resources-api.js`／`member-actions.js` 共用收藏與加入入口。無新增 migration、環境變數或服務；31 表／17 份 migration、65 個固定前端來源頁。命令及資料流見 [會員指南](modules/member-resources.md#6c-目前行程與基本保存)。完整階段驗收仍在進行，尚未合併 main。
 
-2026-10-23 階段六 6B：四個本人收藏 API、愛心／登入待辦與 favorites.html 已建立，API 共 65；主／測試庫皆 31 表／17 份 migration，固定前端來源 65 頁。`config/member-routes.php` 為會員資源專用路由，PHPStan 已納入分析；`MemberFavorites`／`MemberAttractions` 分別管理本人交易與公開投影，`member-resource-state.js`／`member-actions.js` 共用狀態與操作，`pages/favorites.js` 控制本人列表。完整檔案／命令／驗證見 [會員指南](modules/member-resources.md#6b-收藏-api-與共用愛心)。基本行程與整階段驗收仍在進行，不標階段六完成。
+2026-10-23 階段六 6B：四個本人收藏 API、愛心／登入待辦與 favorites.html 已建立，API 共 65；主／測試庫皆 31 表／17 份 migration，固定前端來源 65 頁。`config/favorite-routes.php` 為會員資源專用路由，PHPStan 已納入分析；`MemberFavorites`／`MemberAttractions` 分別管理本人交易與公開投影，`member-resource-state.js`／`member-actions.js` 共用狀態與操作，`pages/favorites.js` 控制本人列表。完整檔案／命令／驗證見 [會員指南](modules/member-resources.md#6b-收藏-api-與共用愛心)。基本行程與整階段驗收仍在進行，不標階段六完成。
 
 2026-10-23 階段六 6A 共用準備：使用者已授權實作，分支為 `phase/06-favorites-basic-itinerary`。015／016 新建收藏／行程三表與本人唯一約束，`MemberAccess` 重查會員，`FavoriteRepository`／`ItineraryRepository` 集中本人資料 SQL；DTO、檔案用途與命令見 [會員資料閱讀指南](modules/member-resources.md)。測試庫已升級為 31 表／17 份 migration，主庫暫仍 28／15；API 仍 61，尚未接入收藏或行程頁面。空庫／保留資料升級、重跑及 25 項持久層檢查、輸入單元與靜態分析通過，不等於階段六完成。
 
@@ -351,7 +351,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [SeoSettingsController](../backend/src/Controllers/SeoSettingsController.php)、[PublicSiteSettingsController](../backend/src/Controllers/PublicSiteSettingsController.php) | 管理輸入轉換與公開 JSON，不產 HTML |
 | [SeoSettings](../backend/src/Services/SeoSettings.php) | 重查權限、版本鎖、設定／覆寫／audit 同交易，提交後發布 |
 | [PublicSiteSettings](../backend/src/Services/PublicSiteSettings.php)、[SeoPublication](../backend/src/Services/SeoPublication.php) | 成功快照的公開白名單、當次公開內容覆寫篩選 |
-| [SiteSettingsRepository](../backend/src/Repositories/SiteSettingsRepository.php)、[ContentSeoRepository](../backend/src/Repositories/ContentSeoRepository.php)、[SeoContentRepository](../backend/src/Repositories/SeoContentRepository.php) | 文件版本／鎖、批次覆寫及分權目標查詢，不自行 commit |
+| [SeoSettingsRepository](../backend/src/Repositories/SeoSettingsRepository.php)、[SeoOverrideRepository](../backend/src/Repositories/SeoOverrideRepository.php)、[SeoTargetRepository](../backend/src/Repositories/SeoTargetRepository.php) | 文件版本／鎖、批次覆寫及分權目標查詢，不自行 commit |
 | [SeoSettingsInput](../backend/src/DTO/SeoSettingsInput.php)、[SeoDefaults](../backend/src/DTO/SeoDefaults.php)、[SeoOverride](../backend/src/DTO/SeoOverride.php) | 完整文件、全站初值與逐欄繼承，技術型別／資源界線 |
 | [SeoSettingsDocument](../backend/src/DTO/SeoSettingsDocument.php)、[SeoSettingsResult](../backend/src/DTO/SeoSettingsResult.php)、[SeoContentTarget](../backend/src/DTO/SeoContentTarget.php)、[PublicSiteSettingsDocument](../backend/src/DTO/PublicSiteSettingsDocument.php) | 型別化內部文件、管理輸出／選擇器與公開輸出 |
 | [SeoResource](../backend/src/Models/SeoResource.php)、[SeoRobots](../backend/src/Models/SeoRobots.php)、[SeoTargetPolicy](../backend/src/Policies/SeoTargetPolicy.php)、[SeoUrlPolicy](../backend/src/Policies/SeoUrlPolicy.php) | 有限資源／索引值、路徑白名單、canonical 與 HTTPS URL |
@@ -395,7 +395,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | [src/Config.php](../backend/src/Config.php) | 讀取容器環境變數，校驗數值、APP_KEY、APP_URL 與正式環境 HTTPS／Secure cookie 條件；不解析 .env 檔。 |
 | [composer.json](../backend/composer.json) | 應用程式的 PHP／extension／PHPMailer 依賴及 Yinghua 命名空間的 PSR-4 載入設定。 |
 | [composer.lock](../backend/composer.lock) | 應用依賴的確切版本；安裝時依鎖定版本還原。 |
-| [config/member-routes.php](../backend/config/member-routes.php) | 七個本人收藏／目前行程 API，與 routes.php 的 61 個操作由 Composition 一起註冊。 |
+| [config/favorite-routes.php](../backend/config/favorite-routes.php) | 七個本人收藏／目前行程 API，與 routes.php 的 61 個操作由 Composition 一起註冊。 |
 | [resources/openapi.json](../backend/resources/openapi.json) | 68 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
 | [resources/role-templates.json](../backend/resources/role-templates.json) | 原始 Excel 四種角色、十個模組、四個動作的起始權限；供 seed 使用，不是每次請求直接查閱的個人權限。 |
 | [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover、content:seed-demo／backfill-demo-labels／publish／tick／watch。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |

@@ -8,6 +8,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 use Yinghua\Adapters\NodeContentRenderer;
 use Yinghua\Config;
 use Yinghua\Contracts\Clock;
+use Yinghua\Contracts\Transactions;
 use Yinghua\DTO\MerchantInput;
 use Yinghua\DTO\NewsInput;
 use Yinghua\DTO\OfferInput;
@@ -16,11 +17,19 @@ use Yinghua\Models\IdentityKind;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\Database;
+use Yinghua\Repositories\FilmRepository;
+use Yinghua\Repositories\FilmScreeningRepository;
+use Yinghua\Repositories\GeneralSettingsRepository;
 use Yinghua\Repositories\MerchantRepository;
 use Yinghua\Repositories\NewsRepository;
 use Yinghua\Repositories\OfferRepository;
 use Yinghua\Repositories\PublicationRepository;
+use Yinghua\Repositories\RecommendedRouteRepository;
+use Yinghua\Repositories\SearchRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Services\ContentPublication;
+use Yinghua\Services\SeoPublication;
 use Yinghua\Support\Secrets;
 
 $config = new Config();
@@ -76,7 +85,27 @@ try {
         $offerIds[] = $id;
         $offers->save($id, OfferInput::fromArray(['title' => '隔離優惠','discount' => '九折','terms' => '隔離驗收使用條款','merchantId' => $merchant,'slug' => $prefix . '-' . $id,'status' => 'published','publishAt' => '2020-01-01T00:00:00+08:00'], true, time()), true, $actor->id);
     }
-    $publication = new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($config), $config, clock: $clock, news: $news, offers: $offers);
+    // 外層測試交易最後會回滾，搜尋索引寫入直接沿用該交易，不另開巢狀交易。
+    $outerTransaction = new class implements Transactions {
+        public function run(callable $operation): mixed
+        {
+            return $operation();
+        }
+    };
+    $publication = new ContentPublication(
+        new AttractionRepository($database),
+        new PublicationRepository($database),
+        new NodeContentRenderer($config),
+        $config,
+        new FilmRepository($database, new FilmScreeningRepository($database)),
+        $clock,
+        $news,
+        $offers,
+        new SeoPublication(new SeoSettingsRepository($database), new SeoOverrideRepository($database)),
+        new RecommendedRouteRepository($database),
+        new SearchRepository($database, $outerTransaction),
+        new GeneralSettingsRepository($database),
+    );
     $raw = $database->rows('SELECT a.path FROM offer_aliases a WHERE 1=1');
     $check($publication->synchronize());
     $generation = $publication->read()['generation'];

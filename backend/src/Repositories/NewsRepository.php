@@ -8,6 +8,7 @@ use PDOException;
 use Yinghua\DTO\NewsPost;
 use Yinghua\DTO\NewsInput;
 use Yinghua\Exceptions\ContentConflict;
+use Yinghua\Support\UtcDateTime;
 
 /** 最新消息的查詢、型別映射與歷史網址集中在這裡。 */
 class NewsRepository
@@ -157,8 +158,8 @@ class NewsRepository
             'summary' => $row->string('summary'),
             'body' => $row->string('body'),
             'bodyImages' => \Yinghua\Policies\BodyImages::paths($row->string('body')),
-            'eventStartAt' => ContentMapping::iso(is_string($values['event_starts_at'] ?? null) ? $values['event_starts_at'] : null),
-            'eventEndAt' => ContentMapping::iso(is_string($values['event_ends_at'] ?? null) ? $values['event_ends_at'] : null),
+            'eventStartAt' => UtcDateTime::iso(is_string($values['event_starts_at'] ?? null) ? $values['event_starts_at'] : null),
+            'eventEndAt' => UtcDateTime::iso(is_string($values['event_ends_at'] ?? null) ? $values['event_ends_at'] : null),
             'eventLabel' => $row->string('event_label'),
             'eventLocation' => $row->string('event_location'),
         ];
@@ -167,7 +168,7 @@ class NewsRepository
             $row->integer('version'),
             $fields,
             $public,
-            ContentMapping::iso($row->string('updated_at')),
+            UtcDateTime::iso($row->string('updated_at')),
         );
     }
 }

@@ -25,7 +25,6 @@ class PermissionPolicyTest extends TestCase
             'active',
             $root,
             $root ? 'root' : 'content-editor',
-            false,
             1,
             1,
             null,

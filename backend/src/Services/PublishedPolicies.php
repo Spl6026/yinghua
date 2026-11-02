@@ -22,13 +22,13 @@ class PublishedPolicies
     {
         $snapshot = $this->renderer->current();
         $version = $snapshot['policyVersion'] ?? null;
-        return is_string($version) ? $version : $this->config->string('TERMS_VERSION', '2026-11-02');
+        return is_string($version) ? $version : $this->config->termsVersion();
     }
 
     public function current(bool $lock = false): string
     {
         $document = $this->settings->read($lock);
-        $expected = $document->values->consentVersion($this->config->string('TERMS_VERSION', '2026-11-02'));
+        $expected = $document->values->consentVersion($this->config->termsVersion());
         $snapshot = $this->renderer->current();
         $general = $snapshot['general'] ?? null;
         if ($document->version !== 0

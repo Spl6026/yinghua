@@ -16,7 +16,7 @@ class GeneralSettingsRepository
     public function read(bool $lock = false): GeneralSettingsDocument
     {
         $values = $this->database->row(
-            "SELECT value_json,version,updated_at FROM site_settings WHERE `key`='general' AND published=1" . ($lock ? ' FOR UPDATE' : ''),
+            "SELECT value_json,version,updated_at FROM site_settings WHERE `key`='general'" . ($lock ? ' FOR UPDATE' : ''),
         );
         if ($values === null) {
             return new GeneralSettingsDocument();

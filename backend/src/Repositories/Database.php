@@ -16,21 +16,28 @@ class Database
 {
     public function __construct(public readonly PDO $pdo) {}
 
-    public static function connect(Config $config): self
+    /** 一般請求與健康檢查共用同一組連線參數，避免兩邊設定不一致。 */
+    public static function open(Config $config): PDO
     {
         $name = $config->string('DB_DATABASE', 'yinghua');
         if (!preg_match('/^[a-zA-Z0-9_]+$/D', $name)) {
             throw new RuntimeException('Invalid database name.');
         }
+
+        return new PDO(
+            'mysql:host=' . $config->string('DB_HOST', 'db') . ';port=' . $config->integer('DB_PORT', 3306)
+            . ';dbname=' . $name . ';charset=utf8mb4',
+            $config->string('DB_USERNAME', 'spl'),
+            $config->string('DB_PASSWORD'),
+            [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 2],
+        );
+    }
+
+    public static function connect(Config $config): self
+    {
         try {
-            $pdo = new PDO(
-                'mysql:host=' . $config->string('DB_HOST', 'db') . ';port=' . $config->integer('DB_PORT', 3306)
-                . ';dbname=' . $name . ';charset=utf8mb4',
-                $config->string('DB_USERNAME', 'spl'),
-                $config->string('DB_PASSWORD'),
-                [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_EMULATE_PREPARES => false,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_TIMEOUT => 2],
-            );
+            $pdo = self::open($config);
             $pdo->exec("SET time_zone = '+00:00'");
         } catch (PDOException $error) {
             // 資料庫暫停或斷線時，不讓請求卡在預設的 30 秒逾時，也不把連線細節洩漏給使用者。

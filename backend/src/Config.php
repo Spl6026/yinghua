@@ -27,6 +27,12 @@ readonly class Config
         return $value === false ? $default : $value;
     }
 
+    /** 條款與隱私權政策在後台尚未設定版本時採用的預設版本。 */
+    public function termsVersion(): string
+    {
+        return $this->string('TERMS_VERSION', '2026-11-02');
+    }
+
     public function integer(string $key, int $default): int
     {
         $value = $this->string($key, (string) $default);

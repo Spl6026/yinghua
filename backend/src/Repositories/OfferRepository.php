@@ -8,43 +8,44 @@ use PDOException;
 use Yinghua\DTO\Offer;
 use Yinghua\DTO\OfferInput;
 use Yinghua\Exceptions\ContentConflict;
+use Yinghua\Support\UtcDateTime;
 
 /** 優惠的查詢、型別映射與歷史網址集中在這裡。 */
 class OfferRepository
 {
-    private const string SELECT = "SELECT n.*,m.storage_key,m.alt AS media_alt,c.status AS merchant_status,c.deleted_at AS merchant_deleted_at,c.updated_at AS merchant_updated_at,c.name AS merchant_name,c.district AS merchant_district,c.address AS merchant_address,c.phone AS merchant_phone,c.website AS merchant_website FROM offers n LEFT JOIN media_assets m ON m.id=n.cover_media_id JOIN merchants c ON c.id=n.merchant_id";
+    private const string SELECT = "SELECT o.*,ma.storage_key,ma.alt AS media_alt,mr.status AS merchant_status,mr.deleted_at AS merchant_deleted_at,mr.updated_at AS merchant_updated_at,mr.name AS merchant_name,mr.district AS merchant_district,mr.address AS merchant_address,mr.phone AS merchant_phone,mr.website AS merchant_website FROM offers o LEFT JOIN media_assets ma ON ma.id=o.cover_media_id JOIN merchants mr ON mr.id=o.merchant_id";
 
     public function __construct(private readonly Database $database) {}
 
     /** 後台查詢會包含未公開的內容，所以不與公開頁面共用篩選條件。 */
     public function listing(\Yinghua\DTO\AdminContentQuery $query, string $today): \Yinghua\DTO\ContentPage
     {
-        $where = 'n.deleted_at IS NULL';
+        $where = 'o.deleted_at IS NULL';
         $params = [];
         if ($query->q !== '') {
-            $where .= " AND CONCAT(n.title,' ',n.discount_text,' ',c.name) LIKE :q ESCAPE '!'";
+            $where .= " AND CONCAT(o.title,' ',o.discount_text,' ',mr.name) LIKE :q ESCAPE '!'";
             $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
         }
         if ($query->status !== '') {
-            $where .= ' AND n.status=:status';
+            $where .= ' AND o.status=:status';
             $params['status'] = $query->status;
         }
         if ($query->merchantId !== '') {
-            $where .= ' AND n.merchant_id=:merchant';
+            $where .= ' AND o.merchant_id=:merchant';
             $params['merchant'] = $query->merchantId;
         }
         if ($query->active !== '') {
-            $active = "(n.status='published' AND n.publish_at<=UTC_TIMESTAMP() AND c.deleted_at IS NULL AND c.status='active' AND (n.valid_from IS NULL OR n.valid_from<=:startDate) AND (n.valid_to IS NULL OR n.valid_to>=:endDate))";
+            $active = "(o.status='published' AND o.publish_at<=UTC_TIMESTAMP() AND mr.deleted_at IS NULL AND mr.status='active' AND (o.valid_from IS NULL OR o.valid_from<=:startDate) AND (o.valid_to IS NULL OR o.valid_to>=:endDate))";
             $where .= ' AND ' . ($query->active === 'true' ? $active : 'NOT ' . $active);
             $params['startDate'] = $today;
             $params['endDate'] = $today;
         }
         $count = new Row($this->database->row(
-            'SELECT COUNT(*) AS total FROM offers n JOIN merchants c ON c.id=n.merchant_id WHERE ' . $where,
+            'SELECT COUNT(*) AS total FROM offers o JOIN merchants mr ON mr.id=o.merchant_id WHERE ' . $where,
             $params,
         ) ?? []);
         $rows = $this->database->rows(
-            self::SELECT . ' WHERE ' . $where . ' ORDER BY n.updated_at DESC,n.id DESC LIMIT :size OFFSET :offset',
+            self::SELECT . ' WHERE ' . $where . ' ORDER BY o.updated_at DESC,o.id DESC LIMIT :size OFFSET :offset',
             [...$params,'size' => $query->pageSize,'offset' => ($query->page - 1) * $query->pageSize],
         );
         return new \Yinghua\DTO\ContentPage(array_map($this->map(...), $rows), $count->integer('total'), $query->page, $query->pageSize);
@@ -60,7 +61,7 @@ class OfferRepository
 
     public function find(string $id, bool $lock = false): ?Offer
     {
-        $row = $this->database->row(self::SELECT . ' WHERE n.id=:id' . ($lock ? ' FOR UPDATE' : ''), ['id' => $id]);
+        $row = $this->database->row(self::SELECT . ' WHERE o.id=:id' . ($lock ? ' FOR UPDATE' : ''), ['id' => $id]);
         return $row === null ? null : $this->map($row);
     }
 
@@ -68,7 +69,7 @@ class OfferRepository
     public function published(int $now): array
     {
         return array_map($this->map(...), $this->database->rows(
-            self::SELECT . " WHERE n.deleted_at IS NULL AND n.status='published' AND n.publish_at<=:now AND c.deleted_at IS NULL AND c.status='active' ORDER BY n.publish_at DESC,n.id",
+            self::SELECT . " WHERE o.deleted_at IS NULL AND o.status='published' AND o.publish_at<=:now AND mr.deleted_at IS NULL AND mr.status='active' ORDER BY o.publish_at DESC,o.id",
             ['now' => gmdate('Y-m-d H:i:s', $now)],
         ));
     }
@@ -134,7 +135,7 @@ class OfferRepository
     {
         $result = [];
         foreach ($this->database->rows(
-            "SELECT a.path,n.slug FROM offer_aliases a JOIN offers n ON n.id=a.offer_id JOIN merchants c ON c.id=n.merchant_id WHERE n.deleted_at IS NULL AND n.status='published' AND n.publish_at<=:now AND c.deleted_at IS NULL AND c.status='active'",
+            "SELECT a.path,o.slug FROM offer_aliases a JOIN offers o ON o.id=a.offer_id JOIN merchants mr ON mr.id=o.merchant_id WHERE o.deleted_at IS NULL AND o.status='published' AND o.publish_at<=:now AND mr.deleted_at IS NULL AND mr.status='active'",
             ['now' => gmdate('Y-m-d H:i:s', $now)],
         ) as $values) {
             $row = new Row($values);
@@ -181,7 +182,7 @@ class OfferRepository
             $fields,
             $public,
             $row->string('merchant_status') === 'active' && ($values['merchant_deleted_at'] ?? null) === null,
-            ContentMapping::iso($modifiedAt),
+            UtcDateTime::iso($modifiedAt),
         );
     }
 }

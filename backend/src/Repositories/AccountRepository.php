@@ -40,11 +40,12 @@ class AccountRepository
 
     public function createAdmin(string $id, AdminWriteInput $input, string $hash, bool $root = false): void
     {
+        // 首次登入強制改密碼已取消；資料表仍保留該欄位與檢查條件，所以寫入固定為 0。
         $this->writeAccount(
-            'INSERT INTO admin_users (id,account,email,display_name,password_hash,role_id,status,is_root,must_change_password) VALUES (:id,:account,:email,:name,:hash,:role,:status,:root,:change)',
+            'INSERT INTO admin_users (id,account,email,display_name,password_hash,role_id,status,is_root,must_change_password) VALUES (:id,:account,:email,:name,:hash,:role,:status,:root,0)',
             ['id' => $id, 'account' => $input->account, 'email' => $input->email,
                 'name' => $input->displayName, 'hash' => $hash, 'role' => $input->roleId,
-                'status' => $input->status, 'root' => $root, 'change' => false],
+                'status' => $input->status, 'root' => $root],
         );
     }
 
@@ -201,7 +202,6 @@ class AccountRepository
             $row->string('status'),
             $admin && $row->integer('is_root') === 1,
             $admin ? $row->string('role_id') : null,
-            false, // 首次登入強制改密碼已取消，欄位保留只為相容舊的回應格式。
             $admin ? $row->integer('version') : 1,
             $admin ? $row->integer('permissions_version') : 1,
             $row->nullableString('deleted_at'),

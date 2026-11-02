@@ -15,18 +15,18 @@ use Yinghua\DTO\SeoSettingsResult;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Models\SeoResource;
-use Yinghua\Repositories\ContentSeoRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\EventRepository;
-use Yinghua\Repositories\SeoContentRepository;
-use Yinghua\Repositories\SiteSettingsRepository;
+use Yinghua\Repositories\SeoTargetRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 
 /** SEO 設定管理：預設值、個別覆寫與稽核紀錄在同一交易寫入，提交後才重新產生 HTML。 */
 class SeoSettings
 {
     public function __construct(
-        private readonly SiteSettingsRepository $settings,
-        private readonly ContentSeoRepository $overrides,
-        private readonly SeoContentRepository $content,
+        private readonly SeoSettingsRepository $settings,
+        private readonly SeoOverrideRepository $overrides,
+        private readonly SeoTargetRepository $content,
         private readonly Authorization $authorization,
         private readonly Transactions $transactions,
         private readonly EventRepository $events,

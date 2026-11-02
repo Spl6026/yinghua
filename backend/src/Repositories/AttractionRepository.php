@@ -11,6 +11,7 @@ use Yinghua\DTO\AttractionPage;
 use Yinghua\DTO\OpeningHours;
 use Yinghua\DTO\PhoneNumber;
 use Yinghua\Exceptions\ContentConflict;
+use Yinghua\Support\UtcDateTime;
 
 /** 景點的 SQL 都集中在這一層；公開頁面與後台查詢共用同一套映射。 */
 class AttractionRepository
@@ -225,22 +226,21 @@ class AttractionRepository
         $key = $r->nullableString('storage_key');
         $data['image'] = $key === null ? $r->string('external_image_url') : '/media/' . $key;
         $data['imageAlt'] = $r->nullableString('image_alt') ?? ($key === null ? $r->string('external_image_alt') : $r->string('media_alt'));
-        $legacy = $r->string('external_image_url') !== '';
-        $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? ($legacy ? '原始交付展示素材' : '');
-        $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? ($legacy ? '正式上線前須確認授權' : '');
+        $hasExternalImage = $r->string('external_image_url') !== '';
+        $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? ($hasExternalImage ? '原始交付展示素材' : '');
+        $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? ($hasExternalImage ? '正式上線前須確認授權' : '');
         $data['recommendationLabel'] = $r->string('recommendation_label');
         $opening = $r->nullableString('opening_hours');
         $data['openingHours'] = $opening === null
             ? null
             : OpeningHours::fromValue(json_decode($opening, true, 32, JSON_THROW_ON_ERROR))->toArray();
-        $data['legacyImage'] = $r->string('external_image_url');
         $data['googlePlaceId'] = $r->nullableString('google_place_id');
         $data['version'] = $r->integer('version');
         $data['featured'] = $r->integer('featured') === 1;
         $data['isMuseum'] = $r->integer('is_museum') === 1;
         $data['url'] = $data['isMuseum'] ? '/museum.html' : '/places/' . $r->string('slug') . '.html';
-        $data['publishAt'] = str_replace(' ', 'T', $r->string('publish_at')) . '+00:00';
-        $data['updatedAt'] = str_replace(' ', 'T', $r->string('updated_at')) . '+00:00';
+        $data['publishAt'] = UtcDateTime::iso($r->string('publish_at'));
+        $data['updatedAt'] = UtcDateTime::iso($r->string('updated_at'));
         $data['deletedAt'] = $r->nullableString('deleted_at');
         $data['legacyId'] = ($values['legacy_id'] ?? null) === null ? null : $r->integer('legacy_id');
 

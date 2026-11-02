@@ -11,6 +11,7 @@ use Yinghua\Exceptions\{ApplicationError, ContentConflict};
 use Yinghua\Models\{Account, ContentStatus};
 use Yinghua\Repositories\{NewsRepository, EventRepository};
 use Yinghua\Support\Secrets;
+use Yinghua\Policies\OfferValidity;
 
 /** 後台 HTTP 用的消息管理服務；與 CLI 匯入共用同一個 Editor，Controller 不必自行組裝匯入資料。 */
 class AdminNewsManagement
@@ -31,7 +32,7 @@ class AdminNewsManagement
         if ($query->status !== '' && ContentStatus::tryFrom($query->status) === null) {
             throw ApplicationError::invalid('status', '發布狀態無效。');
         }
-        return $this->records->listing($query, gmdate('Y-m-d', $this->clock->now() + 28800));
+        return $this->records->listing($query, OfferValidity::day($this->clock->now()));
     }
 
     public function get(Account $actor, string $id): NewsPost

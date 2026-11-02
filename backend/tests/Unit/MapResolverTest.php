@@ -34,7 +34,7 @@ class MapResolverTest extends TestCase
 
     private function actor(): Account
     {
-        return new Account('03000000-0000-4000-8000-000000000099', IdentityKind::Admin, 'editor', 'editor@example.test', '測試', 'unused', 'active', false, 'editor', false, 1, 1, null);
+        return new Account('03000000-0000-4000-8000-000000000099', IdentityKind::Admin, 'editor', 'editor@example.test', '測試', 'unused', 'active', false, 'editor', 1, 1, null);
     }
 
     private function resolver(GoogleHttp $http): MapResolver

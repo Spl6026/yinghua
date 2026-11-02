@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
+use Yinghua\Support\UtcDateTime;
+
 /** 管理頁使用的內容輸出，只給已授權的管理員；公開頁仍走原本的欄位白名單。 */
 readonly class ContentRecordView
 {
@@ -16,7 +18,7 @@ readonly class ContentRecordView
         foreach ($this->record->fields as $key => $value) {
             $name = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))));
             if (in_array($key, ['publish_at','event_starts_at','event_ends_at'], true)) {
-                $value = is_string($value) ? str_replace(' ', 'T', $value) . '+00:00' : null;
+                $value = is_string($value) ? UtcDateTime::iso($value) : null;
             }
             $data[$name] = $value;
         }

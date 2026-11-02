@@ -10,12 +10,12 @@ parameters:
         - bin/readiness.php
         - bin/recovery.php
         - config/routes.php
-        - config/member-routes.php
+        - config/favorite-routes.php
         - config/itinerary-routes.php
         - config/seo-routes.php
         - config/news-admin-routes.php
         - config/offer-admin-routes.php
-        - config/recommended-route-routes.php
+        - config/recommended-routes.php
         - tests/ArchitectureTest.php
     tmpDir: .build/phpstan
     treatPhpDocTypesAsCertain: false

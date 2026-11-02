@@ -9,7 +9,7 @@ use Yinghua\Models\SeoResource;
 use Yinghua\Support\Secrets;
 
 /** 一份內容的所有 SEO 覆寫設定一次讀取或寫入，並參與外層交易。 */
-class ContentSeoRepository
+class SeoOverrideRepository
 {
     public function __construct(private readonly Database $database) {}
 

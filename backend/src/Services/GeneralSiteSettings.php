@@ -12,13 +12,13 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\GeneralSettingsRepository;
-use Yinghua\Repositories\SiteSettingsRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 
 class GeneralSiteSettings
 {
     public function __construct(
         private readonly GeneralSettingsRepository $settings,
-        private readonly SiteSettingsRepository $seo,
+        private readonly SeoSettingsRepository $seo,
         private readonly Authorization $authorization,
         private readonly Transactions $transactions,
         private readonly EventRepository $events,

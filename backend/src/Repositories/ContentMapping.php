@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Yinghua\Repositories;
 
+use Yinghua\Support\UtcDateTime;
+
 /** 共用的資料庫型別轉換與公開欄位映射；SQL 與各主題的規則仍各自放在對應的 Repository。 */
 final class ContentMapping
 {
@@ -20,11 +22,6 @@ final class ContentMapping
             $result[$key] = $value === null ? null : $row->string($key);
         }
         return $result;
-    }
-
-    public static function iso(?string $value): ?string
-    {
-        return $value === null ? null : str_replace(' ', 'T', $value) . '+00:00';
     }
 
     /** @return list<string> */
@@ -45,7 +42,7 @@ final class ContentMapping
         $image = is_string($storage) ? '/media/' . $storage : $row->string('cover_url');
         return ['id' => $row->string('id'),'slug' => $row->string('slug'),
             'legacyId' => ($values['legacy_id'] ?? null) === null ? null : $row->integer('legacy_id'),
-            'title' => $row->string('title'),'publishAt' => self::iso($row->string('publish_at')),
+            'title' => $row->string('title'),'publishAt' => UtcDateTime::iso($row->string('publish_at')),
             'image' => $image,'imageAlt' => $alt !== '' ? $alt : (is_string($values['media_alt'] ?? null) ? $values['media_alt'] : ''),
             'url' => '/' . $topic . '/' . $row->string('slug') . '.html',
             'seoTitle' => $row->string('seo_title'),'seoDescription' => $row->string('seo_description')];

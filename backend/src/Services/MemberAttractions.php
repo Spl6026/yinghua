@@ -6,6 +6,7 @@ namespace Yinghua\Services;
 
 use Yinghua\Contracts\Clock;
 use Yinghua\DTO\MemberAttractionSnapshot;
+use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Repositories\AttractionRepository;
 
@@ -29,22 +30,12 @@ class MemberAttractions
 
             return new MemberAttractionSnapshot(false, []);
         }
-        $items = $snapshot['items'] ?? null;
-        if (!is_array($items)) {
-            throw new \RuntimeException('Invalid published attractions.');
-        }
         $byId = [];
-        foreach ($items as $value) {
-            if (!is_array($value) || !is_string($value['id'] ?? null)) {
+        foreach (PublicCollection::items($snapshot, 'items') as $item) {
+            if (!is_string($item['id'] ?? null)) {
                 throw new \RuntimeException('Invalid published attraction.');
             }
-            $item = [];
-            foreach ($value as $key => $field) {
-                if (is_string($key)) {
-                    $item[$key] = $field;
-                }
-            }
-            $byId[$value['id']] = $item;
+            $byId[$item['id']] = $item;
         }
 
         return new MemberAttractionSnapshot(true, $byId);
