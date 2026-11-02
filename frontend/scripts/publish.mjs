@@ -62,7 +62,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   if(context.unavailable)meta={...meta,robots:'noindex,follow'};
   html = html.replace('</head>','<noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>');
   if(managed)html = html.replace('<body>', `<body data-managed-attractions="true"${filmEnabled?' data-managed-films="true"':''}${newsEnabled?' data-managed-news="true"':''}${offersEnabled?' data-managed-offers="true"':''}>`);
-  html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"></head>');
+  html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"><link rel="stylesheet" href="/assets/css/ui-consistency.css"></head>');
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_,name) => {
     const template = templates[name];
     if (template === undefined) throw new Error('Unknown template');
@@ -158,7 +158,8 @@ if (!existing) {
     await page('/routes.html',html,'推薦行程｜映畫竹塹','參考新竹主題散步推薦行程，查看有序景點與預估時間。');
   }
   if(snapshot.home) home=home.replace('</body>',()=>`<script type="application/json" id="home-publication">${json({...snapshot.home,generation:snapshot.generation})}</script></body>`);
-  await page('/index.html',home,'映畫竹塹｜新竹城市影像與旅行指南','從新竹市影像博物館出發，探索城市散策、在地美食與新竹旅行。',featured);
+  // [U-24] 與原型及後台 SEO 目錄同一標題；舊字串以品牌開頭又被加後綴，造成「映畫竹塹」重複。
+  await page('/index.html',home,'在城市裡，遇見一場好電影｜映畫竹塹','從新竹市影像博物館出發，探索本週電影、城市散策、在地美食、店家優惠、活動消息與新竹旅行提案。',featured);
   const indexTemplate=await readFile(join(source,'pages/site-map.html'),'utf8');
   await page('/site-map.html',indexTemplate.replace('<div id="public-content-index"></div>',()=>`<div id="public-content-index">${renderPublicContentIndex(snapshot)}</div>`),
     '網站導覽｜映畫竹塹','依分類瀏覽或按名稱尋找映畫竹塹已發布的景點、電影、活動消息與店家優惠。',undefined,'/site-map.html',false);

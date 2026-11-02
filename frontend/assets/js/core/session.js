@@ -107,7 +107,18 @@ export async function memberNavigation() {
       catch (error) { toast(error.message); button.disabled = false; }
     });
     node.append(button);
+    // [U-24] 手機寬度把會員連結放進漢堡選單，避免與品牌標誌擠在 65px 頁首而折行。
+    const navigation = document.querySelector('#primary-nav');
+    if (navigation) {
+      navigation.querySelector('.nav-account')?.remove();
+      const account = element('div', { className: 'nav-account' });
+      const signOut = element('button', { type: 'button' }, '登出');
+      signOut.addEventListener('click', () => button.click());
+      account.append(element('a', { href: '/favorites.html' }, '我的收藏'), element('a', { href: '/change-password.html' }, '更改密碼'), signOut);
+      navigation.append(account);
+    }
   } catch (error) {
+    document.querySelector('#primary-nav .nav-account')?.remove();
     if (generation !== memberNavigationVersion) return;
     if (error.status === 401) {
       node.replaceChildren(element('a', { className: 'login-button', href: '/login.html' }, '會員登入 ↗'));
