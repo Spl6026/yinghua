@@ -11,7 +11,7 @@ class PublicSearch
 {
     public function __construct(private readonly ContentPublication $publication, private readonly SearchRepository $records) {}
 
-    /** [E-35] 與發布／索引清理共用鎖，count與page不跨generation。
+    /** 與發布及索引清理共用同一把鎖，確保總數與分頁結果來自同一個 generation。
      * @return array<string,mixed>
      */
     public function listing(SearchQuery $query): array
@@ -19,7 +19,9 @@ class PublicSearch
         return $this->publication->exclusive(function () use ($query): array {
             $snapshot = $this->publication->read();
             $generation = is_string($snapshot['generation'] ?? null) ? $snapshot['generation'] : '';
-            return trim($query->q) === '' ? ['items' => [],'total' => 0,'page' => $query->page,'pageSize' => $query->pageSize,'generation' => $generation] : $this->records->search($generation, $query);
+            return trim($query->q) === ''
+                ? ['items' => [],'total' => 0,'page' => $query->page,'pageSize' => $query->pageSize,'generation' => $generation]
+                : $this->records->search($generation, $query);
         });
     }
 }

@@ -12,10 +12,15 @@ use Yinghua\DTO\MemberPageInput;
 use Yinghua\Models\Account;
 use Yinghua\Repositories\FavoriteRepository;
 
-/** [S：E13／G15；E-27] 明確收藏／取消，不用重送會反轉狀態的 toggle。 */
+/** 收藏與取消收藏是兩個明確的動作；不用 toggle，避免請求重送時把狀態又切回去。 */
 class MemberFavorites
 {
-    public function __construct(private readonly FavoriteRepository $favorites, private readonly MemberAccess $access, private readonly MemberAttractions $attractions, private readonly Transactions $transactions) {}
+    public function __construct(
+        private readonly FavoriteRepository $favorites,
+        private readonly MemberAccess $access,
+        private readonly MemberAttractions $attractions,
+        private readonly Transactions $transactions,
+    ) {}
 
     public function listing(Account $actor, MemberPageInput $query): FavoritePage
     {
@@ -29,11 +34,15 @@ class MemberFavorites
             $snapshot = $this->attractions->snapshot();
             $items = [];
             foreach ($records as $record) {
-                $items[] = ['attractionId' => $record->attractionId, 'savedAt' => str_replace(' ', 'T', $record->createdAt) . '+00:00', ...$snapshot->view($record->attractionId)];
+                $items[] = ['attractionId' => $record->attractionId,
+                    'savedAt' => str_replace(' ', 'T', $record->createdAt) . '+00:00',
+                    ...$snapshot->view($record->attractionId)];
             }
             $last = $records === [] ? null : $records[array_key_last($records)];
 
-            return new FavoritePage($items, $more && $last !== null ? MemberPageInput::cursor(['at' => $last->createdAt, 'id' => $last->attractionId]) : null);
+            return new FavoritePage($items, $more && $last !== null
+                ? MemberPageInput::cursor(['at' => $last->createdAt, 'id' => $last->attractionId])
+                : null);
         });
     }
 

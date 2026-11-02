@@ -11,7 +11,7 @@ use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\PublicationRepository;
 
-/** [E-12／E-18] DB 是編輯來源；成功產生的不可變快照是公開讀取版本。 */
+/** 資料庫是編輯用的來源；公開頁面與 API 一律讀取最近一次成功產生、不再變動的快照。 */
 class ContentPublication
 {
     public function __construct(
@@ -38,14 +38,14 @@ class ContentPublication
         return $this->renderer->exclusive($callback);
     }
 
-    /** [E-18] 呼叫端已提交內容；發布任何步驟失敗都須保留已保存的回應，不讓使用者重複新增。 */
+    /** 呼叫時內容已提交。發布過程任何一步失敗都只回傳 false，讓呼叫端照樣回應「已保存」，避免使用者以為失敗而重複新增。 */
     public function synchronize(): bool
     {
         $id = null;
         try {
             $snapshot = $this->projection();
             $id = $this->publications->begin($this->generation($snapshot));
-            // [S G18；E-35] 完整交易寫入同版公開索引，HTML成功後才清舊版。
+            // 搜尋索引先整批寫入新版本，等 HTML 產生成功後才清掉舊版本，確保搜尋結果與頁面一致。
             $this->search?->replace($this->generation($snapshot), \Yinghua\DTO\SearchDocument::project($snapshot));
             $this->renderer->render($snapshot);
             $this->search?->prune($this->generation($snapshot));
@@ -53,7 +53,7 @@ class ContentPublication
 
             return true;
         } catch (Throwable $error) {
-            // 紀錄資料庫本身可能故障；記錄失敗不能遮蔽「內容已保存」。
+            // 連記錄發布結果的資料庫都可能故障；這時只記 log，不能讓它蓋過「內容已保存」的事實。
             if ($id !== null) {
                 try {
                     $this->publications->finish($id, false);
@@ -72,7 +72,7 @@ class ContentPublication
         return $this->exclusive($this->synchronize(...));
     }
 
-    /** 排程由 CLI 週期執行；沒有變更就不重產生。 */
+    /** 由 CLI 排程定期呼叫；內容沒有變更時不重新產生。 */
     public function tick(): bool
     {
         return $this->exclusive(function (): bool {
@@ -88,7 +88,7 @@ class ContentPublication
     /** @return array<string,mixed> */
     public function read(): array
     {
-        // [S-SEO-17] 產生失敗／下架／排程切換期間不繼續公開舊版本。
+        // 產生失敗、內容下架或排程切換期間，不能繼續對外提供過期的舊版本。
         $current = $this->renderer->current();
         if ($current === null) {
             throw new PublicationPending(null, []);
@@ -106,10 +106,16 @@ class ContentPublication
     {
         $now = $this->clock?->now() ?? time();
         $window = \Yinghua\DTO\ScreeningWindow::current($now);
-        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),'policyVersion' => $this->config->string('TERMS_VERSION', '2026-11-02'),'indexModifiedAt' => [],
-            'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published($now)),
+        $data = ['origin' => $this->config->origin(),
+            'rendererVersion' => $this->renderer->version(),
+            'policyVersion' => $this->config->string('TERMS_VERSION', '2026-11-02'),
+            'indexModifiedAt' => [],
+            'items' => array_map(
+                static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(),
+                $this->attractions->published($now),
+            ),
             'aliases' => $this->attractions->aliases($now)];
-        // [E-25] 景點與電影共享 generation；本週邊界使無編輯的換週也會發布。
+        // 景點與電影共用同一個 generation；投影包含本週範圍，所以即使沒人編輯，換週時也會重新發布。
         if ($this->films !== null) {
             $data['films'] = array_map(static fn(\Yinghua\DTO\Film $film): array => $film->publicArray(), $this->films->published($now));
             $data['filmAliases'] = $this->films->aliases($now);
@@ -164,7 +170,7 @@ class ContentPublication
         return $generation;
     }
 
-    /** [S F33；E-34] 只取已發布記錄的真修改時間；不增加公開JSON API欄位或查詢。
+    /** 只採用已發布記錄的實際修改時間；不為此新增公開 JSON API 欄位或額外查詢。
      * @param list<\Yinghua\DTO\PublishedRecord> $records
      * @return array<string,string>
      */

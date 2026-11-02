@@ -6,7 +6,7 @@ namespace Yinghua\Services;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S：功能規格 6/13；E-18] 公開 API 與 HTML 共用成功發布的資料版本。 */
+/** 公開景點查詢；API 與靜態 HTML 讀的是同一份成功發布的快照。 */
 class PublicAttractions
 {
     public function __construct(private readonly ContentPublication $publication) {}
@@ -32,10 +32,18 @@ class PublicAttractions
         $items = array_values(array_filter($this->items($snapshot), static function (array $item) use ($q, $category, $district): bool {
             return ($category === '' || ($item['category'] ?? null) === $category)
                 && ($district === '' || ($item['district'] ?? null) === $district)
-                && ($q === '' || mb_stripos(implode(' ', array_filter([$item['name'] ?? '',$item['summary'] ?? '',$item['typeLabel'] ?? ''], is_string(...))), $q) !== false);
+                && ($q === ''
+                    || mb_stripos(implode(' ', array_filter([$item['name'] ?? '',
+                        $item['summary'] ?? '',
+                        $item['typeLabel'] ?? ''], is_string(...))), $q) !== false);
         }));
 
-        return ['items' => array_slice($items, ($page - 1) * $size, $size),'total' => count($items),'page' => $page,'pageSize' => $size,'counts' => $counts,'generation' => $snapshot['generation']];
+        return ['items' => array_slice($items, ($page - 1) * $size, $size),
+            'total' => count($items),
+            'page' => $page,
+            'pageSize' => $size,
+            'counts' => $counts,
+            'generation' => $snapshot['generation']];
     }
 
     /** @return array<string,mixed> */

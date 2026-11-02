@@ -7,7 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S H8／H10／H12／H29；E-31] 不即時查DB，避免鄰居與HTML跨版。 */
+/** 詳情頁的上一篇／下一篇；從發布快照計算而不即時查資料庫，避免與已產生的 HTML 版本不一致。 */
 class PublicNeighbors
 {
     public function __construct(private readonly ContentPublication $publication) {}
@@ -24,12 +24,16 @@ class PublicNeighbors
                 continue;
             }
             $map = $snapshot['detailNeighbors'] ?? null;
-            $url = $topic === 'items' ? (($item['isMuseum'] ?? false) === true ? '/museum.html' : '/places/' . $slug . '.html') : ($item['url'] ?? null);
+            $url = $topic === 'items'
+                ? (($item['isMuseum'] ?? false) === true ? '/museum.html' : '/places/' . $slug . '.html')
+                : ($item['url'] ?? null);
             $neighbors = is_array($map) && is_string($url) ? ($map[$url] ?? null) : null;
             if (!is_array($neighbors)) {
                 throw new \UnexpectedValueException('Neighbor projection unavailable.');
             }
-            return ['previous' => $neighbors['previous'] ?? null,'next' => $neighbors['next'] ?? null,'generation' => $snapshot['generation']];
+            return ['previous' => $neighbors['previous'] ?? null,
+                'next' => $neighbors['next'] ?? null,
+                'generation' => $snapshot['generation']];
         }
         throw new ApplicationError('NOT_FOUND', '找不到此公開內容。');
     }

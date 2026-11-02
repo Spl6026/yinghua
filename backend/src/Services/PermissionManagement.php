@@ -17,7 +17,7 @@ use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\PermissionRepository;
 
-/** [E-01／S-027] 個人矩陣的查閱、授權、版本與稽核；不承擔管理員 CRUD。 */
+/** 管理員個人權限矩陣的查閱與修改，含版本比對與稽核紀錄；帳號本身的增刪改由 AdminManagement 負責。 */
 class PermissionManagement
 {
     public function __construct(
@@ -63,7 +63,14 @@ class PermissionManagement
             $this->policy->grantable($fresh, $this->permissions->effective($fresh), $input->permissions);
             $before = $this->permissions->effective($target);
             $this->permissions->save($id, $input->permissions, $fresh->id);
-            $this->events->audit($fresh->id, 'permission-update', $id, ['permissions' => $before], ['permissions' => $input->permissions], $client);
+            $this->events->audit(
+                $fresh->id,
+                'permission-update',
+                $id,
+                ['permissions' => $before],
+                ['permissions' => $input->permissions],
+                $client,
+            );
         });
     }
 

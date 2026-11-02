@@ -12,10 +12,17 @@ use Yinghua\Policies\RecommendedRouteSelection;
 use Yinghua\Repositories\{ItineraryRepository, RecommendedRouteRepository};
 use Yinghua\Support\Secrets;
 
-/** [S E15/G15/L15；E-33] 本人aggregate：會員鎖、交易、版本與全量保存。 */
+/** 會員本人的多份行程：每次儲存都在交易內鎖定會員、比對版本，並整份覆寫行程內容。 */
 class MemberItineraries
 {
-    public function __construct(private readonly ItineraryRepository $records, private readonly MemberAccess $access, private readonly MemberAttractions $attractions, private readonly Transactions $transactions, private readonly ContentPublication $publication, private readonly RecommendedRouteRepository $routes) {}
+    public function __construct(
+        private readonly ItineraryRepository $records,
+        private readonly MemberAccess $access,
+        private readonly MemberAttractions $attractions,
+        private readonly Transactions $transactions,
+        private readonly ContentPublication $publication,
+        private readonly RecommendedRouteRepository $routes,
+    ) {}
 
     /** @return array<string,mixed> */
     public function listing(Account $actor, int $page, int $size): array
@@ -24,7 +31,12 @@ class MemberItineraries
             $member = $this->access->require($actor);
             $data = $this->records->collection($member->id, $page, $size);
             $current = $this->records->current($member->id)?->id;
-            return ['items' => array_map(static fn(MemberItinerary $trip): array => [...$trip->toArray(),'isCurrent' => $trip->id === $current], $data['items']),'total' => $data['total'],'page' => $page,'pageSize' => $size,'currentId' => $current];
+            return ['items' => array_map(static fn(MemberItinerary $trip): array => [...$trip->toArray(),
+                'isCurrent' => $trip->id === $current], $data['items']),
+                'total' => $data['total'],
+                'page' => $page,
+                'pageSize' => $size,
+                'currentId' => $current];
         });
     }
 
@@ -89,7 +101,7 @@ class MemberItineraries
         });
     }
 
-    /** [S L24；原型套用替換名稱／站點；E-33] 路線快照與即時資料相符才整份寫入。 */
+    /** 把推薦路線套用到行程，取代原本的名稱與站點；只有路線快照與目前資料一致時才整份寫入。 */
     public function apply(Account $actor, string $id, string $routeId, int $version): TripView
     {
         ContentFields::uuid($routeId, 'routeId');
@@ -123,7 +135,14 @@ class MemberItineraries
             $items = [];
             foreach ($route->stops as $stop) {
                 if (isset($names[$stop['attractionId']])) {
-                    $items[] = new ItineraryStop(Secrets::uuid(), $stop['attractionId'], count($items) + 1, $stop['suggestedTime'] === null ? null : $stop['suggestedTime'] . ':00', $stop['note'], $names[$stop['attractionId']]);
+                    $items[] = new ItineraryStop(
+                        Secrets::uuid(),
+                        $stop['attractionId'],
+                        count($items) + 1,
+                        $stop['suggestedTime'] === null ? null : $stop['suggestedTime'] . ':00',
+                        $stop['note'],
+                        $names[$stop['attractionId']],
+                    );
                 }
             }
             if ($items === []) {
@@ -177,7 +196,12 @@ class MemberItineraries
         $snapshot = $this->attractions->snapshot();
         $items = [];
         foreach ($this->records->allItems($memberId, $trip->id) as $item) {
-            $items[] = ['attractionId' => $item->attractionId,'sortOrder' => $item->sortOrder,'startTime' => $item->plannedTime === null ? null : substr($item->plannedTime, 0, 5),'note' => $item->note,'snapshotName' => $item->snapshotName,...$snapshot->view($item->attractionId)];
+            $items[] = ['attractionId' => $item->attractionId,
+                'sortOrder' => $item->sortOrder,
+                'startTime' => $item->plannedTime === null ? null : substr($item->plannedTime, 0, 5),
+                'note' => $item->note,
+                'snapshotName' => $item->snapshotName,
+                ...$snapshot->view($item->attractionId)];
         }
         return new TripView($trip, $this->records->current($memberId)?->id === $trip->id, $items);
     }

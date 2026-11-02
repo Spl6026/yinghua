@@ -14,10 +14,15 @@ use Yinghua\Models\Account;
 use Yinghua\Repositories\ItineraryRepository;
 use Yinghua\Support\Secrets;
 
-/** [S：G15／L15；U-08／E-27] 目前行程為同一 aggregate；父表鎖與版本防止跨頁覆寫。 */
+/** 會員的「目前行程」視為一個整體處理；先鎖住行程主表並比對版本，避免多個分頁同時編輯互相覆蓋。 */
 class CurrentItinerary
 {
-    public function __construct(private readonly ItineraryRepository $itineraries, private readonly MemberAccess $access, private readonly MemberAttractions $attractions, private readonly Transactions $transactions) {}
+    public function __construct(
+        private readonly ItineraryRepository $itineraries,
+        private readonly MemberAccess $access,
+        private readonly MemberAttractions $attractions,
+        private readonly Transactions $transactions,
+    ) {}
 
     public function listing(Account $actor, MemberPageInput $query): CurrentItineraryPage
     {
@@ -26,7 +31,8 @@ class CurrentItinerary
         return $this->transactions->run(function () use ($actor, $query, $position): CurrentItineraryPage {
             $member = $this->access->require($actor);
             $itinerary = $this->itineraries->current($member->id);
-            if ($position !== null && ($itinerary === null || $position['id'] !== $itinerary->id || $position['version'] !== $itinerary->version)) {
+            if ($position !== null
+                && ($itinerary === null || $position['id'] !== $itinerary->id || $position['version'] !== $itinerary->version)) {
                 throw new ApplicationError('CONFLICT', '行程已變更，請重新載入後繼續。');
             }
             if ($itinerary === null) {
@@ -38,11 +44,18 @@ class CurrentItinerary
             $snapshot = $this->attractions->snapshot();
             $items = [];
             foreach ($records as $record) {
-                $items[] = ['attractionId' => $record->attractionId, 'sortOrder' => $record->sortOrder, 'plannedTime' => $record->plannedTime, 'note' => $record->note, 'snapshotName' => $record->snapshotName, ...$snapshot->view($record->attractionId)];
+                $items[] = ['attractionId' => $record->attractionId,
+                    'sortOrder' => $record->sortOrder,
+                    'plannedTime' => $record->plannedTime,
+                    'note' => $record->note,
+                    'snapshotName' => $record->snapshotName,
+                    ...$snapshot->view($record->attractionId)];
             }
             $last = $records === [] ? null : $records[array_key_last($records)];
 
-            return new CurrentItineraryPage($itinerary, $items, $more && $last !== null ? MemberPageInput::cursor(['id' => $itinerary->id, 'version' => $itinerary->version, 'order' => $last->sortOrder]) : null);
+            return new CurrentItineraryPage($itinerary, $items, $more && $last !== null
+                ? MemberPageInput::cursor(['id' => $itinerary->id, 'version' => $itinerary->version, 'order' => $last->sortOrder])
+                : null);
         });
     }
 

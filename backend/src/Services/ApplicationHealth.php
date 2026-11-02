@@ -9,7 +9,7 @@ use Yinghua\Config;
 use Yinghua\Contracts\DatabaseHealthProbe;
 use Yinghua\DTO\HealthReport;
 
-/** [D API草案 C43:H43／E-29] 核心 readiness，不代表郵件、Google 或公開發布已完成。 */
+/** 核心服務的 readiness 檢查；通過不代表郵件、Google 或公開發布都正常。 */
 readonly class ApplicationHealth
 {
     public function __construct(private Config $config, private DatabaseHealthProbe $database) {}

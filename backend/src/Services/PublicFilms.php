@@ -7,7 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\FilmQuery;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S：功能規格 7/21；E-25] API 與 HTML 都讀同一成功發布快照。 */
+/** 公開電影查詢；API 與靜態 HTML 讀的是同一份成功發布的快照。 */
 class PublicFilms
 {
     public function __construct(private readonly ContentPublication $publication) {}

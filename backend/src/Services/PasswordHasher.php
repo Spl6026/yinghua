@@ -6,7 +6,7 @@ namespace Yinghua\Services;
 
 use SensitiveParameter;
 
-/** [S-SEC-09／E-08] 不修剪密碼；雜湊使用 Argon2id。 */
+/** 密碼原樣雜湊、不修剪前後空白；演算法使用 Argon2id。 */
 class PasswordHasher
 {
     private const array OPTIONS = ['memory_cost' => 65536, 'time_cost' => 3, 'threads' => 1];

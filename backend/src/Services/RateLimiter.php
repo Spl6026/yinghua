@@ -11,7 +11,11 @@ use Yinghua\Repositories\RateLimitRepository;
 
 class RateLimiter
 {
-    public function __construct(private readonly RateLimitRepository $repository, private readonly Secrets $secrets, private readonly Clock $clock) {}
+    public function __construct(
+        private readonly RateLimitRepository $repository,
+        private readonly Secrets $secrets,
+        private readonly Clock $clock,
+    ) {}
 
     public function check(string $scope, string $identifier, int $maximum, int $seconds): void
     {

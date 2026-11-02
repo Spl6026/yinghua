@@ -8,7 +8,7 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Repositories\OperationsRepository;
 
-/** [E-36] 儀表板權限不等於內容權限；隱藏模組連統計也不查。 */
+/** 能看儀表板不代表能看所有內容；沒有檢視權限的模組連統計數字都不查。 */
 class OperationsOverview
 {
     public function __construct(private readonly OperationsRepository $records, private readonly Authorization $authorization) {}
@@ -20,14 +20,16 @@ class OperationsOverview
         $counts = [];
         $recent = [];
         foreach ($this->authorization->permissions($fresh) as $permission) {
-            if (!$permission['allowed'] || $permission['action'] !== 'view' || !in_array($permission['module'], ['attractions', 'films', 'news', 'offers', 'members'], true)) {
+            if (!$permission['allowed'] || $permission['action'] !== 'view'
+                || !in_array($permission['module'], ['attractions', 'films', 'news', 'offers', 'members'], true)) {
                 continue;
             }
             $module = $permission['module'];
             $counts[$module] = $this->records->count($module);
             $recent = [...$recent, ...$this->records->recent($module)];
         }
-        usort($recent, static fn(array $a, array $b): int => strcmp($b['updatedAt'], $a['updatedAt']) ?: strcmp($a['module'] . $a['title'], $b['module'] . $b['title']));
+        usort($recent, static fn(array $a, array $b): int => strcmp($b['updatedAt'], $a['updatedAt'])
+            ?: strcmp($a['module'] . $a['title'], $b['module'] . $b['title']));
         return ['counts' => $counts, 'recent' => array_slice($recent, 0, 5), 'auditAvailable' => $fresh->isRoot];
     }
 

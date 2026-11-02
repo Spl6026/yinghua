@@ -13,7 +13,11 @@ use Yinghua\Repositories\PermissionRepository;
 
 class Authorization
 {
-    public function __construct(private readonly AccountRepository $accounts, private readonly PermissionRepository $permissions, private readonly PermissionPolicy $policy) {}
+    public function __construct(
+        private readonly AccountRepository $accounts,
+        private readonly PermissionRepository $permissions,
+        private readonly PermissionPolicy $policy,
+    ) {}
 
     public function require(Account $actor, string $module, string $action, bool $lock = false): Account
     {
@@ -33,7 +37,7 @@ class Authorization
     }
 
     /** @param non-empty-list<string> $actions
-     * [E-31] 表單單筆／選擇器不強迫具新增／編輯權者另有列表檢視權。
+     * 用於表單載入單筆或選擇器：有新增或編輯權限即可，不強迫另外具備列表檢視權限。
      */
     public function requireAny(Account $actor, string $module, array $actions): Account
     {

@@ -16,10 +16,14 @@ use Yinghua\Policies\ImportVersion;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\MerchantRepository;
 
-/** [D：資料表建議 15；E-26] 店家前置能力沿 offers 權限，不擴大既有權限矩陣。 */
+/** 店家資料隸屬於優惠管理，沿用 offers 權限，不另外擴增權限矩陣。 */
 class MerchantManagement implements ContentImportService
 {
-    public function __construct(private readonly MerchantRepository $merchants, private readonly Authorization $authorization, private readonly EventRepository $events) {}
+    public function __construct(
+        private readonly MerchantRepository $merchants,
+        private readonly Authorization $authorization,
+        private readonly EventRepository $events,
+    ) {}
 
     public function prepare(Account $actor, ImportItem $item, bool $lock): PreparedImport
     {
@@ -63,7 +67,18 @@ class MerchantManagement implements ContentImportService
 
     public function save(Account $actor, PreparedImport $change, ClientContext $client): void
     {
-        $this->saveChange($actor, new PreparedContentChange($change->item->id, $change->input, $change->creating, $change->unchanged, $change->version, $change->warnings), $client);
+        $this->saveChange(
+            $actor,
+            new PreparedContentChange(
+                $change->item->id,
+                $change->input,
+                $change->creating,
+                $change->unchanged,
+                $change->version,
+                $change->warnings,
+            ),
+            $client,
+        );
     }
 
     public function saveChange(Account $actor, PreparedContentChange $change, ClientContext $client): void

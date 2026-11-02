@@ -16,7 +16,14 @@ use Yinghua\Repositories\SiteSettingsRepository;
 
 class GeneralSiteSettings
 {
-    public function __construct(private readonly GeneralSettingsRepository $settings, private readonly SiteSettingsRepository $seo, private readonly Authorization $authorization, private readonly Transactions $transactions, private readonly EventRepository $events, private readonly ContentPublication $publication) {}
+    public function __construct(
+        private readonly GeneralSettingsRepository $settings,
+        private readonly SiteSettingsRepository $seo,
+        private readonly Authorization $authorization,
+        private readonly Transactions $transactions,
+        private readonly EventRepository $events,
+        private readonly ContentPublication $publication,
+    ) {}
 
     /** @return array<string,mixed> */
     public function read(Account $actor): array
@@ -29,7 +36,10 @@ class GeneralSiteSettings
     private function document(): array
     {
         $seo = $this->seo->read();
-        return [...$this->settings->read()->toArray(), 'seoVersion' => $seo->version, 'siteName' => $seo->defaults->siteName, 'description' => $seo->defaults->description];
+        return [...$this->settings->read()->toArray(),
+            'seoVersion' => $seo->version,
+            'siteName' => $seo->defaults->siteName,
+            'description' => $seo->defaults->description];
     }
 
     /** @return array<string,mixed> */
@@ -43,10 +53,21 @@ class GeneralSiteSettings
                 if ($before->version !== $input->version || $seo->version !== $input->seoVersion) {
                     throw new ApplicationError('CONFLICT', '設定已更新，請重新讀取後再編輯。');
                 }
-                $defaults = SeoDefaults::fromArray([...$seo->defaults->toArray(), 'siteName' => $input->siteName, 'description' => $input->description]);
+                $defaults = SeoDefaults::fromArray([...$seo->defaults->toArray(),
+                    'siteName' => $input->siteName,
+                    'description' => $input->description]);
                 $this->settings->save($input->values, $before->version + 1, $fresh->id, $before->version === 0);
                 $this->seo->save($defaults, $seo->version + 1, $fresh->id, $seo->version === 0);
-                $this->events->content($fresh->id, 'general-update', 'site_settings', 'general', $before->version, $before->version + 1, 'published', $client);
+                $this->events->content(
+                    $fresh->id,
+                    'general-update',
+                    'site_settings',
+                    'general',
+                    $before->version,
+                    $before->version + 1,
+                    'published',
+                    $client,
+                );
             });
             $ready = $this->publication->synchronize();
             return [...$this->document(), 'publicationReady' => $ready];

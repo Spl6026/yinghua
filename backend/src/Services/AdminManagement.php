@@ -21,7 +21,7 @@ use Yinghua\Repositories\PermissionRepository;
 use Yinghua\Repositories\ResetRepository;
 use Yinghua\Repositories\SessionRepository;
 
-/** [E-01／S-026] 管理員帳號生命週期；個人矩陣編輯交由 PermissionManagement。 */
+/** 管理員帳號的建立、修改與刪除；個人權限矩陣的編輯交給 PermissionManagement。 */
 class AdminManagement
 {
     public function __construct(
@@ -58,7 +58,7 @@ class AdminManagement
         if ($input->password === null) {
             throw ApplicationError::forbidden();
         }
-        // [S：功能規格 G26 admin 保留字；U-24] 以欄位錯誤說明保留帳號，不再只回籠統的權限不足。
+        // admin 是系統保留帳號，用欄位錯誤明確告知，而不是只回籠統的權限不足。
         if ($this->accounts->byLogin(IdentityKind::Admin, $input->account)?->isRoot) {
             throw ApplicationError::invalid('account', '此帳號為系統保留帳號，請改用其他帳號。');
         }
@@ -104,7 +104,14 @@ class AdminManagement
                     $this->resets->revokeAll(IdentityKind::Admin, $id);
                 }
                 $updated = AccountSummary::fromAccount($this->target($id));
-                $this->events->audit($fresh->id, 'admin-update', $id, AccountSummary::fromAccount($target)->toArray(), $updated->toArray(), $client);
+                $this->events->audit(
+                    $fresh->id,
+                    'admin-update',
+                    $id,
+                    AccountSummary::fromAccount($target)->toArray(),
+                    $updated->toArray(),
+                    $client,
+                );
 
                 return $updated;
             });
@@ -125,7 +132,14 @@ class AdminManagement
             $this->accounts->deleteAdmin($id);
             $this->sessions->revokeAll(IdentityKind::Admin, $id);
             $this->resets->revokeAll(IdentityKind::Admin, $id);
-            $this->events->audit($fresh->id, 'admin-delete', $id, AccountSummary::fromAccount($target)->toArray(), ['deleted' => true], $client);
+            $this->events->audit(
+                $fresh->id,
+                'admin-delete',
+                $id,
+                AccountSummary::fromAccount($target)->toArray(),
+                ['deleted' => true],
+                $client,
+            );
         });
     }
 

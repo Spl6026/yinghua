@@ -20,7 +20,11 @@ class PublicOffers
             $merchant = is_array($item['merchant'] ?? null) ? $item['merchant'] : [];
             return (!$query->active || ($item['active'] ?? false) === true)
                 && ($query->district === '' || ($merchant['district'] ?? null) === $query->district)
-                && ($query->q === '' || mb_stripos(implode(' ', array_filter([$item['title'] ?? '',$item['discount'] ?? '',$item['description'] ?? '',$merchant['name'] ?? ''], is_string(...))), $query->q) !== false);
+                && ($query->q === ''
+                    || mb_stripos(implode(' ', array_filter([$item['title'] ?? '',
+                        $item['discount'] ?? '',
+                        $item['description'] ?? '',
+                        $merchant['name'] ?? ''], is_string(...))), $query->q) !== false);
         }));
         return PublicCollection::page($items, $query->page, $query->pageSize, $snapshot);
     }

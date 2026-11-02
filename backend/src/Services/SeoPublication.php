@@ -9,7 +9,7 @@ use Yinghua\Models\SeoResource;
 use Yinghua\Repositories\ContentSeoRepository;
 use Yinghua\Repositories\SiteSettingsRepository;
 
-/** [S：G30/G32；E-28] 快照只含頁面與目前可公開內容的 SEO，草稿覆寫不出界。 */
+/** 產生發布快照用的 SEO 資料；只包含頁面與目前公開內容的設定，草稿內容的覆寫不會外流。 */
 class SeoPublication
 {
     public function __construct(private readonly SiteSettingsRepository $settings, private readonly ContentSeoRepository $overrides) {}

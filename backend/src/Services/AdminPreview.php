@@ -15,7 +15,7 @@ use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\SessionRepository;
 use Yinghua\Support\Secrets;
 
-/** [U-06／E-16] 僅固定 root 可進入唯讀模擬；身分仍由資料庫與 session 決定。 */
+/** 只有 root 管理員能以其他帳號身分進入唯讀預覽；實際身分仍以資料庫與 session 為準，不信任前端傳來的值。 */
 class AdminPreview
 {
     public function __construct(
