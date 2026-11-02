@@ -63,18 +63,9 @@ class FilmRepository
         }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO films (id,' . $columns . ') VALUES (:id,' . $placeholders . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('films', $id, $fields);
             } else {
-                $columns = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE films SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('films', $id, $fields);
             }
             $this->alias('/films/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
@@ -87,11 +78,7 @@ class FilmRepository
 
     public function alias(string $path, string $id): void
     {
-        $existing = $this->database->row('SELECT film_id FROM film_aliases WHERE path=:path', ['path' => $path]);
-        if ($existing !== null && (new Row($existing))->string('film_id') !== $id) {
-            throw new ContentConflict('Film URL already reserved.');
-        }
-        $this->database->execute('INSERT IGNORE INTO film_aliases (path,film_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
+        $this->database->reserveAlias('film_aliases', 'film_id', $path, $id);
     }
 
     public function delete(string $id): void

@@ -10,6 +10,7 @@ use PDOException;
 use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ContentConflict;
 use Yinghua\Support\ErrorLog;
 use Yinghua\Exceptions\ErrorCode;
 
@@ -66,6 +67,56 @@ class Database
         }
 
         return $database;
+    }
+
+    /**
+     * 新增一筆以 UUID 為主鍵的資料。欄位名稱一律來自 DTO 的欄位白名單，不會是使用者輸入。
+     *
+     * @param array<string, bool|int|string|null> $values
+     */
+    public function insert(string $table, string $id, array $values): void
+    {
+        $columns = array_keys($values);
+        $this->execute(
+            'INSERT INTO ' . $table . ' (id,' . implode(',', $columns) . ') VALUES (:id,'
+            . implode(',', array_map(static fn(string $column): string => ':' . $column, $columns)) . ')',
+            ['id' => $id, ...$values],
+        );
+    }
+
+    /**
+     * 更新資料並把版本號加一，供樂觀鎖判斷其他人是否已修改過。
+     * $expressions 可為個別欄位指定 SQL 運算式取代單純的 :欄位（參數名稱仍是欄位名稱）。
+     *
+     * @param array<string, bool|int|string|null> $values
+     * @param array<string, string> $expressions
+     */
+    public function updateVersioned(string $table, string $id, array $values, array $expressions = []): void
+    {
+        $assignments = array_map(
+            static fn(string $column): string => $column . '=' . ($expressions[$column] ?? ':' . $column),
+            array_keys($values),
+        );
+        $this->execute(
+            'UPDATE ' . $table . ' SET ' . implode(',', $assignments) . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
+            ['id' => $id, ...$values],
+        );
+    }
+
+    /**
+     * 保留舊網址：同一網址只能屬於一筆內容，改名後舊網址仍導向原內容。
+     * 已屬於其他內容時丟出衝突，避免把別人的舊網址搶走。
+     */
+    public function reserveAlias(string $aliasTable, string $ownerColumn, string $path, string $id): void
+    {
+        $owner = $this->row('SELECT ' . $ownerColumn . ' AS owner FROM ' . $aliasTable . ' WHERE path=:path', ['path' => $path]);
+        if ($owner !== null && (new Row($owner))->string('owner') !== $id) {
+            throw new ContentConflict('Historical URL already reserved.');
+        }
+        $this->execute(
+            'INSERT IGNORE INTO ' . $aliasTable . ' (path,' . $ownerColumn . ') VALUES (:path,:id)',
+            ['path' => $path, 'id' => $id],
+        );
     }
 
     /** 唯一鍵重複（網址代稱、電子郵件等已被使用），呼叫端會轉成較具體的衝突錯誤。 */

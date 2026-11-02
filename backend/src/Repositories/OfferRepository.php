@@ -82,18 +82,9 @@ class OfferRepository
         }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $parameters = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO offers (id,' . $columns . ') VALUES (:id,' . $parameters . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('offers', $id, $fields);
             } else {
-                $set = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE offers SET ' . $set . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('offers', $id, $fields);
             }
             $this->alias('/offers/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
@@ -106,11 +97,7 @@ class OfferRepository
 
     public function alias(string $path, string $id): void
     {
-        $existing = $this->database->row('SELECT offer_id FROM offer_aliases WHERE path=:path', ['path' => $path]);
-        if ($existing !== null && (new Row($existing))->string('offer_id') !== $id) {
-            throw new ContentConflict('Historical URL already reserved.');
-        }
-        $this->database->execute('INSERT IGNORE INTO offer_aliases (path,offer_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
+        $this->database->reserveAlias('offer_aliases', 'offer_id', $path, $id);
     }
 
     public function assertSlugAvailable(string $slug, string $id): void

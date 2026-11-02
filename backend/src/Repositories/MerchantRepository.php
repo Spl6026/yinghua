@@ -87,18 +87,9 @@ class MerchantRepository
         $fields = $input->fields;
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $parameters = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO merchants (id,' . $columns . ') VALUES (:id,' . $parameters . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('merchants', $id, $fields);
             } else {
-                $set = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE merchants SET ' . $set . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('merchants', $id, $fields);
             }
         } catch (PDOException $error) {
             if (Database::isDuplicateKey($error)) {

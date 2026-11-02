@@ -76,21 +76,13 @@ class AttractionRepository
         }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('attractions', $id, $fields);
             } else {
                 // 舊版客戶端沒有送週表時，不能用舊格式的摘要蓋掉已存在的結構化營業時間。
                 $structured = array_key_exists('opening_hours', $input->fields);
-                $columns = implode(',', array_map(static fn(string $key): string => $key === 'hours' && !$structured
-                    ? 'hours=CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END' : $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('attractions', $id, $fields, $structured ? [] : [
+                    'hours' => 'CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END',
+                ]);
             }
             if ($input->fields['category'] === '景點') {
                 // 分類可以修改，但已被優惠引用的店家資料要保留，不能硬刪而破壞歷史紀錄。
@@ -122,14 +114,7 @@ class AttractionRepository
 
     public function alias(string $path, string $id): void
     {
-        $existing = $this->database->row('SELECT attraction_id FROM attraction_aliases WHERE path=:path', ['path' => $path]);
-        if ($existing !== null && (new Row($existing))->string('attraction_id') !== $id) {
-            throw new ContentConflict('Historical URL already reserved.');
-        }
-        $this->database->execute(
-            'INSERT IGNORE INTO attraction_aliases (path,attraction_id) VALUES (:path,:id)',
-            ['path' => $path,'id' => $id],
-        );
+        $this->database->reserveAlias('attraction_aliases', 'attraction_id', $path, $id);
     }
 
     public function delete(string $id): void
