@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Services;
 
 use Yinghua\Config;
-use Yinghua\Contracts\ContentRenderer;
+use Yinghua\Contracts\PublishedSnapshot;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Repositories\GeneralSettingsRepository;
 use Yinghua\Exceptions\ErrorCode;
@@ -15,13 +15,13 @@ class PublishedPolicies
 {
     public function __construct(
         private readonly GeneralSettingsRepository $settings,
-        private readonly ContentRenderer $renderer,
+        private readonly PublishedSnapshot $published,
         private readonly Config $config,
     ) {}
 
     public function configurationVersion(): string
     {
-        $snapshot = $this->renderer->current();
+        $snapshot = $this->published->current();
         $version = $snapshot['policyVersion'] ?? null;
         return is_string($version) ? $version : $this->config->termsVersion();
     }
@@ -30,7 +30,7 @@ class PublishedPolicies
     {
         $document = $this->settings->read($lock);
         $expected = $document->values->consentVersion($this->config->termsVersion());
-        $snapshot = $this->renderer->current();
+        $snapshot = $this->published->current();
         $general = $snapshot['general'] ?? null;
         if ($document->version !== 0
             && (!is_array($general)
