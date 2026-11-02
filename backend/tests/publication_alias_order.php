@@ -29,6 +29,7 @@ use Yinghua\Repositories\SearchRepository;
 use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Services\ContentPublication;
+use Yinghua\Services\PublicationSnapshotBuilder;
 use Yinghua\Services\SeoPublication;
 use Yinghua\Support\Secrets;
 
@@ -93,18 +94,20 @@ try {
         }
     };
     $publication = new ContentPublication(
-        new AttractionRepository($database),
         new PublicationRepository($database),
         new NodeContentRenderer($config),
-        $config,
-        new FilmRepository($database, new FilmScreeningRepository($database)),
-        $clock,
-        $news,
-        $offers,
-        new SeoPublication(new SeoSettingsRepository($database), new SeoOverrideRepository($database)),
-        new RecommendedRouteRepository($database),
         new SearchRepository($database, $outerTransaction),
-        new GeneralSettingsRepository($database),
+        new PublicationSnapshotBuilder(
+            $config,
+            $clock,
+            new AttractionRepository($database),
+            new FilmRepository($database, new FilmScreeningRepository($database)),
+            $news,
+            $offers,
+            new RecommendedRouteRepository($database),
+            new SeoPublication(new SeoSettingsRepository($database), new SeoOverrideRepository($database)),
+            new GeneralSettingsRepository($database),
+        ),
     );
     $raw = $database->rows('SELECT a.path FROM offer_aliases a WHERE 1=1');
     $check($publication->synchronize());

@@ -112,6 +112,7 @@ use Yinghua\Services\PermissionManagement;
 use Yinghua\Services\PublicAttractions;
 use Yinghua\Services\PublicFilms;
 use Yinghua\Services\PublicHome;
+use Yinghua\Services\PublicationSnapshotBuilder;
 use Yinghua\Services\PublicNeighbors;
 use Yinghua\Services\PublicNews;
 use Yinghua\Services\PublicOffers;
@@ -404,22 +405,23 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
+        $transactions = new PdoTransactions($database);
+
         return new ContentPublication(
-            new AttractionRepository($database),
             new PublicationRepository($database),
             new NodeContentRenderer($this->config),
-            $this->config,
-            new FilmRepository($database, new FilmScreeningRepository($database)),
-            new SystemClock(),
-            new NewsRepository($database),
-            new OfferRepository($database),
-            new SeoPublication(
-                new SeoSettingsRepository($database),
-                new SeoOverrideRepository($database),
+            new SearchRepository($database, $transactions),
+            new PublicationSnapshotBuilder(
+                $this->config,
+                new SystemClock(),
+                new AttractionRepository($database),
+                new FilmRepository($database, new FilmScreeningRepository($database)),
+                new NewsRepository($database),
+                new OfferRepository($database),
+                new RecommendedRouteRepository($database),
+                new SeoPublication(new SeoSettingsRepository($database), new SeoOverrideRepository($database)),
+                new GeneralSettingsRepository($database),
             ),
-            new RecommendedRouteRepository($database),
-            new SearchRepository($database, new PdoTransactions($database)),
-            new GeneralSettingsRepository($database),
         );
     }
 

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Yinghua\Exceptions;
 
+use Yinghua\Services\PublicationSnapshotBuilder;
+
 /** 公開頁面尚未同步；診斷訊息只記固定的區段名稱與 hash，不寫入公開內容、路徑或設定值。 */
 class PublicationPending extends ApplicationError
 {
@@ -15,9 +17,7 @@ class PublicationPending extends ApplicationError
     public function __construct(?array $current, array $expected)
     {
         $sections = [];
-        foreach (['origin','rendererVersion','policyVersion','items','aliases',
-            'films','filmAliases','filmPeriod','news','newsAliases',
-            'offerDate','offers','offerAliases','home','seo','general'] as $key) {
+        foreach (PublicationSnapshotBuilder::SECTIONS as $key) {
             if ($current !== null && ($current[$key] ?? null) !== ($expected[$key] ?? null)) {
                 $sections[] = $key;
             }

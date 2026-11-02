@@ -104,3 +104,12 @@ E-01／E-13：Request.json() 不得丟棄 PHP 將 JSON 數字屬性名轉成的�
 
 消息與優惠的後台管理共用 `AdminContentManagement`／`AdminContentController`，在 `Composition` 依模組設定；兩者的資料存取與編輯分別實作 `Contracts\AdminContentRecords` 與 `Contracts\ContentEditor`。消息、優惠與店家的編輯服務由 `Composition::contentEditors()` 建立，後台 API 與 CLI 匯入共用。
 
+
+## 設計模式對照
+
+下列模式是為了讓職責單一、擴充時只改一處；名稱只是閱讀時的對照，不代表引入框架。
+
+| 模式 | 位置 | 用途 |
+| --- | --- | --- |
+| 組裝根（Composition Root）＋工廠方法 | `Composition`、`Composition\SharedServices` | 唯一建立物件的地方；共用物件建一次，各區塊工廠方法只組自己的 Controller |
+| 建構器（Builder） | `Services\PublicationSnapshotBuilder` | 從各資料表組出公開快照並算出 generation；`ContentPublication` 只負責發布流程、鎖定與記錄結果。`SECTIONS` 列出所有區段，發布延遲診斷依此比對，單元測試確認與實際快照一致 |
