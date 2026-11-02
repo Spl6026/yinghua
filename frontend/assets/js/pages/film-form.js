@@ -4,6 +4,7 @@ import { hasPermission, handleAdminError } from '../core/session.js';
 import { status, submitForm, unsavedChanges, formErrors, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { screeningEditor } from '../components/screening-editor.js';
+import { adminFormErrors, confirmDiscard, redirectBackLinks } from '../core/admin-form.js';
 
 const fields = [
   'title',
@@ -25,14 +26,7 @@ export async function initializeFilmForm(identity, page) {
   const form = document.querySelector('#film-form'),
     message = document.querySelector('#film-form-status');
   const creating = page === 'film-add';
-  if (!hasPermission(identity, 'films', 'view')) {
-    const cancel = document.querySelector('#film-cancel');
-    cancel.href = '/index.html';
-    cancel.textContent = '返回網站';
-    const back = document.querySelector('.admin-preview');
-    back.href = cancel.href;
-    back.textContent = cancel.textContent;
-  }
+  redirectBackLinks(identity, 'films', document.querySelector('#film-cancel'), '/admin/film-add.html');
   let id = creating ? null : new URLSearchParams(location.search).get('id');
   let version,
     loaded = creating,
@@ -145,8 +139,7 @@ export async function initializeFilmForm(identity, page) {
   document.querySelector('#reload-film').hidden = creating;
   document.querySelector('#reload-film').addEventListener('click', async event => {
     if (busy || completed) return;
-    if (!dirty || (await confirmAction('重新載入電影', '這會放棄尚未儲存的修改。', event.currentTarget)))
-      await load();
+    if (await confirmDiscard(dirty, event.currentTarget, '重新載入電影')) await load();
   });
   document.querySelector('#upload-film-image').addEventListener('click', async () => {
     if (!available() || !uploadMode()) return;
@@ -249,7 +242,7 @@ export async function initializeFilmForm(identity, page) {
           controls();
         }
       },
-      { canSubmit: available, statusNode: message, onError: error => handleAdminError(error, message) }
+      { canSubmit: available, statusNode: message, onError: adminFormErrors(message) }
     );
   });
   if (!creating) await load();

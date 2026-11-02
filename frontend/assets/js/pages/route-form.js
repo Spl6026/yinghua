@@ -1,7 +1,8 @@
 import { recommendedRoutesApi as service } from '../api/recommended-routes-api.js';
-import { hasPermission, handleAdminError, adminDestination } from '../core/session.js';
+import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, formErrors, submitForm, unsavedChanges, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
+import { adminFormErrors, confirmDiscard, latestRequest, redirectBackLinks } from '../core/admin-form.js';
 
 // 陣列順序就是站點順序；排序按鈕同時支援滑鼠與鍵盤，不需要拖曳。
 export async function initializeRouteForm(identity, page) {
@@ -30,14 +31,7 @@ export async function initializeRouteForm(identity, page) {
     !identity.preview?.active && hasPermission(identity, 'routes', id ? 'edit' : 'create');
   const available = () => allowed() && loaded && !busy && !completed;
   const cancel = document.querySelector('#route-cancel');
-  if (!hasPermission(identity, 'routes', 'view')) {
-    const dest = adminDestination(identity);
-    cancel.href = dest === '/admin/route-add.html' ? '/index.html' : dest;
-    cancel.textContent = '返回可用頁面';
-    const back = document.querySelector('.admin-preview');
-    back.href = cancel.href;
-    back.textContent = cancel.textContent;
-  }
+  redirectBackLinks(identity, 'routes', cancel, '/admin/route-add.html');
   function controls() {
     for (const node of form.querySelectorAll('input,select,textarea,button')) node.disabled = !available();
     previous.disabled = !available() || candidateBusy || candidatePage <= 1;
@@ -155,7 +149,7 @@ export async function initializeRouteForm(identity, page) {
       if (!result.items.length) choices.append(element('p', {}, '沒有可加入的已發布景點。'));
       document.querySelector('#route-place-page').textContent = `景點第 ${candidatePage} 頁`;
     } catch (error) {
-      handleAdminError(error, message);
+      if (request === candidateRequest) handleAdminError(error, message);
     } finally {
       if (request === candidateRequest) {
         candidateBusy = false;
@@ -163,13 +157,16 @@ export async function initializeRouteForm(identity, page) {
       }
     }
   }
+  const loads = latestRequest();
   async function load() {
+    const request = loads.next();
     busy = true;
     controls();
     try {
       if (!id) throw new Error('找不到要編輯的推薦行程，請返回清單重新開啟。');
       const result = await service.get(id),
         record = result.record;
+      if (!loads.isCurrent(request)) return;
       for (const name of ['title', 'theme', 'summary', 'durationMinutes', 'sortOrder', 'status'])
         form.elements.namedItem(name).value = record[name] ?? '';
       version = record.version;
@@ -181,11 +178,14 @@ export async function initializeRouteForm(identity, page) {
       renderStops();
       status(message, '已載入推薦行程。');
     } catch (error) {
+      if (!loads.isCurrent(request)) return;
       loaded = false;
       handleAdminError(error, message);
     } finally {
-      busy = false;
-      controls();
+      if (loads.isCurrent(request)) {
+        busy = false;
+        controls();
+      }
     }
   }
   form.addEventListener('input', () => {
@@ -204,7 +204,7 @@ export async function initializeRouteForm(identity, page) {
     }
   });
   reload.addEventListener('click', async () => {
-    if (dirty && !(await confirmAction('重新載入', '將捨棄尚未儲存的修改，確定重新載入？', reload))) return;
+    if (!(await confirmDiscard(dirty, reload, '重新載入推薦行程'))) return;
     if (creating && !id) {
       form.reset();
       stops = [];
@@ -273,7 +273,7 @@ export async function initializeRouteForm(identity, page) {
           location.assign('/admin/routes.html');
         }
       },
-      { statusNode: message, canSubmit: () => available() }
+      { statusNode: message, canSubmit: () => available(), onError: adminFormErrors(message) }
     );
     busy = false;
     controls();

@@ -5,10 +5,11 @@ import vm from 'node:vm';
 
 // 執行實際頁面模組；只替換 DOM、導航及 API 邊界，驗證非同步控制狀態。
 const sources = await Promise.all(
-  ['core/ui.js', 'core/session.js', 'pages/admin-form.js', 'pages/permissions.js'].map(async path =>
-    (await readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8'))
-      .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-      .replace(/\bexport /g, '')
+  ['core/ui.js', 'core/session.js', 'core/admin-form.js', 'pages/admin-form.js', 'pages/permissions.js'].map(
+    async path =>
+      (await readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8'))
+        .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
+        .replace(/\bexport /g, '')
   )
 );
 const settle = async () => {

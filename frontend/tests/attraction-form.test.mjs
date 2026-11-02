@@ -7,9 +7,13 @@ import * as taipeiTime from '../assets/js/core/taipei-time.js';
 // 真正執行表單與共用控制模組；只替換瀏覽器 DOM／API 邊界。
 const source = (
   await Promise.all(
-    ['core/ui.js', 'core/session.js', 'core/place-candidate.js', 'pages/attraction-form.js'].map(path =>
-      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
-    )
+    [
+      'core/ui.js',
+      'core/session.js',
+      'core/admin-form.js',
+      'core/place-candidate.js',
+      'pages/attraction-form.js',
+    ].map(path => readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8'))
   )
 ).map(text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));
 const html = await readFile(new URL('../pages/admin/place-add.html', import.meta.url), 'utf8');
@@ -266,9 +270,10 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
 test('只有新增權限保存後留在成功畫面，再次送出不重複新增', async () => {
   const f = fixture({ creating: true, view: false, edit: false });
   await f.initialize();
-  assert.equal(f.node('#place-cancel').href, '/admin/place-add.html');
-  assert.equal(f.node('.admin-preview').href, '/admin/place-add.html');
-  assert.equal(f.node('.admin-preview').textContent, '返回可用功能');
+  // 唯一可用的頁面就是這張新增表單時，「取消」不指回自己，改回網站首頁。
+  assert.equal(f.node('#place-cancel').href, '/index.html');
+  assert.equal(f.node('.admin-preview').href, '/index.html');
+  assert.equal(f.node('.admin-preview').textContent, '返回網站');
   f.form.emit('submit');
   await settle();
   assert.equal(f.state.assignments.length, 0);

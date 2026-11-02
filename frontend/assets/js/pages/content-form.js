@@ -1,9 +1,9 @@
 import { contentAdminApi } from '../api/content-admin-api.js';
 import { fromTaipeiInput, toTaipeiInput } from '../core/taipei-time.js';
-import { hasPermission, handleAdminError, adminDestination } from '../core/session.js';
+import { hasPermission, handleAdminError } from '../core/session.js';
 import { status, formErrors, submitForm, unsavedChanges, flash } from '../core/ui.js';
-import { confirmAction } from '../components/dialog.js';
 import { initializeContentBodyEditor } from '../components/content-body-editor.js';
+import { adminFormErrors, confirmDiscard, redirectBackLinks } from '../core/admin-form.js';
 
 const common = [
   'title',
@@ -42,15 +42,7 @@ export async function initializeContentForm(identity, module, page) {
   const allowed = () => !identity.preview?.active && hasPermission(identity, module, id ? 'edit' : 'create');
   const available = () => allowed() && loaded && !busy && !completed;
   const cancel = document.querySelector('#content-cancel');
-  if (!hasPermission(identity, module, 'view')) {
-    const destination = adminDestination(identity),
-      ownAdd = `/admin/${module === 'news' ? 'news' : 'offer'}-add.html`;
-    cancel.href = destination === ownAdd ? '/index.html' : destination;
-    cancel.textContent = '返回可用頁面';
-    const back = document.querySelector('.admin-preview');
-    back.href = cancel.href;
-    back.textContent = cancel.textContent;
-  }
+  redirectBackLinks(identity, module, cancel, `/admin/${module === 'news' ? 'news' : 'offer'}-add.html`);
   function controls() {
     for (const node of form.querySelectorAll('input,textarea,select,button')) node.disabled = !available();
     document.querySelector('#reload-content-form').disabled = busy || completed;
@@ -135,8 +127,7 @@ export async function initializeContentForm(identity, module, page) {
   }
   document.querySelector('#reload-content-form').addEventListener('click', async event => {
     if (busy || completed) return;
-    if (!dirty || (await confirmAction('重新載入內容', '這會放棄尚未儲存的修改。', event.currentTarget)))
-      await load();
+    if (await confirmDiscard(dirty, event.currentTarget, '重新載入內容')) await load();
   });
   document.querySelector('#upload-content-image').addEventListener('click', async () => {
     if (!available()) return;
@@ -208,7 +199,7 @@ export async function initializeContentForm(identity, module, page) {
           setBusy(false);
         }
       },
-      { canSubmit: available, statusNode: message, onError: error => handleAdminError(error, message) }
+      { canSubmit: available, statusNode: message, onError: adminFormErrors(message) }
     );
   });
   controls();

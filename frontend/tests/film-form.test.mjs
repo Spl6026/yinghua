@@ -6,8 +6,8 @@ import * as taipeiTime from '../assets/js/core/taipei-time.js';
 
 const source = (
   await Promise.all(
-    ['core/ui.js', 'core/session.js', 'core/film-view.js', 'pages/film-form.js'].map(path =>
-      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
+    ['core/ui.js', 'core/session.js', 'core/admin-form.js', 'core/film-view.js', 'pages/film-form.js'].map(
+      path => readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
     )
   )
 ).map(text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));

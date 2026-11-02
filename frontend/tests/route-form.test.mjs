@@ -2,7 +2,14 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-const code = (await readFile(new URL('../assets/js/pages/route-form.js', import.meta.url), 'utf8'))
+const code = (
+  await Promise.all(
+    ['core/admin-form.js', 'pages/route-form.js'].map(path =>
+      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
+    )
+  )
+)
+  .join('\n')
   .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
   .replace(/\bexport /g, '');
 const settle = async () => {
@@ -125,7 +132,8 @@ function fixture({ creating = false, preview = false, view = true } = {}) {
     },
     hasPermission: (_, module, action) => action !== 'view' || view,
     adminDestination: () => '/admin/route-add.html',
-    handleAdminError: (_, node) => {
+    handleAdminError: (error, node) => {
+      state.handled = error;
       node.focus();
     },
     element: (tag, attrs = {}, text) => {
@@ -143,10 +151,11 @@ function fixture({ creating = false, preview = false, view = true } = {}) {
     formErrors() {},
     unsavedChanges() {},
     confirmAction: async () => state.confirm,
-    submitForm: async (_, action) => {
+    submitForm: async (_, action, options = {}) => {
       try {
         await action();
       } catch (error) {
+        options.onError?.(error);
         get('#route-form-status').textContent = error.message;
       }
     },
@@ -241,4 +250,14 @@ test('唯讀模擬不允許修改，讀取失敗鎖定後可重試', async () =>
   f.state.getError = false;
   await f.get('#route-reload').emit('click');
   assert.equal(f.save.disabled, false);
+});
+
+test('儲存遇到錯誤時交給後台共用處理（登入逾時會導回登入頁），與其他表單一致', async () => {
+  const f = fixture();
+  await f.initialize();
+  f.form.elements.title.value = '修改';
+  await f.form.emit('input');
+  f.state.error = true;
+  await f.form.emit('submit');
+  assert.equal(f.state.handled?.message, '版本衝突');
 });

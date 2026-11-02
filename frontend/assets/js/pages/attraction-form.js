@@ -1,13 +1,14 @@
 import { fromTaipeiInput, toTaipeiInput } from '../core/taipei-time.js';
 import { attractionSamplePicker } from '../components/attraction-samples.js';
 import { attractionsApi } from '../api/attractions-api.js';
-import { hasPermission, handleAdminError, adminDestination } from '../core/session.js';
+import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, submitForm, unsavedChanges, formErrors, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { openingHoursEditor } from '../components/opening-hours-editor.js';
 import { applyPlaceCandidate } from '../core/place-candidate.js';
 import { googlePlaceLink } from '../components/google-place-link.js';
 import { renderPlaceReference } from '../components/place-reference.js';
+import { adminFormErrors, confirmDiscard, redirectBackLinks } from '../core/admin-form.js';
 
 const fields = [
   'slug',
@@ -38,14 +39,12 @@ export async function initializeAttractionForm(identity, page) {
   const form = document.querySelector('#place-form');
   const message = document.querySelector('#place-form-status');
   const creating = page === 'place-add';
-  if (!hasPermission(identity, 'attractions', 'view')) {
-    const cancel = document.querySelector('#place-cancel');
-    cancel.href = adminDestination(identity);
-    cancel.textContent = '返回可用功能';
-    const back = document.querySelector('.admin-preview');
-    back.href = cancel.href;
-    back.textContent = cancel.textContent;
-  }
+  redirectBackLinks(
+    identity,
+    'attractions',
+    document.querySelector('#place-cancel'),
+    '/admin/place-add.html'
+  );
   let id = creating ? null : new URLSearchParams(location.search).get('id');
   let version,
     loaded = creating,
@@ -148,8 +147,7 @@ export async function initializeAttractionForm(identity, page) {
   document.querySelector('#reload-place').hidden = creating;
   document.querySelector('#reload-place').addEventListener('click', async event => {
     if (busy || completed) return;
-    if (!dirty || (await confirmAction('重新載入景點', '這會放棄尚未儲存的修改。', event.currentTarget)))
-      await load();
+    if (await confirmDiscard(dirty, event.currentTarget, '重新載入景點')) await load();
   });
   document.querySelector('#upload-place-image').addEventListener('click', async () => {
     if (!available()) return;
@@ -330,7 +328,7 @@ export async function initializeAttractionForm(identity, page) {
           controls();
         }
       },
-      { canSubmit: available, statusNode: message, onError: error => handleAdminError(error, message) }
+      { canSubmit: available, statusNode: message, onError: adminFormErrors(message) }
     );
   });
   if (!creating) await load();
