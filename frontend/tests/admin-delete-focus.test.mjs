@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
 
 // [S G34；E] 真正執行刪除 handler：重載移除原列後，取消及成功的焦點行為不同。
 class Node {
@@ -71,6 +72,7 @@ for (const [file, init, rowsId, messageId, module] of [
         },
       };
       const sandbox = {
+        ...taipeiTime,
         document: { querySelector: get, createTextNode: text => ({ textContent: text }) },
         location: { pathname: '/admin/list.html', search: '' },
         history: { replaceState() {} },

@@ -1,4 +1,5 @@
 import { contentAdminApi } from '../api/content-admin-api.js';
+import { fromTaipeiInput, toTaipeiInput } from '../core/taipei-time.js';
 import { hasPermission, handleAdminError, adminDestination } from '../core/session.js';
 import { status, formErrors, submitForm, unsavedChanges, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
@@ -16,24 +17,6 @@ const common = [
   'seoTitle',
   'seoDescription',
 ];
-export function taipeiInput(value) {
-  return value
-    ? new Intl.DateTimeFormat('sv-SE', {
-        timeZone: 'Asia/Taipei',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      })
-        .format(new Date(value))
-        .replace(' ', 'T')
-    : '';
-}
-export function taipeiOutput(value) {
-  return value ? (value.length === 16 ? value + ':00' : value.slice(0, 19)) + '+08:00' : '';
-}
 
 export async function initializeContentForm(identity, module, page) {
   const creating = page.endsWith('-add'),
@@ -133,7 +116,7 @@ export async function initializeContentForm(identity, module, page) {
       const { record } = await service.get(id);
       if (request !== generation) return;
       for (const name of fields) form.elements[name].value = record[name] ?? '';
-      for (const name of dates) form.elements[name].value = taipeiInput(record[name]);
+      for (const name of dates) form.elements[name].value = toTaipeiInput(record[name]);
       form.elements.image.value = '';
       preview.dataset.mediaUrl = record.coverMediaId ? record.image : '';
       if (merchants) await merchants.select(record.merchantId);
@@ -201,7 +184,7 @@ export async function initializeContentForm(identity, module, page) {
       return;
     }
     const body = Object.fromEntries(fields.map(name => [name, form.elements[name].value]));
-    for (const name of dates) body[name] = taipeiOutput(form.elements[name].value);
+    for (const name of dates) body[name] = fromTaipeiInput(form.elements[name].value);
     if (id) body.version = version;
     void submitForm(
       form,

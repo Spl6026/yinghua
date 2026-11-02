@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
 
 const code = (
   await Promise.all(
@@ -58,6 +59,7 @@ function fixture(total = 21) {
     },
   };
   const sandbox = {
+    ...taipeiTime,
     document: {
       querySelector: s => ({ '#cinema-list': list, '#film-publication': snapshot, '#film-period': label })[s],
       querySelectorAll: () => [],

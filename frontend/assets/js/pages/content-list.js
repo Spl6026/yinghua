@@ -1,3 +1,4 @@
+import { formatTaipeiDateTime, taipeiToday } from '../core/taipei-time.js';
 import { contentAdminApi } from '../api/content-admin-api.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status } from '../core/ui.js';
@@ -53,7 +54,7 @@ export async function initializeContentList(identity, module) {
                 ? '排程中'
                 : '已發布';
         if (module === 'offers') {
-          const today = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Taipei' }).format(new Date());
+          const today = taipeiToday();
           if (item.status === 'published' && Date.parse(item.publishAt) <= Date.now())
             period +=
               item.validTo && item.validTo < today
@@ -68,7 +69,7 @@ export async function initializeContentList(identity, module) {
         for (const text of [
           item.title,
           module === 'news' ? (item.type === 'event' ? '活動' : '城市消息') : item.merchant?.name || '',
-          item.publishAt ? new Date(item.publishAt).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }) : '',
+          item.publishAt ? formatTaipeiDateTime(item.publishAt) : '',
           period,
         ])
           row.append(element('td', {}, text));

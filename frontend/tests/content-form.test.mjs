@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
 const paths = ['core/ui.js', 'core/session.js', 'pages/content-form.js'];
 const source = (
   await Promise.all(paths.map(p => readFile(new URL('../assets/js/' + p, import.meta.url), 'utf8')))
@@ -141,6 +142,7 @@ function fixture({ creating = false, preview = false, view = true, edit = true, 
     upload: async () => ({ media: { id: 'image', url: '/media/x.png', width: 320, height: 240 } }),
   };
   const sandbox = {
+    ...taipeiTime,
     URLSearchParams,
     Intl,
     Date,

@@ -1,3 +1,4 @@
+import { taipeiFormatter } from './taipei-time.js';
 // Node 發布流程與瀏覽器共用字元編碼、日期格式及圖片呈現。
 export const escapeHtml = value =>
   String(value ?? '').replace(
@@ -14,13 +15,9 @@ export const jsonForHtml = value =>
     .replaceAll('\u2029', '\\u2029');
 export function contentDate(stamp, options = {}) {
   if (!stamp || !Number.isFinite(Date.parse(stamp))) return '日期依公告';
-  return new Intl.DateTimeFormat('zh-TW', {
-    timeZone: 'Asia/Taipei',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    ...options,
-  }).format(new Date(stamp));
+  return taipeiFormatter('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', ...options }).format(
+    new Date(stamp)
+  );
 }
 export function contentImage(item, className, tint = '') {
   const image = item.image || '/assets/image-placeholder.svg';

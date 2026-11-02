@@ -1,20 +1,12 @@
 import { escapeHtml, contentDate, contentImage } from './content-view.js';
+import { taipeiParts } from './taipei-time.js';
 export const newsLabel = type => (type === 'event' ? '活動' : '城市消息');
 export function newsCards(items) {
   return (
     items
       .map(item => {
         // 保留原型卡片「YYYY / MM.DD」的日期排版，日期仍以台北時區計算。
-        const parts = Object.fromEntries(
-          new Intl.DateTimeFormat('en-CA', {
-            timeZone: 'Asia/Taipei',
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-          })
-            .formatToParts(new Date(item.publishAt))
-            .map(part => [part.type, part.value])
-        );
+        const parts = taipeiParts(item.publishAt, { time: false });
         const date = `${parts.year} / ${parts.month}.${parts.day}`;
         const image = contentImage(
           item,

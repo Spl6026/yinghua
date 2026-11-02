@@ -1,3 +1,4 @@
+import { fromTaipeiInput, toTaipeiInput } from '../core/taipei-time.js';
 import { attractionSamplePicker } from '../components/attraction-samples.js';
 import { attractionsApi } from '../api/attractions-api.js';
 import { hasPermission, handleAdminError, adminDestination } from '../core/session.js';
@@ -123,16 +124,7 @@ export async function initializeAttractionForm(identity, page) {
       placeLink.load();
       renderPlaceReference(reference, null);
       for (const name of ['featured', 'isMuseum']) form.elements[name].checked = attraction[name];
-      const date = new Intl.DateTimeFormat('sv-SE', {
-        timeZone: 'Asia/Taipei',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(new Date(attraction.publishAt));
-      form.elements.publishAt.value = date.replace(' ', 'T');
+      form.elements.publishAt.value = toTaipeiInput(attraction.publishAt);
       form.elements.imageAlt.value = attraction.imageAlt;
       form.elements.imageSource.value = attraction.imageSource;
       form.elements.imageLicense.value = attraction.imageLicense;
@@ -291,9 +283,7 @@ export async function initializeAttractionForm(identity, page) {
       body[name] = form.elements[name].value.trim() === '' ? null : Number(form.elements[name].value);
     for (const name of ['featured', 'isMuseum']) body[name] = form.elements[name].checked;
     const publishAt = form.elements.publishAt.value;
-    body.publishAt = publishAt
-      ? (publishAt.length === 16 ? publishAt + ':00' : publishAt.slice(0, 19)) + '+08:00'
-      : '';
+    body.publishAt = fromTaipeiInput(publishAt);
     if (id) body.version = version;
     void submitForm(
       form,

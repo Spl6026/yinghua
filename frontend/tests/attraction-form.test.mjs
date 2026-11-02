@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
 
 // 真正執行表單與共用控制模組；只替換瀏覽器 DOM／API 邊界。
 const source = (
@@ -167,6 +168,7 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
     confirm: true,
   };
   const sandbox = {
+    ...taipeiTime,
     URLSearchParams,
     HTMLElement: Node,
     routes: new Set(),

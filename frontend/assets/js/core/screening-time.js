@@ -1,3 +1,4 @@
+import { taipeiParts } from './taipei-time.js';
 // 表單上的日期時間一律視為台北時間，不依操作者電腦的時區推測日期。
 export function screeningStart(date, time, index = 0) {
   if (!date && !time) return null;
@@ -15,18 +16,6 @@ export function screeningStart(date, time, index = 0) {
 }
 
 export function screeningFields(stamp) {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Taipei',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      hourCycle: 'h23',
-    })
-      .formatToParts(new Date(stamp))
-      .map(p => [p.type, p.value])
-  );
+  const parts = taipeiParts(stamp);
   return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}` };
 }

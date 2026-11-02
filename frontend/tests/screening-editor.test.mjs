@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { screeningStart, screeningFields } from '../assets/js/core/screening-time.js';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
 
 test('使用台北日期、跨年及分鐘，拒絕日期溢位與只有單邊資料', () => {
   assert.equal(screeningStart('2026-12-31', '23:30'), '2026-12-31T23:30:00+08:00');
@@ -66,6 +67,7 @@ function fixture() {
   const container = new Node(),
     state = { changes: 0, confirm: true };
   const sandbox = {
+    ...taipeiTime,
     document: { createElement: () => new Node() },
     passwordError: () => '',
     confirmAction: async () => state.confirm,

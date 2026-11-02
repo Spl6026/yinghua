@@ -1,3 +1,4 @@
+import { fromTaipeiInput, toTaipeiInput } from '../core/taipei-time.js';
 import { filmsApi } from '../api/films-api.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
 import { status, submitForm, unsavedChanges, formErrors, flash } from '../core/ui.js';
@@ -124,16 +125,7 @@ export async function initializeFilmForm(identity, page) {
       for (const name of fields) form.elements[name].value = film[name] ?? '';
       form.elements.posterMode.value = film.posterMediaId ? 'upload' : 'url';
       form.elements.image.value = '';
-      const date = new Intl.DateTimeFormat('sv-SE', {
-        timeZone: 'Asia/Taipei',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      }).format(new Date(film.publishAt));
-      form.elements.publishAt.value = date.replace(' ', 'T');
+      form.elements.publishAt.value = toTaipeiInput(film.publishAt);
       screenings.load(film.screenings);
       version = film.version;
       loaded = true;
@@ -216,9 +208,7 @@ export async function initializeFilmForm(identity, page) {
     }
     const body = Object.fromEntries(fields.map(name => [name, form.elements[name].value]));
     const publishAt = form.elements.publishAt.value;
-    body.publishAt = publishAt
-      ? (publishAt.length === 16 ? publishAt + ':00' : publishAt.slice(0, 19)) + '+08:00'
-      : '';
+    body.publishAt = fromTaipeiInput(publishAt);
     if (id) body.version = version;
     void submitForm(
       form,

@@ -1,3 +1,4 @@
+import { taipeiFormatter } from '../core/taipei-time.js';
 import { filmsApi } from '../api/films-api.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status } from '../core/ui.js';
@@ -64,17 +65,12 @@ export async function initializeFilmList(identity) {
         const imageCell = element('td');
         imageCell.append(poster);
         const date = first
-          ? new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', dateStyle: 'short' }).format(
-              new Date(first.startsAt)
-            )
+          ? taipeiFormatter('zh-TW', { dateStyle: 'short' }).format(new Date(first.startsAt))
           : '尚未安排';
         const time = first
-          ? new Intl.DateTimeFormat('zh-TW', {
-              timeZone: 'Asia/Taipei',
-              hour: '2-digit',
-              minute: '2-digit',
-              hourCycle: 'h23',
-            }).format(new Date(first.startsAt))
+          ? taipeiFormatter('zh-TW', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(
+              new Date(first.startsAt)
+            )
           : '—';
         row.append(
           imageCell,
