@@ -6,6 +6,8 @@
 - PHP-FPM（`docker/php/www.conf`）：`pm.max_children=16`、`pm.max_requests=500`、`request_terminate_timeout=30s`；原本是預設 5 個 worker、請求不限時，幾個卡住的請求就會讓公開頁排隊。變更需重建 app 映像。
 - API 錯誤格式一致：Nginx 自己產生的 413（超過 10 MB）與 PHP 無回應的 502／503／504，在 `/api/` 下改回與 PHP 相同的 JSON（`code`／`message`／`fieldErrors`／`requestId`）；`public/index.php` 以 shutdown handler 讓記憶體不足等致命錯誤也回 JSON 500。公開頁發布未就緒時的 503 改為帶 `text/html` 的簡短說明頁（原本沒有類型，可能被瀏覽器當檔案下載）。
 - Nginx（`docker/nginx/default.conf`）：`absolute_redirect off`（`/admin` 補斜線轉址原本掉了埠號）；CSP 補 `default-src`／`style-src`／`img-src`（允許 https 外部封面）／`font-src`／`connect-src`，另加 `Permissions-Policy`；`/api/` 清空用戶端自帶的 `X-Original-URI`，並隱藏 PHP 重複送出的 `Cache-Control`／`nosniff`；存取紀錄加 `time`、`upstream`、`upstream_time`。在 location 內加 `add_header` 會讓伺服器層級的安全標頭失效，錯誤位置因此刻意不加。
+- 登入限速：同一帳號的 5 次／15 分鐘改以「帳號＋來源」計算，另設帳號總上限 50 次／15 分鐘（`Services/Authentication.php`）；原本只以帳號計數，知道帳號名稱的人可以從任何地方持續讓本人無法登入。註冊用電子郵件驗證碼另加單一來源 10 封／小時、全站 300 封／小時（`Services/Captcha.php`），避免被拿來大量寄信。數值屬工程設定，非規格硬性要求。
+- 過期紀錄清理：新增 [SecurityRecordRepository](../backend/src/Repositories/SecurityRecordRepository.php) 與 `php bin/console.php security:prune`，分批刪除過期超過一天的 session、驗證碼、密碼重設 token 與限速紀錄；常駐的 `content:watch` 每小時自動執行一次。登入事件（auth_events）屬稽核紀錄，保存期限待決定，不清除。
 
 2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
 - 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。

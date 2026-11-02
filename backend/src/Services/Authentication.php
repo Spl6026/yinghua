@@ -54,8 +54,11 @@ class Authentication
     public function login(IdentityKind $kind, LoginInput $input, ClientContext $client, string $previousToken = ''): AuthGrant
     {
         try {
+            // 同一來源對同一帳號 15 分鐘只能試 5 次；若只以帳號計數，任何人知道帳號名稱就能從別處持續把本人鎖在門外。
+            // 帳號另設較寬的總上限，擋下分散來源的大量猜測。
             $this->limiter->check($kind->value . '-login-ip', $client->ipHash, 40, 900);
-            $this->limiter->check($kind->value . '-login-account', $input->identifier, 5, 900);
+            $this->limiter->check($kind->value . '-login-account-ip', $input->identifier . '|' . $client->ipHash, 5, 900);
+            $this->limiter->check($kind->value . '-login-account', $input->identifier, 50, 900);
         } catch (ApplicationError $error) {
             $this->events->auth('login', false, 'RATE_LIMITED', $kind, null, $input->identifier, $client);
             throw $error;
@@ -82,7 +85,7 @@ class Authentication
 
             return new AuthGrant($fresh, $token);
         });
-        $this->limiter->clear($kind->value . '-login-account', $input->identifier);
+        $this->limiter->clear($kind->value . '-login-account-ip', $input->identifier . '|' . $client->ipHash);
 
         return $grant;
     }

@@ -13,6 +13,7 @@ use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\Database;
 use Yinghua\Repositories\ResetRepository;
+use Yinghua\Repositories\SecurityRecordRepository;
 use Yinghua\Repositories\SessionRepository;
 use Yinghua\Services\PasswordHasher;
 use Yinghua\Services\RootInitializer;
@@ -130,10 +131,20 @@ try {
     } elseif (in_array($command, ['content:publish','content:tick','content:watch'], true)) {
         $publication = (new Composition($config))->publication($database);
         if ($command === 'content:watch') {
+            // 常駐的發布程序順便每小時清一次過期的登入與驗證碼紀錄，不必另外設排程。
+            $securityRecords = new SecurityRecordRepository($database);
+            $lastPrune = 0;
             for (;;) {
                 try {
                     if (!$publication->tick()) {
                         fwrite(STDERR, "Publication pending; retrying.\n");
+                    }
+                    if (time() - $lastPrune >= 3600) {
+                        $lastPrune = time();
+                        $removed = $securityRecords->pruneExpired(time());
+                        if (array_sum($removed) > 0) {
+                            fwrite(STDOUT, 'Expired security records removed: ' . json_encode($removed, JSON_THROW_ON_ERROR) . "\n");
+                        }
                     }
                 } catch (PDOException $error) {
                     // 資料庫重新啟動後，這個長駐程序手上的連線就失效了，之後每一輪都會失敗。
@@ -150,6 +161,9 @@ try {
             throw new RuntimeException('Publication pending.');
         }
         fwrite(STDOUT, "Published content synchronized.\n");
+    } elseif ($command === 'security:prune') {
+        $removed = (new SecurityRecordRepository($database))->pruneExpired(time());
+        fwrite(STDOUT, json_encode(['removed' => $removed], JSON_THROW_ON_ERROR) . "\n");
     } elseif (in_array($command, ['admin:init', 'admin:recover'], true)) {
         $email = $command === 'admin:init' ? prompt('Email') : '';
         $password = prompt('Password', true);
@@ -174,7 +188,7 @@ try {
     } else {
         fwrite(
             STDOUT,
-            "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, film:seed-demo, content:seed-public-demo, content:import, media:import, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch\n",
+            "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, film:seed-demo, content:seed-public-demo, content:import, media:import, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch, security:prune\n",
         );
     }
 } catch (Throwable $error) {
