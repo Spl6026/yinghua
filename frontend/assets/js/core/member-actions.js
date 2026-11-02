@@ -7,8 +7,7 @@ import { recoverSession } from './session-expiry.js';
 import { PendingWrites } from './pending-writes.js';
 
 // 只處理受管景點的 UUID；原型陣列的索引不能當成正式資料的識別碼。
-const isAttractionId = id =>
-  /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
+const isAttractionId = id => /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
 export const readMember = async () => {
   try {
     return (await authApi().me()).member;

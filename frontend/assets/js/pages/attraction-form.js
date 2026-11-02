@@ -8,7 +8,7 @@ import { openingHoursEditor } from '../components/opening-hours-editor.js';
 import { applyPlaceCandidate } from '../core/place-candidate.js';
 import { googlePlaceLink } from '../components/google-place-link.js';
 import { renderPlaceReference } from '../components/place-reference.js';
-import { adminFormErrors, confirmDiscard, redirectBackLinks } from '../core/admin-form.js';
+import { adminFormErrors, confirmDiscard, redirectBackLinks, uploadFormImage } from '../core/admin-form.js';
 
 const fields = [
   'slug',
@@ -151,44 +151,29 @@ export async function initializeAttractionForm(identity, page) {
   });
   document.querySelector('#upload-place-image').addEventListener('click', async () => {
     if (!available()) return;
-    const image = form.elements.image.files[0];
-    if (!image || !form.elements.imageAlt.value.trim()) {
-      status(mediaMessage, '請選擇圖片並填寫替代文字。', true);
-      mediaMessage.focus();
-      return;
-    }
-    const body = new FormData();
-    body.set('image', image);
-    body.set('action', id ? 'edit' : 'create');
-    for (const [key, field] of Object.entries({
-      alt: 'imageAlt',
-      source: 'imageSource',
-      license: 'imageLicense',
-    }))
-      body.set(key, form.elements[field].value);
-    busy = true;
-    controls();
-    status(mediaMessage, '上傳與驗證圖片中…');
-    try {
-      const { media } = await attractionsApi.upload(body);
-      form.elements.mediaId.value = media.id;
-      for (const [key, field] of Object.entries({
-        alt: 'imageAlt',
-        source: 'imageSource',
-        license: 'imageLicense',
-      }))
-        form.elements[field].value = media[key];
-      photo(media.url);
-      dirty = true;
-      form.elements.image.value = '';
-      status(mediaMessage, `圖片已上傳（${media.width} × ${media.height}）；儲存景點後才套用。`);
-    } catch (error) {
-      handleAdminError(error, mediaMessage);
-      formErrors(form, error);
-    } finally {
-      busy = false;
-      controls();
-    }
+    await uploadFormImage({
+      form,
+      fields: { alt: 'imageAlt', source: 'imageSource', license: 'imageLicense' },
+      module: 'attractions',
+      creating: !id,
+      message: mediaMessage,
+      setBusy: value => {
+        busy = value;
+        controls();
+      },
+      upload: attractionsApi.upload,
+      label: '圖片',
+      savedAs: '景點',
+      onUploaded: media => {
+        form.elements.mediaId.value = media.id;
+        // 伺服器會整理說明文字，以回傳值為準。
+        form.elements.imageAlt.value = media.alt;
+        form.elements.imageSource.value = media.source;
+        form.elements.imageLicense.value = media.license;
+        photo(media.url);
+        dirty = true;
+      },
+    });
   });
   document.querySelector('#parse-place-url').addEventListener('click', async () => {
     if (!available()) return;

@@ -4,7 +4,7 @@ import { hasPermission, handleAdminError } from '../core/session.js';
 import { status, submitForm, unsavedChanges, formErrors, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { screeningEditor } from '../components/screening-editor.js';
-import { adminFormErrors, confirmDiscard, redirectBackLinks } from '../core/admin-form.js';
+import { adminFormErrors, confirmDiscard, redirectBackLinks, uploadFormImage } from '../core/admin-form.js';
 
 const fields = [
   'title',
@@ -143,40 +143,26 @@ export async function initializeFilmForm(identity, page) {
   });
   document.querySelector('#upload-film-image').addEventListener('click', async () => {
     if (!available() || !uploadMode()) return;
-    const image = form.elements.image.files[0];
-    if (!image || !form.elements.posterAlt.value.trim()) {
-      status(mediaMessage, '請選擇圖片並填寫替代文字。', true);
-      mediaMessage.focus();
-      return;
-    }
-    const body = new FormData();
-    body.set('image', image);
-    body.set('module', 'films');
-    body.set('action', id ? 'edit' : 'create');
-    for (const [key, field] of Object.entries({
-      alt: 'posterAlt',
-      source: 'posterSource',
-      license: 'posterLicense',
-    }))
-      body.set(key, form.elements[field].value);
-    busy = true;
-    controls();
-    status(mediaMessage, '上傳與驗證海報中…');
-    try {
-      const { media } = await filmsApi.upload(body);
-      form.elements.posterMediaId.value = media.id;
-      form.elements.posterUrl.value = '';
-      form.elements.image.value = '';
-      photo(media.url);
-      dirty = true;
-      status(mediaMessage, `海報已上傳（${media.width} × ${media.height}）；儲存電影後才套用。`);
-    } catch (error) {
-      handleAdminError(error, mediaMessage);
-      formErrors(form, error);
-    } finally {
-      busy = false;
-      controls();
-    }
+    await uploadFormImage({
+      form,
+      fields: { alt: 'posterAlt', source: 'posterSource', license: 'posterLicense' },
+      module: 'films',
+      creating: !id,
+      message: mediaMessage,
+      setBusy: value => {
+        busy = value;
+        controls();
+      },
+      upload: filmsApi.upload,
+      label: '海報',
+      savedAs: '電影',
+      onUploaded: media => {
+        form.elements.posterMediaId.value = media.id;
+        form.elements.posterUrl.value = '';
+        photo(media.url);
+        dirty = true;
+      },
+    });
   });
   document.querySelector('#retry-film-publication').addEventListener('click', async () => {
     if (busy || !writeAllowed() || !hasPermission(identity, 'films', 'edit')) return;

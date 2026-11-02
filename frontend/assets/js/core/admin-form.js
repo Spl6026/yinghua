@@ -1,6 +1,7 @@
 // 後台新增／編輯表單共用的小規則，各表單頁面不再各寫一份、各自略有差異。
 import { adminDestination, handleAdminError, hasPermission } from './session.js';
 import { confirmAction } from '../components/dialog.js';
+import { formErrors, status } from './ui.js';
 
 /**
  * 沒有列表檢視權限的人（例如只能新增）不能回到列表：「取消」與頁首返回連結改指向他能用的頁面；
@@ -33,4 +34,49 @@ export const adminFormErrors = message => error => handleAdminError(error, messa
 export function latestRequest() {
   let current = 0;
   return { next: () => ++current, isCurrent: request => request === current };
+}
+
+/**
+ * 表單內「上傳圖片」按鈕的共同流程：先檢查已選檔案與替代文字，上傳後清空檔案欄位，
+ * 由 onUploaded 把媒體編號寫回表單。圖片要等表單儲存後才會套用到內容上。
+ *
+ * fields 為上傳欄位對應的表單欄位名稱，例如 { alt: 'coverAlt', source: 'coverSource', license: 'coverLicense' }。
+ */
+export async function uploadFormImage({
+  form,
+  fields,
+  module,
+  creating,
+  message,
+  setBusy,
+  upload,
+  onUploaded,
+  label,
+  savedAs,
+}) {
+  const file = form.elements.image.files[0],
+    alt = form.elements[fields.alt];
+  if (!file || !alt.value.trim()) {
+    status(message, '請選擇圖片並填寫替代文字。', true);
+    (file ? alt : message).focus();
+    return;
+  }
+  const body = new FormData();
+  body.set('image', file);
+  body.set('module', module);
+  body.set('action', creating ? 'create' : 'edit');
+  for (const [key, field] of Object.entries(fields)) body.set(key, form.elements[field].value);
+  setBusy(true);
+  status(message, `上傳與檢查${label}中…`);
+  try {
+    const { media } = await upload(body);
+    form.elements.image.value = '';
+    onUploaded(media);
+    status(message, `${label}已上傳（${media.width} × ${media.height}）；儲存${savedAs}後才套用。`);
+  } catch (error) {
+    handleAdminError(error, message);
+    formErrors(form, error);
+  } finally {
+    setBusy(false);
+  }
 }

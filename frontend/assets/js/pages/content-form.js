@@ -3,7 +3,7 @@ import { fromTaipeiInput, toTaipeiInput } from '../core/taipei-time.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
 import { status, formErrors, submitForm, unsavedChanges, flash } from '../core/ui.js';
 import { initializeContentBodyEditor } from '../components/content-body-editor.js';
-import { adminFormErrors, confirmDiscard, redirectBackLinks } from '../core/admin-form.js';
+import { adminFormErrors, confirmDiscard, redirectBackLinks, uploadFormImage } from '../core/admin-form.js';
 
 const common = [
   'title',
@@ -131,40 +131,24 @@ export async function initializeContentForm(identity, module, page) {
   });
   document.querySelector('#upload-content-image').addEventListener('click', async () => {
     if (!available()) return;
-    const file = form.elements.image.files[0],
-      alt = form.elements.coverAlt;
-    if (!file || !alt.value.trim()) {
-      status(mediaMessage, '請選擇圖片並填寫替代文字。', true);
-      alt.focus();
-      return;
-    }
-    const body = new FormData();
-    body.set('image', file);
-    body.set('module', module);
-    body.set('action', id ? 'edit' : 'create');
-    for (const [key, name] of Object.entries({
-      alt: 'coverAlt',
-      source: 'coverSource',
-      license: 'coverLicense',
-    }))
-      body.set(key, form.elements[name].value);
-    setBusy(true);
-    status(mediaMessage, '上傳與檢查圖片中…');
-    try {
-      const { media } = await service.upload(body);
-      form.elements.coverMediaId.value = media.id;
-      form.elements.coverUrl.value = '';
-      form.elements.image.value = '';
-      preview.dataset.mediaUrl = media.url;
-      photo();
-      dirty = true;
-      status(mediaMessage, `圖片已上傳（${media.width} × ${media.height}），儲存內容後套用。`);
-    } catch (error) {
-      handleAdminError(error, mediaMessage);
-      formErrors(form, error);
-    } finally {
-      setBusy(false);
-    }
+    await uploadFormImage({
+      form,
+      fields: { alt: 'coverAlt', source: 'coverSource', license: 'coverLicense' },
+      module,
+      creating: !id,
+      message: mediaMessage,
+      setBusy,
+      upload: service.upload,
+      label: '圖片',
+      savedAs: '內容',
+      onUploaded: media => {
+        form.elements.coverMediaId.value = media.id;
+        form.elements.coverUrl.value = '';
+        preview.dataset.mediaUrl = media.url;
+        photo();
+        dirty = true;
+      },
+    });
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
