@@ -1,5 +1,11 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 SOLID 與設計模式整理（使用者要求程式碼盡量符合 SOLID、套用合適的設計模式以提高可讀性；行為不變，模式對照見 [後端分層指南](modules/backend-layering.md#設計模式對照) 與 [前端指南](modules/frontend.md)）：
+- 後端組裝：`Composition::kernel()` 拆為 `Composition/SharedServices.php`（同一請求共用的連線、權限、稽核、發布物件）與帳號、景點與電影、消息優惠、會員、全站設定五個工廠方法；消息／優惠後台改以介面型別組裝。
+- 後端發布：快照組裝移到 `Services/PublicationSnapshotBuilder.php`（Builder），`ContentPublication` 只管發布流程；`SECTIONS` 補回發布延遲診斷漏掉的三個區段，並以單元測試確認與實際快照一致。四種公開內容的網址、標題欄位、上下篇分組與搜尋分類集中在 `Models/PublicContentType.php`（原 `DetailUrlType`，Strategy）。政策檢查只依賴新的 `Contracts/PublishedSnapshot`（介面隔離）。`bin/console.php` 改為指令表（Command），說明文字自動產生。`SeoTargetRepository` 改由 `Clock` 取得時間。
+- 前端：四個後台表單共用 `core/admin-form.js` 的 `createFormState()`（載入、處理中、完成、未儲存提醒）；公開內容類型對照集中於 `core/content-kinds.js`，結構化資料改為依類型的建構函式表；`scripts/publish.mjs` 拆為 `publish-page.mjs`、`public-attractions.mjs`、`public-films.mjs`、`public-routes.mjs`、`public-static.mjs`、`home-page.mjs`，整站 33 個發布檔案在排除版本雜湊後與拆分前逐位元組相同；SEO 覆寫列移到 `components/seo-override-row.js`；頁內事件名稱集中於 `core/page-events.js`。
+- 驗證：PHPStan、PHP-CS-Fixer、PHPUnit 142、前端 314、整合 14 組、API 整合 108 項通過；Browser 檢查公開／會員／後台頁零錯誤，四個後台編輯表單實際載入、未儲存確認與儲存，SEO 設定頁預覽／清除／加入單筆／儲存。`tests/publication_alias_order.php`、`tests/public_content_clock.php` 與 `policy_pages_integration.py` 在本輪修改前即失敗（不在自動化套件內），未處理。沒有新增 API、資料表、migration 或環境變數。
+
 2026-11-03 重複邏輯整併（使用者要求統一、重用、精簡並優化效能；依前端與後端兩份重複程式盤點逐項處理）：
 - 後端：錯誤代碼改為 `ErrorCode` enum；Repository 的新增／版本更新／舊網址保留／軟刪除／LIKE／IN 清單／重複鍵判斷改用 `Database` 共用方法（推薦路線與景點的軟刪除原本漏更新 `updated_at`）；UTC 時間、UUID、JSON、常用設定與公開快照查找改用共用工具；消息與優惠後台合併為 `AdminContentManagement`／`AdminContentController`，CLI 與後台共用同一組編輯服務；控制器的分頁參數、只帶版本號的請求與 200／201／202 回應改用共用方法；JSON 請求本文只解析一次。清單見 [PHP 分層指南](modules/backend-layering.md#共用的基礎工具2026-11-03-整併)。
 - 後端效能：推薦路線的站點一次查完（原本每條路線查一次）；同一請求內的權限檢查重用已讀取的帳號與權限（交易內加鎖的檢查仍重新讀取）；發布驗證在同一請求內重用，正式映像建置時預先算好發布版本雜湊。
