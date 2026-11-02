@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\DTO;
 
 /** Repository 讀出並驗證過的景點資料，公開與管理輸出各自有明確的欄位範圍。 */
-readonly class Attraction
+readonly class Attraction implements \Yinghua\Contracts\VersionedContent
 {
     /** @param array<string,mixed> $values */
     public function __construct(

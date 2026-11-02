@@ -8,13 +8,14 @@ use Yinghua\Contracts\AdminContentRecords;
 use Yinghua\Contracts\ContentEditor;
 use Yinghua\Contracts\Transactions;
 use Yinghua\Contracts\Clock;
-use Yinghua\DTO\{AdminContentQuery, ClientContext, ContentFields, ContentPage, ContentWriteResult, Input, NewsPost, Offer};
+use Yinghua\DTO\{AdminContentQuery, ClientContext, ContentPage, ContentWriteResult, Input, NewsPost, Offer};
 use Yinghua\Exceptions\{ApplicationError, ContentConflict};
 use Yinghua\Models\{Account, ContentStatus};
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Support\Secrets;
 use Yinghua\Policies\OfferValidity;
 use Yinghua\Exceptions\ErrorCode;
+use Yinghua\Support\Uuid;
 
 /**
  * 後台 HTTP 用的消息與優惠管理；兩者的列表、讀取、儲存與刪除流程相同，只差模組名稱與資料表。
@@ -75,7 +76,7 @@ class AdminContentManagement
                     return $this->target($target);
                 });
             } catch (ContentConflict) {
-                throw new ApplicationError(ErrorCode::Conflict, '網址或關聯識別已使用，請重新載入或改用其他識別。');
+                throw ContentWriter::slugConflict();
             }
             return new ContentWriteResult($record, $this->publication->synchronize());
         });
@@ -100,8 +101,7 @@ class AdminContentManagement
 
     private function target(string $id, bool $lock = false): NewsPost|Offer
     {
-        ContentFields::uuid($id, 'id');
-        $record = $this->records->find($id, $lock);
+        $record = Uuid::isValid($id) ? $this->records->find($id, $lock) : null;
         if ($record === null || ($record->fields['deleted_at'] ?? null) !== null) {
             throw new ApplicationError(ErrorCode::NotFound, '找不到此內容。');
         }

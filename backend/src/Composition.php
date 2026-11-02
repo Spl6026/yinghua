@@ -87,6 +87,7 @@ use Yinghua\Repositories\SeoTargetRepository;
 use Yinghua\Repositories\SessionRepository;
 use Yinghua\Services\AdminManagement;
 use Yinghua\Services\AdminContentManagement;
+use Yinghua\Services\ContentWriter;
 use Yinghua\Services\AdminPreview;
 use Yinghua\Services\ApplicationHealth;
 use Yinghua\Services\AttractionManagement;
@@ -227,11 +228,11 @@ readonly class Composition
             $resets,
         ));
         $publication = $this->publication($database);
+        $writer = new ContentWriter($authorization, $transactions, $publication, $events);
         $attractionController = new AttractionController(new AttractionManagement(
             $attractionRecords,
             $authorization,
-            $transactions,
-            $events,
+            $writer,
             $publication,
             new GooglePlaceLinkPolicy(),
         ));
@@ -261,8 +262,7 @@ readonly class Composition
             new FilmRepository($database, $filmScreens),
             $mediaRecords,
             $authorization,
-            $transactions,
-            $events,
+            $writer,
             $publication,
             new FilmPosterPolicy(),
             $filmScreens,
@@ -303,13 +303,7 @@ readonly class Composition
         ));
 
         $recommendedRoutes = new RecommendedRouteController(
-            new RecommendedRoutes(
-                $routeRecords,
-                $authorization,
-                $transactions,
-                $publication,
-                $events,
-            ),
+            new RecommendedRoutes($routeRecords, $authorization, $writer),
             new PublicRecommendedRoutes($publication),
         );
 

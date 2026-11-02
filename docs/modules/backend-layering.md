@@ -100,5 +100,7 @@ E-01／E-13：Request.json() 不得丟棄 PHP 將 JSON 數字屬性名轉成的�
 | 從公開快照找單筆 | `DTO\PublicCollection::find()` | |
 | 常用設定 | `Config::csrfSeconds()`、`sessionSeconds()`、`idleSeconds()`、`mediaPath()`、`frontendSourcePath()` | |
 
+電影、景點與推薦路線的後台儲存與刪除共用 `Services\ContentWriter`（發布鎖 → 交易 → 加鎖驗權 → 版本比對 → 寫入 → 稽核 → 重新發布），各服務只提供模組特有的檢查與寫入；網址識別衝突一律標在 `slug` 欄位，格式錯誤的編號一律回 404，稽核紀錄新增時「修改前版本」為空、狀態記實際儲存結果，資源名稱沿用既有紀錄的寫法。讀取單筆供編輯時，電影與景點改為「檢視或編輯」權限即可（使用者 2026-11-03 依功能規格 D20 確認），與消息、優惠、推薦路線一致。
+
 消息與優惠的後台管理共用 `AdminContentManagement`／`AdminContentController`，在 `Composition` 依模組設定；兩者的資料存取與編輯分別實作 `Contracts\AdminContentRecords` 與 `Contracts\ContentEditor`。消息、優惠與店家的編輯服務由 `Composition::contentEditors()` 建立，後台 API 與 CLI 匯入共用。
 

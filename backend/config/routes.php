@@ -52,13 +52,13 @@ return static function (Router $router, ApiControllers $c): void {
     // 景點與電影管理；samples 與 publish-retry 是固定路徑，要排在 {id} 之前。
     $router->add(new Route('GET', '/api/v1/admin/attractions', $admin, $c->attractions->listing(...), true, 'attractions', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/attractions/samples', $admin, $c->attractions->samples(...), true, 'attractions', 'create'));
-    $router->add(new Route('GET', '/api/v1/admin/attractions/{id}', $admin, $c->attractions->get(...), true, 'attractions', 'view'));
+    $router->add(new Route('GET', '/api/v1/admin/attractions/{id}', $admin, $c->attractions->get(...), true));
     $router->add(new Route('POST', '/api/v1/admin/attractions', $admin, $c->attractions->create(...), true, 'attractions', 'create'));
     $router->add(new Route('PUT', '/api/v1/admin/attractions/{id}', $admin, $c->attractions->update(...), true, 'attractions', 'edit'));
     $router->add(new Route('DELETE', '/api/v1/admin/attractions/{id}', $admin, $c->attractions->delete(...), true, 'attractions', 'delete'));
     $router->add(new Route('POST', '/api/v1/admin/attractions/publish-retry', $admin, $c->attractions->retry(...), true, 'attractions', 'edit'));
     $router->add(new Route('GET', '/api/v1/admin/films', $admin, $c->filmAdmin->listing(...), true, 'films', 'view'));
-    $router->add(new Route('GET', '/api/v1/admin/films/{id}', $admin, $c->filmAdmin->get(...), true, 'films', 'view'));
+    $router->add(new Route('GET', '/api/v1/admin/films/{id}', $admin, $c->filmAdmin->get(...), true));
     $router->add(new Route('POST', '/api/v1/admin/films', $admin, $c->filmAdmin->create(...), true, 'films', 'create'));
     $router->add(new Route('PUT', '/api/v1/admin/films/{id}', $admin, $c->filmAdmin->update(...), true, 'films', 'edit'));
     $router->add(new Route('DELETE', '/api/v1/admin/films/{id}', $admin, $c->filmAdmin->delete(...), true, 'films', 'delete'));
