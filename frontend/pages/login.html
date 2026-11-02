@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/states.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"映畫竹塹","description":"從新竹市影像博物館出發，探索電影、美食、活動與城市旅行。","inLanguage":"zh-Hant-TW"}</script>
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-auth-kind="member" data-auth-mode="login">
 <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -31,15 +32,15 @@
 <section class="section-pad account-page"><div class="account-card">
 <p class="eyebrow">JOIN THE CITY STORY</p>
 <h1>歡迎回到映畫竹塹。</h1><p>收藏喜歡的地方，安排專屬的新竹旅程。</p>
-<form id="auth-form">
+<form method="post" id="auth-form">
 <div class="form-field">
 <label for="email">電子郵件</label>
-<input id="email" name="email" type="email" required autocomplete="email" maxlength="254" placeholder="name@example.com">
+<input id="email" name="email" type="email" required autocomplete="email" maxlength="254" placeholder="name@example.com" spellcheck="false">
 </div>
 <div class="form-field has-recovery-link">
 <label for="password">密碼</label>
 <a class="password-recovery" href="/forgot-password.html">忘記密碼？</a>
-<input id="password" name="password" type="password" required autocomplete="current-password" placeholder="輸入你的密碼" maxlength="128">
+<input id="password" name="password" type="password" required autocomplete="current-password" placeholder="輸入你的密碼" spellcheck="false">
 </div>
 <p class="form-error form-status" role="status" aria-live="polite" tabindex="-1"></p>
 <button class="button button-dark full-button" type="submit">登入會員 ↗</button>

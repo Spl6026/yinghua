@@ -10,19 +10,20 @@
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/states.css">
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-module="admins" data-action="create" data-page="admin-add">
 <a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
 <main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">SYSTEM / ADMINISTRATORS</p><h1>新增管理員</h1><p>固定 admin 為系統保護帳號，不提供編輯或刪除。</p></div></div><section class="admin-panel"><form id="admin-form"><div class="admin-form-grid"><div class="admin-field">
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">SYSTEM / ADMINISTRATORS</p><h1>新增管理員</h1><p>固定 admin 為系統保護帳號，不提供編輯或刪除。</p></div></div><section class="admin-panel"><form method="post" id="admin-form"><div class="admin-form-grid"><div class="admin-field">
 <label for="account">登入帳號 *</label>
-<input id="account" name="account" type="text" required autocomplete="off" placeholder="例如：editor01">
+<input id="account" name="account" type="text" required autocomplete="off" placeholder="例如：editor01" spellcheck="false">
 </div><div class="admin-field">
 <label for="displayName">管理員名稱 *</label>
-<input id="displayName" name="displayName" type="text" required maxlength="80" placeholder="姓名或工作稱呼">
+<input id="displayName" name="displayName" type="text" required maxlength="80" placeholder="姓名或工作稱呼" spellcheck="false" autocomplete="off">
 </div><div class="admin-field">
 <label for="email">電子郵件 *</label>
-<input id="email" name="email" type="email" required maxlength="254" placeholder="name@example.com">
+<input id="email" name="email" type="email" required maxlength="254" placeholder="name@example.com" spellcheck="false" autocomplete="off">
 </div><div class="admin-field">
 <label for="roleId">權限範本</label>
 <select id="roleId" name="roleId" required>
@@ -35,7 +36,7 @@
 </select>
 </div><div class="admin-field">
 <label for="password">密碼 *（8–128 字元）</label>
-<input id="password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password">
+<input id="password" name="password" type="password" required autocomplete="new-password" spellcheck="false">
 </div></div>
 <div class="admin-form-actions"><a id="admin-cancel" class="button button-outline" href="/admin/admins.html">取消</a><a id="admin-another" class="button button-outline" href="/admin/admin-add.html" hidden>再新增管理員 ↗</a>
 <button id="reload-admin" class="button button-outline" type="button" hidden>重新載入</button>

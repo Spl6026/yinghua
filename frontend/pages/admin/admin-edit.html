@@ -10,19 +10,20 @@
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/states.css">
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-module="admins" data-action="edit" data-page="admin-edit">
 <a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
 <main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
-<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">SYSTEM / ADMINISTRATORS</p><h1>編輯管理員</h1><p>固定 admin 為系統保護帳號，不提供編輯或刪除。</p></div></div><section class="admin-panel"><form id="admin-form"><div class="admin-form-grid"><div class="admin-field">
+<div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">SYSTEM / ADMINISTRATORS</p><h1>編輯管理員</h1><p>固定 admin 為系統保護帳號，不提供編輯或刪除。</p></div></div><section class="admin-panel"><form method="post" id="admin-form"><div class="admin-form-grid"><div class="admin-field">
 <label for="account">登入帳號 *</label>
-<input id="account" name="account" type="text" required autocomplete="off" placeholder="例如：editor01">
+<input id="account" name="account" type="text" required autocomplete="off" placeholder="例如：editor01" spellcheck="false">
 </div><div class="admin-field">
 <label for="displayName">管理員名稱 *</label>
-<input id="displayName" name="displayName" type="text" required maxlength="80" placeholder="姓名或工作稱呼">
+<input id="displayName" name="displayName" type="text" required maxlength="80" placeholder="姓名或工作稱呼" spellcheck="false" autocomplete="off">
 </div><div class="admin-field">
 <label for="email">電子郵件 *</label>
-<input id="email" name="email" type="email" required maxlength="254" placeholder="name@example.com">
+<input id="email" name="email" type="email" required maxlength="254" placeholder="name@example.com" spellcheck="false" autocomplete="off">
 </div><div class="admin-field">
 <label for="roleId">權限範本</label>
 <select id="roleId" name="roleId" required>

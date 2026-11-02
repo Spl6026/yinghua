@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/states.css">
 <link rel="stylesheet" href="/assets/css/places.css">
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-module="attractions" data-action="view" data-page="places">
 <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -20,7 +21,7 @@
 <section class="admin-panel">
 <div class="admin-panel-heading"><h2>景點列表</h2><a id="add-place" class="button button-dark" href="/admin/place-add.html">新增景點 ↗</a></div>
 <div class="admin-toolbar">
-<div class="admin-field"><label for="admin-place-search">搜尋景點</label><input id="admin-place-search" type="search" placeholder="名稱或地址" maxlength="80"></div>
+<div class="admin-field"><label for="admin-place-search">搜尋景點</label><input id="admin-place-search" type="search" placeholder="名稱或地址" maxlength="80" spellcheck="false" autocomplete="off"></div>
 <div class="admin-field"><label for="place-status-filter">發布狀態</label><select id="place-status-filter"><option value="">全部狀態</option><option value="draft">草稿</option><option value="published">已發布／排程</option><option value="archived">已下架</option></select></div>
 <button type="button" class="button button-outline" id="reload-places">重新載入</button>
 <button type="button" class="button button-outline" id="retry-publication">重試公開頁面同步</button>

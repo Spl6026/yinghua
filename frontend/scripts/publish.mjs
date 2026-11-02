@@ -85,12 +85,19 @@ try {
 } catch {}
 const indexEntries = [];
 
+// 發布頁共用同一組內容樣式；ui-consistency 必須最後載入，才能統一前面各檔的字級與高度。
+const publishedStylesheets = ['member-actions', 'places', 'films', 'public-content', 'ui-consistency'];
+function withPublishedStylesheets(html) {
+  const links = publishedStylesheets.map(name => `<link rel="stylesheet" href="/assets/css/${name}.css">`);
+  return html
+    .replace(/<link rel="stylesheet" href="\/assets\/css\/(?:member-actions|ui-consistency)\.css">\n?/g, '')
+    .replace('</head>', `${links.join('')}</head>`);
+}
+
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
   if (snapshot.detailNeighbors?.[path])
     html = html.replace('</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
   html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02');
-  if (!html.includes('/assets/css/member-actions.css'))
-    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/member-actions.css"></head>');
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
   const context = {
     path: canonicalPath,
@@ -116,10 +123,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
       '<body>',
       `<body data-managed-attractions="true"${filmEnabled ? ' data-managed-films="true"' : ''}${newsEnabled ? ' data-managed-news="true"' : ''}${offersEnabled ? ' data-managed-offers="true"' : ''}>`
     );
-  html = html.replace(
-    '</head>',
-    '<link rel="stylesheet" href="/assets/css/places.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"><link rel="stylesheet" href="/assets/css/ui-consistency.css"></head>'
-  );
+  html = withPublishedStylesheets(html);
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
     const template = templates[name];
     if (template === undefined) throw new Error('Unknown template');

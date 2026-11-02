@@ -9,6 +9,7 @@
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/states.css">
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-auth-kind="admin" data-auth-mode="login">
 <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -17,14 +18,14 @@
 <section class="section-pad account-page"><div class="account-card">
 <p class="eyebrow">ADMIN / ACCOUNT</p>
 <h1>管理員登入</h1><p>登入後台，管理映畫竹塹的城市內容。</p>
-<form id="auth-form">
+<form method="post" id="auth-form">
 <div class="form-field">
 <label for="account">管理員帳號</label>
-<input id="account" name="account" type="text" required autocomplete="username" placeholder="例如：admin">
+<input id="account" name="account" type="text" required autocomplete="username" placeholder="例如：admin" spellcheck="false">
 </div>
 <div class="form-field">
 <label for="password">密碼</label>
-<input id="password" name="password" type="password" required autocomplete="current-password" maxlength="128">
+<input id="password" name="password" type="password" required autocomplete="current-password" spellcheck="false">
 </div>
 <p class="form-error form-status" role="status" aria-live="polite" tabindex="-1"></p>
 <button class="button button-dark full-button" type="submit">登入</button>

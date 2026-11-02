@@ -57,13 +57,6 @@ const navigationSections = {
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
   let html = renderPolicyVersion(await readFile(source, 'utf8'), process.env.TERMS_VERSION || '2026-11-02');
-  if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/member-actions.css')) {
-    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/member-actions.css">\n</head>');
-  }
-  // 一致性樣式最後載入，用來統一各樣式表遺留的字級與欄位高度差異。
-  if (!html.includes('/assets/css/ui-consistency.css')) {
-    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/ui-consistency.css">\n</head>');
-  }
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
   const selectedNavigation = Object.entries(navigationSections).find(([, paths]) =>
     paths.some(path => (path.endsWith('/') ? route.startsWith(path) : route === path))
@@ -82,28 +75,11 @@ for (const source of await pages(join(root, 'pages'))) {
         `class="active" aria-current="page" href="${selectedNavigation}"`
       );
     }
-    return (
-      templates[name] ??
-      (name === 'PAGE_TITLE'
-        ? title
-        : (() => {
-            throw new Error(`Unknown template: ${name}`);
-          })())
-    );
+    if (name === 'PAGE_TITLE') return title;
+    if (!(name in templates)) throw new Error(`Unknown template: ${name}`);
+    return templates[name];
   });
   html = html.replaceAll('{{PAGE_TITLE}}', title);
-  html = html.replace(/<form id="(auth-form|admin-form|permissions-form)"/g, '<form method="post" id="$1"');
-  if (/data-auth-kind=/.test(html) || route.startsWith('admin/')) {
-    html = html.replace(/<input\b([^>]*)>/g, (match, attributes) => {
-      const additions = [];
-      if (!/spellcheck=/.test(attributes)) additions.push('spellcheck="false"');
-      if (!/autocomplete=/.test(attributes)) additions.push('autocomplete="off"');
-      return `<input${attributes} ${additions.join(' ')}>`;
-    });
-  }
-  html = html.replace(/<input\b[^>]*type="password"[^>]*>/g, match =>
-    match.replace(/\s(?:minlength|maxlength)="\d+"/g, '')
-  );
   // 固定頁、保護頁與發布頁共用同一套 head；任何 query 都不含私人資料。
   html = renderSeoHead(html, {
     path: '/' + route,

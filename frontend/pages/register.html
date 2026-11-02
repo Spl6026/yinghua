@@ -23,6 +23,7 @@
 <link rel="stylesheet" href="/assets/css/style.css">
 <link rel="stylesheet" href="/assets/css/states.css">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"映畫竹塹","description":"從新竹市影像博物館出發，探索電影、美食、活動與城市旅行。","inLanguage":"zh-Hant-TW"}</script>
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-auth-kind="member" data-auth-mode="register">
 <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -31,27 +32,27 @@
 <section class="section-pad account-page"><div class="account-card">
 <p class="eyebrow">JOIN THE CITY STORY</p>
 <h1>讓旅程，有你的名字。</h1><p>收藏喜歡的地方，安排專屬的新竹旅程。</p>
-<form id="auth-form">
+<form method="post" id="auth-form">
 <div class="form-field">
 <label for="displayName">顯示名稱</label>
-<input id="displayName" name="displayName" type="text" required autocomplete="nickname" maxlength="80">
+<input id="displayName" name="displayName" type="text" required autocomplete="nickname" maxlength="80" spellcheck="false">
 </div>
 <div class="form-field">
 <label for="email">電子郵件</label>
-<input id="email" name="email" type="email" required autocomplete="email" maxlength="254" placeholder="name@example.com">
+<input id="email" name="email" type="email" required autocomplete="email" maxlength="254" placeholder="name@example.com" spellcheck="false">
 </div>
 <div class="form-field">
 <label for="password">密碼（8–128 字元）</label>
-<input id="password" name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password">
+<input id="password" name="password" type="password" required autocomplete="new-password" spellcheck="false">
 </div>
 <div class="form-field">
 <label for="passwordConfirmation">確認密碼</label>
-<input id="passwordConfirmation" name="passwordConfirmation" type="password" required minlength="8" maxlength="128" autocomplete="new-password">
+<input id="passwordConfirmation" name="passwordConfirmation" type="password" required autocomplete="new-password" spellcheck="false">
 </div>
 <div class="form-field">
 <label for="answer">驗證碼</label>
 <div class="captcha-row">
-<input id="answer" name="answer" required autocomplete="one-time-code" inputmode="numeric" maxlength="12" placeholder="輸入驗證碼">
+<input id="answer" name="answer" required autocomplete="one-time-code" inputmode="numeric" maxlength="12" placeholder="輸入驗證碼" spellcheck="false">
 <img id="captcha-image" alt="圖形驗證碼，亦可選擇寄送 Email 驗證碼" width="230" height="64">
 <button id="refresh-captcha" class="captcha-refresh" type="button" aria-label="重新產生驗證碼">↻</button>
 </div>
@@ -59,7 +60,7 @@
 <p id="captcha-status" class="helper-text" role="status"></p>
 </div>
 <label class="terms-consent">
-<input id="acceptTerms" name="acceptTerms" type="checkbox" required>
+<input id="acceptTerms" name="acceptTerms" type="checkbox" required spellcheck="false" autocomplete="off">
 <span>我已閱讀並同意會員服務條款與隱私權政策。</span>
 </label>
 <details>
