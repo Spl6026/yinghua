@@ -518,65 +518,115 @@ select {
   }
 }
 
-/* 頁首帳號區：一格固定和「會員登入」按鈕同尺寸，看不見的 sizer 撐住大小，
-   確認中、未登入與已登入的按鈕都疊在同一格，主選單不會因為帳號狀態而移動。 */
-.account-slot {
+/* 頁首右側：看不見的「搜尋＋會員登入」撐住和訪客版相同的寬度，實際的搜尋與帳號連結疊在上面靠右；
+   已登入的文字連結比登入按鈕寬時往左延伸，不改變主選單的位置。 */
+.header-actions {
   position: relative;
-  display: inline-grid;
-  vertical-align: middle;
+  flex-shrink: 0;
 }
-.account-slot > * {
-  grid-area: 1 / 1;
-}
-.account-sizer {
+.header-actions-sizer {
+  display: flex;
+  white-space: nowrap;
+  align-items: center;
+  gap: 15px;
   visibility: hidden;
 }
-.account-slot > .login-button:not(.account-sizer) {
-  min-width: 0;
-  text-align: center;
-}
-.account-button {
+.header-actions-row {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  min-width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  font-family: inherit;
-  line-height: inherit;
+  gap: 15px;
   white-space: nowrap;
 }
-.account-name {
-  min-width: 0;
+/* 確認帳號時帳號區是空的，靠右推讓搜尋圖示先停在訪客版的位置。 */
+#member-navigation {
+  margin-left: auto;
+}
+
+/* 會員選單沿用原本的頁首文字連結：名稱、我的收藏、更改密碼與底線的登出。 */
+.member-menu {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 13px;
+}
+.member-menu a:hover {
+  color: var(--green);
+}
+.member-menu button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  touch-action: manipulation;
+}
+.member-name {
+  max-width: 7em;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.account-menu {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  min-width: 168px;
-  padding: 6px 0;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+
+/* 中等寬度時主選單和右側之間的空間不夠放一整列：右側維持訪客版的寬度，
+   會員連結在登入按鈕的位置內自動換行，才不會壓到主選單。 */
+@media (min-width: 761px) and (max-width: 1365px) {
+  .header-actions-row {
+    left: 0;
+  }
+  .member-menu {
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0 8px;
+    font-size: 12px;
+    line-height: 1.6;
+  }
 }
-.account-menu a,
-.account-menu button {
-  padding: 12px 18px;
-  font: inherit;
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  color: var(--ink);
-  text-align: left;
-  white-space: nowrap;
-  background: none;
-  border: 0;
-  cursor: pointer;
+
+/* 手機版頁首只留會員名稱，收藏、更改密碼與登出移到漢堡選單。 */
+.nav-account {
+  display: none;
 }
-.account-menu a:hover,
-.account-menu button:hover,
-.account-menu a:focus-visible,
-.account-menu button:focus-visible {
-  background: rgba(60, 60, 50, 0.06);
+@media (max-width: 760px) {
+  .member-menu {
+    font-size: 12px;
+    gap: 8px;
+  }
+  .member-menu > :not(.member-name) {
+    display: none;
+  }
+  .member-name {
+    max-width: 7em;
+  }
+  .primary-nav.open {
+    max-height: 520px;
+  }
+  .nav-account {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgba(60, 60, 50, 0.15);
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+  .nav-account a,
+  .nav-account button {
+    display: block;
+    text-align: left;
+    padding: 12px 0;
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: #55574f;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
 }

@@ -4,7 +4,7 @@
 
 ## 載入與字型
 
-site-header.html初始顯示「確認帳號中」，不預判訪客。session.js只在401才顯示登入；其他錯誤給重試。依使用者最新指定保留原頁首樣式：訪客沿原本登入按鈕；會員沿原有名稱／收藏／更改密碼／登出橫列，不新增details下拉選單。私人身分不寫入localStorage，也不以顯示狀態代替API授權。
+site-header.html初始顯示「確認帳號中」，不預判訪客。session.js只在401才顯示登入；其他錯誤給重試。依使用者最新指定保留原頁首樣式：訪客沿原本登入按鈕；會員沿原有名稱／收藏／更改密碼／登出橫列（中等寬度在登入按鈕寬度內換兩行，手機只留名稱、其餘放漢堡選單），不新增下拉選單；右側以看不見的訪客版內容撐住寬度，主選單不因帳號狀態移動。私人身分不寫入localStorage，也不以顯示狀態代替API授權。
 
 font-head.mjs讓固定頁與公開產頁都在主樣式之前直接載入本機fonts.css，移除style.css的@import載入鏈；Google Fonts官方Noto Sans TC／Noto Serif TC可變字型沿SIL OFL提供，原始授權放assets/fonts。5,728個原網站／目前頁面常見Unicode先供小型子集（約547KB／740KB）；其餘有效字元保留完整字型檔，unicode-range避免為不支援的emoji下載大檔。Sans與Serif兩份共用子集由build／publish於head前段預載；font-display:optional的設計是字型未及首屏時保持系統fallback，但不能僅憑此屬性推定使用者回報的收縮已消失。首次／未快取可能使用系統字型，並不保證每個網路條件首屏都顯示自訂字型。沒有隱藏整頁等待字型。
 

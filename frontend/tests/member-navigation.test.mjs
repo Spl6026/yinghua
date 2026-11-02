@@ -59,13 +59,9 @@ function fixture(read) {
   vm.runInContext(source, sandbox);
   return { node, navigation, run: () => sandbox.memberNavigation() };
 }
-// 帳號區永遠含一個看不見、用來撐住尺寸的登入按鈕；檢查時只看實際顯示的內容。
-const visibleTexts = node =>
-  node.children
-    .filter(child => !String(child.className || '').includes('account-sizer'))
-    .flatMap(child => child.texts());
+const visibleTexts = node => node.children.flatMap(child => child.texts());
 
-test('等待帳號回應時不先顯示訪客；成功才顯示會員帳號按鈕', async () => {
+test('等待帳號回應時不先顯示訪客；成功才顯示會員連結', async () => {
   let resolve;
   const f = fixture(
     () =>
@@ -92,7 +88,7 @@ test('401才顯示登入；網路失敗提供重試，不冒稱訪客', async ()
     throw { status: 0 };
   });
   await failure.run();
-  assert.ok(visibleTexts(failure.node).includes('重新確認'));
+  assert.ok(visibleTexts(failure.node).includes('重新確認帳號'));
   assert.ok(!visibleTexts(failure.node).includes('會員登入 ↗'));
 });
 test('舊帳號回應不得蓋過較新的身分確認', async () => {
@@ -116,21 +112,26 @@ test('舊帳號回應不得蓋過較新的身分確認', async () => {
   assert.ok(!visibleTexts(f.node).includes('舊帳號'));
 });
 
-test('已登入時收藏、更改密碼與登出收在帳號下拉選單，點按鈕才展開', async () => {
+test('已登入時沿用原本的名稱、收藏、更改密碼與登出文字連結', async () => {
   const f = fixture(async () => ({ member: { displayName: '本人' } }));
   await f.run();
-  const toggle = f.node.children.find(n => String(n.className).includes('account-button'));
-  const menu = f.node.children.find(n => n.className === 'account-menu');
-  assert.ok(toggle && menu);
+  assert.equal(f.node.className, 'member-menu');
   assert.deepEqual(
-    menu.children.map(n => n.textContent),
+    f.node.children.map(n => n.textContent),
+    ['本人', '我的收藏', '更改密碼', '登出']
+  );
+  assert.deepEqual(
+    f.node.children.slice(1, 3).map(n => n.href),
+    ['/favorites.html', '/change-password.html']
+  );
+});
+test('手機漢堡選單另附收藏、更改密碼與登出，頁首不需擠入全部連結', async () => {
+  const f = fixture(async () => ({ member: { displayName: '本人' } }));
+  await f.run();
+  const account = f.navigation.children.find(n => n.className === 'nav-account');
+  assert.ok(account);
+  assert.deepEqual(
+    account.children.map(n => n.textContent),
     ['我的收藏', '更改密碼', '登出']
   );
-  assert.equal(menu.hidden, true);
-  assert.equal(toggle.attrs['aria-expanded'] ?? toggle['aria-expanded'], 'false');
-  toggle.listeners.click();
-  assert.equal(menu.hidden, false);
-  assert.equal(toggle.attrs['aria-expanded'], 'true');
-  toggle.listeners.click();
-  assert.equal(menu.hidden, true);
 });
