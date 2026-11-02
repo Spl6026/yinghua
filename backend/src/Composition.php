@@ -6,6 +6,7 @@ namespace Yinghua;
 
 use Closure;
 use Yinghua\Adapters\CurlGoogleHttp;
+use Yinghua\Composition\SharedServices;
 use Yinghua\Adapters\GoogleOpeningHours;
 use Yinghua\Adapters\GooglePlaceMapper;
 use Yinghua\Adapters\GoogleSummaryProvider;
@@ -14,12 +15,13 @@ use Yinghua\Adapters\LocalImageStorage;
 use Yinghua\Adapters\NodeContentRenderer;
 use Yinghua\Adapters\PdoDatabaseHealthProbe;
 use Yinghua\Adapters\PdoTransactions;
-use Yinghua\Adapters\PhpMailerAdapter;
 use Yinghua\Adapters\PublicContentCommands;
 use Yinghua\Adapters\PublicContentSeeder;
 use Yinghua\Adapters\SeoCatalog;
 use Yinghua\Adapters\SystemClock;
+use Yinghua\Contracts\AdminContentRecords;
 use Yinghua\Contracts\Clock;
+use Yinghua\Contracts\ContentEditor;
 use Yinghua\Controllers\AdminController;
 use Yinghua\Controllers\ApiControllers;
 use Yinghua\Controllers\AdminContentController;
@@ -48,7 +50,6 @@ use Yinghua\Controllers\PublicSiteSettingsController;
 use Yinghua\Controllers\RecommendedRouteController;
 use Yinghua\Controllers\SearchController;
 use Yinghua\Controllers\SeoSettingsController;
-use Yinghua\Http\Csrf;
 use Yinghua\Http\Kernel;
 use Yinghua\Http\Router;
 use Yinghua\Policies\ContentCover;
@@ -59,8 +60,6 @@ use Yinghua\Policies\PermissionPolicy;
 use Yinghua\Policies\ScreeningStartPolicy;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\AttractionRepository;
-use Yinghua\Repositories\ChallengeRepository;
-use Yinghua\Repositories\ConsentRepository;
 use Yinghua\Repositories\Database;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\ExternalRequestSlot;
@@ -77,30 +76,24 @@ use Yinghua\Repositories\OfferRepository;
 use Yinghua\Repositories\OperationsRepository;
 use Yinghua\Repositories\PermissionRepository;
 use Yinghua\Repositories\PublicationRepository;
-use Yinghua\Repositories\RateLimitRepository;
 use Yinghua\Repositories\RecommendedRouteRepository;
 use Yinghua\Repositories\ResetRepository;
 use Yinghua\Repositories\SearchRepository;
 use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Repositories\SeoTargetRepository;
-use Yinghua\Repositories\SessionRepository;
 use Yinghua\Services\AdminManagement;
 use Yinghua\Services\AdminContentManagement;
-use Yinghua\Services\ContentWriter;
 use Yinghua\Services\AdminPreview;
 use Yinghua\Services\ApplicationHealth;
 use Yinghua\Services\AttractionManagement;
 use Yinghua\Services\AttractionSummary;
-use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
-use Yinghua\Services\Captcha;
 use Yinghua\Services\ContentImporter;
 use Yinghua\Services\ContentPublication;
 use Yinghua\Services\CurrentItinerary;
 use Yinghua\Services\FilmManagement;
 use Yinghua\Services\GeneralSiteSettings;
-use Yinghua\Services\DetailUrlResolver;
 use Yinghua\Services\MapResolver;
 use Yinghua\Services\MediaAccess;
 use Yinghua\Services\MediaManagement;
@@ -114,7 +107,6 @@ use Yinghua\Services\NewsManagement;
 use Yinghua\Services\OfferManagement;
 use Yinghua\Services\OfferMerchants;
 use Yinghua\Services\OperationsOverview;
-use Yinghua\Services\PasswordHasher;
 use Yinghua\Services\PasswordReset;
 use Yinghua\Services\PermissionManagement;
 use Yinghua\Services\PublicAttractions;
@@ -126,15 +118,17 @@ use Yinghua\Services\PublicOffers;
 use Yinghua\Services\PublicRecommendedRoutes;
 use Yinghua\Services\PublicSearch;
 use Yinghua\Services\PublicSiteSettings;
-use Yinghua\Services\PublishedPolicies;
-use Yinghua\Services\RateLimiter;
 use Yinghua\Services\RecommendedRoutes;
 use Yinghua\Services\RoleTemplates;
 use Yinghua\Services\SeoPublication;
 use Yinghua\Services\SeoSettings;
 use Yinghua\Support\Secrets;
 
-/** 整個應用程式唯一組裝物件的地方；業務類別只透過建構子取得依賴，不自行建立資料庫或 SMTP 連線。 */
+/**
+ * 整個應用程式唯一組裝物件的地方；業務類別只透過建構子取得依賴，不自行建立資料庫或 SMTP 連線。
+ * 共用物件集中在 SharedServices，各區塊（帳號、景點與電影、消息優惠、會員、全站設定）
+ * 各有一個工廠方法；新增模組時只需改動所屬區塊，不必在一個長函式裡找位置。
+ */
 readonly class Composition
 {
     /** 入口檔用這個路徑判斷是否要在連線資料庫之前先處理健康檢查。 */
@@ -154,254 +148,256 @@ readonly class Composition
     public function kernel(): Kernel
     {
         $database = Database::forRequest($this->config);
-        $clock = new SystemClock();
-        $secrets = new Secrets($this->config);
-        $transactions = new PdoTransactions($database);
-        // 以下 Repository 只包裝同一個資料庫連線、不保存請求狀態，因此整個請求共用同一個實例。
-        $accounts = new AccountRepository($database);
-        $sessions = new SessionRepository($database, $this->config, $clock);
-        $permissions = new PermissionRepository($database);
-        $events = new EventRepository($database, $secrets);
-        $resets = new ResetRepository($database);
-        $mediaRecords = new MediaRepository($database);
-        $attractionRecords = new AttractionRepository($database);
-        $routeRecords = new RecommendedRouteRepository($database);
-        $itineraryRecords = new ItineraryRepository($database);
-        $seoSettingsRecords = new SeoSettingsRepository($database);
-        $generalRecords = new GeneralSettingsRepository($database);
-        $limiter = new RateLimiter(new RateLimitRepository($database), $secrets, $clock);
-        $passwords = new PasswordHasher();
-        $policy = new PermissionPolicy();
-        $authorization = new Authorization($accounts, $permissions, $policy);
-        $mailer = new PhpMailerAdapter($this->config);
-        $captcha = new Captcha(new ChallengeRepository($database), $transactions, $limiter, $secrets, $clock, $this->config, $mailer);
-        $policies = new PublishedPolicies($generalRecords, new NodeContentRenderer($this->config), $this->config);
-        $authentication = new Authentication(
-            $accounts,
-            $sessions,
-            $passwords,
-            $limiter,
-            $events,
-            $transactions,
-            $captcha,
-            new ConsentRepository($database),
-            $policies,
-        );
-        $passwordReset = new PasswordReset(
-            $accounts,
-            $resets,
-            $sessions,
-            $passwords,
-            $limiter,
-            $events,
-            $transactions,
-            $clock,
-            $this->config,
-            $mailer,
-        );
-        $csrf = new Csrf($this->config, $clock, $secrets);
-        $authController = new AuthController(
-            $authentication,
-            $authorization,
-            $captcha,
-            $passwordReset,
-            $csrf,
-            $this->config,
-            new AdminPreview($accounts, $sessions, $events, $transactions),
-            $policies,
-        );
-        $roles = new RoleTemplates($permissions, $authorization);
-        $permissionController = new PermissionController(
-            new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events),
-            $roles,
-        );
-        $adminController = new AdminController(new AdminManagement(
-            $accounts,
-            $permissions,
-            $roles,
-            $authorization,
-            $policy,
-            $passwords,
-            $transactions,
-            $events,
-            $sessions,
-            $resets,
-        ));
-        $publication = $this->publication($database);
-        $writer = new ContentWriter($authorization, $transactions, $publication, $events);
-        $attractionController = new AttractionController(new AttractionManagement(
-            $attractionRecords,
-            $authorization,
-            $writer,
-            $publication,
-            new GooglePlaceLinkPolicy(),
-        ));
-        $publicAttractionService = new PublicAttractions($publication);
-        $detailUrls = new DetailUrlResolver($publication);
-        $mediaController = new MediaController(
-            new MediaManagement(
-                $mediaRecords,
-                new LocalImageStorage($this->config),
-                $authorization,
-                $transactions,
-                $events,
-            ),
-            new MediaAccess($publication, $authentication, $authorization, $mediaRecords),
-        );
-        $mapPolicy = new GoogleUrlPolicy();
-        $mapController = new MapController(new MapResolver(
-            new CurlGoogleHttp($mapPolicy),
-            $mapPolicy,
-            $this->config,
-            $authorization,
-            $limiter,
-            new GooglePlaceMapper(new GoogleOpeningHours()),
-        ));
-        $filmScreens = new FilmScreeningRepository($database);
-        $filmAdmin = new FilmController(new FilmManagement(
-            new FilmRepository($database, $filmScreens),
-            $mediaRecords,
-            $authorization,
-            $writer,
-            $publication,
-            new FilmPosterPolicy(),
-            $filmScreens,
-            new ScreeningStartPolicy(),
-        ));
-        // 摘要補位預覽與即時取得的 Google 原文分開處理，不另存資料表。
-        $content = new AttractionContentController(new AttractionSummary(
-            $publicAttractionService,
-            $attractionRecords,
-            new GoogleSummaryProvider(new CurlGoogleHttp($mapPolicy), $this->config),
-            $limiter,
-            new ExternalRequestSlot($database),
-        ), $authorization);
-
-        // 消息、優惠與店家：HTTP 與 CLI 共用同一組 editor；消息與優惠的後台流程相同，只差模組名稱。
-        $editors = $this->contentEditors($database, $authorization, $events, $mediaRecords, $clock);
-        $contentAdmin = fn(string $module, string $deleteAction, NewsRepository|OfferRepository $records, NewsManagement|OfferManagement $editor): AdminContentController => new AdminContentController(new AdminContentManagement(
-            $module,
-            $deleteAction,
-            $records,
-            $editor,
-            $authorization,
-            $transactions,
-            $publication,
-            $events,
-            $clock,
-        ));
-        $newsAdmin = $contentAdmin('news', 'news-delete', $editors['newsRecords'], $editors['news']);
-        $offerAdmin = $contentAdmin('offers', 'offer-delete', $editors['offerRecords'], $editors['offers']);
-        $merchantRecords = $editors['merchantRecords'];
-        $merchantEditor = $editors['merchants'];
-        $merchants = new OfferMerchantController(new OfferMerchants(
-            $merchantRecords,
-            $merchantEditor,
-            $authorization,
-            $transactions,
-            $publication,
-        ));
-
-        $recommendedRoutes = new RecommendedRouteController(
-            new RecommendedRoutes($routeRecords, $authorization, $writer),
-            new PublicRecommendedRoutes($publication),
-        );
-
-        $memberAccess = new MemberAccess($accounts);
-        $memberAttractions = new MemberAttractions($publication, $attractionRecords, $clock);
-        $favoriteController = new FavoriteController(new MemberFavorites(
-            new FavoriteRepository($database),
-            $memberAccess,
-            $memberAttractions,
-            $transactions,
-        ));
-        $itineraryController = new CurrentItineraryController(new CurrentItinerary(
-            $itineraryRecords,
-            $memberAccess,
-            $memberAttractions,
-            $transactions,
-        ));
-        $trips = new MemberItineraryController(new MemberItineraries(
-            $itineraryRecords,
-            $memberAccess,
-            $memberAttractions,
-            $transactions,
-            $publication,
-            $routeRecords,
-        ));
-
-        $seoCatalog = new SeoCatalog($this->config->frontendSourcePath());
-        $seoController = new SeoSettingsController(
-            new SeoSettings(
-                $seoSettingsRecords,
-                new SeoOverrideRepository($database),
-                new SeoTargetRepository($database),
-                $authorization,
-                $transactions,
-                $events,
-                $publication,
-                $seoCatalog,
-                $this->config,
-            ),
-            $seoCatalog->policy(),
-        );
-
-        $search = new SearchController(new PublicSearch(
-            $publication,
-            new SearchRepository($database, $transactions),
-        ));
-        $directory = new MemberDirectoryController(new MemberDirectory(
-            new MemberDirectoryRepository($database),
-            $authorization,
-        ));
-        $general = new GeneralSettingsController(new GeneralSiteSettings(
-            $generalRecords,
-            $seoSettingsRecords,
-            $authorization,
-            $transactions,
-            $events,
-            $publication,
-        ));
-        $operations = new OperationsController(new OperationsOverview(
-            new OperationsRepository($database),
-            $authorization,
-        ));
+        $shared = new SharedServices($this->config, $database, $this->publication($database));
 
         // 這裡只組裝物件；所有路由（含順序）都在 config/routes.php 一個地方宣告。
         $router = new Router();
         /** @var Closure(Router,ApiControllers):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes($router, new ApiControllers(
-            auth: $authController,
-            admins: $adminController,
-            permissions: $permissionController,
-            attractions: $attractionController,
-            attractionContent: $content,
-            publicAttractions: new PublicAttractionController($publicAttractionService, $publication, $detailUrls),
-            media: $mediaController,
-            maps: $mapController,
-            films: new PublicFilmController(new PublicFilms($publication), $clock, $detailUrls),
-            filmAdmin: $filmAdmin,
-            news: new PublicNewsController(new PublicNews($publication), $detailUrls),
-            offers: new PublicOfferController(new PublicOffers($publication), $detailUrls),
-            home: new PublicHomeController(new PublicHome($publication)),
-            newsAdmin: $newsAdmin,
-            offerAdmin: $offerAdmin,
-            merchants: $merchants,
-            recommendedRoutes: $recommendedRoutes,
-            neighbors: new PublicNeighborController(new PublicNeighbors($publication)),
-            favorites: $favoriteController,
-            currentItinerary: $itineraryController,
-            itineraries: $trips,
-            seo: $seoController,
-            siteSettings: new PublicSiteSettingsController(new PublicSiteSettings($publication)),
-            search: $search,
-            members: $directory,
-            settings: $general,
-            operations: $operations,
+        $routes($router, new ApiControllers(...[
+            ...$this->accountControllers($shared),
+            ...$this->placeControllers($shared),
+            ...$this->editorialControllers($shared),
+            ...$this->memberControllers($shared),
+            ...$this->siteControllers($shared),
+        ]));
+
+        return new Kernel($router, $shared->csrf, $shared->authentication, $shared->authorization, $shared->secrets, $shared->events);
+    }
+
+    /**
+     * 登入、密碼重設、管理者帳號與角色權限。
+     *
+     * @return array{auth:AuthController,admins:AdminController,permissions:PermissionController}
+     */
+    private function accountControllers(SharedServices $s): array
+    {
+        $roles = new RoleTemplates($s->permissions, $s->authorization);
+
+        return [
+            'auth' => new AuthController(
+                $s->authentication,
+                $s->authorization,
+                $s->captcha,
+                new PasswordReset(
+                    $s->accounts,
+                    new ResetRepository($s->database),
+                    $s->sessions,
+                    $s->passwords,
+                    $s->limiter,
+                    $s->events,
+                    $s->transactions,
+                    $s->clock,
+                    $this->config,
+                    $s->mailer,
+                ),
+                $s->csrf,
+                $this->config,
+                new AdminPreview($s->accounts, $s->sessions, $s->events, $s->transactions),
+                $s->policies,
+            ),
+            'permissions' => new PermissionController(
+                new PermissionManagement($s->accounts, $s->permissions, $s->authorization, $s->permissionPolicy, $s->transactions, $s->events),
+                $roles,
+            ),
+            'admins' => new AdminController(new AdminManagement(
+                $s->accounts,
+                $s->permissions,
+                $roles,
+                $s->authorization,
+                $s->permissionPolicy,
+                $s->passwords,
+                $s->transactions,
+                $s->events,
+                $s->sessions,
+                new ResetRepository($s->database),
+            )),
+        ];
+    }
+
+    /**
+     * 景點、電影、推薦路線、媒體與地圖：後台管理與對應的公開讀取。
+     *
+     * @return array{attractions:AttractionController,attractionContent:AttractionContentController,publicAttractions:PublicAttractionController,media:MediaController,maps:MapController,films:PublicFilmController,filmAdmin:FilmController,recommendedRoutes:RecommendedRouteController,neighbors:PublicNeighborController}
+     */
+    private function placeControllers(SharedServices $s): array
+    {
+        $publicAttractions = new PublicAttractions($s->publication);
+        $mapPolicy = new GoogleUrlPolicy();
+        $filmScreens = new FilmScreeningRepository($s->database);
+
+        return [
+            'attractions' => new AttractionController(new AttractionManagement(
+                $s->attractionRecords,
+                $s->authorization,
+                $s->writer,
+                $s->publication,
+                new GooglePlaceLinkPolicy(),
+            )),
+            // 摘要補位預覽與即時取得的 Google 原文分開處理，不另存資料表。
+            'attractionContent' => new AttractionContentController(new AttractionSummary(
+                $publicAttractions,
+                $s->attractionRecords,
+                new GoogleSummaryProvider(new CurlGoogleHttp($mapPolicy), $this->config),
+                $s->limiter,
+                new ExternalRequestSlot($s->database),
+            ), $s->authorization),
+            'publicAttractions' => new PublicAttractionController($publicAttractions, $s->publication, $s->detailUrls),
+            'media' => new MediaController(
+                new MediaManagement(
+                    $s->mediaRecords,
+                    new LocalImageStorage($this->config),
+                    $s->authorization,
+                    $s->transactions,
+                    $s->events,
+                ),
+                new MediaAccess($s->publication, $s->authentication, $s->authorization, $s->mediaRecords),
+            ),
+            'maps' => new MapController(new MapResolver(
+                new CurlGoogleHttp($mapPolicy),
+                $mapPolicy,
+                $this->config,
+                $s->authorization,
+                $s->limiter,
+                new GooglePlaceMapper(new GoogleOpeningHours()),
+            )),
+            'films' => new PublicFilmController(new PublicFilms($s->publication), $s->clock, $s->detailUrls),
+            'filmAdmin' => new FilmController(new FilmManagement(
+                new FilmRepository($s->database, $filmScreens),
+                $s->mediaRecords,
+                $s->authorization,
+                $s->writer,
+                $s->publication,
+                new FilmPosterPolicy(),
+                $filmScreens,
+                new ScreeningStartPolicy(),
+            )),
+            'recommendedRoutes' => new RecommendedRouteController(
+                new RecommendedRoutes($s->routeRecords, $s->authorization, $s->writer),
+                new PublicRecommendedRoutes($s->publication),
+            ),
+            'neighbors' => new PublicNeighborController(new PublicNeighbors($s->publication)),
+        ];
+    }
+
+    /**
+     * 消息、優惠與合作店家；後台編輯沿用 CLI 匯入的同一組 editor。
+     *
+     * @return array{news:PublicNewsController,offers:PublicOfferController,newsAdmin:AdminContentController,offerAdmin:AdminContentController,merchants:OfferMerchantController}
+     */
+    private function editorialControllers(SharedServices $s): array
+    {
+        $editors = $this->contentEditors($s->database, $s->authorization, $s->events, $s->mediaRecords, $s->clock);
+        // 消息與優惠的後台流程相同，只差模組名稱與刪除動作。
+        $admin = fn(string $module, string $deleteAction, AdminContentRecords $records, ContentEditor $editor): AdminContentController => new AdminContentController(new AdminContentManagement(
+            $module,
+            $deleteAction,
+            $records,
+            $editor,
+            $s->authorization,
+            $s->transactions,
+            $s->publication,
+            $s->events,
+            $s->clock,
         ));
 
-        return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
+        return [
+            'news' => new PublicNewsController(new PublicNews($s->publication), $s->detailUrls),
+            'offers' => new PublicOfferController(new PublicOffers($s->publication), $s->detailUrls),
+            'newsAdmin' => $admin('news', 'news-delete', $editors['newsRecords'], $editors['news']),
+            'offerAdmin' => $admin('offers', 'offer-delete', $editors['offerRecords'], $editors['offers']),
+            'merchants' => new OfferMerchantController(new OfferMerchants(
+                $editors['merchantRecords'],
+                $editors['merchants'],
+                $s->authorization,
+                $s->transactions,
+                $s->publication,
+            )),
+        ];
+    }
+
+    /**
+     * 會員的收藏、目前行程與多份行程，以及後台會員名單。
+     *
+     * @return array{favorites:FavoriteController,currentItinerary:CurrentItineraryController,itineraries:MemberItineraryController,members:MemberDirectoryController}
+     */
+    private function memberControllers(SharedServices $s): array
+    {
+        $access = new MemberAccess($s->accounts);
+        $attractions = new MemberAttractions($s->publication, $s->attractionRecords, $s->clock);
+        $itineraries = new ItineraryRepository($s->database);
+
+        return [
+            'favorites' => new FavoriteController(new MemberFavorites(
+                new FavoriteRepository($s->database),
+                $access,
+                $attractions,
+                $s->transactions,
+            )),
+            'currentItinerary' => new CurrentItineraryController(new CurrentItinerary(
+                $itineraries,
+                $access,
+                $attractions,
+                $s->transactions,
+            )),
+            'itineraries' => new MemberItineraryController(new MemberItineraries(
+                $itineraries,
+                $access,
+                $attractions,
+                $s->transactions,
+                $s->publication,
+                $s->routeRecords,
+            )),
+            'members' => new MemberDirectoryController(new MemberDirectory(
+                new MemberDirectoryRepository($s->database),
+                $s->authorization,
+            )),
+        ];
+    }
+
+    /**
+     * 全站設定、SEO、首頁、搜尋與營運總覽。
+     *
+     * @return array{home:PublicHomeController,seo:SeoSettingsController,siteSettings:PublicSiteSettingsController,search:SearchController,settings:GeneralSettingsController,operations:OperationsController}
+     */
+    private function siteControllers(SharedServices $s): array
+    {
+        $seoCatalog = new SeoCatalog($this->config->frontendSourcePath());
+
+        return [
+            'home' => new PublicHomeController(new PublicHome($s->publication)),
+            'seo' => new SeoSettingsController(
+                new SeoSettings(
+                    $s->seoSettingsRecords,
+                    new SeoOverrideRepository($s->database),
+                    new SeoTargetRepository($s->database),
+                    $s->authorization,
+                    $s->transactions,
+                    $s->events,
+                    $s->publication,
+                    $seoCatalog,
+                    $this->config,
+                ),
+                $seoCatalog->policy(),
+            ),
+            'siteSettings' => new PublicSiteSettingsController(new PublicSiteSettings($s->publication)),
+            'search' => new SearchController(new PublicSearch(
+                $s->publication,
+                new SearchRepository($s->database, $s->transactions),
+            )),
+            'settings' => new GeneralSettingsController(new GeneralSiteSettings(
+                $s->generalRecords,
+                $s->seoSettingsRecords,
+                $s->authorization,
+                $s->transactions,
+                $s->events,
+                $s->publication,
+            )),
+            'operations' => new OperationsController(new OperationsOverview(
+                new OperationsRepository($s->database),
+                $s->authorization,
+            )),
+        ];
     }
 
     public function publication(?Database $database = null): ContentPublication

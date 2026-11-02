@@ -11,7 +11,7 @@
 | Repository | AccountRepository、PermissionRepository 等 | SQL、資料映射與已知儲存衝突轉譯；不自行提交交易 |
 | Domain Model／Policy | Account、IdentityKind、PermissionPolicy | 帳號資料與純業務規則；含內部雜湊的 Account 不直接序列化 |
 | Request／Response DTO | DTO/ 下的具名類別 | 輸入與輸出分開；安全摘要不持有密碼雜湊或完整 Account |
-| 建構子 DI／設定 | Composition | 集中建立並傳入依賴；同請求共用連線，業務不查全域容器 |
+| 建構子 DI／設定 | Composition＋Composition\SharedServices | 組裝根（Composition Root）：`SharedServices` 建立同一請求共用的連線、權限、稽核與發布物件；帳號、景點與電影、消息優惠、會員、全站設定各有一個工廠方法回傳該區 Controller。業務不查全域容器 |
 | Filter／統一錯誤處理 | Http/Kernel | 身分、CSRF、唯讀模擬、module/action 與 HTTP 錯誤碼 |
 
 建構子注入參考 [Spring Boot 官方 DI 建議](https://docs.spring.io/spring-boot/reference/using/spring-beans-and-dependency-injection.html)；儲存例外轉譯參考 [Spring Framework DAO](https://docs.spring.io/spring-framework/reference/data-access/dao.html)。PHP 採明確組裝與 PDO，沒有 Spring 的註解掃描、JPA 或 AOP；角色職責相近，執行機制不同。
