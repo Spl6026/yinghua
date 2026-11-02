@@ -117,3 +117,4 @@ E-01／E-13：Request.json() 不得丟棄 PHP 將 JSON 數字屬性名轉成的�
 | 範本方法（Template Method） | `Services\ContentWriter`、`AdminContentManagement` | 共用的儲存／刪除順序（發布鎖、交易、權限、版本、稽核、重新發布），各模組只提供檢查與寫入 |
 | 轉接器（Adapter） | `Adapters\*` 實作 `Contracts\*` | 外部服務（Node 產生器、SMTP、Google、檔案儲存、HTML 淨化）都藏在介面後，業務類別只依賴介面 |
 | 介面隔離（ISP） | `Contracts\PublishedSnapshot`、`Contracts\ContentRenderer` | 只需讀已發布快照的服務（例如 `PublishedPolicies`）依賴 `PublishedSnapshot`；發布流程才需要完整的 `ContentRenderer`（產生頁面、版本與發布鎖） |
+| 命令（Command） | `bin/console.php` | 每個 CLI 指令對應一個處理函式，放在同一份指令表；說明文字由指令表產生，新增指令只加一筆，不再串接 elseif |
