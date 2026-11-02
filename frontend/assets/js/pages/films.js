@@ -1,6 +1,7 @@
 import { api } from '../core/api-client.js';
 import { filmRows, screeningPeriodLabel } from '../core/film-view.js';
 import { element, status } from '../core/ui.js';
+import { fallbackContentImages } from '../core/content-view.js';
 
 // 初始內容由同一發布版本的 HTML 提供；換頁失敗時不回填原型資料。
 const list = document.querySelector('#cinema-list');
@@ -42,7 +43,7 @@ if (list && snapshot) {
       page = target;
       total = data.total;
       status(notice, `已載入第 ${page} 頁，共 ${total} 部電影。`);
-      fallbackImages();
+      fallbackContentImages();
     } catch (error) {
       status(notice, error.message, true);
       notice.focus();
@@ -54,13 +55,4 @@ if (list && snapshot) {
   previous.addEventListener('click', () => load(page - 1));
   next.addEventListener('click', () => load(page + 1));
 }
-function fallbackImages() {
-  document.querySelectorAll('[data-image-url]').forEach(node => {
-    const probe = new Image();
-    probe.onerror = () => {
-      node.style.backgroundImage = 'url("/assets/image-placeholder.svg")';
-    };
-    probe.src = node.dataset.imageUrl;
-  });
-}
-fallbackImages();
+fallbackContentImages();

@@ -37,8 +37,11 @@ export function contentPager(total, page, path, type = '', pageSize = 20) {
   if (pages <= 1) return '';
   return `<nav class="pagination-controls public-content-pager" aria-label="內容分頁">${page > 1 ? `<a class="button button-outline" data-content-page href="${escapeHtml(pageHref(path, type, page - 1))}">上一頁</a>` : ''}<span aria-live="polite">第 ${page}／${pages} 頁，共 ${total} 筆</span>${page < pages ? `<a class="button button-outline" data-content-page href="${escapeHtml(pageHref(path, type, page + 1))}">下一頁</a>` : ''}</nav>`;
 }
+// 背景圖載入失敗時換成替代圖，不留下空白卡片。已檢查過的節點會標記，換頁後重複呼叫不會再下載一次。
 export function fallbackContentImages(root = document) {
   root.querySelectorAll('[data-image-url]').forEach(node => {
+    if (node.dataset.imageChecked) return;
+    node.dataset.imageChecked = 'true';
     const probe = new Image();
     probe.onerror = () => {
       node.style.backgroundImage = 'url("/assets/image-placeholder.svg")';

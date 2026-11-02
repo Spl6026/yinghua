@@ -5,7 +5,7 @@ import vm from 'node:vm';
 
 const code = (
   await Promise.all(
-    ['core/ui.js', 'core/film-view.js', 'pages/films.js'].map(path =>
+    ['core/ui.js', 'core/content-view.js', 'core/film-view.js', 'pages/films.js'].map(path =>
       readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
     )
   )

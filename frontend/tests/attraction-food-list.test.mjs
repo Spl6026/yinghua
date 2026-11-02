@@ -60,6 +60,7 @@ test('美食原型沒有分類數字仍載入完成，切換在地店家可使�
     },
     element: () => node(),
     status: (_node, text, error) => messages.push({ text, error }),
+    fallbackContentImages() {},
     mountMemberActions: async () => {
       mounted++;
     },

@@ -3,21 +3,11 @@ import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 import { placeCard, attractionCardData as cardData } from '../components/content-cards.js';
 import { mountMemberActions } from '../core/member-actions.js';
+import { fallbackContentImages } from '../core/content-view.js';
 
 export { cardData };
-function imageFallbacks() {
-  document.querySelectorAll('[data-image-url]').forEach(node => {
-    if (node.dataset.imageChecked) return;
-    node.dataset.imageChecked = 'true';
-    const image = new Image();
-    image.addEventListener('error', () => {
-      node.style.backgroundImage = 'url("/assets/image-placeholder.svg")';
-    });
-    image.src = node.dataset.imageUrl;
-  });
-}
 if (typeof document !== 'undefined' && document.body.dataset.managedAttractions) {
-  imageFallbacks();
+  fallbackContentImages();
   const grid = document.querySelector('#place-grid');
   if (grid) {
     const query = document.querySelector('#place-search');
@@ -119,7 +109,7 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
         if (!data.items.length)
           grid.append(element('p', { className: 'empty-results' }, '找不到符合條件的地點，試試其他關鍵字。'));
         markTabs(data.counts);
-        imageFallbacks();
+        fallbackContentImages();
         void mountMemberActions();
         label.textContent = `第 ${page} 頁，共 ${data.total} 筆`;
         previous.disabled = page <= 1;
