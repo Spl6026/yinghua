@@ -49,7 +49,7 @@ const navigationSections = {
 };
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
-  let html = renderPolicyVersion(await readFile(source, 'utf8'),process.env.TERMS_VERSION||'local-development-v1');
+  let html = renderPolicyVersion(await readFile(source, 'utf8'),process.env.TERMS_VERSION||'2026-11-02');
   if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
   }

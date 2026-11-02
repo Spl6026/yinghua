@@ -93,7 +93,7 @@ class Authentication
     {
         $this->limiter->check('register-ip', $client->ipHash, 20, 3600);
         $this->limiter->check('register-email', $input->email, 5, 900);
-        if ($input->termsVersion !== ($this->policies?->current() ?? $this->config->string('TERMS_VERSION', 'local-development-v1'))) {
+        if ($input->termsVersion !== ($this->policies?->current() ?? $this->config->string('TERMS_VERSION', '2026-11-02'))) {
             throw ApplicationError::invalid('termsVersion', '條款版本已更新，請重新閱讀。');
         }
         $hash = $this->passwords->hash($input->password);

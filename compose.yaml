@@ -28,7 +28,7 @@ x-php-common: &php-common
     CAPTCHA_SECONDS: ${CAPTCHA_SECONDS:-300}
     CAPTCHA_ATTEMPTS: ${CAPTCHA_ATTEMPTS:-3}
     PASSWORD_RESET_SECONDS: ${PASSWORD_RESET_SECONDS:-1800}
-    TERMS_VERSION: ${TERMS_VERSION:-local-development-v1}
+    TERMS_VERSION: ${TERMS_VERSION:-2026-11-02}
     SMTP_HOST: ${SMTP_HOST:-mailpit}
     SMTP_PORT: ${SMTP_PORT:-1025}
     SMTP_ENCRYPTION: ${SMTP_ENCRYPTION:-none}
@@ -86,7 +86,7 @@ services:
     environment:
       # [E-28] 安全固定頁使用既有運行 origin，不將正式 HTML 寫死 localhost。
       APP_URL: ${APP_URL:-http://localhost:8080}
-      TERMS_VERSION: ${TERMS_VERSION:-local-development-v1}
+      TERMS_VERSION: ${TERMS_VERSION:-2026-11-02}
     command: ["node", "scripts/build.mjs"]
     volumes:
       - ./frontend:/frontend

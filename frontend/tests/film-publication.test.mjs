@@ -79,6 +79,6 @@ test('片單館舍資訊與詳情同版更新，缺館舍不顯示舊地址或�
     assert.match(changed,/第二版地址/);assert.match(changed,/預約參觀/);assert.doesNotMatch(changed,/新地址|10:15/);
     result=publish('c',[]);assert.equal(result.status,0,result.stderr);
     const empty=await readFile(join(directory,'current/cinema.html'),'utf8');
-    assert.match(empty,/目前沒有已發布的博物館介紹/);assert.doesNotMatch(empty,/第二版地址|09:30|預約參觀/);
+    assert.match(empty,/博物館介紹即將更新/);assert.doesNotMatch(empty,/第二版地址|09:30|預約參觀/);
   }finally{await rm(directory,{recursive:true,force:true});}
 });

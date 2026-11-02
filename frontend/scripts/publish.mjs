@@ -54,7 +54,7 @@ const indexEntries=[];
 
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
   if(snapshot.detailNeighbors?.[path])html=html.replace('</main>',()=>contentNeighbors(snapshot.detailNeighbors[path])+'</main>');
-  html=renderPolicyVersion(html,snapshot.policyVersion||'local-development-v1');
+  html=renderPolicyVersion(html,snapshot.policyVersion||'2026-11-02');
   if (!html.includes('/assets/css/phase6.css')) html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css"></head>');
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g,'');
   const context={path:canonicalPath,title,description,item,seo:snapshot.seo,catalog:seoCatalog,origin:snapshot.origin,publicImages,published:true,unavailable:canonicalPath==='/museum.html'&&!item,modifiedAt:snapshot.indexModifiedAt?.[canonicalPath]};
@@ -73,7 +73,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     return name === 'SITE_HEADER' && (path === '/explore.html' || path === '/museum.html' || path.startsWith('/places/')) ? template.replace('href="/explore.html"','class="active" aria-current="page" href="/explore.html"') : template;
   });
   html = renderSeoHead(html,context,meta);
-  html=renderPolicyVersion(html,snapshot.policyVersion||'local-development-v1',snapshot.general?.values);
+  html=renderPolicyVersion(html,snapshot.policyVersion||'2026-11-02',snapshot.general?.values);
   html=html.replace(/(<span class="brand-copy"><strong>)[\s\S]*?(<\/strong>)/g,(_,a,b)=>a+escapeHtml(meta.siteName)+b);
   html=html.replace(/(<span data-site-copyright>)[\s\S]*?(<\/span>)/,(_,a,b)=>a+'© 2026 '+escapeHtml(meta.siteName)+'・新竹城市生活指南'+b);
   if(snapshot.general?.values.contactEmail)html=html.replace('<a href="/site-map.html">',()=>'<a data-site-contact href="mailto:'+escapeHtml(snapshot.general.values.contactEmail)+'">聯絡我們</a><a href="/site-map.html">');
@@ -92,7 +92,7 @@ if (!existing) {
   for (const kind of ['explore','food']) {
     let html = await readFile(join(source,'pages',kind+'.html'),'utf8');
     const items = snapshot.items.filter(item => kind === 'explore' || item.category === '美食');
-    html = html.replace(/(<div class="place-grid" id="place-grid">)[\s\S]*?(<\/div>)/, (_,open,close) => open + (items.slice(0,12).map(card).join('') || '<p class="empty-results">目前沒有已發布的地點。</p>') + close);
+    html = html.replace(/(<div class="place-grid" id="place-grid">)[\s\S]*?(<\/div>)/, (_,open,close) => open + (items.slice(0,12).map(card).join('') || '<p class="empty-results">目前沒有地點資訊。</p>') + close);
     html = html.replace(/data-category="([^"]+)"([\s\S]*?)<span>\d+<\/span>/g, (_,category,rest) => `data-category="${category}"${rest}<span>${String(snapshot.items.filter(item=>category==='all'||item.category===category).length).padStart(2,'0')}</span>`);
     await page(`/${kind}.html`,html,kind==='explore'?'城市散策｜映畫竹塹':'新竹美食｜映畫竹塹',kind==='explore'?'探索新竹景點、文化場館與在地店家。':'探索新竹美食與巷弄店家。');
   }
@@ -108,7 +108,7 @@ if (!existing) {
     await page(url(item),html,item.seoTitle || `${item.name}｜映畫竹塹`,item.seoDescription || item.summary,item);
   }
   if (!snapshot.items.some(item=>item.isMuseum)) {
-    await page('/museum.html',detailTemplate.replace(/<section class="section-pad detail-page">[\s\S]*?<\/section>/,'<section class="section-pad detail-page"><h1>博物館資訊更新中</h1><p>目前沒有已發布的博物館介紹。</p><a href="/explore.html">回到城市散策</a></section>'),'博物館資訊更新中｜映畫竹塹','博物館介紹目前更新中。');
+    await page('/museum.html',detailTemplate.replace(/<section class="section-pad detail-page">[\s\S]*?<\/section>/,'<section class="section-pad detail-page"><h1>博物館資訊更新中</h1><p>博物館介紹即將更新。</p><a href="/explore.html">回到城市散策</a></section>'),'博物館資訊更新中｜映畫竹塹','博物館介紹目前更新中。');
   }
   let home = await readFile(join(source,'pages','index.html'),'utf8');
   const museum = snapshot.home ? snapshot.home.museum : snapshot.items.find(item=>item.isMuseum);
@@ -119,7 +119,7 @@ if (!existing) {
       .replace(/<div class="museum-photo"[^>]*>/,()=>`<div class="museum-photo" data-image-url="${e(featured.image)}" role="img" aria-label="${e(featured.imageAlt || featured.name)}" style="background-image:url(&quot;${e(featured.image)}&quot;)">`)
       .replace(/(<div class="museum-feature-label">)[\s\S]*?(<\/div>)/,(_,open,close)=>open+`<span>${e(featured.category)}</span><strong>${e(featured.name)}</strong>`+close);
   } else {
-    home = home.replace(/<a class="museum-feature image-reveal"[\s\S]*?<\/a>/,'<div class="museum-feature"><p>目前沒有已發布的精選景點。</p></div>');
+    home = home.replace(/<a class="museum-feature image-reveal"[\s\S]*?<\/a>/,'<div class="museum-feature"><p>精選景點即將更新。</p></div>');
   }
   if (!museum) home = home.replace(/<div class="intro-copy reveal">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/,'<div class="intro-copy reveal"><p>博物館參觀資訊更新中，請稍後再訪。</p></div>');
   if (filmEnabled) {
@@ -134,7 +134,7 @@ if (!existing) {
     // [S：串接總覽 B7／E6/L6；E-29] 與館舍詳情共用同一快照和週表，不另存開放時間。
     const visit = museum
       ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${e(museum.name)}</h2><p>${[museum.address,...openingHoursLines(museum.openingHours,museum.hours)].filter(Boolean).map(text=>e(text).replaceAll('\n','<br>')).join('<br>')}</p></div><a class="text-link" href="/museum.html">查看館舍與交通資訊 <span>↗</span></a></div>`
-      : '<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>博物館參觀資訊</h2><p>目前沒有已發布的博物館介紹。</p></div><a class="text-link" href="/museum.html">查看館舍介紹 <span>↗</span></a></div>';
+      : '<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>博物館參觀資訊</h2><p>博物館介紹即將更新。</p></div><a class="text-link" href="/museum.html">查看館舍介紹 <span>↗</span></a></div>';
     cinema=cinema.replace(/<!-- MUSEUM_VISIT_START -->[\s\S]*?<!-- MUSEUM_VISIT_END -->/,()=>visit);
     await page('/cinema.html',cinema,'本週映演｜映畫竹塹','查看影像博物館本週放映日期、時間、電影介紹與海報。');
     // [U-05] 採原型電影專用頁殼，保留「本週映演」導覽，不沿用城市散策頁。
@@ -161,7 +161,7 @@ if (!existing) {
   await page('/index.html',home,'在城市裡，遇見一場好電影｜映畫竹塹','從新竹市影像博物館出發，探索本週電影、城市散策、在地美食、店家優惠、活動消息與新竹旅行提案。',featured);
   const indexTemplate=await readFile(join(source,'pages/site-map.html'),'utf8');
   await page('/site-map.html',indexTemplate.replace('<div id="public-content-index"></div>',()=>`<div id="public-content-index">${renderPublicContentIndex(snapshot)}</div>`),
-    '網站導覽｜映畫竹塹','依分類瀏覽或按名稱尋找映畫竹塹已發布的景點、電影、活動消息與店家優惠。',undefined,'/site-map.html',false);
+    '網站導覽｜映畫竹塹','依分類瀏覽或按名稱尋找映畫竹塹的景點、電影、活動消息與店家優惠。',undefined,'/site-map.html',false);
   // [E-28] 新增的非內容固定公開頁也進同一 generation；保護頁使用安全靜態 shell。
   const managedPaths=new Set(['/index.html','/explore.html','/food.html','/museum.html','/cinema.html','/events.html','/activities.html','/city-news.html','/offers.html','/routes.html','/site-map.html']);
   for(const entry of seoCatalog.filter(entry=>!entry.protected&&!entry.template&&!managedPaths.has(entry.path))){

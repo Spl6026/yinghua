@@ -10,7 +10,7 @@ export function newsCards(items) {
   }).join('') || '<p class="empty-results">目前沒有符合分類的消息。</p>';
 }
 export function newsFeatured(item) {
-  if (!item) return '<p class="empty-results">目前沒有已發布的推薦消息。</p>';
+  if (!item) return '<p class="empty-results">目前沒有活動與消息。</p>';
   return `<div class="news-feature">${contentImage(item,'news-feature-photo')}<div><span class="news-tag">推薦・${e(newsLabel(item.type))}</span><h3>${e(item.title)}</h3><p>${e(item.summary)}</p><a class="text-link" href="${e(item.url)}" target="_blank" rel="noopener noreferrer" aria-label="閱讀${e(item.title)}（另開新分頁）">閱讀${item.type==='event'?'活動':'消息'}資訊 <span>→</span></a></div></div>`;
 }
 export function newsDetail(item) {
@@ -23,5 +23,5 @@ export function newsListTitle(path,type,page=1){
   return (path==='/events.html'?(type?newsLabel(type):'新竹現場'):path==='/activities.html'?'新竹活動':'新竹消息')+(page>1?'・第 '+page+' 頁':'')+'｜映畫竹塹';
 }
 export function newsListDescription(path,type,page=1){
-  return `${newsListTitle(path,type,page)}，瀏覽已發布的活動與城市消息。`;
+  return `${newsListTitle(path,type,page)}，瀏覽新竹的活動與城市消息。`;
 }

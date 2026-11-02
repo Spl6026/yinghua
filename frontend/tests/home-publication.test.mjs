@@ -17,7 +17,7 @@ test('首頁沿用消息三列樣式，正確區分台北跨年發布／活動�
   assert.match(html,/<b>01<\/b><small>JAN \/ FRI/);
   assert.match(html,/城市消息/);assert.doesNotMatch(html,/<script>/);
   assert.match(homeNewsRows([{...article,eventStartAt:'2027-02-01T09:00:00+08:00'}]),/活動日期 2027\/02\/01/);
-  assert.match(homeNewsRows([]),/目前沒有已發布的活動與消息/);
+  assert.match(homeNewsRows([]),/目前沒有活動與消息/);
 });
 test('首頁 HTML 僅採用同一首頁投影且保留原型區塊',async()=>{
   const directory=await mkdtemp(join(tmpdir(),'spl-home-'));

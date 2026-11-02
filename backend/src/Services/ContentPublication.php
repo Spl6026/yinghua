@@ -106,7 +106,7 @@ class ContentPublication
     {
         $now = $this->clock?->now() ?? time();
         $window = \Yinghua\DTO\ScreeningWindow::current($now);
-        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),'policyVersion' => $this->config->string('TERMS_VERSION', 'local-development-v1'),'indexModifiedAt' => [],
+        $data = ['origin' => $this->config->origin(),'rendererVersion' => $this->renderer->version(),'policyVersion' => $this->config->string('TERMS_VERSION', '2026-11-02'),'indexModifiedAt' => [],
             'items' => array_map(static fn(\Yinghua\DTO\Attraction $item): array => $item->publicArray(), $this->attractions->published($now)),
             'aliases' => $this->attractions->aliases($now)];
         // [E-25] 景點與電影共享 generation；本週邊界使無編輯的換週也會發布。
@@ -146,7 +146,7 @@ class ContentPublication
         if ($this->general !== null) {
             $general = $this->general->read();
             $data['general'] = $general->toArray();
-            $data['policyVersion'] = $general->values->consentVersion($this->config->string('TERMS_VERSION', 'local-development-v1'));
+            $data['policyVersion'] = $general->values->consentVersion($this->config->string('TERMS_VERSION', '2026-11-02'));
         }
         $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
 

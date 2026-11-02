@@ -7,7 +7,7 @@ if(typeof document!=='undefined') {
     const query=normalizedIndexQuery(input.value);let count=0;
     for(const row of rows){row.hidden=!normalizedIndexQuery(row.textContent).includes(query);if(!row.hidden)count++;}
     for(const group of document.querySelectorAll('.public-index-group'))group.hidden=Boolean(query)&&![...group.querySelectorAll('[data-index-item]')].some(row=>!row.hidden);
-    message.textContent=query?`找到 ${count} 項公開內容。`:`共 ${count} 項公開內容，可依分類瀏覽或按名稱尋找。`;
+    message.textContent=query?`找到 ${count} 項內容。`:`共 ${count} 項內容，可依分類瀏覽或按名稱尋找。`;
     const url=new URL(location.href);if(query)url.searchParams.set('q',input.value.trim());else url.searchParams.delete('q');
     history.replaceState(null,'',url.pathname+url.search);
   }

@@ -95,7 +95,7 @@ export async function initializePlanner(){
  unsavedChanges(()=>state.dirty);
  const resume=async()=>{if(locked())return;try{const member=await readMember();if(!member){handleSessionExpiry('member');return;}if(state.member&&member.id!==state.member.id){state.reset();render();status(message,'登入身分已變更，原私人草稿已清除；請重新載入。',true);return;}if(state.dirty){status(message,'草稿保留；其他分頁可能已更新，儲存時會檢查版本。');return;}await act(()=>state.load(),'已重新確認帳號中的行程。',{focusResult:false});}catch(error){fail(error,{focusResult:false});}};
  window.addEventListener('pageshow',event=>{if(event.persisted)void resume();});window.addEventListener('focus',()=>{void resume();});document.addEventListener('visibilitychange',()=>{if(!document.hidden)void resume();});
- render();await act(()=>state.load(),'已載入本人行程。',{focusResult:false});await routePreview();await placeIntent();
+ render();await act(()=>state.load(),'已載入你的行程。',{focusResult:false});await routePreview();await placeIntent();
 }
 
 await initializePlanner();
