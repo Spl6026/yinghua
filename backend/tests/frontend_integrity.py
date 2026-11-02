@@ -78,9 +78,10 @@ if args.base_url:
     if origin.scheme != 'http' or origin.hostname not in ('localhost', '127.0.0.1') or origin.path not in ('', '/'):
         parser.error('--base-url must be a local HTTP origin')
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-    legacy_details = {'/' + name + '-detail.html' for name in ('place', 'film', 'news', 'offer')}
+    # 站內的找不到頁面本身就以 404 回應，其他固定頁都應該是 200。
+    not_found_pages = {'/404.html'}
     for path in sorted(set(pages) | assets):
-        expected = 404 if path in legacy_details else 200
+        expected = 404 if path in not_found_pages else 200
         try:
             with opener.open(args.base_url.rstrip('/') + path, timeout=15) as response:
                 status = response.status
