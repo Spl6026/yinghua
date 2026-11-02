@@ -1,6 +1,6 @@
 import {contentAdminApi} from '../api/content-admin-api.js';
 import {hasPermission,handleAdminError,adminDestination} from '../core/session.js';
-import {status,formErrors,submitForm,unsavedChanges} from '../core/ui.js';
+import {status,formErrors,submitForm,unsavedChanges, flash } from '../core/ui.js';
 import {confirmAction} from '../components/dialog.js';
 import {initializeContentBodyEditor} from '../components/content-body-editor.js';
 
@@ -67,7 +67,7 @@ export async function initializeContentForm(identity,module,page) {
       setBusy(true);
       try{
         const result=await service.save(id,body);id=result.record.id;version=result.record.version;dirty=false;completed=true;
-        if(result.publication.status==='succeeded'&&hasPermission(identity,module,'view'))location.assign('/admin/'+module+'.html');
+        if(result.publication.status==='succeeded'&&hasPermission(identity,module,'view')){flash((module==='offers'?'優惠':'消息')+'已儲存，公開頁面已同步。');location.assign('/admin/'+module+'.html');}
         else{status(message,result.publication.message,result.publication.status!=='succeeded');document.querySelector('#content-another').hidden=!hasPermission(identity,module,'create');message.focus();}
       }finally{setBusy(false);}
     },{canSubmit:available,statusNode:message,onError:error=>handleAdminError(error,message)});

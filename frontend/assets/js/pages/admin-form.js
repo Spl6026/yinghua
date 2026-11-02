@@ -1,5 +1,5 @@
 import { adminApi } from '../api/admin-api.js';
-import { element, formErrors, submitForm, status, unsavedChanges } from '../core/ui.js';
+import { element, formErrors, submitForm, status, unsavedChanges, flash } from '../core/ui.js';
 import { handleAdminError, hasPermission, adminDestination } from '../core/session.js';
 import { confirmAction } from '../components/dialog.js';
 
@@ -76,7 +76,7 @@ export async function initializeAdminForm(identity, page) {
         else { body.version = version; await adminApi.update(id, body); }
         dirty = false;
         completed = true;
-        if (hasPermission(identity, 'admins', 'view')) location.assign('/admin/admins.html');
+        if (hasPermission(identity, 'admins', 'view')) { flash('管理員帳號已儲存。'); location.assign('/admin/admins.html'); }
         else {
           status(message, '管理員已儲存。');
           document.querySelector('#admin-another').hidden = !hasPermission(identity, 'admins', 'create');

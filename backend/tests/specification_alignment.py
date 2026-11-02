@@ -84,7 +84,7 @@ def main():
         check('new administrator can use granted business rights immediately', target.call('GET', '/api/v1/admin/attractions')[0] == 200)
         version = data['admin']['version']
         check('duplicate account still rejected', root.call('PUT', '/api/v1/admin/admins/' + target_id, dict(edit_admin, account=admins_account(root, admins[1]), version=version))[0] == 409)
-        check('reserved admin cannot be assigned to ordinary user', root.call('PUT', '/api/v1/admin/admins/' + target_id, dict(edit_admin, account='admin', version=version))[0] == 403)
+        check('reserved admin cannot be assigned to ordinary user (field error)', root.call('PUT', '/api/v1/admin/admins/' + target_id, dict(edit_admin, account='admin', version=version))[0] == 422)
         check('root update remains rejected', root.call('PUT', '/api/v1/admin/admins/' + root_id, dict(edit_admin, account='admin', version=1))[0] == 403)
         check('root rename blocked at database layer', fixture("UPDATE admin_users SET account='changed-root' WHERE id='" + root_id + "'", expect=False) != 0)
         check('root identity remains intact', root.call('GET', root.auth + 'me')[1]['admin']['account'] == 'admin')

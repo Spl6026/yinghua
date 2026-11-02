@@ -34,7 +34,7 @@ def inventory():
                   for method in value if method in methods]
     pages = list((ROOT / 'frontend/pages').rglob('*.html'))
     migrations = list((ROOT / 'backend/database/migrations').glob('*.sql'))
-    assert len(operations) == 115 and len(pages) == 68 and len(migrations) == 20
+    assert len(operations) == 115 and len(pages) == 69 and len(migrations) == 20
     fonts = json.loads((ROOT / 'docs/FONT-ASSETS.json').read_text(encoding='utf8'))
     for row in fonts['files']:
         data = (ROOT / row['path']).read_bytes()

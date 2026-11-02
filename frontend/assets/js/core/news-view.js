@@ -20,7 +20,7 @@ export function newsDetail(item) {
 }
 // [S：E9/E30；E-29] 發布 HTML 與瀏覽器分類／分頁共用主題文字。
 export function newsListTitle(path,type,page=1){
-  return (path==='/events.html'?(type?newsLabel(type):'新竹現場'):path==='/activities.html'?'新竹活動':'新竹城市消息')+(page>1?'・第 '+page+' 頁':'')+'｜映畫竹塹';
+  return (path==='/events.html'?(type?newsLabel(type):'新竹現場'):path==='/activities.html'?'新竹活動':'新竹消息')+(page>1?'・第 '+page+' 頁':'')+'｜映畫竹塹';
 }
 export function newsListDescription(path,type,page=1){
   return `${newsListTitle(path,type,page)}，瀏覽已發布的活動與城市消息。`;

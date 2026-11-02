@@ -3254,7 +3254,7 @@
             }
           }
         },
-        "description": "所需權限：admins.create。固定 root 身分由伺服器決定；一般管理員不得授出超過自身的權限。",
+        "description": "所需權限：admins.create。固定 root 身分由伺服器決定；一般管理員不得授出超過自身的權限。 U-24：保留帳號 admin 回 422 account 欄位錯誤。",
         "requestBody": {
           "required": true,
           "content": {
@@ -3604,7 +3604,7 @@
             }
           }
         },
-        "description": "所需權限：admins.edit。固定 root 身分由伺服器決定；一般管理員不得授出超過自身的權限。",
+        "description": "所需權限：admins.edit。固定 root 身分由伺服器決定；一般管理員不得授出超過自身的權限。 U-24：改用保留帳號 admin 回 422 account 欄位錯誤。",
         "parameters": [
           {
             "name": "id",
@@ -3783,7 +3783,7 @@
             }
           }
         },
-        "description": "所需權限：admins.delete。固定 root 身分由伺服器決定；一般管理員不得授出超過自身的權限。",
+        "description": "所需權限：admins.delete。固定 root 身分由伺服器決定；一般管理員不得授出超過自身的權限。 U-24：不可刪除目前登入中的本人帳號（403）。",
         "parameters": [
           {
             "name": "id",

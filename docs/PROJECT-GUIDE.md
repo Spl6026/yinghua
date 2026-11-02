@@ -1,5 +1,19 @@
 # 全站架構與檔案功能導讀
 
+2026-11-02 U-24逐列重驗與介面一致性：依原始Excel 30列以真瀏覽器重驗，並以客戶原型對照frontend操作與外觀，修正欄位高度／字級忽大忽小、手機會員頁首擁擠、驗證碼過小、設定兩區連續儲存誤報衝突、保留帳號籠統403、可刪除本人帳號、未發布網址回JSON等差項。112 PHP＋3爬蟲GET＝115 HTTP契約不變；固定頁68→69（新增 `frontend/pages/404.html`）；34表338欄／20 migration、env、依賴不變。280 JS、124 PHP／412斷言、PHPStan通過。逐列結果與保留事項見[逐列重驗與介面檢查](EXCEL-UI-REVERIFICATION-20261102.md)；來源見DESIGN-TRACEABILITY U-24／E-43。
+
+## 本輪新增／變更檔案（U-24／E-43）
+
+- frontend/assets/css/ui-consistency.css：最後載入的一致性樣式；後台基準字級、單行欄位與同列按鈕48px、Serif區塊標題、檔案選擇、營業時間兩欄、路線空狀態、驗證碼尺寸、手機會員選單、行程空狀態。由build.mjs注入所有固定頁、publish.mjs注入發布頁。
+- frontend/pages/404.html：站內「找不到這個頁面」；Nginx `error_page 404 /404.html`（含景點／電影／消息／優惠網址解析及列表頁），`/api/` 不攔截仍回JSON；seo-resolver將其列為保護頁（noindex、不入sitemap）。
+- docker/nginx/default.conf：404頁、四個網址解析 `fastcgi_intercept_errors`、CSP `script-src 'self'`。Nginx設定於容器啟動時由模板產生，變更後需重啟web。
+- backend/src/Policies/PermissionPolicy.php `deletableTarget`、Services/AdminManagement.php：拒絕刪除本人帳號；保留帳號 `admin` 回422 account欄位錯誤。OpenAPI描述同步。
+- frontend/assets/js/core/ui.js `flash／consumeFlash`：新增／編輯成功導回列表後顯示一次性訊息；admin.js另於瀏覽器原生驗證攔截時清除過時錯誤。
+- frontend/assets/js/core/session.js：手機漢堡選單附加會員收藏／更改密碼／登出。public.js：前後篇縮圖失效改替代圖。auth.js：驗證碼失敗自動換圖、手動換圖清除舊錯誤。
+- general-settings.js／seo-settings.js：兩區儲存後以 `settings-section-saved` 事件互相重讀；保護頁SEO覆寫欄位鎖定。offer-merchants.js：店家欄位錯誤逐欄顯示。
+- 頁面文字：新增／編輯按鈕依原型（新增內容／儲存修改），列表新增按鈕「新增電影」「新增推薦行程」，路線頁按鈕順序，管理員密碼必填標示，網站設定副標與「重新讀取 SEO 設定」。首頁標題改用原型／SEO目錄標題，城市消息列表標題與目錄一致。
+- scripts/validation/delivery.py：固定頁盤點68→69。
+
 2026-11-02資料夾整理：原始69檔與執行環境保留；舊驗收散檔／不同版本Git備份已完整校驗歸檔，掃描映像TAR及可重建快取移除。測試依賴改用`.cache/validation/python`，字彙快照改用`.cache/validation/schemaorg-current-https.jsonld`；安裝清單集中`tools/validation/requirements.txt`，舊`backend/tests/requirements.txt`為相容入口。分類、恢復方式與可刪界線見[資料夾指南](PROJECT-STRUCTURE.md)；歷史文件原artifacts路徑對應歸檔內原路徑，不代表證據被刪除。
 
 2026-11-02最新：依原始Excel七張工作表完成[30列功能核實](EXCEL-FUNCTIONAL-VERIFICATION-20261102.md)，150個不同API／DB案例、四區塊空狀態與Browser操作；修復五類後台刪除後焦點、首頁分區錯誤／重試及首頁消息新分頁一致性。278 JS、122 PHP／409斷言與分層分析通過；正式平台及完整AA基線界線見報告。使用者明確核准後已套用本機8080，不修改主庫業務資料。

@@ -53,6 +53,10 @@ for (const source of await pages(join(root, 'pages'))) {
   if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
   }
+  // [U-24／E-43] 一致性樣式最後載入，統一各階段樣式表遺留的字級與欄位高度差異。
+  if (!html.includes('/assets/css/ui-consistency.css')) {
+    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/ui-consistency.css">\n</head>');
+  }
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
   const selectedNavigation = Object.entries(navigationSections).find(([, paths]) => paths.some(path => path.endsWith('/') ? route.startsWith(path) : route === path))?.[0];
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {

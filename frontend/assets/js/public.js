@@ -7,6 +7,15 @@ import { initializeDetails } from './pages/public-details.js';
 import { mountMemberActions } from './core/member-actions.js';
 
 void memberNavigation();
+// [S：G29；U-24] 上一篇／下一篇縮圖為靜態發布 HTML，圖片失效時與主圖同樣改用替代圖，不留破圖。
+const placeholder = '/assets/image-placeholder.svg';
+function useImageFallback(image) {
+  if (!image.closest?.('.article-neighbor') || image.dataset.fallback) return;
+  image.dataset.fallback = 'true';
+  image.src = placeholder;
+}
+document.addEventListener('error', event => { if (event.target instanceof HTMLImageElement) useImageFallback(event.target); }, true);
+document.querySelectorAll('.article-neighbor img').forEach(image => { if (image.complete && !image.naturalWidth) useImageFallback(image); });
 let observer;
 function reveal() {
   observer?.disconnect();

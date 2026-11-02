@@ -47,15 +47,16 @@ export async function initializeSeoSettings(identity){
     const grid=element('div',{className:'admin-form-grid seo-page-fields'});detail.append(grid);
     const inputs={};
     for(const [field,title,max,type]of overrideFields){
-      const locked=field==='robots'&&page.protected||field==='canonicalPath'&&(target.type!=='page'||target.path.includes('*'));
+      // [U-24] 保護頁為固定靜態 shell，發布不重新套用覆寫；全部欄位鎖定，避免預覽顯示實際不會生效的標題。
+      const locked=Boolean(page.protected)||field==='canonicalPath'&&(target.type!=='page'||target.path.includes('*'));
       const fallback=field==='title'?page.seoTitle||page.title:field==='description'?page.seoDescription||page.description:field==='canonicalPath'?target.path:'';
-      const value=field==='robots'&&page.protected?'noindex,follow':existing[field]??'';
+      const value=page.protected?(field==='robots'?'noindex,follow':''):existing[field]??'';
       const control=seoField(title,`overrides.${index}.${field}`,value,{type,max,disabled:locked,
         choices:field==='robots'?[['','繼承設定'],...robotsChoices]:undefined,placeholder:fallback||'留空繼承',
-        hint:field==='title'?'留空沿用內容 SEO／頁面範本／預設。建議字數不影響保存。':field==='robots'&&page.protected?'此頁固定不索引，覆寫不能解除保護。':''});
+        hint:page.protected?(field==='title'?'登入、會員、搜尋等保護頁使用固定標題與摘要且不索引，不提供頁面覆寫。':''):field==='title'?'留空沿用內容 SEO／頁面範本／預設。建議字數不影響保存。':''});
       inputs[field]=control.input;grid.append(control.wrapper);
     }
-    const clearKeywords=element('input',{type:'checkbox',id:`seo-clear-keywords-${index}`,name:`clear-keywords-${index}`});clearKeywords.checked=existing.keywords==='';
+    const clearKeywords=element('input',{type:'checkbox',id:`seo-clear-keywords-${index}`,name:`clear-keywords-${index}`});clearKeywords.checked=!page.protected&&existing.keywords==='';clearKeywords.disabled=Boolean(page.protected);if(page.protected)clearKeywords.dataset.seoProtected='true';
     const clearLabel=element('label',{for:clearKeywords.id},'清空此頁關鍵字（不繼承）');const clearWrap=element('div',{className:'admin-field full'});clearWrap.append(clearKeywords,clearLabel);grid.append(clearWrap);
     const note=element('p',{className:'helper-text'},target.type==='page'?'逐欄留空可回到全站或模板預設。':'單筆覆寫優先於內容編輯頁的 SEO；清除後才會沿用內容值。');grid.append(note);
     const remove=element('button',{type:'button',className:'button button-outline'},'清除本頁覆寫');
@@ -101,6 +102,8 @@ export async function initializeSeoSettings(identity){
     try{const result=await seoSettingsApi.read();if(request!==generation)return;data=result;dirty=false;render();status(message,`設定版本 ${data.version}。`+(data.publicationReady?'網站標籤已同步。':'設定已保存，網站更新待重試。'));}
     catch(error){data=null;status(message,error.message,true);handleAdminError(error,message);}finally{busy=false;controls();}
   }
+  // [U-24] 一般設定儲存後版本前進；SEO 區無未存修改時自動重讀，有修改則提示重新讀取以免覆蓋共用欄位。
+  document.addEventListener('settings-section-saved',event=>{if(event.detail?.section==='seo')return;if(!dirty&&!busy)void load();else if(dirty)status(message,'一般設定已更新；請重新讀取 SEO 設定後再儲存，以免覆蓋共用的網站名稱與摘要。',true);});
   reload.addEventListener('click',async event=>{if(!busy&&(!dirty||await confirmAction('重新讀取 SEO 設定','這會放棄尚未儲存的修改。',event.currentTarget)))await load();});
   form.addEventListener('input',event=>{if(!writable()||event.target?.hasAttribute('data-seo-read'))return;dirty=true;previews();});
   form.addEventListener('submit',async event=>{
@@ -112,7 +115,7 @@ export async function initializeSeoSettings(identity){
     const overrides=selected.map(({row,fields})=>({target:row.target,...fields,keywords:row.clearKeywords.checked?'':fields.keywords}));
     try{
       const result=await seoSettingsApi.save({version:data.version,defaults,overrides});data={...data,...result,pages:data.pages,targets:data.targets};dirty=false;render();
-      status(message,result.publicationReady?'已儲存，網站標籤已更新。':'已儲存，網站更新待重試；請稍後重新讀取狀態。');message.focus();
+      status(message,result.publicationReady?'已儲存，網站標籤已更新。':'已儲存，網站更新待重試；請稍後重新讀取狀態。');message.focus();document.dispatchEvent(new CustomEvent('settings-section-saved',{detail:{section:'seo'}}));
     }catch(error){
       const fields={};for(const [name,value]of Object.entries(error.fieldErrors||{})){const match=name.match(/^overrides\.(\d+)\.(.+)$/);fields[match&&selected[Number(match[1])]?`overrides.${rows.indexOf(selected[Number(match[1])].row)}.${match[2]}`:name]=value;}
       for(const name of Object.keys(fields)){const input=[...form.querySelectorAll('input,select,textarea')].find(node=>node.name===name);const detail=input?.closest('details');if(detail)detail.open=true;}

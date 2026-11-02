@@ -55,8 +55,12 @@ class AdminManagement
     public function create(Account $actor, AdminWriteInput $input, ClientContext $client): AccountSummary
     {
         $template = $this->roles->forAssignment($input->roleId);
-        if ($this->accounts->byLogin(IdentityKind::Admin, $input->account)?->isRoot || $input->password === null) {
+        if ($input->password === null) {
             throw ApplicationError::forbidden();
+        }
+        // [S：功能規格 G26 admin 保留字；U-24] 以欄位錯誤說明保留帳號，不再只回籠統的權限不足。
+        if ($this->accounts->byLogin(IdentityKind::Admin, $input->account)?->isRoot) {
+            throw ApplicationError::invalid('account', '此帳號為系統保留帳號，請改用其他帳號。');
         }
         $hash = $this->passwords->hash($input->password);
         try {
@@ -85,7 +89,7 @@ class AdminManagement
                 $target = $this->target($id, true);
                 $this->policy->writableTarget($target);
                 if ($this->accounts->byLogin(IdentityKind::Admin, $input->account)?->isRoot) {
-                    throw ApplicationError::forbidden();
+                    throw ApplicationError::invalid('account', '此帳號為系統保留帳號，請改用其他帳號。');
                 }
                 if ($input->version !== $target->version) {
                     throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
@@ -114,7 +118,7 @@ class AdminManagement
         $this->transactions->run(function () use ($actor, $id, $version, $client): void {
             $fresh = $this->authorization->require($actor, 'admins', 'delete', true);
             $target = $this->target($id, true);
-            $this->policy->writableTarget($target);
+            $this->policy->deletableTarget($fresh, $target);
             if ($version !== null && $version !== $target->version) {
                 throw new ApplicationError('CONFLICT', '資料已變更，請重新載入。');
             }

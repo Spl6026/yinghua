@@ -17,13 +17,13 @@ const documentValue=()=>({version:1,seoVersion:2,siteName:'映畫竹塹',descrip
 async function fixture({edit=true,preview=false,readFailure=false}={}){
   const form=new Node('form'),message=new Node(),reload=new Node('button'),inputs=new Map();
   const state={reads:0,writes:[],error:null,confirm:true,save:async body=>({...body,version:2,seoVersion:3,publicationReady:true})};
-  const sandbox={Object,Map,document:{querySelector:key=>({'#general-settings-form':form,'#general-status':message,'#reload-general':reload}[key])},
+  const sandbox={CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},Object,Map,document:{listeners:{},addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);},dispatchEvent(event){(this.listeners[event.type]||[]).forEach(fn=>fn(event));return true;},querySelector:key=>({'#general-settings-form':form,'#general-status':message,'#reload-general':reload}[key])},
     api:async(_path,options)=>{if(options.method==='PUT'){state.writes.push(options.body);return state.save(options.body);}state.reads++;if(readFailure&&state.reads===1)throw new Error('read failed');return documentValue();},
     element:(tag,attrs,text)=>{const node=new Node(tag);Object.assign(node,attrs);if('disabled' in attrs)node.disabled=true;node.textContent=text;return node;},
     seoPanel:()=>({panel:new Node(),grid:new Node()}),seoField:(_label,name,value,options)=>{const input=new Node('input');input.value=value;input.disabled=options.disabled;inputs.set(name,input);return {wrapper:new Node(),input};},
     hasPermission:()=>edit,status:(node,text,error)=>{node.textContent=text;node.error=error;},handleAdminError:error=>{state.error=error;},formErrors:()=>{},unsavedChanges:fn=>{state.dirty=fn;},confirmAction:async()=>state.confirm};
   vm.createContext(sandbox);vm.runInContext(source,sandbox);await sandbox.initializeGeneralSettings({preview:{active:preview}});
-  return {state,form,message,reload,inputs,submit:()=>form.emit('submit')};
+  return {state,form,message,reload,inputs,document:sandbox.document,submit:()=>form.emit('submit')};
 }
 test('可編輯表單的初始儲存按鈕可用，唯讀及模擬不提供寫入',async()=>{
   const edit=await fixture();assert.equal(edit.form.querySelector().disabled,false);
@@ -39,4 +39,12 @@ test('409保留草稿及版本；取消重新讀取不丟失內容',async()=>{
 });
 test('讀取失敗可重新載入；保存成功但發布未完成不冒稱未保存',async()=>{
   const f=await fixture({readFailure:true});assert.equal(f.reload.disabled,false);await f.reload.emit('click');assert.equal(f.state.reads,2);f.state.save=async body=>({...body,version:2,seoVersion:3,publicationReady:false});f.form.emit('input');await f.submit();assert.equal(f.state.dirty(),false);assert.equal(f.message.error,true);assert.match(f.message.textContent,/已儲存/);
+});
+
+test('SEO區儲存後，一般區無未存修改時自動重讀最新版本；有修改則保留不覆蓋',async()=>{
+  const f=await fixture();const reads=f.state.reads;
+  f.document.dispatchEvent({type:'settings-section-saved',detail:{section:'seo'}});await new Promise(done=>setTimeout(done,0));assert.equal(f.state.reads,reads+1);
+  f.inputs.get('general.termsText').value='未儲存';f.form.emit('input');
+  f.document.dispatchEvent({type:'settings-section-saved',detail:{section:'seo'}});await new Promise(done=>setTimeout(done,0));assert.equal(f.state.reads,reads+1);assert.equal(f.inputs.get('general.termsText').value,'未儲存');
+  const own=[];f.document.addEventListener('settings-section-saved',event=>own.push(event.detail.section));await f.submit();assert.deepEqual(own,['general']);
 });

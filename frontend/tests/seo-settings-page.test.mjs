@@ -26,7 +26,7 @@ function deferred(){let resolve;const promise=new Promise(done=>resolve=done);re
 async function fixture(edit=true,preview=false){
   const form=new Node('form'),message=new Node(),reload=new Node('button');
   const state={reads:0,writes:[],confirm:true,read:async()=>doc(),save:async input=>({...doc(),...input,version:input.version+1}),errors:null};
-  const sandbox={Object,Array,URLSearchParams,resolveSeo,location:{origin:'http://localhost:8081'},document:{querySelector:selector=>({'#seo-settings-form':form,'#seo-status':message,'#reload-seo':reload}[selector])},
+  const sandbox={CustomEvent:class{constructor(type,init){this.type=type;this.detail=init?.detail;}},Object,Array,URLSearchParams,resolveSeo,location:{origin:'http://localhost:8081'},document:{listeners:{},addEventListener(type,fn){(this.listeners[type]??=[]).push(fn);},dispatchEvent(event){(this.listeners[event.type]||[]).forEach(fn=>fn(event));return true;},querySelector:selector=>({'#seo-settings-form':form,'#seo-status':message,'#reload-seo':reload}[selector])},
     element:(tag,attrs={},text)=>{const node=new Node(tag);for(const [key,value]of Object.entries(attrs))node.setAttribute(key,value);node.textContent=text;return node;},
     status:(node,text,error)=>{node.textContent=text;node.error=error;},formErrors:(_form,error)=>{state.errors=error.fieldErrors;state.errorFieldsEnabled=Object.keys(error.fieldErrors).every(name=>!form.all().find(node=>node.name===name)?.disabled);return false;},
     hasPermission:(_identity,_module,action)=>action!=='edit'||edit,handleAdminError(){},unsavedChanges:callback=>state.dirty=callback,

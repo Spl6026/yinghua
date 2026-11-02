@@ -61,4 +61,18 @@ class PermissionPolicyTest extends TestCase
         $this->expectException(ApplicationError::class);
         AdminWriteInput::fromArray(['isRoot' => true], true);
     }
+
+    public function testAdministratorCannotDeleteOwnAccount(): void
+    {
+        $this->expectException(ApplicationError::class);
+        $this->expectExceptionMessage('不能刪除目前登入中的管理員帳號。');
+        $editor = $this->account('editor-id');
+        (new PermissionPolicy())->deletableTarget($editor, $editor);
+    }
+
+    public function testAdministratorCanDeleteAnotherOrdinaryAdministrator(): void
+    {
+        (new PermissionPolicy())->deletableTarget($this->account('one'), $this->account('two'));
+        $this->addToAssertionCount(1);
+    }
 }
