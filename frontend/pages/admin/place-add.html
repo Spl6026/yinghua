@@ -21,15 +21,15 @@
 <form id="place-form" method="post">
 <div class="admin-form-grid">
 <!-- [S：功能規格 E20] 原型既有景點試填；讀取 DB，不使用 localStorage。 -->
-<div id="place-samples" class="admin-field full"><label for="demo-place-select">選擇本站既有範例景點（選填）</label><div class="url-import"><select id="demo-place-select" aria-describedby="sample-help" disabled><option value="">請選擇範例</option></select><button type="button" id="apply-place-sample" class="button button-outline" data-write disabled>帶入範例 ↗</button><button type="button" id="load-place-samples" class="button button-outline" data-write disabled>重新載入範例</button></div><p id="sample-help" class="helper-text">可用原始範例目前已發布的基本資料試填；帶入後不會自動儲存，也不複製圖片或發布設定。</p><p class="form-status" role="status" tabindex="-1"></p></div>
+<div id="place-samples" class="admin-field full"><label for="demo-place-select">從現有景點帶入資料（選填）</label><div class="url-import"><select id="demo-place-select" aria-describedby="sample-help" disabled><option value="">請選擇景點</option></select><button type="button" id="apply-place-sample" class="button button-outline" data-write disabled>帶入資料 ↗</button><button type="button" id="load-place-samples" class="button button-outline" data-write disabled>重新載入清單</button></div><p id="sample-help" class="helper-text">可帶入現有景點的基本資料作為起點；帶入後不會自動儲存，也不會複製圖片或發布設定。</p><p class="form-status" role="status" tabindex="-1"></p></div>
 
 <div id="map-url-field" class="admin-field full"><label for="google-short-url">Google 地圖短網址</label>
 <div class="url-import"><input id="google-short-url" name="mapLookupUrl" data-field-name="mapLookupUrl" type="url" placeholder="貼上 Google Maps 網址" maxlength="2000"><button type="button" class="button button-outline" id="parse-place-url" data-write>解析地圖資料 ↗</button></div>
-<p class="helper-text">由伺服器安全解析，只提供候選資料；可直接人工輸入。Google Maps 候選資料須核實使用及保存範圍，不會自動儲存。</p>
+<p class="helper-text">貼上 Google 地圖網址後可帶入名稱、地址與座標等資料，也可直接手動填寫；帶入後請核對內容再儲存，不會自動儲存。</p>
 <p id="map-status" class="form-status" role="status" tabindex="-1"></p><div id="map-candidates" class="map-candidates"></div>
 <div id="google-place-link" class="google-place-link" data-field-name="googlePlaceId" role="group" aria-label="Google 地點關聯" tabindex="-1" hidden></div></div>
 <div class="admin-field"><label for="place-name">景點名稱 *</label><input id="place-name" name="name" type="text" required maxlength="120"></div>
-<div class="admin-field"><label for="place-slug">網址識別（slug，留空自動產生）</label><input id="place-slug" name="slug" type="text" maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="例：hsinchu-park"></div>
+<div class="admin-field"><label for="place-slug">網址識別（英數字，留空自動產生）</label><input id="place-slug" name="slug" type="text" maxlength="120" pattern="[a-z0-9]+(-[a-z0-9]+)*" placeholder="例：hsinchu-park"></div>
 <div class="admin-field"><label for="place-category">分類</label><select id="place-category" name="category"><option value="景點">景點</option><option value="美食">美食</option><option value="在地店家">在地店家</option></select></div>
 <div class="admin-field"><label for="place-district">行政區（選填）</label><select id="place-district" name="district"><option value="">尚未確認</option><option value="北區">北區</option><option value="東區">東區</option><option value="香山區">香山區</option></select></div>
 <div class="admin-field"><label for="place-typeLabel">分類補充</label><input id="place-typeLabel" name="typeLabel" type="text" maxlength="80" placeholder="例：文化場館、咖啡・甜點"></div>
@@ -53,7 +53,7 @@
 <div class="admin-field"><label><input type="checkbox" name="isMuseum" id="place-isMuseum">作為博物館介紹（僅一筆）</label></div>
 <div class="admin-field"><label for="place-seoTitle">SEO 標題覆寫</label><input id="place-seoTitle" name="seoTitle" type="text" maxlength="160"></div>
 <div class="admin-field"><label for="place-seoDescription">SEO 摘要覆寫</label><textarea id="place-seoDescription" name="seoDescription" maxlength="500" rows="2"></textarea></div>
-<div class="admin-field full"><h2>景點圖片</h2><p class="helper-text">先上傳，再儲存景點套用；JPEG／PNG／WebP，最多 8 MiB、6000 邊長及 1200 萬像素。圖片選填；上傳圖片須填替代文字，來源與授權說明選填。替代文字、來源與授權的修改會隨景點儲存；留空沿用原圖片說明，不影響其他景點。</p><label for="place-image">選擇圖片</label><input id="place-image" name="image" type="file" accept="image/jpeg,image/png,image/webp"><input type="hidden" name="mediaId"><input type="hidden" name="googlePlaceId"></div>
+<div class="admin-field full"><h2>景點圖片</h2><p class="helper-text">支援 JPEG／PNG／WebP，檔案最大 8 MB，長邊 6000 像素、總像素 1200 萬以內。上傳後需儲存景點才會套用；上傳圖片時請填寫替代文字，來源與授權可選填。</p><label for="place-image">選擇圖片</label><input id="place-image" name="image" type="file" accept="image/jpeg,image/png,image/webp"><input type="hidden" name="mediaId"><input type="hidden" name="googlePlaceId"></div>
 <div class="admin-field"><label for="place-alt">圖片替代文字</label><input id="place-alt" name="imageAlt" type="text" maxlength="255"></div>
 <div class="admin-field"><label for="place-source">圖片來源（選填）</label><input id="place-source" name="imageSource" type="text" maxlength="255" placeholder="例：本案攝影師提供"></div>
 <div class="admin-field"><label for="place-license">圖片授權（選填）</label><input id="place-license" name="imageLicense" type="text" maxlength="255" placeholder="例：已取得網站使用授權"></div>

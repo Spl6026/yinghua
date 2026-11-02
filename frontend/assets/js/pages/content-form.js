@@ -37,7 +37,7 @@ export async function initializeContentForm(identity,module,page) {
   form.elements.coverUrl.addEventListener('input',()=>{form.elements.coverMediaId.value='';preview.dataset.mediaUrl='';photo();});form.elements.coverAlt.addEventListener('input',photo);
   document.querySelector('#reload-content-form').hidden=creating;
   async function load(){
-    if(!id){status(message,'網址缺少內容識別，請返回清單。',true);loaded=false;controls();return;}
+    if(!id){status(message,'找不到要編輯的內容，請返回清單重新開啟。',true);loaded=false;controls();return;}
     const request=++generation;setBusy(true);loaded=false;
     try{
       const {record}=await service.get(id);if(request!==generation)return;

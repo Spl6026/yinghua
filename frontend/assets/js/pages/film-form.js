@@ -46,7 +46,7 @@ export async function initializeFilmForm(identity,page) {
   });
   unsavedChanges(()=>dirty);
   async function load() {
-    if(!id){loaded=false;controls();status(message,'網址缺少電影識別，請返回清單重新開啟。',true);return;}
+    if(!id){loaded=false;controls();status(message,'找不到要編輯的電影，請返回清單重新開啟。',true);return;}
     const request=++generation;busy=true;loaded=false;controls();
     try {
       const {film}=await filmsApi.get(id);if(request!==generation)return;

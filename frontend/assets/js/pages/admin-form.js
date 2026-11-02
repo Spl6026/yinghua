@@ -34,6 +34,8 @@ export async function initializeAdminForm(identity, page) {
   form.addEventListener('input', () => { dirty = true; });
   async function load() {
     if (creating) return;
+    // [U-25] 缺少編號時直接說明，不呈現底層 API 錯誤。
+    if (!id) { status(message, '找不到要編輯的管理員，請返回清單重新開啟。', true); return; }
     const generation = ++loadVersion;
     // [E-14] 只採用最後一次讀取，避免較慢的舊回應覆蓋新版本。
     loading = true;

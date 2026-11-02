@@ -53,7 +53,7 @@ export async function initializeAttractionForm(identity, page) {
   form.addEventListener('input', () => { dirty = true; });
   unsavedChanges(() => dirty);
   async function load() {
-    if (!id) { loaded = false; controls(); status(message, '網址缺少景點識別，請返回清單重新開啟。', true); return; }
+    if (!id) { loaded = false; controls(); status(message, '找不到要編輯的景點，請返回清單重新開啟。', true); return; }
     const request = ++generation;
     busy = true; loaded = false; controls();
     try {

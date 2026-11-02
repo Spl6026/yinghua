@@ -39,7 +39,7 @@ test('取消確認保留原輸入與關聯',async()=>{
 });
 test('載入失敗可重試，空清單不阻擋人工輸入',async()=>{
   const f=setup();f.state.read=async()=>{throw new Error('讀取失敗');};await f.picker.load();assert.equal(f.apply.disabled,true);assert.equal(f.reload.disabled,false);assert.equal(f.message.error,true);
-  f.state.read=async()=>({items:[]});await f.reload.emit('click');assert.match(f.message.textContent,/直接人工/);assert.equal(f.state.requests,2);assert.equal(f.form.elements.name.value,'original-name');
+  f.state.read=async()=>({items:[]});await f.reload.emit('click');assert.match(f.message.textContent,/請直接填寫/);assert.equal(f.state.requests,2);assert.equal(f.form.elements.name.value,'original-name');
 });
 test('唯讀、忙碌或確認途中失去可寫狀態都不套用',async()=>{
   const f=setup();await f.picker.load();f.select.value='sample';f.picker.setDisabled(true);await f.apply.emit('click');assert.equal(f.state.applied,0);

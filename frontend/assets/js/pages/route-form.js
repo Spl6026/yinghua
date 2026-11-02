@@ -57,7 +57,7 @@ export async function initializeRouteForm(identity,page){
   }
   async function load(){
     busy=true;controls();
-    try{if(!id)throw new Error('缺少推薦路線識別，請從清單重新開啟。');const result=await service.get(id),record=result.record;
+    try{if(!id)throw new Error('找不到要編輯的推薦行程，請返回清單重新開啟。');const result=await service.get(id),record=result.record;
       for(const name of ['title','theme','summary','durationMinutes','sortOrder','status'])form.elements.namedItem(name).value=record[name]??'';
       version=record.version;stops=record.stops.map(stop=>({...stop,suggestedTime:stop.suggestedTime||''}));loaded=true;completed=false;dirty=false;formErrors(form,{fieldErrors:{}});renderStops();status(message,'已載入推薦行程。');
     }catch(error){loaded=false;handleAdminError(error,message);}finally{busy=false;controls();}

@@ -6,11 +6,11 @@ import { seoField, seoPanel, robotsChoices } from '../components/seo-fields.js';
 import { resolveSeo } from '../core/seo-resolver.js';
 
 const defaultFields=[['siteName','網站名稱',160],['description','全站預設摘要',500,'textarea'],['titleSuffix','SEO 標題後綴',160],
-  ['robots','全站預設索引政策',40],['keywords','全站預設關鍵字（逗號分隔）',1000],['canonicalOrigin','正式網站網址（Canonical Origin）',255,'url'],
+  ['robots','全站預設索引政策',40],['keywords','全站預設關鍵字（逗號分隔）',1000],['canonicalOrigin','正式網站網址',255,'url'],
   ['ogImageUrl','全站預設分享圖網址（建議 1200 × 630）',2000,'url'],['twitterCard','X／Twitter 分享卡片',40],
-  ['twitterSite','X／Twitter 網站帳號（選填）',40],['googleVerification','Google Search Console 驗證 token',255],['bingVerification','Bing Webmaster 驗證 token',255]];
+  ['twitterSite','X／Twitter 網站帳號（選填）',40],['googleVerification','Google Search Console 驗證碼',255],['bingVerification','Bing Webmaster 驗證碼',255]];
 const overrideFields=[['title','SEO 標題（建議約 30 中文字）',160],['description','搜尋摘要（建議 70–100 中文字）',500,'textarea'],
-  ['keywords','頁面關鍵字',1000],['ogImageUrl','分享圖 HTTPS 網址',2000,'url'],['robots','搜尋索引設定',40],['canonicalPath','Canonical 站內路徑',180]];
+  ['keywords','頁面關鍵字',1000],['ogImageUrl','分享圖 HTTPS 網址',2000,'url'],['robots','搜尋索引設定',40],['canonicalPath','標準網址路徑（Canonical）',180]];
 
 export async function initializeSeoSettings(identity){
   const form=document.querySelector('#seo-settings-form'),message=document.querySelector('#seo-status'),reload=document.querySelector('#reload-seo');
@@ -53,7 +53,7 @@ export async function initializeSeoSettings(identity){
       const value=page.protected?(field==='robots'?'noindex,follow':''):existing[field]??'';
       const control=seoField(title,`overrides.${index}.${field}`,value,{type,max,disabled:locked,
         choices:field==='robots'?[['','繼承設定'],...robotsChoices]:undefined,placeholder:fallback||'留空繼承',
-        hint:page.protected?(field==='title'?'登入、會員、搜尋等保護頁使用固定標題與摘要且不索引，不提供頁面覆寫。':''):field==='title'?'留空沿用內容 SEO／頁面範本／預設。建議字數不影響保存。':''});
+        hint:page.protected?(field==='title'?'登入、會員、搜尋等保護頁使用固定標題與摘要且不索引，不提供頁面覆寫。':''):field==='title'?'留空時沿用內容或全站預設；建議字數僅供參考。':''});
       inputs[field]=control.input;grid.append(control.wrapper);
     }
     const clearKeywords=element('input',{type:'checkbox',id:`seo-clear-keywords-${index}`,name:`clear-keywords-${index}`});clearKeywords.checked=!page.protected&&existing.keywords==='';clearKeywords.disabled=Boolean(page.protected);if(page.protected)clearKeywords.dataset.seoProtected='true';
@@ -68,11 +68,11 @@ export async function initializeSeoSettings(identity){
   }
   function render(){
     form.replaceChildren();rows=[];defaultInputs={};
-    const basic=seoPanel('基本網站資訊','共用於全站 SEO'),social=seoPanel('搜尋引擎與社群分享設定','保存後由網站產生 HTML 標籤');
+    const basic=seoPanel('基本網站資訊','共用於全站 SEO'),social=seoPanel('搜尋引擎與社群分享設定','儲存後套用到網站各頁');
     for(const [key,label,max,type]of defaultFields){
       const choices=key==='robots'?robotsChoices:key==='twitterCard'?[['summary_large_image','大型圖片卡片'],['summary','摘要卡片']]:undefined;
-      const hint=key==='canonicalOrigin'?'HTTPS 根網址，不含頁面路徑。留空可供本機驗收；正式上線需填正式網址。':
-        key==='googleVerification'||key==='bingVerification'?'僅填公開驗證 token，不填 API Key、帳密或 HTML。':key==='description'?'每頁摘要以內容與覆寫區分；此欄為共用 fallback。':'';
+      const hint=key==='canonicalOrigin'?'以 https:// 開頭的網站首頁網址，不含頁面路徑；網站上線前請填寫。':
+        key==='googleVerification'||key==='bingVerification'?'只填驗證碼本身，不要貼上整段 HTML、API 金鑰或帳號密碼。':key==='description'?'每頁摘要以內容與覆寫區分；此欄為共用 fallback。':'';
       const field=seoField(label,'defaults.'+key,data.defaults[key],{type,max,choices,hint});defaultInputs[key]=field.input;
       if(['keywords','canonicalOrigin','ogImageUrl'].includes(key))field.wrapper.className+=' full';
       (['siteName','description'].includes(key)?basic:social).grid.append(field.wrapper);

@@ -16,7 +16,7 @@ export async function initializeGeneralSettings(identity){
       const {panel,grid}=seoPanel('基本網站資訊與政策','共用於全站頁尾、預設 SEO 與會員同意紀錄');
       panel.className='admin-panel general-settings-panel';
       const definitions=[['siteName','網站名稱',160],['description','全站預設摘要',500,'textarea'],['contactEmail','聯絡信箱',254,'email'],['termsVersion','會員服務條款版本',80],['termsText','會員服務條款',20000,'textarea'],['privacyVersion','隱私權政策版本',80],['privacyText','隱私權政策',20000,'textarea']];
-      for(const [key,label,max,type] of definitions){const field=seoField(label,'general.'+key,key in data?data[key]:data.values[key],{max,type,disabled:!writable,hint:key.endsWith('Text')?'純文字；空白時沿用開發測試說明。':''});fields.set(key,field.input);grid.append(field.wrapper);}
+      for(const [key,label,max,type] of definitions){const field=seoField(label,'general.'+key,key in data?data[key]:data.values[key],{max,type,disabled:!writable,hint:key.endsWith('Text')?'純文字，每行一段；留空時使用網站預設內容。':''});fields.set(key,field.input);grid.append(field.wrapper);}
       const save=element('button',{type:'submit',className:'button button-dark'},'儲存並發布一般設定 ↗');save.disabled=!writable;const actions=element('div',{className:'admin-form-actions'});actions.append(save);panel.append(actions);form.append(panel);dirty=false;status(message,writable?'已讀取設定。':'唯讀檢視設定。');
     }catch(error){handleAdminError(error,message);}finally{busy=false;reload.disabled=false;}
   }
