@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Yinghua\Controllers;
 
 use Yinghua\DTO\AttractionInput;
-use Yinghua\DTO\Input;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
 use Yinghua\Services\AttractionManagement;
@@ -22,8 +21,8 @@ class AttractionController
             $context->actor(),
             $r->queryText('q'),
             $r->queryText('status'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
         )->toArray());
     }
 
@@ -46,7 +45,7 @@ class AttractionController
             $context->client,
         );
 
-        return new Response($result->synchronized ? 201 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray(), created: true);
     }
 
     public function update(ApiContext $context): Response
@@ -58,16 +57,14 @@ class AttractionController
             $context->client,
         );
 
-        return new Response($result->synchronized ? 200 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray());
     }
 
     public function delete(ApiContext $context): Response
     {
-        $input = new Input($context->request->json());
-        $input->only(['version']);
-        $result = $this->service->delete($context->actor(), $context->id(), $input->positiveInt('version'), $context->client);
+        $result = $this->service->delete($context->actor(), $context->id(), $context->request->versionOnly(), $context->client);
 
-        return new Response($result->synchronized ? 200 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray());
     }
 
     public function retry(ApiContext $context): Response

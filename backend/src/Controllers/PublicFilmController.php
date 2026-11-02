@@ -27,8 +27,8 @@ class PublicFilmController
             $r->queryText('week'),
             $r->queryText('from'),
             $r->queryText('to'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
             $this->clock->now(),
         );
 

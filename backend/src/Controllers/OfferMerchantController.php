@@ -21,8 +21,8 @@ class OfferMerchantController
             $r->queryText('type'),
             $r->queryText('merchantId'),
             $r->queryText('active'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
         );
         return new Response(200, $this->service->listing($context->actor(), $query)->toArray());
     }
@@ -31,13 +31,13 @@ class OfferMerchantController
     public function create(ApiContext $context): Response
     {
         $result = $this->service->save($context->actor(), null, $context->request->json(), $context->client);
-        return new Response($result->synchronized ? 201 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray(), created: true);
     }
 
     public function update(ApiContext $context): Response
     {
         $result = $this->service->save($context->actor(), $context->id(), $context->request->json(), $context->client);
-        return new Response($result->synchronized ? 200 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray());
     }
 
 }

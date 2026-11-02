@@ -11,7 +11,7 @@ use Yinghua\Exceptions\ContentConflict;
 use Yinghua\Support\UtcDateTime;
 
 /** 最新消息的查詢、型別映射與歷史網址集中在這裡。 */
-class NewsRepository
+class NewsRepository implements \Yinghua\Contracts\AdminContentRecords
 {
     private const string SELECT = "SELECT n.*,m.storage_key,m.alt AS media_alt FROM news_posts n LEFT JOIN media_assets m ON m.id=n.cover_media_id";
 

@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Yinghua\Controllers;
 
-use Yinghua\DTO\{AdminContentQuery, ContentRecordView, Input};
+use Yinghua\DTO\{AdminContentQuery, ContentRecordView};
 use Yinghua\Http\{ApiContext, Response};
-use Yinghua\Services\AdminOfferManagement;
+use Yinghua\Services\AdminContentManagement;
 
-class AdminOfferController
+/** 後台消息與優惠共用的 HTTP 介面；兩者各自的差異在注入的 AdminContentManagement。 */
+class AdminContentController
 {
-    public function __construct(private readonly AdminOfferManagement $service) {}
+    public function __construct(private readonly AdminContentManagement $service) {}
 
     public function listing(ApiContext $context): Response
     {
@@ -21,8 +22,8 @@ class AdminOfferController
             $r->queryText('type'),
             $r->queryText('merchantId'),
             $r->queryText('active'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
         );
         return new Response(200, $this->service->listing($context->actor(), $query)->toArray());
     }
@@ -36,21 +37,19 @@ class AdminOfferController
     public function create(ApiContext $context): Response
     {
         $result = $this->service->save($context->actor(), null, $context->request->json(), $context->client);
-        return new Response($result->synchronized ? 201 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray(), created: true);
     }
 
     public function update(ApiContext $context): Response
     {
         $result = $this->service->save($context->actor(), $context->id(), $context->request->json(), $context->client);
-        return new Response($result->synchronized ? 200 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray());
     }
 
     public function delete(ApiContext $context): Response
     {
-        $input = new Input($context->request->json());
-        $input->only(['version']);
-        $result = $this->service->delete($context->actor(), $context->id(), $input->positiveInt('version'), $context->client);
-        return new Response($result->synchronized ? 200 : 202, $result->toArray());
+        $result = $this->service->delete($context->actor(), $context->id(), $context->request->versionOnly(), $context->client);
+        return Response::written($result->synchronized, $result->toArray());
     }
 
 }

@@ -152,6 +152,29 @@ readonly class Request
         return (int) $value;
     }
 
+    /** 列表的頁碼參數；所有分頁 API 共用同一個範圍與錯誤訊息。 */
+    public function page(): int
+    {
+        return $this->queryInteger('page', 1, 100000);
+    }
+
+    /** 每頁筆數，上限 100；預設值依列表而定（公開景點卡片為 12）。 */
+    public function pageSize(int $default = 20): int
+    {
+        return $this->queryInteger('pageSize', $default, 100);
+    }
+
+    /**
+     * 只帶版本號的請求本文（刪除等操作）：拒絕其他欄位，回傳樂觀鎖用的版本號。
+     */
+    public function versionOnly(): int
+    {
+        $input = new \Yinghua\DTO\Input($this->json());
+        $input->only(['version']);
+
+        return $input->positiveInt('version');
+    }
+
     private static function server(string $name, string $default = ''): string
     {
         $value = $_SERVER[$name] ?? $default;

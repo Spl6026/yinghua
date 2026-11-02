@@ -19,10 +19,10 @@ use Yinghua\Adapters\PublicContentCommands;
 use Yinghua\Adapters\PublicContentSeeder;
 use Yinghua\Adapters\SeoCatalog;
 use Yinghua\Adapters\SystemClock;
+use Yinghua\Contracts\Clock;
 use Yinghua\Controllers\AdminController;
 use Yinghua\Controllers\ApiControllers;
-use Yinghua\Controllers\AdminNewsController;
-use Yinghua\Controllers\AdminOfferController;
+use Yinghua\Controllers\AdminContentController;
 use Yinghua\Controllers\AttractionContentController;
 use Yinghua\Controllers\AttractionController;
 use Yinghua\Controllers\AuthController;
@@ -86,8 +86,7 @@ use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Repositories\SeoTargetRepository;
 use Yinghua\Repositories\SessionRepository;
 use Yinghua\Services\AdminManagement;
-use Yinghua\Services\AdminNewsManagement;
-use Yinghua\Services\AdminOfferManagement;
+use Yinghua\Services\AdminContentManagement;
 use Yinghua\Services\AdminPreview;
 use Yinghua\Services\ApplicationHealth;
 use Yinghua\Services\AttractionManagement;
@@ -278,50 +277,23 @@ readonly class Composition
             new ExternalRequestSlot($database),
         ), $authorization);
 
-        // 消息管理：HTTP 與 CLI 共用同一個 editor。
-        $contentCover = new ContentCover();
-        $newsRecords = new NewsRepository($database);
-        $newsEditor = new NewsManagement(
-            $newsRecords,
-            $mediaRecords,
-            $authorization,
-            $events,
-            new HtmlPurifierSanitizer(),
-            $contentCover,
-            $clock,
-        );
-        $newsAdmin = new AdminNewsController(new AdminNewsManagement(
-            $newsRecords,
-            $newsEditor,
+        // 消息、優惠與店家：HTTP 與 CLI 共用同一組 editor；消息與優惠的後台流程相同，只差模組名稱。
+        $editors = $this->contentEditors($database, $authorization, $events, $mediaRecords, $clock);
+        $contentAdmin = fn(string $module, string $deleteAction, NewsRepository|OfferRepository $records, NewsManagement|OfferManagement $editor): AdminContentController => new AdminContentController(new AdminContentManagement(
+            $module,
+            $deleteAction,
+            $records,
+            $editor,
             $authorization,
             $transactions,
             $publication,
             $events,
             $clock,
         ));
-
-        // 優惠與店家分開管理，各有自己的 Controller。
-        $offerRecords = new OfferRepository($database);
-        $merchantRecords = new MerchantRepository($database);
-        $offerEditor = new OfferManagement(
-            $offerRecords,
-            $merchantRecords,
-            $mediaRecords,
-            $authorization,
-            $events,
-            $contentCover,
-            $clock,
-        );
-        $merchantEditor = new MerchantManagement($merchantRecords, $authorization, $events);
-        $offerAdmin = new AdminOfferController(new AdminOfferManagement(
-            $offerRecords,
-            $offerEditor,
-            $authorization,
-            $transactions,
-            $publication,
-            $events,
-            $clock,
-        ));
+        $newsAdmin = $contentAdmin('news', 'news-delete', $editors['newsRecords'], $editors['news']);
+        $offerAdmin = $contentAdmin('offers', 'offer-delete', $editors['offerRecords'], $editors['offers']);
+        $merchantRecords = $editors['merchantRecords'];
+        $merchantEditor = $editors['merchants'];
         $merchants = new OfferMerchantController(new OfferMerchants(
             $merchantRecords,
             $merchantEditor,
@@ -471,47 +443,47 @@ readonly class Composition
         $events = new EventRepository($database, $secrets);
         $authorization = new Authorization($accounts, new PermissionRepository($database), new PermissionPolicy());
         $media = new MediaRepository($database);
-        $contentCover = new ContentCover();
-        $newsRecords = new NewsRepository($database);
-        $offerRecords = new OfferRepository($database);
-        $news = new NewsManagement(
-            $newsRecords,
-            $media,
-            $authorization,
-            $events,
-            new HtmlPurifierSanitizer(),
-            $contentCover,
-            $clock,
-        );
-        $merchants = new MerchantRepository($database);
-        $offers = new OfferManagement(
-            $offerRecords,
-            $merchants,
-            $media,
-            $authorization,
-            $events,
-            $contentCover,
-            $clock,
-        );
-        $merchantService = new MerchantManagement($merchants, $authorization, $events);
+        $editors = $this->contentEditors($database, $authorization, $events, $media, $clock);
         return new PublicContentCommands(
             $accounts,
             new ContentImporter($transactions, $publication),
-            $news,
+            $editors['news'],
             new MediaManagement($media, new LocalImageStorage($this->config), $authorization, $transactions, $events),
             $secrets,
-            $offers,
-            $merchantService,
+            $editors['offers'],
+            $editors['merchants'],
             new PublicContentSeeder(
-                $merchants,
-                $newsRecords,
-                $offerRecords,
-                $merchantService,
-                $news,
-                $offers,
+                $editors['merchantRecords'],
+                $editors['newsRecords'],
+                $editors['offerRecords'],
+                $editors['merchants'],
+                $editors['news'],
+                $editors['offers'],
                 $transactions,
                 $publication,
             ),
         );
+    }
+
+    /**
+     * 消息、優惠與店家的編輯服務；後台 API 與 CLI 匯入都從這裡取得，兩邊的驗證與寫入規則不會分歧。
+     *
+     * @return array{news:NewsManagement,offers:OfferManagement,merchants:MerchantManagement,newsRecords:NewsRepository,offerRecords:OfferRepository,merchantRecords:MerchantRepository}
+     */
+    private function contentEditors(Database $database, Authorization $authorization, EventRepository $events, MediaRepository $media, Clock $clock): array
+    {
+        $cover = new ContentCover();
+        $newsRecords = new NewsRepository($database);
+        $offerRecords = new OfferRepository($database);
+        $merchantRecords = new MerchantRepository($database);
+
+        return [
+            'news' => new NewsManagement($newsRecords, $media, $authorization, $events, new HtmlPurifierSanitizer(), $cover, $clock),
+            'offers' => new OfferManagement($offerRecords, $merchantRecords, $media, $authorization, $events, $cover, $clock),
+            'merchants' => new MerchantManagement($merchantRecords, $authorization, $events),
+            'newsRecords' => $newsRecords,
+            'offerRecords' => $offerRecords,
+            'merchantRecords' => $merchantRecords,
+        ];
     }
 }

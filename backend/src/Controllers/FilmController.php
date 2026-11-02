@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Yinghua\Controllers;
 
 use Yinghua\DTO\FilmInput;
-use Yinghua\DTO\Input;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
 use Yinghua\Services\FilmManagement;
@@ -23,8 +22,8 @@ class FilmController
                 $context->actor(),
                 $request->queryText('q'),
                 $request->queryText('status'),
-                $request->queryInteger('page', 1, 100000),
-                $request->queryInteger('pageSize', 20, 100),
+                $request->page(),
+                $request->pageSize(),
             )->toArray(),
         );
     }
@@ -37,7 +36,7 @@ class FilmController
     public function create(ApiContext $context): Response
     {
         $result = $this->service->save($context->actor(), null, FilmInput::fromArray($context->request->json(), true), $context->client);
-        return new Response($result->synchronized ? 201 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray(), created: true);
     }
 
     public function update(ApiContext $context): Response
@@ -48,15 +47,13 @@ class FilmController
             FilmInput::fromArray($context->request->json(), false),
             $context->client,
         );
-        return new Response($result->synchronized ? 200 : 202, $result->toArray());
+        return Response::written($result->synchronized, $result->toArray());
     }
 
     public function delete(ApiContext $context): Response
     {
-        $input = new Input($context->request->json());
-        $input->only(['version']);
-        $result = $this->service->delete($context->actor(), $context->id(), $input->positiveInt('version'), $context->client);
-        return new Response($result->synchronized ? 200 : 202, $result->toArray());
+        $result = $this->service->delete($context->actor(), $context->id(), $context->request->versionOnly(), $context->client);
+        return Response::written($result->synchronized, $result->toArray());
     }
 
     public function retry(ApiContext $context): Response

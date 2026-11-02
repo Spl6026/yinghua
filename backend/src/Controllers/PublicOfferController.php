@@ -27,8 +27,8 @@ class PublicOfferController
             $active === 'true',
             $r->queryText('q', '', 255),
             $r->queryText('district'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
         )));
     }
 

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Services;
 
 use Yinghua\Contracts\Clock;
-use Yinghua\Contracts\ContentImportService;
+use Yinghua\Contracts\ContentEditor;
 use Yinghua\Contracts\RichTextSanitizer;
 use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\ImportItem;
@@ -24,7 +24,7 @@ use Yinghua\Repositories\NewsRepository;
 use Yinghua\Exceptions\ErrorCode;
 
 /** 消息的寫入流程，CLI 匯入與後台 HTTP 共用。 */
-class NewsManagement implements ContentImportService
+class NewsManagement implements ContentEditor
 {
     public function __construct(
         private readonly NewsRepository $news,

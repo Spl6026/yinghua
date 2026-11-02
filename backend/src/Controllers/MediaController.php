@@ -55,8 +55,8 @@ class MediaController
             200,
             $this->service->listing(
                 $context->actor(),
-                $context->request->queryInteger('page', 1, 100000),
-                $context->request->queryInteger('pageSize', 20, 100),
+                $context->request->page(),
+                $context->request->pageSize(),
                 MediaModule::parse($context->request->queryText('module') ?: 'attractions'),
             ),
         );

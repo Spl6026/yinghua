@@ -29,8 +29,8 @@ class PublicAttractionController
             $r->queryText('q'),
             $r->queryText('category'),
             $r->queryText('district'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 12, 100),
+            $r->page(),
+            $r->pageSize(12),
         ));
     }
 

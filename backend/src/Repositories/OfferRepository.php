@@ -11,7 +11,7 @@ use Yinghua\Exceptions\ContentConflict;
 use Yinghua\Support\UtcDateTime;
 
 /** 優惠的查詢、型別映射與歷史網址集中在這裡。 */
-class OfferRepository
+class OfferRepository implements \Yinghua\Contracts\AdminContentRecords
 {
     private const string SELECT = "SELECT o.*,ma.storage_key,ma.alt AS media_alt,mr.status AS merchant_status,mr.deleted_at AS merchant_deleted_at,mr.updated_at AS merchant_updated_at,mr.name AS merchant_name,mr.district AS merchant_district,mr.address AS merchant_address,mr.phone AS merchant_phone,mr.website AS merchant_website FROM offers o LEFT JOIN media_assets ma ON ma.id=o.cover_media_id JOIN merchants mr ON mr.id=o.merchant_id";
 

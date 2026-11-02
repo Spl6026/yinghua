@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Services;
 
 use Yinghua\Contracts\Clock;
-use Yinghua\Contracts\ContentImportService;
+use Yinghua\Contracts\ContentEditor;
 use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\ImportItem;
 use Yinghua\DTO\OfferInput;
@@ -23,7 +23,7 @@ use Yinghua\Repositories\OfferRepository;
 use Yinghua\Exceptions\ErrorCode;
 
 /** 優惠的寫入流程，統一處理店家、條款與活動期間的規則。 */
-class OfferManagement implements ContentImportService
+class OfferManagement implements ContentEditor
 {
     public function __construct(
         private readonly OfferRepository $offers,

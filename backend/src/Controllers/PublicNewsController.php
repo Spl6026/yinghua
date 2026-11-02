@@ -21,8 +21,8 @@ class PublicNewsController
         return new Response(200, $this->service->listing(new NewsQuery(
             $r->queryText('type'),
             $r->queryText('q', '', 255),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
         )));
     }
 

@@ -18,8 +18,8 @@ class MemberItineraryController
             200,
             $this->service->listing(
                 $context->actor(),
-                $context->request->queryInteger('page', 1, 100000),
-                $context->request->queryInteger('pageSize', 20, 100),
+                $context->request->page(),
+                $context->request->pageSize(),
             ),
         );
     }
@@ -49,19 +49,15 @@ class MemberItineraryController
 
     public function select(ApiContext $context): Response
     {
-        $input = new Input($context->request->json());
-        $input->only(['version']);
         return new Response(
             200,
-            ['itinerary' => $this->service->select($context->actor(), $context->id(), $input->positiveInt('version'))->toArray()],
+            ['itinerary' => $this->service->select($context->actor(), $context->id(), $context->request->versionOnly())->toArray()],
         );
     }
 
     public function delete(ApiContext $context): Response
     {
-        $input = new Input($context->request->json());
-        $input->only(['version']);
-        $this->service->delete($context->actor(), $context->id(), $input->positiveInt('version'));
+        $this->service->delete($context->actor(), $context->id(), $context->request->versionOnly());
         return new Response(204);
     }
 
