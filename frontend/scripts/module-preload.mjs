@@ -15,7 +15,7 @@ export function moduleGraph(entryUrl, assetsRoot, cache = new Map()) {
     seen.add(url);
     let imports = cache.get(url);
     if (!imports) {
-      // 建置時才產生的模組（例如 core/routes.js）在來源目錄不存在，仍預載它，但視為沒有下一層相依。
+      // 來源目錄找不到的模組仍預載，但視為沒有下一層相依。
       const file = join(assetsRoot, url.replace(/^\/assets\//, ''));
       const source = existsSync(file) ? readFileSync(file, 'utf8') : '';
       imports = [...source.matchAll(staticImport)].map(match => posix.join(posix.dirname(url), match[1]));
