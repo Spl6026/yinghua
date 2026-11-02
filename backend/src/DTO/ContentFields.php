@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
+use Yinghua\Support\UtcDateTime;
 
 /** 消息與優惠共用的欄位格式驗證；只檢查格式，不決定哪些欄位必填。 */
 final class ContentFields
@@ -67,7 +68,7 @@ final class ContentFields
             $fields['status'] = $status->value;
         }
         if ($creating || array_key_exists('publishAt', $values)) {
-            $fields['publish_at'] = self::date($input->optionalText('publishAt', 30), 'publishAt', true) ?? gmdate('Y-m-d H:i:s', $now);
+            $fields['publish_at'] = self::date($input->optionalText('publishAt', 30), 'publishAt', true) ?? UtcDateTime::sql($now);
         }
         return $fields;
     }

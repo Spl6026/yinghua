@@ -101,7 +101,7 @@ class AccountRepository
         $parameters = [];
         if ($query !== '') {
             $where .= " AND (account LIKE :q1 ESCAPE '!' OR email LIKE :q2 ESCAPE '!' OR display_name LIKE :q3 ESCAPE '!')";
-            $search = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $query) . '%';
+            $search = Database::contains($query);
             $parameters = ['q1' => $search, 'q2' => $search, 'q3' => $search];
         }
         if ($status !== '') {

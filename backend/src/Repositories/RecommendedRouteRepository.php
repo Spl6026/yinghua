@@ -19,7 +19,7 @@ class RecommendedRouteRepository
         $params = [];
         if ($query->q !== '') {
             $where .= " AND title LIKE :q ESCAPE '!'";
-            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+            $params['q'] = Database::contains($query->q);
         }
         if ($query->status !== '') {
             $where .= ' AND status=:status';
@@ -93,10 +93,7 @@ class RecommendedRouteRepository
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE routes SET status='archived',deleted_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('routes', $id);
         // 保留路線主檔的識別，方便日後追溯行程來源；同時解除站點引用，讓景點可以正常刪除。
         $this->database->execute('DELETE FROM route_attractions WHERE route_id=:id', ['id' => $id]);
     }
@@ -114,7 +111,7 @@ class RecommendedRouteRepository
     {
         $rows = $this->database->rows(
             "SELECT id,name FROM attractions WHERE deleted_at IS NULL AND status='published' AND publish_at<=UTC_TIMESTAMP() AND name LIKE :q ESCAPE '!' ORDER BY name,id LIMIT 21 OFFSET :offset",
-            ['q' => '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query) . '%','offset' => ($page - 1) * 20],
+            ['q' => Database::contains($query),'offset' => ($page - 1) * 20],
         );
         return array_map(
             static fn(array $row): array => ['id' => (new Row($row))->string('id'),'name' => (new Row($row))->string('name')],

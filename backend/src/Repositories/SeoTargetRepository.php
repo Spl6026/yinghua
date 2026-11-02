@@ -7,6 +7,7 @@ namespace Yinghua\Repositories;
 use Yinghua\DTO\SeoContentTarget;
 use Yinghua\DTO\SeoOverride;
 use Yinghua\Models\SeoResource;
+use Yinghua\Support\UtcDateTime;
 
 /** 只查 SEO 選擇器需要的識別資料，不讀正文；SQL 中的表名／欄名一律來自 enum。 */
 class SeoTargetRepository
@@ -53,11 +54,7 @@ class SeoTargetRepository
                 continue;
             }
             [$table, $title] = $this->source($type);
-            $params = [];
-            foreach ($ids as $index => $id) {
-                $params['id' . $index] = $id;
-            }
-            $in = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($params)));
+            [$in, $params] = Database::inList('id', $ids);
             foreach ($this->database->rows(
                 "SELECT id,$title AS title,slug,status,publish_at,seo_title,seo_description FROM $table WHERE id IN ($in) AND deleted_at IS NULL",
                 $params,
@@ -74,8 +71,8 @@ class SeoTargetRepository
     {
         [$table, $title] = $this->source($type);
         $where = $includeDraft ? '' : " AND status='published' AND publish_at<=UTC_TIMESTAMP()";
-        $where .= $query === '' ? '' : " AND $title LIKE :query ESCAPE '='";
-        $params = $query === '' ? [] : ['query' => '%' . strtr($query, ['=' => '==','%' => '=%','_' => '=_']) . '%'];
+        $where .= $query === '' ? '' : " AND $title LIKE :query ESCAPE '!'";
+        $params = $query === '' ? [] : ['query' => Database::contains($query)];
         return array_map(
             fn(array $row): SeoContentTarget => $this->map($type, $row),
             $this->database->rows(
@@ -94,7 +91,7 @@ class SeoTargetRepository
             $row->string('id'),
             $row->string('title'),
             $row->string('slug'),
-            $row->string('status') === 'published' && $row->string('publish_at') <= gmdate('Y-m-d H:i:s'),
+            $row->string('status') === 'published' && $row->string('publish_at') <= UtcDateTime::sql(time()),
             $row->string('seo_title'),
             $row->string('seo_description'),
         );

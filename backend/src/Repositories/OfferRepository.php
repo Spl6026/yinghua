@@ -24,7 +24,7 @@ class OfferRepository
         $params = [];
         if ($query->q !== '') {
             $where .= " AND CONCAT(o.title,' ',o.discount_text,' ',mr.name) LIKE :q ESCAPE '!'";
-            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+            $params['q'] = Database::contains($query->q);
         }
         if ($query->status !== '') {
             $where .= ' AND o.status=:status';
@@ -53,10 +53,7 @@ class OfferRepository
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE offers SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('offers', $id);
     }
 
     public function find(string $id, bool $lock = false): ?Offer
@@ -70,7 +67,7 @@ class OfferRepository
     {
         return array_map($this->map(...), $this->database->rows(
             self::SELECT . " WHERE o.deleted_at IS NULL AND o.status='published' AND o.publish_at<=:now AND mr.deleted_at IS NULL AND mr.status='active' ORDER BY o.publish_at DESC,o.id",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
@@ -123,7 +120,7 @@ class OfferRepository
         $result = [];
         foreach ($this->database->rows(
             "SELECT a.path,o.slug FROM offer_aliases a JOIN offers o ON o.id=a.offer_id JOIN merchants mr ON mr.id=o.merchant_id WHERE o.deleted_at IS NULL AND o.status='published' AND o.publish_at<=:now AND mr.deleted_at IS NULL AND mr.status='active'",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = '/offers/' . $row->string('slug') . '.html';

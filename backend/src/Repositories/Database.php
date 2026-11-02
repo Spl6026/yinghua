@@ -103,6 +103,15 @@ class Database
         );
     }
 
+    /** 下架並軟刪除：保留資料與舊網址對照，只是不再出現在任何清單或公開頁。 */
+    public function softDelete(string $table, string $id): void
+    {
+        $this->execute(
+            "UPDATE " . $table . " SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
+            ['id' => $id],
+        );
+    }
+
     /**
      * 保留舊網址：同一網址只能屬於一筆內容，改名後舊網址仍導向原內容。
      * 已屬於其他內容時丟出衝突，避免把別人的舊網址搶走。
@@ -117,6 +126,31 @@ class Database
             'INSERT IGNORE INTO ' . $aliasTable . ' (path,' . $ownerColumn . ') VALUES (:path,:id)',
             ['path' => $path, 'id' => $id],
         );
+    }
+
+    /**
+     * 「包含」搜尋的 LIKE 參數：使用者輸入的 % 與 _ 當一般字元比對。
+     * SQL 端一律寫成 `LIKE :參數 ESCAPE '!'`。
+     */
+    public static function contains(string $text): string
+    {
+        return '%' . strtr($text, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+    }
+
+    /**
+     * 產生 IN (...) 的具名參數，避免把值直接拼進 SQL。
+     *
+     * @param list<string> $values
+     * @return array{0:string,1:array<string,string>} 例如 [':id0,:id1', ['id0' => ..., 'id1' => ...]]
+     */
+    public static function inList(string $prefix, array $values): array
+    {
+        $parameters = [];
+        foreach (array_values($values) as $index => $value) {
+            $parameters[$prefix . $index] = $value;
+        }
+
+        return [implode(',', array_map(static fn(string $name): string => ':' . $name, array_keys($parameters))), $parameters];
     }
 
     /** 唯一鍵重複（網址代稱、電子郵件等已被使用），呼叫端會轉成較具體的衝突錯誤。 */

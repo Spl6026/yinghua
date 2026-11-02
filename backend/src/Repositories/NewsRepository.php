@@ -24,7 +24,7 @@ class NewsRepository
         $params = [];
         if ($query->q !== '') {
             $where .= " AND n.title LIKE :q ESCAPE '!'";
-            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+            $params['q'] = Database::contains($query->q);
         }
         if ($query->status !== '') {
             $where .= ' AND n.status=:status';
@@ -44,10 +44,7 @@ class NewsRepository
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE news_posts SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('news_posts', $id);
     }
 
     public function find(string $id, bool $lock = false): ?NewsPost
@@ -61,7 +58,7 @@ class NewsRepository
     {
         return array_map($this->map(...), $this->database->rows(
             self::SELECT . " WHERE n.deleted_at IS NULL AND n.status='published' AND n.publish_at<=:now ORDER BY n.publish_at DESC,n.id",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
@@ -115,7 +112,7 @@ class NewsRepository
         $result = [];
         foreach ($this->database->rows(
             "SELECT a.path,n.slug FROM news_aliases a JOIN news_posts n ON n.id=a.news_post_id WHERE n.deleted_at IS NULL AND n.status='published' AND n.publish_at<=:now",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = '/news/' . $row->string('slug') . '.html';

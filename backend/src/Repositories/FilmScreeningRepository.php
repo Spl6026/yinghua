@@ -24,11 +24,7 @@ class FilmScreeningRepository
         if ($ids === []) {
             return [];
         }
-        $parameters = [];
-        foreach ($ids as $index => $id) {
-            $parameters['id' . $index] = $id;
-        }
-        $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($parameters)));
+        [$placeholders, $parameters] = Database::inList('id', $ids);
         $result = [];
         foreach ($this->database->rows(
             'SELECT s.id,s.film_id,s.starts_at,s.ticket_url,f.ticket_url AS default_ticket FROM film_screenings s JOIN films f ON f.id=s.film_id WHERE s.film_id IN (' . $placeholders . ') ORDER BY s.starts_at,s.id',

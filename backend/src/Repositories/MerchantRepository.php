@@ -19,7 +19,7 @@ class MerchantRepository
         $params = [];
         if ($query->q !== '') {
             $where .= " AND name LIKE :q ESCAPE '!'";
-            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+            $params['q'] = Database::contains($query->q);
         }
         if ($query->status !== '') {
             $where .= ' AND status=:status';

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Yinghua\Repositories;
 
+use Yinghua\Support\UtcDateTime;
+
 /**
  * 清除已過期的登入、驗證碼、密碼重設與限速紀錄。
  *
@@ -25,7 +27,7 @@ class SecurityRecordRepository
     /** @return array<string,int> 各資料表刪除的列數 */
     public function pruneExpired(int $now): array
     {
-        $cutoff = gmdate('Y-m-d H:i:s', $now - self::GRACE_SECONDS);
+        $cutoff = UtcDateTime::sql($now - self::GRACE_SECONDS);
         $removed = [];
         foreach (self::TABLES as $table) {
             $removed[$table] = 0;

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Repositories;
 
 use Yinghua\Models\Challenge;
+use Yinghua\Support\UtcDateTime;
 
 class ChallengeRepository
 {
@@ -34,7 +35,7 @@ class ChallengeRepository
                 'binding' => $binding,
                 'recipient' => $recipient,
                 'maximum' => $maximum,
-                'expires' => gmdate('Y-m-d H:i:s', $expires),
+                'expires' => UtcDateTime::sql($expires),
             ],
         );
     }

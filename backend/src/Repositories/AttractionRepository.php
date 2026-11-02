@@ -32,10 +32,8 @@ class AttractionRepository
         $where = 'a.deleted_at IS NULL';
         $parameters = [];
         if ($query !== '') {
-            $where .= ' AND (a.name LIKE :name OR a.address LIKE :address)';
-            $parameters['name'] = $parameters['address'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query) . '%';
-            $where = str_replace('LIKE :name', "LIKE :name ESCAPE '!'", $where);
-            $where = str_replace('LIKE :address', "LIKE :address ESCAPE '!'", $where);
+            $where .= " AND (a.name LIKE :name ESCAPE '!' OR a.address LIKE :address ESCAPE '!')";
+            $parameters['name'] = $parameters['address'] = Database::contains($query);
         }
         if ($status !== '') {
             $where .= ' AND a.status=:status';
@@ -119,10 +117,7 @@ class AttractionRepository
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE attractions SET status='archived',deleted_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('attractions', $id);
     }
 
     public function referenced(string $id): bool
@@ -149,22 +144,22 @@ class AttractionRepository
     }
 
     /** @return list<Attraction> */
-    public function published(?int $now = null): array
+    public function published(int $now): array
     {
         // 先依發布時間排序；同時發布的示範資料依原型順序排列，其他資料也有穩定的次要排序。
         return array_map($this->map(...), $this->database->rows(
             self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now ORDER BY a.publish_at DESC,a.id ASC",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
     /** @return array<string,string> */
-    public function aliases(?int $now = null): array
+    public function aliases(int $now): array
     {
         $result = [];
         foreach ($this->database->rows(
             "SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = $row->integer('is_museum') === 1

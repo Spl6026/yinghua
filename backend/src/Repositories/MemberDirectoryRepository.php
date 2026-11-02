@@ -18,7 +18,7 @@ class MemberDirectoryRepository
         $parameters = [];
         if ($query !== '') {
             $where .= " AND (display_name LIKE :name ESCAPE '!' OR email LIKE :email ESCAPE '!')";
-            $pattern = '%' . strtr($query, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+            $pattern = Database::contains($query);
             $parameters = ['name' => $pattern, 'email' => $pattern];
         }
         $total = (new Row($this->database->row(

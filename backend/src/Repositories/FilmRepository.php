@@ -31,7 +31,7 @@ class FilmRepository
         $parameters = [];
         if ($q !== '') {
             $where .= " AND f.title LIKE :q ESCAPE '!'";
-            $parameters['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $q) . '%';
+            $parameters['q'] = Database::contains($q);
         }
         if ($status !== '') {
             $where .= ' AND f.status=:status';
@@ -47,11 +47,11 @@ class FilmRepository
     }
 
     /** @return list<Film> */
-    public function published(?int $now = null): array
+    public function published(int $now): array
     {
         return $this->map($this->database->rows(
             self::SELECT . " WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=:now ORDER BY f.publish_at DESC,f.id",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
@@ -83,19 +83,16 @@ class FilmRepository
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE films SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('films', $id);
     }
 
     /** @return array<string,string> */
-    public function aliases(?int $now = null): array
+    public function aliases(int $now): array
     {
         $result = [];
         foreach ($this->database->rows(
             "SELECT a.path,f.slug FROM film_aliases a JOIN films f ON f.id=a.film_id WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=:now",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = '/films/' . $row->string('slug') . '.html';
