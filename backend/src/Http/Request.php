@@ -112,17 +112,13 @@ readonly class Request
             throw new ApplicationError(ErrorCode::UnsupportedMediaType, '請使用 application/json。');
         }
         try {
-            $value = json_decode($this->body, false, 32, JSON_THROW_ON_ERROR);
+            $values = json_decode($this->body, true, 32, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
             throw new ApplicationError(ErrorCode::BadRequest, 'JSON 格式不正確。');
         }
-        if (!$value instanceof \stdClass) {
+        // 陣列模式下 {} 與 [] 都會變成 PHP 陣列，所以另外確認最外層是以 { 開頭的物件；巢狀內容交給 DTO 驗證。
+        if (!is_array($values) || ltrim($this->body, " \t\n\r")[0] !== '{') {
             throw new ApplicationError(ErrorCode::BadRequest, 'JSON 最外層須為物件。');
-        }
-        // 確認最外層是物件後，再以陣列模式讀取；巢狀內容交給 DTO 驗證。
-        $values = json_decode($this->body, true, 32, JSON_THROW_ON_ERROR);
-        if (!is_array($values)) {
-            throw new ApplicationError(ErrorCode::BadRequest, 'JSON 格式不正確。');
         }
         $result = [];
         foreach ($values as $key => $entry) {
