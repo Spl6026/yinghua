@@ -69,7 +69,8 @@ for source in sorted((root / 'frontend/pages').rglob('*.html')):
 
 for source in (dist / 'assets/js').rglob('*.js'):
     for reference in re.findall(r'(?:from\s*|import\s*)[\'"]([^\'"]+)[\'"]', source.read_text(encoding='utf8')):
-        if reference.startswith('.') and not (source.parent / reference).is_file():
+        # 建置輸出的 import 帶有內容版本號（?v=…），檢查檔案時去掉 query。
+        if reference.startswith('.') and not (source.parent / reference.split('?', 1)[0]).is_file():
             issues.append([source.relative_to(dist).as_posix(), 'missing module', reference])
 if not pages:
     issues.append(['build', 'no pages found'])
