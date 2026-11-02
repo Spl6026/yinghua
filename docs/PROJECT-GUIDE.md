@@ -1,7 +1,19 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
+- 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。
+- 資產版本號：新增 [frontend/scripts/asset-version.mjs](../frontend/scripts/asset-version.mjs)，依 `assets/`（字型除外）、`scripts/` 內容與頁面清單算出 12 碼版本號；build 與 publish 各自計算得到同一值，HTML 引用的 CSS／JS／圖示（含 modulepreload）加上 `?v=版本號`，build 輸出的模組 import（含動態 import）也一併改寫，同一模組不會因網址不同載入兩份。Nginx 對帶版本號的 `/assets/` 網址回 `public, max-age=31536000, immutable`，不帶版本號的維持 no-cache，404 維持 no-store。
+- 發布版本：`NodeContentRenderer::version()` 改為掃描整個 `assets/`（字型除外），CSS 或圖示改動也會觸發重新發布，發布頁引用的版本號才會和建置輸出一致。PHP 程式變更後需重啟 app／publisher（FPM opcache）。
+- `build.mjs` 每次先清空 `dist/` 內容再輸出，已刪除的頁面不再殘留。`authApi().me()` 同一時間只送一次請求、共用結果，回應後即清除（[auth-api.js](../frontend/assets/js/api/auth-api.js)）。
+- 實測（Playwright，暖快取依序點選主選單 9 頁）：模擬 100 ms 延遲時 DOMContentLoaded 由 738–869 ms 降到 154–340 ms，首次繪製由 368–524 ms 降到 192–384 ms；換頁時不再有 304 確認請求，`/auth/me` 每頁 1 次。
+- 原型 `website/css/style.css` 的 `.page{animation:pageIn .55s}` 讓每頁內容由透明淡入 0.55 秒，屬原型設計，本次未更動。
+
+2026-11-03 頁首會員連結恢復原樣式（使用者指定，取代同日的下拉選單）：
+- 已登入時恢復原本的文字連結：名稱、我的收藏、更改密碼與底線的登出排成一列（`core/session.js` 的 `.member-menu`）；手機版頁首只留名稱，其餘三項放在漢堡選單底部（`.nav-account`）。「會員名稱 ▾」下拉選單與 `.account-slot` 已移除。
+- 主選單不抖動的作法改為：`site-header.html` 的 `.header-actions` 內放一份看不見的「搜尋＋會員登入」（`.header-actions-sizer`）撐住訪客版寬度，實際的搜尋與帳號區（`.header-actions-row`）疊在上面靠右（`states.css`）。寬螢幕的會員連結往左延伸；761–1365px 空間不足時，連結在登入按鈕的寬度內換成兩行，不壓到主選單。實測 320–1440px 各寬度訪客與會員的主選單位置相同，訪客狀態無版面位移；會員只有搜尋圖示會左移一次讓出連結位置。
+
 2026-11-03 頁首帳號區與會員頁導向（使用者回報）：
-- 頁首帳號區改為固定大小的一格（`site-header.html` 的 `.account-slot`，內含看不見的「會員登入」按鈕撐住尺寸），確認中、未登入、已登入三種狀態疊在同一格，主選單不再因帳號狀態左右移動（原本未登入會移 20px、已登入移 73px）。已登入時顯示「會員名稱 ▾」按鈕，我的收藏／更改密碼／登出收在下拉選單（`core/session.js`，Esc 或點外面關閉）；先前手機版漢堡選單內的帳號連結一併移除。
+- 頁首帳號區曾改為固定大小的一格並以「會員名稱 ▾」下拉選單呈現，已依使用者指定改回原本的文字連結（見上一則）；主選單在確認帳號時不移動的要求保留（原本未登入會移 20px、已登入移 73px）。
 - 行程、收藏、更改密碼三個會員頁：沒有登入 cookie 且網址不帶參數時，由 Nginx 直接 302 到登入頁（`$member_page_needs_login`），不再先顯示頁面再由 JS 跳轉；帶參數的網址（例如套用路線的待辦）與 cookie 已過期的情況仍由頁面處理。Nginx 設定變更需重啟 web。
 
 2026-11-03 移除「legacy」命名（使用者指定；網站從未上線，沒有舊系統）：
@@ -27,7 +39,7 @@
 - 註解：前後端、測試、Docker／Nginx 與維運腳本的註解改為一般繁體中文說明原因，不再夾帶 `[S：…]`／`E-xx`／`U-xx` 等代碼；411 則原始帶代碼註解保留在 [CODE-COMMENT-TRACEABILITY.md](CODE-COMMENT-TRACEABILITY.md)，AGENTS.md 與架構文件的註解規則同步更新。migration SQL 因有 checksum 保護未改。
 - 格式：前端 JS／CSS／測試以 Prettier 3.9.10（dev only，`frontend/.prettierrc.json`，`npm run format`／`format:check`）格式化；PHP 維持 PER-CS，長參數與陣列改為一行一項。每個檔案都以「去除註解後的語法樹／token 相同」驗證未改動程式行為。
 - 樣式表依功能命名：phase2→states、phase3→places、phase4→film-form、phase6→member-actions、phase7→seo-settings、phase9→content-admin、phase10→routes、phase11→planner、phase13→search；未使用的 seo.css 移除。各頁載入順序不變，全頁截圖比對一致。
-- 效能：Nginx 對 HTML／API 維持 no-store，`/assets`、`/media` 改 no-cache（ETag 304），字型快取 30 天，並對 CSS／JS／HTML／SVG／XML 啟用 gzip（API JSON 不壓縮）；build／publish 依各頁 import 關係加入 `modulepreload`（`frontend/scripts/module-preload.mjs`）。本機量測：第二頁傳輸量由約 2.3 MB 降到 53–752 KB，首頁 DOMContentLoaded 284→141 ms。Nginx 設定變更後需重啟 web。
+- 效能：Nginx 對 HTML／API 維持 no-store，`/assets`、`/media` 改 no-cache（ETag 304；2026-11-03 起帶版本號的資產網址改為長期快取，見最上方），字型快取 30 天，並對 CSS／JS／HTML／SVG／XML 啟用 gzip（API JSON 不壓縮）；build／publish 依各頁 import 關係加入 `modulepreload`（`frontend/scripts/module-preload.mjs`）。本機量測：第二頁傳輸量由約 2.3 MB 降到 53–752 KB，首頁 DOMContentLoaded 284→141 ms。Nginx 設定變更後需重啟 web。
 - 架構：四份重複的 HTML 跳脫函式改用 `core/content-view.js` 的 `escapeHtml`。
 - 297 JS、124 PHP／412 斷言、PHPStan 通過；無 API、DDL、env 或固定頁數量變更。
 
@@ -583,6 +595,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | --- | --- |
 | [package.json](../frontend/package.json) | 原生 ES module 專案設定，以及 build／test 命令；目前沒有第三方 npm 依賴或常駐 Node server。 |
 | [scripts/build.mjs](../frontend/scripts/build.mjs) | 掃描全部 65 個 HTML 來源，組合模板與 active 導覽、表單屬性、複製資產，產出路由白名單及 robots.txt。 |
+| [scripts/asset-version.mjs](../frontend/scripts/asset-version.mjs) | 依資產內容算出版本號，build／publish 用它在 HTML 資產網址與模組 import 加上 `?v=`，讓瀏覽器可長期快取。 |
 | [templates/site-header.html](../frontend/templates/site-header.html) | 公開頁共用品牌、主選單、手機導覽與會員導覽掛載位置。 |
 | [templates/site-footer.html](../frontend/templates/site-footer.html) | 公開頁 footer 與共用連結／文字。 |
 | [templates/admin-sidebar.html](../frontend/templates/admin-sidebar.html) | 後台模組導覽、登入者摘要與固定 root 唯讀模擬選單；權限顯示由 JS 決定。 |

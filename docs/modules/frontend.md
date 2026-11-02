@@ -35,7 +35,7 @@
 ## 先讀哪些檔案
 
 1. `scripts/build.mjs`：把共用模板組成 64 個固定 HTML，保留各原型頁的導覽 active 狀態，設定表單 POST fallback。PHP 不組 HTML。
-2. `templates/`：公開頁 header/footer 與後台 sidebar/topbar、共用確認對話框。未登入的 member-navigation 使用 display:contents，讓原版登入按鈕仍是 header-actions 的 flex 項目。
+2. `templates/`：公開頁 header/footer 與後台 sidebar/topbar、共用確認對話框。頁首右側以看不見的「搜尋＋會員登入」撐住訪客版寬度，實際的搜尋與 member-navigation 疊在上面靠右，帳號狀態改變時主選單位置不變。
 3. `assets/js/core/ui.js`：安全建立 DOM、錯誤標籤、焦點、導覽、提交等待與未保存提示。
 4. `assets/js/auth.js`、`admin.js`：先讀身分，再接各頁模組。後台拒絕／錯誤只更新 admin-content，保留側欄外框。
 5. `assets/js/components/content-cards.js`：每個函式建立一種原型卡片，使用 element／textContent，不把資料直接拼成 HTML。

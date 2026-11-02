@@ -22,14 +22,17 @@ class NodeContentRenderer implements ContentRenderer
     public function version(): string
     {
         $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
-        // 發布結果由這些目錄的檔案決定：發布腳本、頁面與共用模板、SEO 目錄，以及發布時一起執行的前端模組。
-        // 逐一掃描整個目錄，新增檔案時不必再回來維護清單。
+        // 發布結果由這些目錄的檔案決定：發布腳本、頁面與共用模板、SEO 目錄，以及前端資產。
+        // 發布頁引用的 CSS／JS 網址帶有依 assets/ 內容算出的版本號，所以任何資產改動都要重新發布；
+        // 字型檔名本身就是版本，不納入。逐一掃描整個目錄，新增檔案時不必再回來維護清單。
         $files = [];
-        foreach (['scripts', 'pages', 'templates', 'resources', 'assets/js/core'] as $directory) {
+        foreach (['scripts', 'pages', 'templates', 'resources', 'assets'] as $directory) {
             array_push($files, ...self::filesUnder($source . '/' . $directory));
         }
-        $files[] = $source . '/assets/js/font-boot.js';
-        $files[] = $source . '/assets/css/fonts.css';
+        $files = array_values(array_filter(
+            $files,
+            static fn(string $path): bool => !str_contains($path, '/assets/fonts/'),
+        ));
         $hash = hash_init('sha256');
         // 這兩個檔案決定搜尋索引的內容；納入版本雜湊後，規則一改就會重建同一版本的 HTML 與 MariaDB 搜尋索引。
         $files[] = dirname(__DIR__) . '/DTO/SearchDocument.php';

@@ -1,20 +1,24 @@
 import { renderFontHead } from './font-head.mjs';
 import { homeErrorView } from './home-error-view.mjs';
 // 固定 HTML 頁面在前端建置時組合，PHP 不輸出任何畫面。
-import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, readdir, cp, rm } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
 import { addModulePreloads } from './module-preload.mjs';
+import { assetVersion, versionHtmlAssets, versionModuleFiles } from './asset-version.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
 const modulePreloadCache = new Map();
+const version = assetVersion(root);
 const seoCatalog = JSON.parse(await readFile(join(root, 'resources/seo-pages.json'), 'utf8'));
 if (dirname(output) !== root || output === root) throw new Error('Invalid build output');
 await mkdir(output, { recursive: true });
+// 每次從空的輸出目錄開始，已刪除的頁面或資產不會殘留成舊版本；只清內容不刪目錄本身，Nginx 的掛載點才不會失效。
+for (const entry of await readdir(output)) await rm(join(output, entry), { recursive: true, force: true });
 const templates = Object.fromEntries(
   await Promise.all(
     ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [
@@ -99,6 +103,7 @@ for (const source of await pages(join(root, 'pages'))) {
   );
   // 讓瀏覽器一開始就平行下載整棵模組依賴，而不是逐層等待 import。
   html = addModulePreloads(html, join(root, 'assets'), modulePreloadCache);
+  html = versionHtmlAssets(html, version);
   await writeFile(target, annotateEnglishPassages(html));
   // 內部使用的 503 回應頁資產，不列入固定公開頁、sitemap 或正常發布資料。
   if (route === 'index.html')
@@ -111,6 +116,8 @@ await writeFile(
   join(output, 'assets/js/core/routes.js'),
   `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`
 );
+// 輸出目錄裡的模組改寫成帶版本號的 import，和 HTML 引用的網址一致；原始檔不動。
+versionModuleFiles(join(output, 'assets'), version);
 // 真正的 robots.txt 由成功的發布版本提供；建置階段不放入可能過時的 sitemap 網址。
 await writeFile(join(output, 'robots.txt'), 'User-agent: *\nDisallow: /admin/\n');
-console.log(`Built ${routes.length} HTML routes with shared templates.`);
+console.log(`Built ${routes.length} HTML routes with shared templates (assets v=${version}).`);
