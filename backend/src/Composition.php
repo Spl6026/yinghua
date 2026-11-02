@@ -371,7 +371,7 @@ readonly class Composition
                 new SeoSettings(
                     $s->seoSettingsRecords,
                     new SeoOverrideRepository($s->database),
-                    new SeoTargetRepository($s->database),
+                    new SeoTargetRepository($s->database, $s->clock),
                     $s->authorization,
                     $s->transactions,
                     $s->events,

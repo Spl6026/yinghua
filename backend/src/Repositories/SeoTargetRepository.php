@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Repositories;
 
+use Yinghua\Contracts\Clock;
 use Yinghua\DTO\SeoContentTarget;
 use Yinghua\DTO\SeoOverride;
 use Yinghua\Models\SeoResource;
@@ -12,7 +13,10 @@ use Yinghua\Support\UtcDateTime;
 /** 只查 SEO 選擇器需要的識別資料，不讀正文；SQL 中的表名／欄名一律來自 enum。 */
 class SeoTargetRepository
 {
-    public function __construct(private readonly Database $database) {}
+    public function __construct(
+        private readonly Database $database,
+        private readonly Clock $clock,
+    ) {}
 
     /** @return array{string,string} */
     private function source(SeoResource $type): array
@@ -91,7 +95,7 @@ class SeoTargetRepository
             $row->string('id'),
             $row->string('title'),
             $row->string('slug'),
-            $row->string('status') === 'published' && $row->string('publish_at') <= UtcDateTime::sql(time()),
+            $row->string('status') === 'published' && $row->string('publish_at') <= UtcDateTime::sql($this->clock->now()),
             $row->string('seo_title'),
             $row->string('seo_description'),
         );
