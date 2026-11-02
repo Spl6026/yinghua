@@ -8,6 +8,7 @@
 - Nginx（`docker/nginx/default.conf`）：`absolute_redirect off`（`/admin` 補斜線轉址原本掉了埠號）；CSP 補 `default-src`／`style-src`／`img-src`（允許 https 外部封面）／`font-src`／`connect-src`，另加 `Permissions-Policy`；`/api/` 清空用戶端自帶的 `X-Original-URI`，並隱藏 PHP 重複送出的 `Cache-Control`／`nosniff`；存取紀錄加 `time`、`upstream`、`upstream_time`。在 location 內加 `add_header` 會讓伺服器層級的安全標頭失效，錯誤位置因此刻意不加。
 - 登入限速：同一帳號的 5 次／15 分鐘改以「帳號＋來源」計算，另設帳號總上限 50 次／15 分鐘（`Services/Authentication.php`）；原本只以帳號計數，知道帳號名稱的人可以從任何地方持續讓本人無法登入。註冊用電子郵件驗證碼另加單一來源 10 封／小時、全站 300 封／小時（`Services/Captcha.php`），避免被拿來大量寄信。數值屬工程設定，非規格硬性要求。
 - 過期紀錄清理：新增 [SecurityRecordRepository](../backend/src/Repositories/SecurityRecordRepository.php) 與 `php bin/console.php security:prune`，分批刪除過期超過一天的 session、驗證碼、密碼重設 token 與限速紀錄；常駐的 `content:watch` 每小時自動執行一次。登入事件（auth_events）屬稽核紀錄，保存期限待決定，不清除。
+- 前端 API 錯誤（[core/api-client.js](../frontend/assets/js/core/api-client.js)）：回應不是 JSON 時（閘道錯誤頁等）依狀態碼顯示「上傳內容過大」「服務暫時無法使用」等訊息並保留狀態碼，成功但不是 JSON 也視為錯誤；逾時與斷線分開說明。原本一律顯示「請檢查連線」。上傳（FormData）預設逾時改為 120 秒，其他維持 15 秒，可由 `api(path, { timeout })` 指定。新增 `tests/api-client.test.mjs` 直接載入模組測試。
 
 2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
 - 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。
