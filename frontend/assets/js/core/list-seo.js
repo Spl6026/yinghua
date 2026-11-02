@@ -1,5 +1,6 @@
 import { resolveSeo } from './seo-resolver.js';
-import { structuredDataGraph, jsonLdForHtml } from './structured-data.js';
+import { structuredDataGraph } from './structured-data.js';
+import { jsonForHtml } from './content-view.js';
 
 // 初次載入、切換分類與換頁都套用發布時的 SEO 規則，並使用同一版本的公開設定。
 export function readPublicListSeo(documentRoot = document) {
@@ -30,7 +31,7 @@ export function updatePublicListSeo(context, path, title, description, documentR
   const schema = documentRoot.querySelector('script[type="application/ld+json"]');
   if (schema) {
     const graph = structuredDataGraph({ ...context, path, published: true }, meta);
-    if (graph) schema.textContent = jsonLdForHtml(graph);
+    if (graph) schema.textContent = jsonForHtml(graph);
     else schema.remove();
   }
   return meta;

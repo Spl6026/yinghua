@@ -1,5 +1,5 @@
 import { renderFontHead } from './font-head.mjs';
-import { escapeHtml, escapeHtml as e } from '../assets/js/core/content-view.js';
+import { escapeHtml, jsonForHtml } from '../assets/js/core/content-view.js';
 // 由 PHP CLI／API 提供已驗證的資料，HTML 只在前端產生。
 // 每個 generation 都包含完整的公開資料與頁面，全部寫完後才以原子操作切換 current。
 import { readFile, writeFile, mkdir, rename, symlink, rm, realpath } from 'node:fs/promises';
@@ -46,8 +46,6 @@ if (
 )
   throw new Error('Invalid publication');
 const url = item => (item.isMuseum ? '/museum.html' : `/places/${item.slug}.html`);
-const json = value =>
-  JSON.stringify(value).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
 // 資料庫保存 UTC 時間，網站上的日期依台北時區顯示。
 const localDate = value =>
   new Intl.DateTimeFormat('en-CA', {
@@ -58,10 +56,10 @@ const localDate = value =>
   }).format(new Date(value));
 // 含收藏控制的圖片區，要讓互動子元素保留在無障礙樹中。
 const image = (item, className) =>
-  `<div class="${className}" data-image-url="${e(item.image)}" role="${className === 'place-image' ? 'group' : 'img'}" aria-label="${e(item.imageAlt || item.name)}" style="background-image:url(&quot;${e(item.image || '/assets/image-placeholder.svg')}&quot;)"></div>`;
+  `<div class="${className}" data-image-url="${escapeHtml(item.image)}" role="${className === 'place-image' ? 'group' : 'img'}" aria-label="${escapeHtml(item.imageAlt || item.name)}" style="background-image:url(&quot;${escapeHtml(item.image || '/assets/image-placeholder.svg')}&quot;)"></div>`;
 // 選填文字不補預設內容；與瀏覽器端卡片一致，省略空段落與多餘的分隔符號。
 const card = item =>
-  `<article class="place-card reveal in-view">${image(item, 'place-image').replace('</div>', () => `<span class="place-type">${e(item.typeLabel || item.category)}</span><button type="button" class="favorite-button" aria-label="收藏${e(item.name)}" aria-pressed="false" data-favorite="${e(item.id)}">♡</button></div>`)}<div class="place-body"><span class="place-area">${[item.district, item.recommendationLabel || '在地推薦'].filter(Boolean).map(e).join('　/　')}</span><h3>${e(item.name)}</h3>${item.summary ? `<p>${e(item.summary)}</p>` : ''}<div class="place-details"><span>◷ ${e(item.hours || '依店家公告')}</span><span class="place-actions"><a href="${e(url(item))}">看介紹 ↗</a><button type="button" data-add-stop="${e(item.id)}">＋ 行程</button></span></div></div></article>`;
+  `<article class="place-card reveal in-view">${image(item, 'place-image').replace('</div>', () => `<span class="place-type">${escapeHtml(item.typeLabel || item.category)}</span><button type="button" class="favorite-button" aria-label="收藏${escapeHtml(item.name)}" aria-pressed="false" data-favorite="${escapeHtml(item.id)}">♡</button></div>`)}<div class="place-body"><span class="place-area">${[item.district, item.recommendationLabel || '在地推薦'].filter(Boolean).map(escapeHtml).join('　/　')}</span><h3>${escapeHtml(item.name)}</h3>${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ''}<div class="place-details"><span>◷ ${escapeHtml(item.hours || '依店家公告')}</span><span class="place-actions"><a href="${escapeHtml(url(item))}">看介紹 ↗</a><button type="button" data-add-stop="${escapeHtml(item.id)}">＋ 行程</button></span></div></div></article>`;
 const templates = Object.fromEntries(
   await Promise.all(
     ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [
@@ -97,7 +95,8 @@ function withPublishedStylesheets(html) {
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
   if (snapshot.detailNeighbors?.[path])
     html = html.replace('</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
-  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02');
+  // 條款版本與後台填寫的條款內容要在展開共用模板前套用，頁面裡的 {{TERMS_VERSION}} 才不會被當成未知模板。
+  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02', snapshot.general?.values);
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
   const context = {
     path: canonicalPath,
@@ -112,8 +111,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     unavailable: canonicalPath === '/museum.html' && !item,
     modifiedAt: snapshot.indexModifiedAt?.[canonicalPath],
   };
-  let meta = resolveSeo(context);
-  if (context.unavailable) meta = { ...meta, robots: 'noindex,follow' };
+  const meta = resolveSeo(context);
   html = html.replace(
     '</head>',
     '<noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>'
@@ -159,7 +157,6 @@ async function page(path, html, title, description, item, canonicalPath = path, 
       : template;
   });
   html = renderSeoHead(html, context, meta);
-  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02', snapshot.general?.values);
   html = html.replace(
     /(<span class="brand-copy"><strong>)[\s\S]*?(<\/strong>)/g,
     (_, a, b) => a + escapeHtml(meta.siteName) + b
@@ -179,14 +176,13 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   if (managed)
     html = html.replace(
       '</body>',
-      () =>
-        `<script type="application/json" id="attraction-publication">${json({ generation: snapshot.generation, items: snapshot.items })}</script><script type="module" src="/assets/js/pages/attractions.js"></script></body>`
+      () => `<script type="module" src="/assets/js/pages/attractions.js"></script></body>`
     );
   if (managed && filmEnabled)
     html = html.replace(
       '</body>',
       () =>
-        `<script type="application/json" id="film-publication">${json({ generation: snapshot.generation, total: filmItems.length, period: snapshot.filmPeriod })}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`
+        `<script type="application/json" id="film-publication">${jsonForHtml({ total: filmItems.length })}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`
     );
   const target = join(root, path.slice(1));
   await mkdir(dirname(target), { recursive: true });
@@ -231,16 +227,16 @@ if (!existing) {
     const metadata =
       [item.address, item.transport && `交通：${item.transport}`]
         .filter(Boolean)
-        .map(text => `<p>${e(text).replaceAll('\n', '<br>')}</p>`)
+        .map(text => `<p>${escapeHtml(text).replaceAll('\n', '<br>')}</p>`)
         .join('') +
       `<div class="opening-hours-detail"><h2>營業時間</h2>${openingHoursLines(item.openingHours, item.hours)
-        .map(line => `<p>${e(line).replaceAll('\n', '<br>')}</p>`)
+        .map(line => `<p>${escapeHtml(line).replaceAll('\n', '<br>')}</p>`)
         .join(
           ''
         )}${item.openingHours ? '<small>跨日時段歸開始日；實際營業以店家公告為準。</small>' : ''}</div>`;
     const telephone =
       item.phone && /^tel:[+0-9]+(?:;ext=[0-9]+)?$/.test(item.phoneUrl || '')
-        ? `<p>電話：<a href="${e(item.phoneUrl)}">${e(item.phone)}</a></p>`
+        ? `<p>電話：<a href="${escapeHtml(item.phoneUrl)}">${escapeHtml(item.phone)}</a></p>`
         : '';
     const links = [
       [item.mapUrl, '在 Google 地圖開啟'],
@@ -249,16 +245,16 @@ if (!existing) {
       .filter(([href]) => href)
       .map(
         ([href, label]) =>
-          `<a class="text-link" href="${e(href)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`
+          `<a class="text-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`
       )
       .join('　');
-    const body = `<section class="section-pad detail-page">${image(item, 'detail-cover')}<div class="detail-body"><p class="eyebrow">CITY STORY / DETAIL</p><h1>${e(item.name)}</h1>${item.summary ? `<p class="detail-lead">${e(item.summary)}</p>` : ''}${item.description
+    const body = `<section class="section-pad detail-page">${image(item, 'detail-cover')}<div class="detail-body"><p class="eyebrow">CITY STORY / DETAIL</p><h1>${escapeHtml(item.name)}</h1>${item.summary ? `<p class="detail-lead">${escapeHtml(item.summary)}</p>` : ''}${item.description
       .split(/\n\s*\n/)
       .filter(text => text.trim())
-      .map(text => `<p>${e(text).replaceAll('\n', '<br>')}</p>`)
+      .map(text => `<p>${escapeHtml(text).replaceAll('\n', '<br>')}</p>`)
       .join(
         ''
-      )}${!item.description ? `<div class="attraction-description-empty"><p>尚未提供景點介紹。</p></div>` : ''}${metadata}${telephone}<div class="detail-meta">${[item.typeLabel || item.category, item.district].filter(Boolean).map(e).join('・')}</div>${links}<div class="detail-actions"><a class="button button-dark" href="/explore.html">回到城市散策 ↗</a><button type="button" class="text-link" data-add-stop="${e(item.id)}">安排進旅行 <span>→</span></button><button type="button" class="text-link" data-favorite="${e(item.id)}" aria-pressed="false">收藏此景點 ♡</button></div><small>更新日期：${e(localDate(item.updatedAt))}</small></div></section>`;
+      )}${!item.description ? `<div class="attraction-description-empty"><p>尚未提供景點介紹。</p></div>` : ''}${metadata}${telephone}<div class="detail-meta">${[item.typeLabel || item.category, item.district].filter(Boolean).map(escapeHtml).join('・')}</div>${links}<div class="detail-actions"><a class="button button-dark" href="/explore.html">回到城市散策 ↗</a><button type="button" class="text-link" data-add-stop="${escapeHtml(item.id)}">安排進旅行 <span>→</span></button><button type="button" class="text-link" data-favorite="${escapeHtml(item.id)}" aria-pressed="false">收藏此景點 ♡</button></div><small>更新日期：${escapeHtml(localDate(item.updatedAt))}</small></div></section>`;
     const html = detailTemplate.replace(
       /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
       () => body
@@ -292,7 +288,7 @@ if (!existing) {
       /(<div class="intro-copy reveal">)[\s\S]*?(<div class="museum-facts">)/,
       (_, open, close) =>
         open +
-        `<p>${e(museum.summary)}</p>${museum.description ? `<p>${e(museum.description)}</p>` : `<div><p>尚未提供景點介紹。</p></div>`}` +
+        `<p>${escapeHtml(museum.summary)}</p>${museum.description ? `<p>${escapeHtml(museum.description)}</p>` : `<div><p>尚未提供景點介紹。</p></div>`}` +
         close
     );
   if (featured) {
@@ -300,17 +296,19 @@ if (!existing) {
       .replace(
         /<a class="museum-feature image-reveal"[^>]*>/,
         () =>
-          `<a class="museum-feature image-reveal" href="${e(url(featured))}" aria-label="${e(featured.name)}">`
+          `<a class="museum-feature image-reveal" href="${escapeHtml(url(featured))}" aria-label="${escapeHtml(featured.name)}">`
       )
       .replace(
         /<div class="museum-photo"[^>]*>/,
         () =>
-          `<div class="museum-photo" data-image-url="${e(featured.image)}" role="img" aria-label="${e(featured.imageAlt || featured.name)}" style="background-image:url(&quot;${e(featured.image)}&quot;)">`
+          `<div class="museum-photo" data-image-url="${escapeHtml(featured.image)}" role="img" aria-label="${escapeHtml(featured.imageAlt || featured.name)}" style="background-image:url(&quot;${escapeHtml(featured.image)}&quot;)">`
       )
       .replace(
         /(<div class="museum-feature-label">)[\s\S]*?(<\/div>)/,
         (_, open, close) =>
-          open + `<span>${e(featured.category)}</span><strong>${e(featured.name)}</strong>` + close
+          open +
+          `<span>${escapeHtml(featured.category)}</span><strong>${escapeHtml(featured.name)}</strong>` +
+          close
       );
   } else {
     home = home.replace(
@@ -346,17 +344,17 @@ if (!existing) {
       // 以穩定的 id 定位並更新放映週期，保留英文的語言標示，不依賴原型的純文字內容。
       .replace(
         /(<p\b[^>]*\bid="film-period"[^>]*>)[\s\S]*?(<\/p>)/,
-        (_, open, close) => `${open}<bdi lang="en">THIS WEEK</bdi> · ${e(weekLabel)}${close}`
+        (_, open, close) => `${open}<bdi lang="en">THIS WEEK</bdi> · ${escapeHtml(weekLabel)}${close}`
       )
       .replace('※ 場次為示意資料', '實際放映資訊請以最新公告為準。');
     // 與館舍詳情共用同一份快照與週表，不另外保存開放時間。
     const visit = museum
-      ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${e(museum.name)}</h2><p>${[
+      ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${escapeHtml(museum.name)}</h2><p>${[
           museum.address,
           ...openingHoursLines(museum.openingHours, museum.hours),
         ]
           .filter(Boolean)
-          .map(text => e(text).replaceAll('\n', '<br>'))
+          .map(text => escapeHtml(text).replaceAll('\n', '<br>'))
           .join(
             '<br>'
           )}</p></div><a class="text-link" href="/museum.html">查看館舍與交通資訊 <span>↗</span></a></div>`
@@ -411,7 +409,7 @@ if (!existing) {
     home = home.replace(
       '</body>',
       () =>
-        `<script type="application/json" id="home-publication">${json({ ...snapshot.home, generation: snapshot.generation })}</script></body>`
+        `<script type="application/json" id="home-publication">${jsonForHtml({ ...snapshot.home, generation: snapshot.generation })}</script></body>`
     );
   // 與原型及後台 SEO 目錄使用同一個標題；舊字串以品牌開頭又被加上後綴，會讓「映畫竹塹」重複出現。
   await page(

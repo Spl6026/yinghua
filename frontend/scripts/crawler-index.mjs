@@ -1,5 +1,5 @@
 import { isIndexablePublication } from '../assets/js/core/seo-resolver.js';
-import { validTimestamp } from './structured-data.mjs';
+import { validTimestamp } from '../assets/js/core/structured-data.js';
 
 const xml = value =>
   String(value).replace(

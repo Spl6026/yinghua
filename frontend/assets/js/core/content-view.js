@@ -4,8 +4,14 @@ export const escapeHtml = value =>
     /[&<>"']/g,
     c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
   );
+// 嵌入 <script> 的 JSON：跳脫 < > & 以免提早結束標籤，並跳脫 U+2028／U+2029，讓舊瀏覽器解析時不會斷行出錯。
 export const jsonForHtml = value =>
-  JSON.stringify(value).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');
+  JSON.stringify(value)
+    .replaceAll('<', '\\u003c')
+    .replaceAll('>', '\\u003e')
+    .replaceAll('&', '\\u0026')
+    .replaceAll('\u2028', '\\u2028')
+    .replaceAll('\u2029', '\\u2029');
 export function contentDate(stamp, options = {}) {
   if (!stamp || !Number.isFinite(Date.parse(stamp))) return '日期依公告';
   return new Intl.DateTimeFormat('zh-TW', {

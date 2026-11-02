@@ -161,6 +161,7 @@ function controllerFixture() {
     pageHref: (path, type, page) =>
       path + '?' + new URLSearchParams({ ...(type ? { type } : {}), ...(page > 1 ? { page } : {}) }),
     fallbackContentImages() {},
+    jsonForHtml: value => JSON.stringify(value),
   };
   vm.createContext(sandbox);
   controllerSources.forEach(code =>

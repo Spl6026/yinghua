@@ -1,6 +1,6 @@
-import { escapeHtml as escape } from '../assets/js/core/content-view.js';
+import { escapeHtml, jsonForHtml } from '../assets/js/core/content-view.js';
 import { resolveSeo } from '../assets/js/core/seo-resolver.js';
-import { structuredDataGraph, jsonLdForHtml } from './structured-data.mjs';
+import { structuredDataGraph } from '../assets/js/core/structured-data.js';
 
 // HTML 中每個 SEO 標籤只有一個負責寫入的地方；所有動態值都會編碼。
 export function renderSeoHead(html, context, meta = resolveSeo(context)) {
@@ -21,15 +21,15 @@ export function renderSeoHead(html, context, meta = resolveSeo(context)) {
     ''
   );
   if (context.unavailable) meta = { ...meta, robots: 'noindex,follow' };
-  const name = (key, value) => `<meta name="${key}" content="${escape(value)}">`;
-  const property = (key, value) => `<meta property="${key}" content="${escape(value)}">`;
+  const name = (key, value) => `<meta name="${key}" content="${escapeHtml(value)}">`;
+  const property = (key, value) => `<meta property="${key}" content="${escapeHtml(value)}">`;
   let head =
-    `<title>${escape(meta.title)}</title>` +
+    `<title>${escapeHtml(meta.title)}</title>` +
     name('description', meta.description) +
     name('keywords', meta.keywords) +
     name('robots', meta.robots) +
     name('googlebot', meta.robots) +
-    `<link rel="canonical" href="${escape(meta.canonical)}">`;
+    `<link rel="canonical" href="${escapeHtml(meta.canonical)}">`;
   for (const [key, value] of Object.entries({
     title: meta.title,
     description: meta.description,
@@ -53,7 +53,7 @@ export function renderSeoHead(html, context, meta = resolveSeo(context)) {
   if (!/<link\b[^>]*rel=["'](?:shortcut )?icon["']/i.test(html))
     head += '<link rel="icon" href="/assets/favicon.svg">';
   const graph = structuredDataGraph(context, meta);
-  if (graph) head += `<script type="application/ld+json">${jsonLdForHtml(graph)}</script>`;
+  if (graph) head += `<script type="application/ld+json">${jsonForHtml(graph)}</script>`;
   const pathname = new URL(context.path, 'https://seo.invalid').pathname;
   if (['/events.html', '/activities.html', '/city-news.html', '/offers.html'].includes(pathname)) {
     // 只帶目前主題及已發布的設定；不把其他內容覆寫或管理資料送到瀏覽器。
@@ -68,11 +68,7 @@ export function renderSeoHead(html, context, meta = resolveSeo(context)) {
       },
       catalog: (context.catalog || []).filter(page => page.path === pathname),
     };
-    const json = JSON.stringify(clientContext)
-      .replaceAll('<', '\\u003c')
-      .replaceAll('>', '\\u003e')
-      .replaceAll('&', '\\u0026');
-    head += `<script type="application/json" id="public-list-seo">${json}</script>`;
+    head += `<script type="application/json" id="public-list-seo">${jsonForHtml(clientContext)}</script>`;
   }
   return html.replace('</head>', () => head + '</head>');
 }

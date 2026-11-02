@@ -1,7 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { resolveSeo } from '../assets/js/core/seo-resolver.js';
-import { structuredDataGraph, jsonLdForHtml, validTimestamp } from '../scripts/structured-data.mjs';
+import { structuredDataGraph, validTimestamp } from '../assets/js/core/structured-data.js';
+import { jsonForHtml } from '../assets/js/core/content-view.js';
 import { renderSeoHead } from '../scripts/seo-head.mjs';
 
 const base = {
@@ -141,7 +142,7 @@ test('安全序列化與單一擁有者，不留下原型或惡意script', () =>
   assert.ok(!html.includes('<img src=x'));
   assert.ok(!html.includes('"demo"'));
   assert.equal(JSON.parse(blocks[0][1])['@graph'].at(-1).name, context.item.name);
-  assert.equal(jsonLdForHtml({ x: '<>&\u2028\u2029' }), '{"x":"\\u003c\\u003e\\u0026\\u2028\\u2029"}');
+  assert.equal(jsonForHtml({ x: '<>&\u2028\u2029' }), '{"x":"\\u003c\\u003e\\u0026\\u2028\\u2029"}');
   const privateHtml = renderSeoHead(html, { ...context, path: '/planner.html' });
   assert.ok(!privateHtml.includes('application/ld+json'));
 });

@@ -1,4 +1,4 @@
-import { escapeHtml as e } from './content-view.js';
+import { escapeHtml } from './content-view.js';
 
 // 只呈現後端在同一發布版本算出的上一篇／下一篇，不自行重排，也不混入草稿。
 export function contentNeighbors(neighbors) {
@@ -14,7 +14,7 @@ export function contentNeighbors(neighbors) {
       ? item.image
       : '/assets/image-placeholder.svg';
     return [
-      `<a class="article-neighbor article-neighbor-${key}" href="${e(item.url)}" aria-label="${label}：${e(item.title)}"><img src="${e(image)}" alt="" width="240" height="160" loading="lazy"><span class="article-neighbor-copy"><span class="article-neighbor-label">${label}</span><strong>${e(item.title)}</strong></span></a>`,
+      `<a class="article-neighbor article-neighbor-${key}" href="${escapeHtml(item.url)}" aria-label="${label}：${escapeHtml(item.title)}"><img src="${escapeHtml(image)}" alt="" width="240" height="160" loading="lazy"><span class="article-neighbor-copy"><span class="article-neighbor-label">${label}</span><strong>${escapeHtml(item.title)}</strong></span></a>`,
     ];
   });
   return cards.length

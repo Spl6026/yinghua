@@ -1,4 +1,4 @@
-import { escapeHtml as escape } from '../assets/js/core/content-view.js';
+import { escapeHtml } from '../assets/js/core/content-view.js';
 // 只使用已通過公開白名單的同一份發布快照，不另外建立內容資料。
 function contentUrl(kind, item) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid public index slug');
@@ -14,7 +14,7 @@ export function renderPublicContentIndex(snapshot) {
   return groups
     .map(
       ([kind, label, items]) =>
-        `<section class="public-index-group" id="index-${kind}" aria-labelledby="index-${kind}-title"><h2 id="index-${kind}-title">${label}</h2><ul>${items.map(item => `<li data-index-item><a href="${escape(contentUrl(kind, item))}">${escape(item.name || item.title)}${kind === 'offers' && !item.active ? '（已結束或尚未開始）' : ''}</a></li>`).join('')}</ul>${!items.length ? '<p>目前還沒有內容。</p>' : ''}</section>`
+        `<section class="public-index-group" id="index-${kind}" aria-labelledby="index-${kind}-title"><h2 id="index-${kind}-title">${label}</h2><ul>${items.map(item => `<li data-index-item><a href="${escapeHtml(contentUrl(kind, item))}">${escapeHtml(item.name || item.title)}${kind === 'offers' && !item.active ? '（已結束或尚未開始）' : ''}</a></li>`).join('')}</ul>${!items.length ? '<p>目前還沒有內容。</p>' : ''}</section>`
     )
     .join('');
 }
