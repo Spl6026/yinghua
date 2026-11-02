@@ -1,14 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
-import { readFile } from 'node:fs/promises';
 import { emptyOpeningHours, openingWeek, openingDayNames } from '../assets/js/core/opening-hours.js';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const source = (
-  await readFile(new URL('../assets/js/components/opening-hours-editor.js', import.meta.url), 'utf8')
-)
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace(/\bexport /g, '');
 class Node {
   constructor(tag) {
     this.tag = tag;
@@ -49,7 +43,7 @@ class Node {
     this.focused = true;
   }
 }
-function fixture() {
+async function fixture() {
   const container = new Node('div'),
     events = [];
   container.addEventListener('input', () => events.push('input'));
@@ -71,8 +65,7 @@ function fixture() {
     },
     document: { createTextNode: text => ({ text }) },
   };
-  vm.createContext(context);
-  vm.runInContext(source, context);
+  Object.assign(context, await loadWithSandbox('components/opening-hours-editor.js', context));
   const editor = context.openingHoursEditor(container);
   const all = () => {
     const walk = node => [node, ...(node.children || []).flatMap(walk)];
@@ -83,8 +76,8 @@ function fixture() {
 }
 const plain = value => JSON.parse(JSON.stringify(value));
 
-test('手動週表可填午休與跨日，讀取為 API 的同一格式', () => {
-  const f = fixture();
+test('手動週表可填午休與跨日，讀取為 API 的同一格式', async () => {
+  const f = await fixture();
   const state = f.find('openingDay1');
   state.value = 'periods';
   state.emit('change');
@@ -100,8 +93,8 @@ test('手動週表可填午休與跨日，讀取為 API 的同一格式', () => 
   ]);
   assert.equal(f.events.length, 2);
 });
-test('舊文字只進備註；Google 結構資料讀回後可人工修改', () => {
-  const f = fixture();
+test('舊文字只進備註；Google 結構資料讀回後可人工修改', async () => {
+  const f = await fixture();
   f.editor.load(null, '原始時間');
   assert.equal(f.editor.read().note, '原始時間');
   assert.ok(f.editor.read().days.every(day => day.status === 'unknown'));
@@ -115,8 +108,8 @@ test('舊文字只進備註；Google 結構資料讀回後可人工修改', () =
   f.find('opening-2-1-closes').value = '17:00';
   assert.equal(f.editor.read().days[2].periods[0].closes, '17:00');
 });
-test('改為公休不送出隱藏時段，也不讓隱藏必填阻止保存', () => {
-  const f = fixture();
+test('改為公休不送出隱藏時段，也不讓隱藏必填阻止保存', async () => {
+  const f = await fixture();
   const state = f.find('openingDay1');
   state.value = 'periods';
   state.emit('change');
@@ -125,8 +118,8 @@ test('改為公休不送出隱藏時段，也不讓隱藏必填阻止保存', ()
   assert.deepEqual(plain(f.editor.read().days[1]), { day: 1, status: 'closed', periods: [] });
   assert.equal(f.find('opening-1-1-opens').disabled, true);
 });
-test('唯讀及儲存鎖定不能新增或編輯；重載後仍保持鎖定', () => {
-  const f = fixture();
+test('唯讀及儲存鎖定不能新增或編輯；重載後仍保持鎖定', async () => {
+  const f = await fixture();
   f.find('openingDay1').value = 'periods';
   f.find('openingDay1').emit('change');
   f.editor.setDisabled(true);
@@ -142,8 +135,8 @@ test('唯讀及儲存鎖定不能新增或編輯；重載後仍保持鎖定', ()
   f.editor.setDisabled(false);
   assert.equal(f.find('openingDay1').disabled, false);
 });
-test('每日最多四段；移除時段後可再新增並保留焦點', () => {
-  const f = fixture();
+test('每日最多四段；移除時段後可再新增並保留焦點', async () => {
+  const f = await fixture();
   f.find('openingDay1').value = 'periods';
   f.find('openingDay1').emit('change');
   const add = f.find('週一新增營業時段');

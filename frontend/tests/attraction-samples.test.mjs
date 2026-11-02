@@ -1,14 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import { applyAttractionSample } from '../assets/js/core/attraction-sample.js';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const source = (
-  await readFile(new URL('../assets/js/components/attraction-samples.js', import.meta.url), 'utf8')
-)
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace(/\bexport /g, '');
 class Control {
   constructor() {
     this.value = '';
@@ -33,7 +27,7 @@ class Control {
     this.focused = true;
   }
 }
-function setup() {
+async function setup() {
   const names = [
     'name',
     'category',
@@ -105,8 +99,7 @@ function setup() {
     },
     confirmAction: async () => (typeof state.confirm === 'function' ? state.confirm() : state.confirm),
   };
-  vm.createContext(sandbox);
-  vm.runInContext(source, sandbox);
+  Object.assign(sandbox, await loadWithSandbox('components/attraction-samples.js', sandbox));
   const picker = sandbox.attractionSamplePicker(
     { querySelector: key => nodes[key] },
     form,
@@ -125,7 +118,7 @@ function setup() {
 }
 
 test('範例經明確選取及確認後才試填，不複製識別、圖片與發布設定', async () => {
-  const f = setup();
+  const f = await setup();
   await f.picker.load();
   assert.equal(f.state.applied, 0);
   assert.equal(f.apply.disabled, true);
@@ -144,7 +137,7 @@ test('範例經明確選取及確認後才試填，不複製識別、圖片與�
   assert.match(f.message.textContent, /尚未儲存/);
 });
 test('取消確認保留原輸入與關聯', async () => {
-  const f = setup();
+  const f = await setup();
   await f.picker.load();
   f.select.value = 'sample';
   f.state.confirm = false;
@@ -154,7 +147,7 @@ test('取消確認保留原輸入與關聯', async () => {
   assert.equal(f.form.elements.googlePlaceId.value, 'original-googlePlaceId');
 });
 test('載入失敗可重試，空清單不阻擋人工輸入', async () => {
-  const f = setup();
+  const f = await setup();
   f.state.read = async () => {
     throw new Error('讀取失敗');
   };
@@ -169,7 +162,7 @@ test('載入失敗可重試，空清單不阻擋人工輸入', async () => {
   assert.equal(f.form.elements.name.value, 'original-name');
 });
 test('唯讀、忙碌或確認途中失去可寫狀態都不套用', async () => {
-  const f = setup();
+  const f = await setup();
   await f.picker.load();
   f.select.value = 'sample';
   f.picker.setDisabled(true);
@@ -189,7 +182,7 @@ test('唯讀、忙碌或確認途中失去可寫狀態都不套用', async () =>
   assert.equal(f.form.elements.name.value, 'original-name');
 });
 test('確認期間連點不會重複套用', async () => {
-  const f = setup();
+  const f = await setup();
   await f.picker.load();
   f.select.value = 'sample';
   let resolve;

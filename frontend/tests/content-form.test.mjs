@@ -1,17 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import * as taipeiTime from '../assets/js/core/taipei-time.js';
-const paths = ['core/ui.js', 'core/session.js', 'core/admin-form.js', 'pages/content-form.js'];
-const source = (
-  await Promise.all(paths.map(p => readFile(new URL('../assets/js/' + p, import.meta.url), 'utf8')))
-).map(s =>
-  s
-    .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-    .replace(/\bexport /g, '')
-    .replace("(await import('../components/offer-merchants.js')).offerMerchants", 'offerMerchants')
-);
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 const settle = async () => {
   for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve));
 };
@@ -70,7 +60,13 @@ class Node {
   }
 }
 
-function fixture({ creating = false, preview = false, view = true, edit = true, module = 'news' } = {}) {
+async function fixture({
+  creating = false,
+  preview = false,
+  view = true,
+  edit = true,
+  module = 'news',
+} = {}) {
   const nodes = new Map(),
     node = (id, tag = 'div') => {
       if (!nodes.has(id)) nodes.set(id, new Node(tag));
@@ -156,8 +152,7 @@ function fixture({ creating = false, preview = false, view = true, edit = true, 
     initializeContentBodyEditor: () => ({ render() {} }),
     offerMerchants: () => ({ load: async () => {}, select: async () => {}, refresh() {} }),
   };
-  vm.createContext(sandbox);
-  source.forEach(s => vm.runInContext(s, sandbox));
+  Object.assign(sandbox, await loadWithSandbox('pages/content-form.js', sandbox));
   const identity = {
     preview: { active: preview },
     permissions: ['create', ...(view ? ['view'] : []), ...(edit ? ['edit'] : [])].map(action => ({
@@ -182,7 +177,7 @@ function fixture({ creating = false, preview = false, view = true, edit = true, 
 }
 for (const module of ['news', 'offers']) {
   test(module + '：202已保存禁止重複新增，只具新增權限不返回自己', async () => {
-    const f = fixture({ module, creating: true, view: false, edit: false });
+    const f = await fixture({ module, creating: true, view: false, edit: false });
     await f.initialize();
     f.state.write = async () => ({
       record: { id: 'new', version: 1 },
@@ -198,7 +193,7 @@ for (const module of ['news', 'offers']) {
     assert.equal(f.state.assignments.length, 0);
   });
   test(module + '：讀取失敗鎖定，重試後可用；409保留輸入', async () => {
-    const f = fixture({ module });
+    const f = await fixture({ module });
     f.state.get = async () => {
       throw new Error('讀取失敗');
     };
@@ -220,7 +215,7 @@ for (const module of ['news', 'offers']) {
     assert.equal(f.message.focused, true);
   });
   test(module + '：唯讀模擬不可修改、上傳及送出', async () => {
-    const f = fixture({ module, preview: true });
+    const f = await fixture({ module, preview: true });
     await f.initialize();
     assert.equal(f.form.elements.title.disabled, true);
     f.form.emit('submit');
@@ -229,7 +224,7 @@ for (const module of ['news', 'offers']) {
     assert.equal(f.state.saves.length, 0);
   });
   test(module + '：取消重載保留草稿，確認重載清除錯誤', async () => {
-    const f = fixture({ module });
+    const f = await fixture({ module });
     await f.initialize();
     f.form.elements.title.value = '草稿';
     f.form.emit('input');
