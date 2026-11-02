@@ -48,10 +48,10 @@ const adminBackLinks = {
 };
 // 保留原型各頁導覽的 active 樣式；food、search、auth 原版本來就沒有選中項目。
 const navigationSections = {
-  '/explore.html': ['explore.html', 'museum.html', 'place-detail.html', 'places/'],
-  '/cinema.html': ['cinema.html', 'film-detail.html', 'films/'],
-  '/events.html': ['events.html', 'activities.html', 'city-news.html', 'news-detail.html', 'news/'],
-  '/offers.html': ['offers.html', 'offer-detail.html', 'offers/'],
+  '/explore.html': ['explore.html', 'museum.html'],
+  '/cinema.html': ['cinema.html'],
+  '/events.html': ['events.html', 'activities.html', 'city-news.html'],
+  '/offers.html': ['offers.html'],
   '/planner.html': ['planner.html', 'routes.html'],
 };
 for (const source of await pages(join(root, 'pages'))) {

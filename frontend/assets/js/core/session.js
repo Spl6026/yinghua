@@ -10,7 +10,8 @@ export function returnTo(kind, fallback = kind === 'admin' ? '/admin/index.html'
     return fallback;
   const url = new URL(value, location.origin);
   const publishedContentPath =
-    kind === 'member' && /^\/(?:places|films)\/[a-z0-9]+(?:-[a-z0-9]+)*\.html$/.test(url.pathname);
+    kind === 'member' &&
+    /^\/(?:places|films|news|offers)\/[a-z0-9]+(?:-[a-z0-9]+)*\.html$/.test(url.pathname);
   if (
     url.origin !== location.origin ||
     (!routes.has(url.pathname) && !publishedContentPath) ||

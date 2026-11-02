@@ -82,12 +82,12 @@ export function loginForMemberAction(kind, id) {
   location.assign('/login.html?returnTo=' + encodeURIComponent(target.pathname + target.search));
 }
 
-// 只有舊的 planner?place=1..6 網址與登入後待辦才查公開資料；一般卡片狀態走本人資源的批次 API。
+// 登入後帶回的待辦（planner.html?place=<景點 id>）才需要查公開景點資料；一般卡片狀態走本人資源的批次 API。
 export async function resolvePublicAttraction(id) {
-  if (!isAttractionId(id) && !/^[1-6]$/.test(id || '')) return null;
+  if (!isAttractionId(id)) return null;
   for (let page = 1; ; page++) {
     const data = await api('/api/v1/attractions?' + new URLSearchParams({ page, pageSize: 100 }));
-    const item = data.items.find(item => item.id === id || String(item.legacyId) === id);
+    const item = data.items.find(item => item.id === id);
     if (item) return item;
     if (page * 100 >= data.total) return null;
   }

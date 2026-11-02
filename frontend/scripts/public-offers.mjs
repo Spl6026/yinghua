@@ -39,7 +39,7 @@ export async function publishOffers(source, snapshot, page) {
       pageHref('/offers.html', '', current)
     );
   }
-  const detailTemplate = await readFile(join(source, 'pages/offers/autumn-coffee.html'), 'utf8');
+  const detailTemplate = await readFile(join(source, 'templates/offer-detail.html'), 'utf8');
   for (const item of snapshot.offers) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid offer slug');
     const html = detailTemplate.replace(

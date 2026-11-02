@@ -24,7 +24,6 @@ test('景點收藏控制不被上層 img 語意隱藏，且保留完整可讀名
         }
       },
     }),
-    detailLinks: {},
   };
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox);

@@ -61,7 +61,7 @@ export async function publishNews(source, snapshot, page) {
       }
     }
   }
-  const detailTemplate = await readFile(join(source, 'pages/news/slow-market.html'), 'utf8');
+  const detailTemplate = await readFile(join(source, 'templates/news-detail.html'), 'utf8');
   for (const item of snapshot.news) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid news slug');
     const html = detailTemplate.replace(/<section class="section-pad detail-page">[\s\S]*?<\/section>/, () =>

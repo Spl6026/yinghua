@@ -2,7 +2,6 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
-import { CurrentTripState } from '../assets/js/core/current-trip-state.js';
 import { TripEditorState } from '../assets/js/core/trip-editor-state.js';
 
 // 執行真正頁面程式，只替換 DOM、session 與 HTTP 邊界；不代表瀏覽器排版驗收。
@@ -138,7 +137,6 @@ async function fixture(page, search = '') {
     },
     document,
     URLSearchParams,
-    CurrentTripState,
     TripEditorState,
     itinerariesApi: trips,
     memberResourcesApi: api,

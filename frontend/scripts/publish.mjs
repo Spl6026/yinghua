@@ -369,7 +369,7 @@ if (!existing) {
       '查看影像博物館本週放映日期、時間、電影介紹與海報。'
     );
     // 電影頁採用原型的電影專用頁殼，保留「本週映演」導覽，不沿用城市散策頁。
-    const filmTemplate = await readFile(join(source, 'pages/films/window-sunday.html'), 'utf8');
+    const filmTemplate = await readFile(join(source, 'templates/film-detail.html'), 'utf8');
     for (const film of snapshot.films) {
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(film.slug)) throw new Error('Invalid film slug');
       const html = filmTemplate.replace(/<section class="section-pad detail-page">[\s\S]*?<\/section>/, () =>

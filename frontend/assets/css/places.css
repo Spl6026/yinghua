@@ -40,13 +40,10 @@
   white-space: pre-wrap;
 }
 .google-maps-attribution {
-  font-family: Roboto, sans-serif;
-  font-size: 14px;
-  font-style: normal;
-  font-weight: 400;
-  letter-spacing: normal;
+  font: 400 14px/1.5 var(--sans);
+  color: #5e5e5e;
   white-space: nowrap;
-  color: #1f1f1f;
+  letter-spacing: normal;
 }
 /* 狀態與展開按鈕放在同一列，詳細內容另起一塊向下展開，避免 flex 對齊時跳動。 */
 .google-place-link {
@@ -248,42 +245,4 @@
   #place-samples .url-import {
     grid-template-columns: 1fr;
   }
-}
-
-/* Google 原文來源與自家內容分開呈現，窄版也不截短 Google 原文。 */
-.google-summary-reference,
-.attraction-content-preview {
-  padding: 16px;
-  border: 1px solid var(--line);
-  margin: 16px 0;
-  overflow-wrap: anywhere;
-}
-.google-summary-reference .google-editorial-summary {
-  white-space: pre-wrap;
-}
-.google-summary-reference a {
-  display: block;
-  margin-top: 8px;
-  text-decoration: underline;
-}
-.google-maps-attribution {
-  font: 400 14px/1.5 var(--sans);
-  color: #5e5e5e;
-  white-space: nowrap;
-  letter-spacing: normal;
-}
-.attraction-content-preview p {
-  white-space: pre-wrap;
-  font-size: 14px;
-}
-
-.attraction-content-preview {
-  grid-column: 1/-1;
-}
-.attraction-content-preview summary {
-  cursor: pointer;
-  font-size: 14px;
-}
-.attraction-content-preview .button {
-  margin-top: 8px;
 }
