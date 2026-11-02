@@ -15,7 +15,7 @@ export function canonicalPath(value){
 // [S SEO E7／G33；E-34] 發布與爬蟲索引共用保護邊界，不靠robots授權。
 export function isProtectedSeoPage(path,catalog=[]){
   const pathname=new URL(path,'https://seo.invalid').pathname;
-  return pathname.startsWith('/admin/')||Boolean(catalog.find(page=>page.path===pathname)?.protected)||/^\/(?:login|register|forgot-password|reset-password|change-password|planner|favorites|search)\.html$/.test(pathname);
+  return pathname.startsWith('/admin/')||Boolean(catalog.find(page=>page.path===pathname)?.protected)||/^\/(?:login|register|forgot-password|reset-password|change-password|planner|favorites|search|404)\.html$/.test(pathname);
 }
 
 export function isIndexablePublication(context,meta){
