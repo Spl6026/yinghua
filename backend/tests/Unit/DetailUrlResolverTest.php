@@ -6,7 +6,7 @@ namespace Yinghua\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
 use Yinghua\Exceptions\ApplicationError;
-use Yinghua\Models\DetailUrlType;
+use Yinghua\Models\PublicContentType;
 use Yinghua\Services\DetailUrlResolver;
 use Yinghua\Exceptions\ErrorCode;
 
@@ -30,37 +30,37 @@ class DetailUrlResolverTest extends TestCase
     public function testAliasAndIdDetailPageResolveToCurrentUrl(): void
     {
         $snapshot = $this->snapshot();
-        self::assertSame('/places/market.html', DetailUrlResolver::fromSnapshot($snapshot, DetailUrlType::Attraction, '/places/old-market.html'));
-        self::assertSame('/museum.html', DetailUrlResolver::fromSnapshot($snapshot, DetailUrlType::Attraction, '/place-detail.html?id=1'));
-        self::assertSame('/films/first.html', DetailUrlResolver::fromSnapshot($snapshot, DetailUrlType::Film, '/film-detail.html?id=f1'));
-        self::assertSame('/news/first.html', DetailUrlResolver::fromSnapshot($snapshot, DetailUrlType::News, '/news-detail.html?id=1'));
+        self::assertSame('/places/market.html', DetailUrlResolver::fromSnapshot($snapshot, PublicContentType::Attraction, '/places/old-market.html'));
+        self::assertSame('/museum.html', DetailUrlResolver::fromSnapshot($snapshot, PublicContentType::Attraction, '/place-detail.html?id=1'));
+        self::assertSame('/films/first.html', DetailUrlResolver::fromSnapshot($snapshot, PublicContentType::Film, '/film-detail.html?id=f1'));
+        self::assertSame('/news/first.html', DetailUrlResolver::fromSnapshot($snapshot, PublicContentType::News, '/news-detail.html?id=1'));
     }
 
     public function testPrototypeOfferIndexMapsToImportedPrototypeId(): void
     {
         $snapshot = $this->snapshot();
-        self::assertSame('/offers/first.html', DetailUrlResolver::fromSnapshot($snapshot, DetailUrlType::Offer, '/offer-detail.html?id=0'));
+        self::assertSame('/offers/first.html', DetailUrlResolver::fromSnapshot($snapshot, PublicContentType::Offer, '/offer-detail.html?id=0'));
         // 2 會先換成 103；沒有這筆時不能退回比對原本的 prototypeId 2。
-        $this->assertNotFound($snapshot, DetailUrlType::Offer, '/offer-detail.html?id=2', '找不到此優惠網址。');
+        $this->assertNotFound($snapshot, PublicContentType::Offer, '/offer-detail.html?id=2', '找不到此優惠網址。');
     }
 
     public function testCoffeeWalkNewsUrlRedirectsToItsOffer(): void
     {
-        self::assertSame('/offers/second.html', DetailUrlResolver::fromSnapshot($this->snapshot(), DetailUrlType::News, '/news/coffee-walk.html'));
+        self::assertSame('/offers/second.html', DetailUrlResolver::fromSnapshot($this->snapshot(), PublicContentType::News, '/news/coffee-walk.html'));
     }
 
     public function testSelfAliasUnknownIdAndForeignTargetAreNotFound(): void
     {
         $snapshot = $this->snapshot();
-        $this->assertNotFound($snapshot, DetailUrlType::Attraction, '/places/market.html', '找不到此景點網址。');
-        $this->assertNotFound($snapshot, DetailUrlType::Film, '/film-detail.html?id=9', '找不到此電影網址。');
-        $this->assertNotFound($snapshot, DetailUrlType::Film, '/film-detail.html', '找不到此電影網址。');
+        $this->assertNotFound($snapshot, PublicContentType::Attraction, '/places/market.html', '找不到此景點網址。');
+        $this->assertNotFound($snapshot, PublicContentType::Film, '/film-detail.html?id=9', '找不到此電影網址。');
+        $this->assertNotFound($snapshot, PublicContentType::Film, '/film-detail.html', '找不到此電影網址。');
         $snapshot['filmAliases'] = ['/films/old.html' => '/news/first.html'];
-        $this->assertNotFound($snapshot, DetailUrlType::Film, '/films/old.html', '找不到此電影網址。');
+        $this->assertNotFound($snapshot, PublicContentType::Film, '/films/old.html', '找不到此電影網址。');
     }
 
     /** @param array<string,mixed> $snapshot */
-    private function assertNotFound(array $snapshot, DetailUrlType $type, string $original, string $message): void
+    private function assertNotFound(array $snapshot, PublicContentType $type, string $original, string $message): void
     {
         try {
             DetailUrlResolver::fromSnapshot($snapshot, $type, $original);

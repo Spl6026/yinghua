@@ -6,19 +6,19 @@ namespace Yinghua\Services;
 
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
-use Yinghua\Models\DetailUrlType;
+use Yinghua\Models\PublicContentType;
 use Yinghua\Exceptions\ErrorCode;
 
 /**
  * 景點、電影、消息與優惠共用的詳情頁網址轉向：把先前的網址代稱或以編號開啟的詳情頁（*-detail.html?id=）轉到目前的正式詳情頁。
- * 只讀成功發布的快照，確保轉到的網址在同一個版本裡一定存在；各類型的差異由 DetailUrlType 提供。
+ * 只讀成功發布的快照，確保轉到的網址在同一個版本裡一定存在；各類型的差異由 PublicContentType 提供。
  */
 readonly class DetailUrlResolver
 {
     public function __construct(private ContentPublication $publication) {}
 
     /** 回傳目前的公開網址；找不到或目標不合法時一律回 NOT_FOUND，不透露原因。 */
-    public function resolve(DetailUrlType $type, string $original): string
+    public function resolve(PublicContentType $type, string $original): string
     {
         return self::fromSnapshot($this->publication->read(), $type, $original);
     }
@@ -28,7 +28,7 @@ readonly class DetailUrlResolver
      *
      * @param array<string,mixed> $snapshot
      */
-    public static function fromSnapshot(array $snapshot, DetailUrlType $type, string $original): string
+    public static function fromSnapshot(array $snapshot, PublicContentType $type, string $original): string
     {
         $path = parse_url($original, PHP_URL_PATH);
         $other = is_string($path) ? $type->movedTo($path) : null;
@@ -63,7 +63,7 @@ readonly class DetailUrlResolver
     }
 
     /** @param array<string,mixed> $snapshot */
-    private static function alias(array $snapshot, DetailUrlType $type, string $path): mixed
+    private static function alias(array $snapshot, PublicContentType $type, string $path): mixed
     {
         $aliases = $snapshot[$type->aliasKey()] ?? [];
 

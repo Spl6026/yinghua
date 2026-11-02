@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Policies;
 
 use Yinghua\DTO\{ContentNeighbor, ContentNeighbors, PublicCollection};
+use Yinghua\Models\PublicContentType;
 
 /** 詳情頁的上一篇／下一篇，只從發布成功的公開資料中挑選；發布與公開 API 共用同一份結果。 */
 final class NeighborSelection
@@ -15,15 +16,12 @@ final class NeighborSelection
     public static function project(array $snapshot): array
     {
         $result = [];
-        foreach (['items','films','news','offers'] as $topic) {
+        foreach (PublicContentType::cases() as $type) {
             $groups = [];
-            foreach (PublicCollection::items($snapshot, $topic) as $item) {
-                if ($topic === 'items') {
-                    $slug = is_string($item['slug'] ?? null) ? $item['slug'] : '';
-                    $item['url'] = ($item['isMuseum'] ?? false) === true ? '/museum.html' : '/places/' . $slug . '.html';
-                }
-                $key = $topic === 'items' ? 'category' : ($topic === 'news' ? 'type' : '');
-                $group = $key === '' ? '' : (is_string($item[$key] ?? null) ? $item[$key] : '');
+            foreach (PublicCollection::items($snapshot, $type->collectionKey()) as $item) {
+                $item['url'] = $type->publishedUrl($item);
+                $key = $type->neighborGroupKey();
+                $group = $key === null ? '' : (is_string($item[$key] ?? null) ? $item[$key] : '');
                 $groups[$group][] = $item;
             }
             foreach ($groups as $items) {

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Services;
 
+use Yinghua\Models\PublicContentType;
 use Yinghua\Adapters\SeoCatalog;
 use Yinghua\Config;
 use Yinghua\Contracts\Transactions;
@@ -160,8 +161,8 @@ class SeoSettings
             }
             $snapshot = $this->publication->read();
             $found = false;
-            foreach (['items','films','news','offers'] as $key) {
-                $items = $snapshot[$key] ?? [];
+            foreach (PublicContentType::cases() as $type) {
+                $items = $snapshot[$type->collectionKey()] ?? [];
                 foreach (is_array($items) ? $items : [] as $item) {
                     if (is_array($item)
                         && (($item['image'] ?? null) === $path

@@ -45,12 +45,12 @@
 2026-11-03 移除「legacy」命名（使用者指定；網站從未上線，沒有舊系統）：
 - 資料：attractions／films／news_posts／offers 的 `legacy_id` 改名為 `prototype_id`（客戶原型詳情頁 `?id=N` 使用的項目編號），自動命名的唯一索引一併改為 `prototype_id`；新增 [021_prototype_ids.sql](../backend/database/migrations/021_prototype_ids.sql)，以 `RENAME COLUMN IF EXISTS`／`RENAME INDEX IF EXISTS` 寫成可重跑，既有編號原樣保留。migration 合計 21 份。
 - API／快照／示範 JSON：`legacyId` → `prototypeId`，示範店家與優惠的 `attractionLegacyId` → `attractionPrototypeId`；`MerchantRepository::forAttractionPrototypeId()`。
-- 轉向：`LegacyUrlResolver`／`LegacyUrlType` 改名為 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)／[DetailUrlType](../backend/src/Models/DetailUrlType.php)（`idDetailPage()`、`prototypeId()`），單元測試改為 `DetailUrlResolverTest`；Nginx 佔位檔名改為 `__resolve_{place,film,news,offer}_detail__`。轉向結果不變。
+- 轉向：`LegacyUrlResolver`／`LegacyUrlType` 改名為 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)／[PublicContentType](../backend/src/Models/PublicContentType.php)（`idDetailPage()`、`prototypeId()`），單元測試改為 `DetailUrlResolverTest`；Nginx 佔位檔名改為 `__resolve_{place,film,news,offer}_detail__`。轉向結果不變。
 - 前端：`openingHoursLines(value, hoursText)` 與營業時間編輯器 `load(value, hoursText)` 的第二參數是缺少結構化營業時間時的文字說明。
 
 2026-11-03 後端路由與舊網址轉向整理（使用者指定）：
 - 路由：全部 111 條 API 路由（健康檢查仍由 `public/index.php` 提前處理）集中在 [config/routes.php](../backend/config/routes.php)，依原註冊順序排列；刪除 `favorite-routes.php`、`itinerary-routes.php`、`news-admin-routes.php`、`offer-admin-routes.php`、`recommended-routes.php`、`seo-routes.php`，以及原本寫在 Composition 裡的十二條路由。Composition 只組裝物件，透過 [ApiControllers](../backend/src/Controllers/ApiControllers.php) 一次交給路由表。
-- 舊網址：景點、電影、消息、優惠四處重複的舊網址轉向（alias、`*-detail.html?id=`、原型編號（現名 prototypeId）、目標網址檢查）合併為 LegacyUrlResolver（現名 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)），各類型差異（快照鍵、舊頁路徑、優惠 0–2→101–103、`/news/coffee-walk.html` 轉優惠）寫在 LegacyUrlType（現名 [DetailUrlType](../backend/src/Models/DetailUrlType.php)）；景點的轉向邏輯從 Controller 移到 Service 層。狀態碼、Location 與錯誤內容不變。
+- 舊網址：景點、電影、消息、優惠四處重複的舊網址轉向（alias、`*-detail.html?id=`、原型編號（現名 prototypeId）、目標網址檢查）合併為 LegacyUrlResolver（現名 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)），各類型差異（快照鍵、舊頁路徑、優惠 0–2→101–103、`/news/coffee-walk.html` 轉優惠）寫在 LegacyUrlType（現名 [PublicContentType](../backend/src/Models/PublicContentType.php)）；景點的轉向邏輯從 Controller 移到 Service 層。狀態碼、Location 與錯誤內容不變。
 - 消息與優惠管理維持各自的 Controller／Service。API 仍為 115 個操作。
 
 2026-11-03 分階段開發遺留整理（使用者指定）：
@@ -1127,7 +1127,7 @@ python backend/tests/film_schema_upgrade.py
 | [src/Controllers/MapController.php](../backend/src/Controllers/MapController.php) | 地圖網址／action 輸入與候選輸出。 |
 | [src/Controllers/MediaController.php](../backend/src/Controllers/MediaController.php) | multipart 上傳、分頁與 Nginx 媒體存取檢查。 |
 | [src/Controllers/PublicAttractionController.php](../backend/src/Controllers/PublicAttractionController.php) | 公開列表／詳情／博物館、版本存取檢查；詳情頁網址轉向交給 DetailUrlResolver。 |
-| [src/Services/DetailUrlResolver.php](../backend/src/Services/DetailUrlResolver.php)／[src/Models/DetailUrlType.php](../backend/src/Models/DetailUrlType.php) | 景點、電影、消息、優惠共用的詳情頁網址轉向（先前的網址代稱與以編號開啟的詳情頁）：只讀成功發布快照，查 alias 與舊 `*-detail.html?id=`，目標須是該類型的公開網址；各類型差異集中在 LegacyUrlType。 |
+| [src/Services/DetailUrlResolver.php](../backend/src/Services/DetailUrlResolver.php)／[src/Models/PublicContentType.php](../backend/src/Models/PublicContentType.php) | 景點、電影、消息、優惠共用的詳情頁網址轉向（先前的網址代稱與以編號開啟的詳情頁）：只讀成功發布快照，查 alias 與舊 `*-detail.html?id=`，目標須是該類型的公開網址；各類型差異集中在 LegacyUrlType。 |
 | [src/DTO/Attraction.php](../backend/src/DTO/Attraction.php) | Repository 的內容快照，區分管理與公開欄位。 |
 | [src/DTO/AttractionInput.php](../backend/src/DTO/AttractionInput.php) | 欄位白名單、slug、座標、網址、發布時間與版本校驗。 |
 | [src/DTO/AttractionPage.php](../backend/src/DTO/AttractionPage.php) | 管理列表的 typed 分頁結果。 |

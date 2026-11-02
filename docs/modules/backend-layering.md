@@ -113,3 +113,6 @@ E-01／E-13：Request.json() 不得丟棄 PHP 將 JSON 數字屬性名轉成的�
 | --- | --- | --- |
 | 組裝根（Composition Root）＋工廠方法 | `Composition`、`Composition\SharedServices` | 唯一建立物件的地方；共用物件建一次，各區塊工廠方法只組自己的 Controller |
 | 建構器（Builder） | `Services\PublicationSnapshotBuilder` | 從各資料表組出公開快照並算出 generation；`ContentPublication` 只負責發布流程、鎖定與記錄結果。`SECTIONS` 列出所有區段，發布延遲診斷依此比對，單元測試確認與實際快照一致 |
+| 策略（Strategy，以 enum 實作） | `Models\PublicContentType` | 景點、電影、消息、優惠的快照鍵、正式網址（含博物館固定頁）、標題欄位、上一篇／下一篇分組與搜尋分類；網址轉向、上下篇、搜尋索引與 SEO 圖片檢查都以 `cases()` 逐一處理，不再各自維護字串清單 |
+| 範本方法（Template Method） | `Services\ContentWriter`、`AdminContentManagement` | 共用的儲存／刪除順序（發布鎖、交易、權限、版本、稽核、重新發布），各模組只提供檢查與寫入 |
+| 轉接器（Adapter） | `Adapters\*` 實作 `Contracts\*` | 外部服務（Node 產生器、SMTP、Google、檔案儲存、HTML 淨化）都藏在介面後，業務類別只依賴介面 |

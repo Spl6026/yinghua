@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Repositories;
 
 use PDOException;
+use Yinghua\Models\PublicContentType;
 use Yinghua\DTO\Attraction;
 use Yinghua\DTO\AttractionInput;
 use Yinghua\DTO\AttractionPage;
@@ -162,9 +163,10 @@ class AttractionRepository
             ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
-            $result[$row->string('path')] = $row->integer('is_museum') === 1
-                ? '/museum.html'
-                : '/places/' . $row->string('slug') . '.html';
+            $result[$row->string('path')] = PublicContentType::Attraction->canonicalUrl([
+                'isMuseum' => $row->integer('is_museum') === 1,
+                'slug' => $row->string('slug'),
+            ]);
         }
         ksort($result);
 
@@ -218,7 +220,7 @@ class AttractionRepository
         $data['version'] = $r->integer('version');
         $data['featured'] = $r->integer('featured') === 1;
         $data['isMuseum'] = $r->integer('is_museum') === 1;
-        $data['url'] = $data['isMuseum'] ? '/museum.html' : '/places/' . $r->string('slug') . '.html';
+        $data['url'] = PublicContentType::Attraction->canonicalUrl(['isMuseum' => $data['isMuseum'], 'slug' => $r->string('slug')]);
         $data['publishAt'] = UtcDateTime::iso($r->string('publish_at'));
         $data['updatedAt'] = UtcDateTime::iso($r->string('updated_at'));
         $data['deletedAt'] = $r->nullableString('deleted_at');
