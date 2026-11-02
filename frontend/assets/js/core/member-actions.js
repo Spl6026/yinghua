@@ -5,6 +5,7 @@ import { MemberResourceState } from './member-resource-state.js';
 import { recoverSession } from './session-expiry.js';
 import { PendingWrites } from './pending-writes.js';
 import { publicApi } from '../api/public-api.js';
+import { FAVORITE_CHANGED, emitPageEvent } from './page-events.js';
 
 // 只處理受管景點的 UUID；原型陣列的索引不能當成正式資料的識別碼。
 const isAttractionId = id => /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
@@ -190,7 +191,7 @@ async function toggleFavorite(button) {
           clearMemberIntent('pendingFavorite');
           document.querySelector('#member-favorite-intent')?.remove();
         }
-        document.dispatchEvent(new CustomEvent('member-favorite-change', { detail: { attractionId: id } }));
+        emitPageEvent(FAVORITE_CHANGED, { attractionId: id });
       }
       return result.changed === true;
     } catch (error) {

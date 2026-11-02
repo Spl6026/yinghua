@@ -5,6 +5,7 @@ import { confirmAction } from '../components/dialog.js';
 import { seoField, seoPanel, robotsChoices } from '../components/seo-fields.js';
 import { seoOverrideRow } from '../components/seo-override-row.js';
 import { resolveSeo } from '../core/seo-resolver.js';
+import { SETTINGS_SECTION_SAVED, emitPageEvent, onPageEvent } from '../core/page-events.js';
 
 const defaultFields = [
   ['siteName', '網站名稱', 160],
@@ -280,7 +281,7 @@ export async function initializeSeoSettings(identity) {
     }
   }
   // 一般設定儲存後版本號會前進；SEO 區若沒有未存修改就自動重讀，有修改則提示重新讀取，以免覆蓋共用欄位。
-  document.addEventListener('settings-section-saved', event => {
+  onPageEvent(SETTINGS_SECTION_SAVED, event => {
     if (event.detail?.section === 'seo') return;
     if (!dirty && !busy) void load();
     else if (dirty)
@@ -326,7 +327,7 @@ export async function initializeSeoSettings(identity) {
         result.publicationReady ? '已儲存，網站標籤已更新。' : '已儲存，網站更新待重試；請稍後重新讀取狀態。'
       );
       message.focus();
-      document.dispatchEvent(new CustomEvent('settings-section-saved', { detail: { section: 'seo' } }));
+      emitPageEvent(SETTINGS_SECTION_SAVED, { section: 'seo' });
     } catch (error) {
       const fields = {};
       for (const [name, value] of Object.entries(error.fieldErrors || {})) {

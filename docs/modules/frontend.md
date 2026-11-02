@@ -60,6 +60,7 @@ docker compose run --rm frontend
 | 需要做的事 | 使用 | 說明 |
 | --- | --- | --- |
 | 後台內容列表 | `core/admin-table.js` 的 `adminTable()`、`createPagedList()`、`publicationLabel()` | 各列表只描述取資料、欄位與操作；換頁、最新回應優先、刪除後退回有效頁與焦點、唯讀模擬規則統一 |
+| 頁內事件 | `core/page-events.js` | 同一頁不同模組間的通知名稱與 `emitPageEvent()`／`onPageEvent()`：收藏變更、一般設定與 SEO 設定互相通知重新讀取 |
 | SEO 覆寫列 | `components/seo-override-row.js` | SEO 設定頁「各頁覆寫」的一列（欄位、清空關鍵字、清除按鈕、預覽區）；頁面 `pages/seo-settings.js` 只管列表、預覽計算與儲存，`render()` 分為全站預設、覆寫列表、單筆內容搜尋、說明與按鈕四段 |
 | 公開內容類型對照 | `core/content-kinds.js` | 景點、電影、消息、優惠的快照鍵、網址目錄與 SEO 類型（對應後端 `PublicContentType`）；SEO 解析、結構化資料、搜尋卡片、sitemap 與發布腳本都由此判斷網址類型與組詳情頁網址。結構化資料以 `entityBuilders` 依類型產生 Schema.org 實體 |
 | 後台表單共同規則 | `core/admin-form.js` | `createFormState()`（景點、電影、消息／優惠、推薦行程表單共用的狀態：載入中→可編輯⇄處理中→已完成，並負責未儲存提醒與只採用最後一次載入；頁面只寫自己的 `controls()`）、`redirectBackLinks()`（沒有列表權限時的返回連結）、`confirmDiscard()`、`adminFormErrors()`、`latestRequest()`、`uploadFormImage()` |
