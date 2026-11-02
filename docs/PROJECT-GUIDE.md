@@ -16,6 +16,7 @@
 - 公開頁快取：Nginx 對公開 HTML（含消息／優惠內部分頁檔）改回 `no-cache`（每次以 ETag 確認），讓瀏覽器可使用「上一頁快取」；會員頁、登入相關頁與後台維持 `no-store`。`memberNavigation()` 在頁面由快取還原時重新確認帳號。Playwright 的測試瀏覽器強制關閉上一頁快取，實際還原需在一般瀏覽器確認。
 - 後台入口（`assets/js/admin.js`）：改為依 `body[data-page]` 對照表只動態載入當頁模組，並與登入確認同時開始下載；原本靜態 import 全部 15 個頁面模組，每頁都會預載整棵後台程式。圖片載入失敗的替代圖改共用 `content-view.js` 的 `fallbackContentImages()`（已檢查的節點不再重複下載）。
 - 頁面產生流程共用：新增 [scripts/page-pipeline.mjs](../frontend/scripts/page-pipeline.mjs)（`loadTemplates`、`markActiveNavigation`、`finalizePage`），`build.mjs` 與 `publish.mjs` 不再各寫一套模板載入、主選單選中判斷（原本一邊用對照表、一邊用 if 串）與字型／登入監看／模組預載／版本號步驟；條款預設版本集中為 `policy-pages.mjs` 的 `DEFAULT_POLICY_VERSION`。重構前後 49 個建置頁與 20 個發布頁逐字比對相同（版本號除外）。
+- 正式環境：新增 `docker/php/production.ini`（`opcache.validate_timestamps=0`），release 映像改用 `composer dump-autoload --classmap-authoritative`；`compose.production.yaml` 各服務加 `mem_limit`、MariaDB `innodb-buffer-pool-size`（皆可用環境變數調整）、publisher 心跳健康檢查；`operations.py` 新增 `upgrade`（關入口 → 換 app → migration → 重新發布 → open），並以 `tests/test_upgrade_order.py` 驗證順序。compose 註解中的內部代碼改為一般說明。
 
 2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
 - 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。

@@ -138,6 +138,17 @@ class Deployment:
         self.run(['up','-d','--no-build','publisher','web'])
         return {'project':self.project,'trafficOpened':True,'generation':public['generation']}
 
+    def upgrade(self):
+        # 既有站台升級：先關閉對外入口與背景工作，換上新版 app 後才執行 migration，
+        # 新程式不會在舊資料結構上服務請求；migration 自帶鎖與 checksum，可安全重跑。
+        self.pause_writes()
+        self.run(['up','-d','--no-deps','--no-build','app'])
+        self.manifest()
+        self.run(['exec','-T','app','php','bin/console.php','db:migrate'])
+        self.readiness();self.media()
+        self.run(['exec','-T','-u','www-data','app','php','bin/console.php','content:publish'])
+        return self.open()
+
     def rollback(self):
         self.pause_writes()
         self.run(['up','-d','--no-deps','--no-build','app'])
@@ -188,7 +199,7 @@ def verify_backup(target):
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--env-file',required=True);parser.add_argument('--project',required=True)
-    parser.add_argument('operation',choices=['preflight','status','backup','verify-backup','restore','open','rollback'])
+    parser.add_argument('operation',choices=['preflight','status','backup','verify-backup','restore','open','upgrade','rollback'])
     parser.add_argument('--backup-directory')
     options=parser.parse_args()
     deployment=Deployment(options.env_file,options.project)
@@ -198,7 +209,7 @@ def main():
         if options.operation=='verify-backup':
             verify_backup(private_target(options.backup_directory));report['backupVerified']=True
         else:report=getattr(deployment,options.operation)(options.backup_directory)
-    elif options.operation in ['open','rollback']:report=getattr(deployment,options.operation)()
+    elif options.operation in ['open','upgrade','rollback']:report=getattr(deployment,options.operation)()
     if options.operation=='status':
         report.update(core=deployment.readiness(),public=deployment.readiness(True),release=deployment.manifest()['version'])
     print(json.dumps(report,ensure_ascii=False))

@@ -135,6 +135,8 @@ try {
             $securityRecords = new SecurityRecordRepository($database);
             $lastPrune = 0;
             for (;;) {
+                // 每一輪更新心跳檔；容器健康檢查看這個檔案多久沒更新，就知道發布程序是否卡住。
+                @touch(sys_get_temp_dir() . '/yinghua-publisher-heartbeat');
                 try {
                     if (!$publication->tick()) {
                         fwrite(STDERR, "Publication pending; retrying.\n");

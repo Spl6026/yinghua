@@ -23,7 +23,15 @@ docker compose --env-file .env.production -f compose.production.yaml exec app ph
 
 build-release拒絕未提交發布來源、錯誤commit及已存在映像tag；勿用development標籤覆寫正式映像。需要registry時發布到受控registry並改成digest reference，另保存實際app/web Image ID與release.json；manifest不透過HTTP公開。相容性以migration名稱／checksum／完成狀態實驗證，不能只看版本字串。
 
-admin:init互動輸入Email、密碼與確認；不要把密碼當命令參數或貼到聊天。既有庫升級不重設APP_KEY、密碼或重新匯入原型。內容／媒體匯入指令見 [公開內容指南](modules/public-content.md)，確認素材授權後再執行。
+admin:init互動輸入Email、密碼與確認；不要把密碼當命令參數或貼到聊天。既有庫升級不重設APP_KEY、密碼或重新匯入原型。
+
+既有站台升級新版本時使用 `upgrade`：先關閉 web／publisher，以新映像啟動 app、執行 `db:migrate`（自帶鎖與 checksum，可重跑），確認 readiness 與媒體後重新發布，最後經 `open` 的檢查才開放流量；不要先 `up -d` 再另外跑 migration，否則新程式會在舊資料結構上服務請求。
+
+```text
+python scripts/operations/operations.py --env-file .env.production --project yinghua-production upgrade
+```
+
+正式映像另載入 `docker/php/production.ini`（OPcache 不檢查檔案變動），autoloader 使用 `--classmap-authoritative`；PHP-FPM 為 16 個 worker、單一請求 30 秒上限。各服務設有 `mem_limit`（`DB_MEMORY_LIMIT` 等變數可調，見 production.env.example）。publisher 每輪更新心跳檔並有健康檢查，超過 2 分鐘沒更新會標成 unhealthy；Compose 不會自動重啟 unhealthy 容器，需由外部監控告警後重啟 publisher。內容／媒體匯入指令見 [公開內容指南](modules/public-content.md)，確認素材授權後再執行。
 
 ```text
 docker compose --env-file .env.production -f compose.production.yaml exec -T -u www-data app php bin/console.php content:publish
