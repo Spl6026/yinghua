@@ -5,7 +5,6 @@
   background: #fff;
   color: var(--ink);
   border: 1px solid var(--line);
-  font: inherit;
 }
 .trip-list-pager,
 .trip-management {
@@ -37,7 +36,6 @@
 }
 .trip-stop-field label {
   display: block;
-  font-size: 14px;
   margin-bottom: 6px;
 }
 .trip-stop-field input,
@@ -49,7 +47,6 @@
   border: 1px solid var(--line);
   background: #fff;
   color: var(--ink);
-  font: inherit;
 }
 .trip-stop-field textarea {
   resize: vertical;
@@ -70,7 +67,6 @@
   flex-wrap: wrap;
 }
 .itinerary-stop .stop-actions button {
-  min-width: 44px;
   min-height: 44px;
 }
 .suggestion-card h3,
@@ -91,9 +87,6 @@
   .itinerary-stop .stop-actions {
     grid-column: 2;
     justify-content: flex-start;
-  }
-  .planner-card {
-    min-width: 0;
   }
 }
 

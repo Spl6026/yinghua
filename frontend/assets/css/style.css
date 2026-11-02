@@ -30,7 +30,6 @@ body {
   background: var(--paper);
   color: var(--ink);
   font-family: var(--sans);
-  font-size: 15px;
   line-height: 1.8;
   -webkit-font-smoothing: antialiased;
 }
@@ -122,11 +121,9 @@ select:focus-visible {
 }
 .brand-copy strong {
   font-family: var(--serif);
-  font-size: 17px;
   letter-spacing: 0.08em;
 }
 .brand-copy small {
-  font-size: 8px;
   letter-spacing: 0.11em;
   color: var(--muted);
   text-transform: uppercase;
@@ -138,7 +135,6 @@ select:focus-visible {
   height: 100%;
 }
 .primary-nav a {
-  font-size: 13px;
   letter-spacing: 0.06em;
   color: #55574f;
   position: relative;
@@ -186,7 +182,6 @@ select:focus-visible {
   border: 1px solid var(--green);
   background: transparent;
   color: var(--green);
-  font-size: 12px;
   letter-spacing: 0.05em;
   padding: 10px 16px;
   cursor: pointer;
@@ -235,7 +230,6 @@ select:focus-visible {
   max-width: 620px;
 }
 .eyebrow {
-  font-size: 10px;
   letter-spacing: 0.17em;
   text-transform: uppercase;
   color: var(--green);
@@ -270,7 +264,6 @@ select:focus-visible {
   color: #d0ad77;
 }
 .hero-intro {
-  font-size: 14px;
   color: rgba(255, 255, 255, 0.78);
   line-height: 2.2;
   letter-spacing: 0.035em;
@@ -288,7 +281,6 @@ select:focus-visible {
   justify-content: center;
   gap: 22px;
   padding: 14px 22px;
-  font-size: 12px;
   letter-spacing: 0.06em;
   cursor: pointer;
   transition:
@@ -323,7 +315,6 @@ select:focus-visible {
   background: none;
   padding: 0;
   color: var(--green);
-  font-size: 12px;
   letter-spacing: 0.04em;
   cursor: pointer;
 }
@@ -346,7 +337,6 @@ select:focus-visible {
   display: flex;
   justify-content: space-between;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 9px;
   letter-spacing: 0.12em;
 }
 .hero-stamp {
@@ -381,7 +371,6 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 18px;
-  font-size: 9px;
   letter-spacing: 0.13em;
   color: var(--muted);
   margin-bottom: 55px;
@@ -435,7 +424,6 @@ select:focus-visible {
 .intro-copy {
   padding-top: 20px;
   color: #686a61;
-  font-size: 13px;
   line-height: 2.2;
 }
 .intro-copy p {
@@ -459,7 +447,6 @@ select:focus-visible {
   font-weight: 500;
 }
 .museum-facts small {
-  font-size: 9px;
   color: var(--muted);
 }
 .museum-feature {
@@ -580,7 +567,6 @@ select:focus-visible {
   justify-content: space-between;
   margin: 19px 0 7px;
   color: #848579;
-  font-size: 9px;
   letter-spacing: 0.07em;
 }
 .film-card h3 {
@@ -591,7 +577,6 @@ select:focus-visible {
   letter-spacing: 0.04em;
 }
 .film-card p {
-  font-size: 11px;
   color: var(--muted);
   margin: 0;
   min-height: 27px;
@@ -603,7 +588,6 @@ select:focus-visible {
   border-top: 1px solid #cec8bb;
   margin-top: 17px;
   padding-top: 12px;
-  font-size: 10px;
   color: var(--muted);
 }
 .round-arrow.small {
@@ -651,7 +635,6 @@ select:focus-visible {
   margin: 0 0 17px;
 }
 .split-copy p:not(.eyebrow) {
-  font-size: 13px;
   color: rgba(255, 255, 255, 0.72);
   max-width: 370px;
   line-height: 2.2;
@@ -705,23 +688,19 @@ select:focus-visible {
   font-weight: 500;
 }
 .event-date small {
-  font-size: 8px;
   letter-spacing: 0.08em;
   color: var(--muted);
 }
 .event-type {
-  font-size: 10px;
   color: var(--muted);
   border-left: 1px solid var(--line);
   padding-left: 14px;
 }
 .event-row strong {
   font-family: var(--serif);
-  font-size: 16px;
   font-weight: 500;
 }
 .event-location {
-  font-size: 10px;
   color: var(--muted);
 }
 .event-arrow {
@@ -748,7 +727,6 @@ select:focus-visible {
 }
 .planner-banner p:not(.eyebrow) {
   color: rgba(255, 255, 255, 0.73);
-  font-size: 12px;
   line-height: 2.1;
 }
 .planner-banner .button {
@@ -768,7 +746,6 @@ select:focus-visible {
   right: 6%;
   bottom: 30px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 9px;
   letter-spacing: 0.14em;
   text-align: right;
 }
@@ -819,7 +796,6 @@ select:focus-visible {
   justify-content: space-between;
   align-items: center;
   padding-top: 18px;
-  font-size: 9px;
   color: #aaa99d;
   letter-spacing: 0.04em;
 }
@@ -864,7 +840,6 @@ select:focus-visible {
   margin: 12px 0;
 }
 .inner-hero p:last-child {
-  font-size: 13px;
   color: rgba(255, 255, 255, 0.77);
   line-height: 2.1;
 }
@@ -936,12 +911,10 @@ select:focus-visible {
   background: none;
   padding: 12px 0 14px;
   color: var(--muted);
-  font-size: 12px;
   cursor: pointer;
   position: relative;
 }
 .guide-tab span {
-  font-size: 9px;
   color: var(--muted);
   margin-left: 4px;
 }
@@ -993,7 +966,6 @@ select:focus-visible {
   z-index: 1;
   background: rgba(249, 247, 240, 0.93);
   padding: 5px 9px;
-  font-size: 9px;
   color: var(--green);
 }
 .favorite-button {
@@ -1017,7 +989,6 @@ select:focus-visible {
   padding: 17px 17px 15px;
 }
 .place-area {
-  font-size: 9px;
   color: var(--muted);
   letter-spacing: 0.08em;
 }
@@ -1026,7 +997,6 @@ select:focus-visible {
   margin: 4px 0;
 }
 .place-body p {
-  font-size: 11px;
   color: var(--muted);
   margin: 3px 0 14px;
   min-height: 40px;
@@ -1037,7 +1007,6 @@ select:focus-visible {
   align-items: center;
   padding-top: 11px;
   border-top: 1px solid var(--line);
-  font-size: 10px;
   color: var(--muted);
 }
 .place-actions {
@@ -1048,7 +1017,6 @@ select:focus-visible {
   border: 0;
   background: none;
   color: var(--green);
-  font-size: 10px;
   padding: 0;
   cursor: pointer;
 }
@@ -1061,7 +1029,6 @@ select:focus-visible {
   align-items: center;
 }
 .discount-band > span {
-  font-size: 9px;
   letter-spacing: 0.13em;
   color: var(--muted);
 }
@@ -1073,8 +1040,6 @@ select:focus-visible {
 }
 .cinema-row {
   display: grid;
-  grid-template-columns: 80px 1fr 170px 120px;
-  gap: 22px;
   align-items: center;
   padding: 24px 5px;
   border-bottom: 1px solid var(--line);
@@ -1090,7 +1055,6 @@ select:focus-visible {
   letter-spacing: 0.08em;
 }
 .cinema-info span {
-  font-size: 9px;
   color: var(--muted);
 }
 .cinema-info h3 {
@@ -1098,15 +1062,11 @@ select:focus-visible {
   margin: 3px 0;
 }
 .cinema-info p {
-  font-size: 11px;
   color: var(--muted);
   margin: 0;
 }
-.cinema-time {
-  font-size: 12px;
-}
+
 .cinema-row .button {
-  font-size: 10px;
   padding: 10px 14px;
 }
 .museum-info {
@@ -1122,7 +1082,6 @@ select:focus-visible {
   margin: 0 0 7px;
 }
 .museum-info p {
-  font-size: 11px;
   line-height: 1.9;
   color: var(--muted);
   margin: 0;
@@ -1141,7 +1100,6 @@ select:focus-visible {
 }
 .news-tag {
   color: var(--green);
-  font-size: 9px;
   letter-spacing: 0.08em;
 }
 .news-feature h3 {
@@ -1149,7 +1107,6 @@ select:focus-visible {
   margin: 9px 0;
 }
 .news-feature p {
-  font-size: 11px;
   color: var(--muted);
   line-height: 2;
 }
@@ -1164,7 +1121,6 @@ select:focus-visible {
 .news-item-top {
   display: flex;
   justify-content: space-between;
-  font-size: 9px;
   color: var(--muted);
 }
 .news-item h3 {
@@ -1172,7 +1128,6 @@ select:focus-visible {
   margin: 8px 0;
 }
 .news-item p {
-  font-size: 10px;
   color: var(--muted);
   margin: 0;
   line-height: 1.9;
@@ -1379,7 +1334,6 @@ select:focus-visible {
   font: 500 16px var(--serif);
 }
 .stop-info p {
-  font-size: 10px;
   color: var(--muted);
   margin: 2px 0;
 }
@@ -1444,11 +1398,9 @@ select:focus-visible {
   font: 500 15px var(--serif);
 }
 .admin-brand small {
-  font-size: 9px;
   color: #b7b6a8;
 }
 .admin-menu-label {
-  font-size: 8px;
   letter-spacing: 0.17em;
   color: #8e9989;
   margin: 25px 11px 8px;
@@ -1459,7 +1411,6 @@ select:focus-visible {
   text-align: left;
   padding: 11px 12px;
   color: #d3d5ca;
-  font-size: 11px;
   cursor: pointer;
   border-radius: 3px;
 }
@@ -1487,11 +1438,9 @@ select:focus-visible {
   flex-direction: column;
 }
 .admin-user b {
-  font-size: 10px;
   font-weight: 500;
 }
 .admin-user small {
-  font-size: 8px;
   color: #a9ad9f;
 }
 .admin-main {
@@ -1505,7 +1454,6 @@ select:focus-visible {
   padding: 0 34px;
   background: #fbfaf5;
   border-bottom: 1px solid #e4e2da;
-  font-size: 10px;
   color: var(--muted);
 }
 .admin-topbar b {
@@ -1522,7 +1470,6 @@ select:focus-visible {
   border: 1px solid #c9c8bc;
   background: transparent;
   padding: 7px 11px;
-  font-size: 9px;
   color: #485944;
   cursor: pointer;
 }
@@ -1540,7 +1487,6 @@ select:focus-visible {
 }
 
 .admin-page-heading p {
-  font-size: 10px;
   color: var(--muted);
   margin: 3px 0 0;
 }
@@ -1556,7 +1502,6 @@ select:focus-visible {
   border: 1px solid #e4e2da;
 }
 .stat-card span {
-  font-size: 9px;
   color: var(--muted);
 }
 .stat-card strong {
@@ -1565,7 +1510,6 @@ select:focus-visible {
   margin: 8px 0 1px;
 }
 .stat-card small {
-  font-size: 8px;
   color: #75906d;
 }
 .admin-panel {
@@ -1585,13 +1529,11 @@ select:focus-visible {
   margin: 0;
 }
 .admin-panel-heading span {
-  font-size: 9px;
   color: var(--muted);
 }
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 10px;
 }
 .admin-table th {
   text-align: left;
@@ -1608,7 +1550,6 @@ select:focus-visible {
   padding: 4px 8px;
   background: #e8eddf;
   color: #526849;
-  font-size: 8px;
 }
 .status-pill.pending {
   background: #f2ead8;
@@ -1619,7 +1560,6 @@ select:focus-visible {
   background: transparent;
   color: #53674b;
   cursor: pointer;
-  font-size: 10px;
 }
 .admin-two-col {
   display: grid;
@@ -1637,7 +1577,6 @@ select:focus-visible {
   padding: 13px 9px;
   text-align: left;
   cursor: pointer;
-  font-size: 10px;
   color: #515b4c;
 }
 .quick-actions button:hover {
@@ -1658,7 +1597,6 @@ select:focus-visible {
   grid-column: 1/-1;
 }
 .admin-field label {
-  font-size: 10px;
   color: #686b60;
 }
 .admin-field input,
@@ -1667,7 +1605,6 @@ select:focus-visible {
   border: 1px solid #d9d7cd;
   background: #fffefa;
   padding: 10px;
-  font-size: 11px;
   color: #30352e;
 }
 .admin-field textarea {
@@ -1684,10 +1621,8 @@ select:focus-visible {
   border: 1px solid #d9d7cd;
   background: #fffefa;
   padding: 11px;
-  font-size: 11px;
 }
 .helper-text {
-  font-size: 9px;
   color: var(--muted);
   margin: 3px 0 0;
 }
@@ -1699,7 +1634,6 @@ select:focus-visible {
 }
 .admin-form-actions .button {
   padding: 10px 15px;
-  font-size: 10px;
 }
 
 .admin-mobile-menu {
@@ -1712,7 +1646,6 @@ select:focus-visible {
 }
 .form-field label {
   display: block;
-  font-size: 10px;
   color: #666a5f;
   margin-bottom: 5px;
 }
@@ -1721,7 +1654,6 @@ select:focus-visible {
   padding: 11px;
   border: 1px solid #d5d1c5;
   background: #fbfaf5;
-  font-size: 12px;
 }
 
 .captcha-row {
@@ -1739,7 +1671,6 @@ select:focus-visible {
 .form-error {
   min-height: 18px;
   color: #a44943;
-  font-size: 10px;
   margin: 0 0 4px;
 }
 
@@ -1755,12 +1686,10 @@ select:focus-visible {
   margin: 4px 0 9px;
 }
 .detail-body p {
-  font-size: 12px;
   color: var(--muted);
   line-height: 2;
 }
 .detail-meta {
-  font-size: 10px;
   color: var(--muted);
   border-top: 1px solid var(--line);
   padding-top: 13px;
@@ -1776,7 +1705,6 @@ select:focus-visible {
   background: #2e372d;
   color: white;
   padding: 11px 20px;
-  font-size: 11px;
   box-shadow: 0 7px 25px rgba(0, 0, 0, 0.15);
   pointer-events: none;
   transition: 0.3s;
@@ -1842,7 +1770,6 @@ select:focus-visible {
   border: 1px solid var(--line);
   background: #fbfaf5;
   padding: 12px;
-  font-size: 12px;
 }
 .search-modal-row .button {
   white-space: nowrap;
@@ -1901,12 +1828,7 @@ select:focus-visible {
     height: 34px;
     font-size: 19px;
   }
-  .brand-copy strong {
-    font-size: 15px;
-  }
-  .brand-copy small {
-    font-size: 7px;
-  }
+
   .menu-toggle {
     display: flex;
     order: 3;
@@ -1939,7 +1861,6 @@ select:focus-visible {
     display: none;
   }
   .login-button {
-    font-size: 10px;
     padding: 8px 10px;
   }
   .primary-nav {
@@ -1989,9 +1910,7 @@ select:focus-visible {
     font-size: clamp(42px, 11vw, 61px);
     margin-top: 20px;
   }
-  .hero-intro {
-    font-size: 12px;
-  }
+
   .hero-cta {
     gap: 18px;
     flex-wrap: wrap;
@@ -1999,7 +1918,6 @@ select:focus-visible {
   .hero-caption {
     left: 7%;
     right: 7%;
-    font-size: 7px;
     bottom: 17px;
   }
   .hero-caption span:nth-child(2) {
@@ -2017,7 +1935,6 @@ select:focus-visible {
   }
   .section-kicker {
     margin-bottom: 34px;
-    font-size: 8px;
     gap: 11px;
   }
   .kicker-line {
@@ -2033,7 +1950,6 @@ select:focus-visible {
   }
   .intro-copy {
     padding-top: 0;
-    font-size: 12px;
   }
   .museum-facts {
     gap: 22px;
@@ -2041,9 +1957,7 @@ select:focus-visible {
   .museum-facts strong {
     font-size: 21px;
   }
-  .museum-facts small {
-    font-size: 8px;
-  }
+
   .circle-link {
     width: 40px;
     height: 40px;
@@ -2103,15 +2017,7 @@ select:focus-visible {
   .film-card h3 {
     font-size: 17px;
   }
-  .film-card p {
-    font-size: 10px;
-  }
-  .film-footer {
-    font-size: 8px;
-  }
-  .film-meta {
-    font-size: 8px;
-  }
+
   .city-split {
     grid-template-columns: 1fr;
   }
@@ -2145,20 +2051,16 @@ select:focus-visible {
   .event-date b {
     font-size: 28px;
   }
-  .event-date small {
-    font-size: 7px;
-  }
+
   .event-type {
     grid-column: 2;
     grid-row: 1;
     border: 0;
     padding: 0;
-    font-size: 8px;
   }
   .event-row strong {
     grid-column: 2;
     grid-row: 2;
-    font-size: 13px;
   }
   .event-location {
     display: none;
@@ -2179,9 +2081,7 @@ select:focus-visible {
     right: -5%;
     top: 60px;
   }
-  .planner-side-note {
-    font-size: 7px;
-  }
+
   .footer-top {
     align-items: start;
     gap: 20px;
@@ -2192,7 +2092,6 @@ select:focus-visible {
   .footer-bottom {
     gap: 9px;
     flex-wrap: wrap;
-    font-size: 8px;
   }
   .inner-hero {
     padding: 77px 8% 69px;
@@ -2201,9 +2100,7 @@ select:focus-visible {
   .inner-hero h1 {
     font-size: 44px;
   }
-  .inner-hero p:last-child {
-    font-size: 11px;
-  }
+
   .filter-bar {
     align-items: start;
     flex-direction: column;
@@ -2240,27 +2137,19 @@ select:focus-visible {
   .place-body {
     padding: 12px;
   }
-  .place-body h3 {
-    font-size: 16px;
-  }
+
   .place-body p {
-    font-size: 9px;
     line-height: 1.7;
     min-height: 45px;
   }
-  .place-details {
-    font-size: 8px;
-  }
+
   .place-actions {
     gap: 8px;
   }
-  .place-actions button {
-    font-size: 8px;
-  }
+
   .place-type {
     left: 8px;
     top: 8px;
-    font-size: 8px;
   }
   .favorite-button {
     right: 8px;
@@ -2285,30 +2174,7 @@ select:focus-visible {
     font-size: 9px;
     padding: 11px;
   }
-  .cinema-row {
-    grid-template-columns: 54px 1fr auto;
-    gap: 10px;
-    padding: 19px 0;
-  }
-  .cinema-date {
-    font-size: 18px;
-  }
-  .cinema-info h3 {
-    font-size: 16px;
-  }
-  .cinema-info p {
-    font-size: 9px;
-  }
-  .cinema-time {
-    grid-column: 2;
-    font-size: 10px;
-  }
-  .cinema-row .button {
-    grid-column: 3;
-    grid-row: 1/3;
-    font-size: 9px;
-    padding: 9px;
-  }
+
   .museum-info {
     padding: 23px;
     align-items: start;
@@ -2322,9 +2188,7 @@ select:focus-visible {
   .news-feature-photo {
     height: 220px;
   }
-  .news-item h3 {
-    font-size: 15px;
-  }
+
   .planner-layout {
     grid-template-columns: 1fr;
     gap: 30px;
@@ -2395,9 +2259,7 @@ select:focus-visible {
   .stat-card {
     padding: 12px;
   }
-  .stat-card strong {
-    font-size: 22px;
-  }
+
   .admin-two-col {
     grid-template-columns: 1fr;
   }
@@ -2473,7 +2335,6 @@ select:focus-visible {
 
 /* 獨立詳情頁的版面 */
 .detail-page {
-  max-width: 1050px;
   margin: auto;
 }
 .detail-page .detail-cover {
@@ -2481,7 +2342,6 @@ select:focus-visible {
   margin-bottom: 36px;
 }
 .detail-page .detail-body {
-  max-width: 750px;
   margin: auto;
   padding: 12px 0 25px;
 }
@@ -2501,89 +2361,6 @@ select:focus-visible {
 }
 
 /* 全站閱讀字級：放大正文、標籤、卡片資訊與後台表格，保持清晰易讀。 */
-body {
-  font-size: 17px;
-}
-.primary-nav a {
-  font-size: 15px;
-}
-.login-button,
-.button {
-  font-size: 14px;
-}
-.eyebrow {
-  font-size: 12px;
-}
-.hero-intro,
-.inner-hero p:last-child {
-  font-size: 16px;
-}
-.hero-caption {
-  font-size: 11px;
-}
-.text-link {
-  font-size: 14px;
-}
-.section-kicker {
-  font-size: 11px;
-}
-.intro-copy {
-  font-size: 16px;
-}
-.museum-facts small {
-  font-size: 11px;
-}
-.film-meta,
-.event-type,
-.event-location {
-  font-size: 12px;
-}
-.film-card p,
-.cinema-info p,
-.news-feature p,
-.news-item p,
-.place-body p {
-  font-size: 14px;
-}
-.film-footer,
-.place-details,
-.place-actions button {
-  font-size: 12px;
-}
-.guide-tab {
-  font-size: 14px;
-}
-.place-area,
-.news-item-top,
-.cinema-info span {
-  font-size: 11px;
-}
-.admin-table,
-.admin-field label,
-.admin-nav {
-  font-size: 13px;
-}
-.admin-page-heading p,
-.admin-panel-heading span,
-.stat-card span {
-  font-size: 12px;
-}
-.admin-field input,
-.admin-field select,
-.admin-field textarea,
-.url-import input {
-  font-size: 14px;
-}
-.admin-preview,
-.table-actions,
-.helper-text {
-  font-size: 12px;
-}
-.form-field label,
-.form-field input,
-.form-error {
-  font-size: 14px;
-}
 
 .topic-directory h2 {
   font: 500 clamp(30px, 4vw, 43px)/1.45 var(--serif);
@@ -2621,7 +2398,6 @@ body {
   margin: 5px 0;
 }
 .route-card p:not(.eyebrow) {
-  font-size: 15px;
   color: var(--muted);
 }
 .account-page {
@@ -2641,11 +2417,9 @@ body {
   margin: 0 0 9px;
 }
 .account-card > p:not(.eyebrow) {
-  font-size: 15px;
   color: var(--muted);
 }
 .account-switch {
-  font-size: 13px;
   text-align: center;
   color: var(--muted);
   margin: 16px 0 0;
@@ -2656,7 +2430,6 @@ body {
   text-underline-offset: 3px;
 }
 .standalone-search {
-  max-width: 820px;
   margin: 0 auto 42px;
   padding: 30px;
   background: #e9e4d8;
@@ -2667,41 +2440,14 @@ body {
   margin-bottom: 12px;
 }
 .search-results {
-  max-width: 980px;
   margin: auto;
 }
 @media (max-width: 760px) {
-  body {
-    font-size: 16px;
-  }
-  .primary-nav a {
-    font-size: 16px;
-  }
-  .hero-intro,
-  .inner-hero p:last-child {
-    font-size: 14px;
-  }
-  .text-link,
-  .button {
-    font-size: 13px;
-  }
-  .film-card p,
-  .cinema-info p,
-  .news-feature p,
-  .news-item p,
-  .place-body p {
-    font-size: 13px;
-  }
-  .place-details {
-    font-size: 11px;
-  }
   .topic-link-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 0 15px;
   }
-  .topic-link-grid a {
-    font-size: 14px;
-  }
+
   .route-cards {
     grid-template-columns: 1fr;
   }
