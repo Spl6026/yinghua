@@ -26,6 +26,7 @@ import { renderPublicContentIndex } from './public-content-index.mjs';
 import { resolveSeo } from '../assets/js/core/seo-resolver.js';
 import { crawlerEntry, buildSitemaps, robotsText } from './crawler-index.mjs';
 import { assetVersion, versionHtmlAssets } from './asset-version.mjs';
+import { mustReplace } from './html-edit.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const modulePreloadCache = new Map();
@@ -96,7 +97,7 @@ function withPublishedStylesheets(html) {
 
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
   if (snapshot.detailNeighbors?.[path])
-    html = html.replace('</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
+    html = mustReplace(html, '</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
   // 分兩步套用條款：版本號要在展開共用模板前填入，否則 {{TERMS_VERSION}} 會被當成未知模板；
   // 後台填寫的條款內文則要在展開模板之後才放進頁面，內文裡若寫了 {{SITE_HEADER}} 之類的字樣才會保持原文。
   html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02');
@@ -115,21 +116,25 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     modifiedAt: snapshot.indexModifiedAt?.[canonicalPath],
   };
   const meta = resolveSeo(context);
-  html = html.replace(
+  html = mustReplace(
+    html,
     '</head>',
     '<noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>'
   );
   if (managed)
-    html = html.replace(
-      '<body>',
-      `<body data-managed-attractions="true"${filmEnabled ? ' data-managed-films="true"' : ''}${newsEnabled ? ' data-managed-news="true"' : ''}${offersEnabled ? ' data-managed-offers="true"' : ''}>`
+    html = mustReplace(
+      html,
+      /<body\b([^>]*)>/,
+      (_, attributes) =>
+        `<body${attributes} data-managed-attractions="true"${filmEnabled ? ' data-managed-films="true"' : ''}${newsEnabled ? ' data-managed-news="true"' : ''}${offersEnabled ? ' data-managed-offers="true"' : ''}>`
     );
   html = withPublishedStylesheets(html);
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
     const template = templates[name];
     if (template === undefined) throw new Error('Unknown template');
     if (name === 'SITE_HEADER' && canonicalPath === '/routes.html')
-      return template.replace(
+      return mustReplace(
+        template,
         'href="/planner.html"',
         'class="active" aria-current="page" href="/planner.html"'
       );
@@ -137,7 +142,8 @@ async function page(path, html, title, description, item, canonicalPath = path, 
       name === 'SITE_HEADER' &&
       (canonicalPath.startsWith('/offers.html') || canonicalPath.startsWith('/offers/'))
     )
-      return template.replace(
+      return mustReplace(
+        template,
         'href="/offers.html"',
         'class="active" aria-current="page" href="/offers.html"'
       );
@@ -145,32 +151,41 @@ async function page(path, html, title, description, item, canonicalPath = path, 
       name === 'SITE_HEADER' &&
       (/^\/(?:events|activities|city-news)\.html/.test(canonicalPath) || canonicalPath.startsWith('/news/'))
     )
-      return template.replace(
+      return mustReplace(
+        template,
         'href="/events.html"',
         'class="active" aria-current="page" href="/events.html"'
       );
     if (name === 'SITE_HEADER' && (path === '/cinema.html' || path.startsWith('/films/')))
-      return template.replace(
+      return mustReplace(
+        template,
         'href="/cinema.html"',
         'class="active" aria-current="page" href="/cinema.html"'
       );
     return name === 'SITE_HEADER' &&
       (path === '/explore.html' || path === '/museum.html' || path.startsWith('/places/'))
-      ? template.replace('href="/explore.html"', 'class="active" aria-current="page" href="/explore.html"')
+      ? mustReplace(
+          template,
+          'href="/explore.html"',
+          'class="active" aria-current="page" href="/explore.html"'
+        )
       : template;
   });
   html = renderSeoHead(html, context, meta);
   html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02', snapshot.general?.values);
-  html = html.replace(
+  html = mustReplace(
+    html,
     /(<span class="brand-copy"><strong>)[\s\S]*?(<\/strong>)/g,
     (_, a, b) => a + escapeHtml(meta.siteName) + b
   );
-  html = html.replace(
+  html = mustReplace(
+    html,
     /(<span data-site-copyright>)[\s\S]*?(<\/span>)/,
     (_, a, b) => a + '© 2026 ' + escapeHtml(meta.siteName) + '・新竹城市生活指南' + b
   );
   if (snapshot.general?.values.contactEmail)
-    html = html.replace(
+    html = mustReplace(
+      html,
       '<a href="/site-map.html">',
       () =>
         '<a data-site-contact href="mailto:' +
@@ -178,12 +193,14 @@ async function page(path, html, title, description, item, canonicalPath = path, 
         '">聯絡我們</a><a href="/site-map.html">'
     );
   if (managed)
-    html = html.replace(
+    html = mustReplace(
+      html,
       '</body>',
       () => `<script type="module" src="/assets/js/pages/attractions.js"></script></body>`
     );
   if (managed && filmEnabled)
-    html = html.replace(
+    html = mustReplace(
+      html,
       '</body>',
       () =>
         `<script type="application/json" id="film-publication">${jsonForHtml({ total: filmItems.length })}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`
@@ -191,7 +208,8 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   const target = join(root, path.slice(1));
   await mkdir(dirname(target), { recursive: true });
   html = renderFontHead(html);
-  html = html.replace(
+  html = mustReplace(
+    html,
     '</body>',
     '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
   );
@@ -207,13 +225,15 @@ if (!existing) {
   for (const kind of ['explore', 'food']) {
     let html = await readFile(join(source, 'pages', kind + '.html'), 'utf8');
     const items = snapshot.items.filter(item => kind === 'explore' || item.category === '美食');
-    html = html.replace(
+    html = mustReplace(
+      html,
       /(<div class="place-grid" id="place-grid">)[\s\S]*?(<\/div>)/,
       (_, open, close) =>
         open +
         (items.slice(0, 12).map(card).join('') || '<p class="empty-results">目前沒有地點資訊。</p>') +
         close
     );
+    // 只有城市散策頁的分類分頁帶有筆數，美食頁的分類沒有，所以這裡允許找不到。
     html = html.replace(
       /data-category="([^"]+)"([\s\S]*?)<span>\d+<\/span>/g,
       (_, category, rest) =>
@@ -260,7 +280,8 @@ if (!existing) {
       .join(
         ''
       )}${!item.description ? `<div class="attraction-description-empty"><p>尚未提供景點介紹。</p></div>` : ''}${metadata}${telephone}<div class="detail-meta">${[item.typeLabel || item.category, item.district].filter(Boolean).map(escapeHtml).join('・')}</div>${links}<div class="detail-actions"><a class="button button-dark" href="/explore.html">回到城市散策 ↗</a><button type="button" class="text-link" data-add-stop="${escapeHtml(item.id)}">安排進旅行 <span>→</span></button><button type="button" class="text-link" data-favorite="${escapeHtml(item.id)}" aria-pressed="false">收藏此景點 ♡</button></div><small>更新日期：${escapeHtml(localDate(item.updatedAt))}</small></div></section>`;
-    const html = detailTemplate.replace(
+    const html = mustReplace(
+      detailTemplate,
       /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
       () => body
     );
@@ -275,7 +296,8 @@ if (!existing) {
   if (!snapshot.items.some(item => item.isMuseum)) {
     await page(
       '/museum.html',
-      detailTemplate.replace(
+      mustReplace(
+        detailTemplate,
         /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
         '<section class="section-pad detail-page"><h1>博物館資訊更新中</h1><p>博物館介紹即將更新。</p><a href="/explore.html">回到城市散策</a></section>'
       ),
@@ -289,7 +311,8 @@ if (!existing) {
     ? snapshot.home.featured
     : snapshot.items.find(item => item.featured) || museum;
   if (museum)
-    home = home.replace(
+    home = mustReplace(
+      home,
       /(<div class="intro-copy reveal">)[\s\S]*?(<div class="museum-facts">)/,
       (_, open, close) =>
         open +
@@ -297,61 +320,67 @@ if (!existing) {
         close
     );
   if (featured) {
-    home = home
-      .replace(
-        /<a class="museum-feature image-reveal"[^>]*>/,
-        () =>
-          `<a class="museum-feature image-reveal" href="${escapeHtml(url(featured))}" aria-label="${escapeHtml(featured.name)}">`
-      )
-      .replace(
-        /<div class="museum-photo"[^>]*>/,
-        () =>
-          `<div class="museum-photo" data-image-url="${escapeHtml(featured.image)}" role="img" aria-label="${escapeHtml(featured.imageAlt || featured.name)}" style="background-image:url(&quot;${escapeHtml(featured.image)}&quot;)">`
-      )
-      .replace(
-        /(<div class="museum-feature-label">)[\s\S]*?(<\/div>)/,
-        (_, open, close) =>
-          open +
-          `<span>${escapeHtml(featured.category)}</span><strong>${escapeHtml(featured.name)}</strong>` +
-          close
-      );
+    home = mustReplace(
+      home,
+      /<a class="museum-feature image-reveal"[^>]*>/,
+      () =>
+        `<a class="museum-feature image-reveal" href="${escapeHtml(url(featured))}" aria-label="${escapeHtml(featured.name)}">`
+    );
+    home = mustReplace(
+      home,
+      /<div class="museum-photo"[^>]*>/,
+      () =>
+        `<div class="museum-photo" data-image-url="${escapeHtml(featured.image)}" role="img" aria-label="${escapeHtml(featured.imageAlt || featured.name)}" style="background-image:url(&quot;${escapeHtml(featured.image)}&quot;)">`
+    );
+    home = mustReplace(
+      home,
+      /(<div class="museum-feature-label">)[\s\S]*?(<\/div>)/,
+      (_, open, close) =>
+        open +
+        `<span>${escapeHtml(featured.category)}</span><strong>${escapeHtml(featured.name)}</strong>` +
+        close
+    );
   } else {
-    home = home.replace(
+    home = mustReplace(
+      home,
       /<a class="museum-feature image-reveal"[\s\S]*?<\/a>/,
       '<div class="museum-feature"><p>精選景點即將更新。</p></div>'
     );
   }
   if (!museum)
-    home = home.replace(
+    home = mustReplace(
+      home,
       /<div class="intro-copy reveal">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/,
       '<div class="intro-copy reveal"><p>博物館參觀資訊更新中，請稍後再訪。</p></div>'
     );
   if (filmEnabled) {
-    home = home
-      .replace(
-        /(<div class="screening-grid">)[\s\S]*?(<\/div>\s*<p class="demo-note">)/,
-        (_, open, close) =>
-          open +
-          filmCards(snapshot.home?.films || filmItems, snapshot.home?.filmTotal ?? filmItems.length) +
-          close
-      )
-      .replace('10.10 — 10.16', weekLabel)
-      .replace(
-        '映演內容為示意資料，實際場次請以影像博物館公告為準。',
-        '實際放映資訊請以影像博物館最新公告為準。'
-      );
+    home = mustReplace(
+      home,
+      /(<div class="screening-grid">)[\s\S]*?(<\/div>\s*<p class="demo-note">)/,
+      (_, open, close) =>
+        open +
+        filmCards(snapshot.home?.films || filmItems, snapshot.home?.filmTotal ?? filmItems.length) +
+        close
+    );
+    home = mustReplace(home, '10.10 — 10.16', weekLabel);
+    home = mustReplace(
+      home,
+      '映演內容為示意資料，實際場次請以影像博物館公告為準。',
+      '實際放映資訊請以影像博物館最新公告為準。'
+    );
     let cinema = await readFile(join(source, 'pages/cinema.html'), 'utf8');
-    cinema = cinema
-      .replace(
-        /(<div class="cinema-list" id="cinema-list">)[\s\S]*?(<\/div>)/,
-        (_, open, close) => open + filmRows(filmItems.slice(0, 20)) + close
-      )
-      // 以穩定的 id 定位並更新放映週期，保留英文的語言標示，不依賴原型的純文字內容。
-      .replace(
-        /(<p\b[^>]*\bid="film-period"[^>]*>)[\s\S]*?(<\/p>)/,
-        (_, open, close) => `${open}<bdi lang="en">THIS WEEK</bdi> · ${escapeHtml(weekLabel)}${close}`
-      )
-      .replace('※ 場次為示意資料', '實際放映資訊請以最新公告為準。');
+    cinema = mustReplace(
+      cinema,
+      /(<div class="cinema-list" id="cinema-list">)[\s\S]*?(<\/div>)/,
+      (_, open, close) => open + filmRows(filmItems.slice(0, 20)) + close
+    );
+    // 以穩定的 id 定位並更新放映週期，保留英文的語言標示，不依賴原型的純文字內容。
+    cinema = mustReplace(
+      cinema,
+      /(<p\b[^>]*\bid="film-period"[^>]*>)[\s\S]*?(<\/p>)/,
+      (_, open, close) => `${open}<bdi lang="en">THIS WEEK</bdi> · ${escapeHtml(weekLabel)}${close}`
+    );
+    cinema = mustReplace(cinema, '※ 場次為示意資料', '實際放映資訊請以最新公告為準。');
     // 與館舍詳情共用同一份快照與週表，不另外保存開放時間。
     const visit = museum
       ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${escapeHtml(museum.name)}</h2><p>${[
@@ -364,7 +393,7 @@ if (!existing) {
             '<br>'
           )}</p></div><a class="text-link" href="/museum.html">查看館舍與交通資訊 <span>↗</span></a></div>`
       : '<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>博物館參觀資訊</h2><p>博物館介紹即將更新。</p></div><a class="text-link" href="/museum.html">查看館舍介紹 <span>↗</span></a></div>';
-    cinema = cinema.replace(/<!-- MUSEUM_VISIT_START -->[\s\S]*?<!-- MUSEUM_VISIT_END -->/, () => visit);
+    cinema = mustReplace(cinema, /<!-- MUSEUM_VISIT_START -->[\s\S]*?<!-- MUSEUM_VISIT_END -->/, () => visit);
     await page(
       '/cinema.html',
       cinema,
@@ -375,8 +404,10 @@ if (!existing) {
     const filmTemplate = await readFile(join(source, 'templates/film-detail.html'), 'utf8');
     for (const film of snapshot.films) {
       if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(film.slug)) throw new Error('Invalid film slug');
-      const html = filmTemplate.replace(/<section class="section-pad detail-page">[\s\S]*?<\/section>/, () =>
-        filmDetail(film)
+      const html = mustReplace(
+        filmTemplate,
+        /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
+        () => filmDetail(film)
       );
       const description =
         film.seoDescription ||
@@ -390,7 +421,8 @@ if (!existing) {
     }
   }
   if (newsEnabled) {
-    home = home.replace(
+    home = mustReplace(
+      home,
       /(<div class="event-list">)[\s\S]*?<\/div>/,
       (_, open) => open + homeNewsRows(snapshot.home?.news || snapshot.news.slice(0, 3)) + '</div>'
     );
@@ -399,7 +431,8 @@ if (!existing) {
   if (offersEnabled) await publishOffers(source, snapshot, page);
   if (Array.isArray(snapshot.recommendedRoutes)) {
     let html = await readFile(join(source, 'pages/routes.html'), 'utf8');
-    html = html.replace(
+    html = mustReplace(
+      html,
       /<div class="route-cards" id="route-cards">\s*<\/div>/,
       () => '<div class="route-cards" id="route-cards">' + routeCards(snapshot.recommendedRoutes) + '</div>'
     );
@@ -411,7 +444,8 @@ if (!existing) {
     );
   }
   if (snapshot.home)
-    home = home.replace(
+    home = mustReplace(
+      home,
       '</body>',
       () =>
         `<script type="application/json" id="home-publication">${jsonForHtml({ ...snapshot.home, generation: snapshot.generation })}</script></body>`
@@ -427,7 +461,8 @@ if (!existing) {
   const indexTemplate = await readFile(join(source, 'pages/site-map.html'), 'utf8');
   await page(
     '/site-map.html',
-    indexTemplate.replace(
+    mustReplace(
+      indexTemplate,
       '<div id="public-content-index"></div>',
       () => `<div id="public-content-index">${renderPublicContentIndex(snapshot)}</div>`
     ),

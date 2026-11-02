@@ -9,6 +9,8 @@
 - 登入限速：同一帳號的 5 次／15 分鐘改以「帳號＋來源」計算，另設帳號總上限 50 次／15 分鐘（`Services/Authentication.php`）；原本只以帳號計數，知道帳號名稱的人可以從任何地方持續讓本人無法登入。註冊用電子郵件驗證碼另加單一來源 10 封／小時、全站 300 封／小時（`Services/Captcha.php`），避免被拿來大量寄信。數值屬工程設定，非規格硬性要求。
 - 過期紀錄清理：新增 [SecurityRecordRepository](../backend/src/Repositories/SecurityRecordRepository.php) 與 `php bin/console.php security:prune`，分批刪除過期超過一天的 session、驗證碼、密碼重設 token 與限速紀錄；常駐的 `content:watch` 每小時自動執行一次。登入事件（auth_events）屬稽核紀錄，保存期限待決定，不清除。
 - 前端 API 錯誤（[core/api-client.js](../frontend/assets/js/core/api-client.js)）：回應不是 JSON 時（閘道錯誤頁等）依狀態碼顯示「上傳內容過大」「服務暫時無法使用」等訊息並保留狀態碼，成功但不是 JSON 也視為錯誤；逾時與斷線分開說明。原本一律顯示「請檢查連線」。上傳（FormData）預設逾時改為 120 秒，其他維持 15 秒，可由 `api(path, { timeout })` 指定。新增 `tests/api-client.test.mjs` 直接載入模組測試。
+- 發布腳本防呆：新增 [scripts/html-edit.mjs](../frontend/scripts/html-edit.mjs) 的 `mustReplace()`，`publish.mjs`／`public-news.mjs`／`public-offers.mjs` 把資料寫進原型頁面時，找不到預期標記就中止發布，不再靜靜產生缺內容的頁面（唯一允許找不到的是美食頁沒有的分類筆數）。`<body>` 屬性改為保留原有屬性再加上，推薦行程頁原本因 `<body data-managed-routes>` 對不上而少了屬性。`NodeContentRenderer` 發布失敗時記錄 Node 錯誤類型，「缺少標記」另附標記內容（不含頁面資料）。
+- 開發提醒：改了 `frontend/` 原始檔後要先 `node scripts/build.mjs` 再發布；發布頁與建置輸出的資產版本號都由原始檔算出，只做其中一邊會讓同一模組以兩個版本號各載入一次。正式環境兩者來自同一映像，不會不一致。
 
 2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
 - 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。

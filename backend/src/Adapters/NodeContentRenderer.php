@@ -46,6 +46,19 @@ class NodeContentRenderer implements ContentRenderer
         return hash_final($hash);
     }
 
+    /**
+     * 只記錄 Node 錯誤的類型；錯誤訊息可能夾帶頁面內容，一律不記，
+     * 唯一例外是發布腳本自己丟出的「模板缺少標記」，訊息只有標記本身，最需要讓開發者看到。
+     */
+    private static function renderError(string $stderr): string
+    {
+        if (preg_match('/^(\w*Error): (Publication template is missing the expected markup: .{0,100})$/mu', $stderr, $match) === 1) {
+            return 'error=' . $match[1] . ' detail="' . addcslashes($match[2], "\"\\") . '"';
+        }
+
+        return preg_match('/^(\w*Error)\b/mu', $stderr, $match) === 1 ? 'error=' . $match[1] : 'error=unknown';
+    }
+
     /** @return list<string> 依路徑排序，確保雜湊結果與檔案系統的列舉順序無關。 */
     private static function filesUnder(string $directory): array
     {
@@ -87,10 +100,11 @@ class NodeContentRenderer implements ContentRenderer
         stream_set_blocking($pipes[1], false);
         stream_set_blocking($pipes[2], false);
         $deadline = microtime(true) + 10;
+        $errors = '';
         do {
             // 讀完子程序的輸出管道以免卡住，但不把內容或秘密寫進日誌。
             stream_get_contents($pipes[1]);
-            stream_get_contents($pipes[2]);
+            $errors = substr($errors . (string) stream_get_contents($pipes[2]), 0, 65536);
             $state = proc_get_status($process);
             if (!$state['running']) {
                 break;
@@ -104,6 +118,7 @@ class NodeContentRenderer implements ContentRenderer
         fclose($pipes[2]);
         $exit = proc_close($process);
         if ($state['running'] || ($state['exitcode'] !== 0 && $exit !== 0)) {
+            error_log('publication_render ' . ($state['running'] ? 'timeout' : self::renderError($errors)));
             throw new RuntimeException('Publication rendering failed.');
         }
     }
