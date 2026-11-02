@@ -26,7 +26,7 @@ class PermissionPolicy
 
     public function writableTarget(Account $target): void
     {
-        // [S-026] UI 隱藏按鈕之外，業務規則也拒絕所有 root CRUD。
+        // 介面雖然已隱藏按鈕，root 管理員仍要在這裡擋下所有編輯與刪除。
         if ($target->isRoot) {
             throw ApplicationError::forbidden();
         }
@@ -35,7 +35,7 @@ class PermissionPolicy
     public function deletableTarget(Account $actor, Account $target): void
     {
         $this->writableTarget($target);
-        // [S：功能規格 G26「不可自我移除最後管理權」；U-24] 介面已隱藏本人刪除，服務端同樣拒絕，避免自行刪號失去管理權。
+        // 介面雖然已隱藏刪除自己的按鈕，伺服器端仍要拒絕，避免管理員誤刪自己的帳號而失去管理權。
         if ($actor->id === $target->id) {
             throw new ApplicationError('FORBIDDEN', '不能刪除目前登入中的管理員帳號。');
         }

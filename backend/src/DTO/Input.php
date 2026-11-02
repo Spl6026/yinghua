@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [E-01] JSON 的型別、白名單與長度在邊界集中驗證。 */
+/** 在 API 邊界集中檢查 JSON 欄位的型別、白名單與長度。 */
 readonly class Input
 {
     /** @param array<string, mixed> $values */
@@ -46,19 +46,19 @@ readonly class Input
         return $email;
     }
 
-    /** [U-12] 文件未指定非空的文字，省略或空白均保存空字串。 */
+    /** 選填文字：沒送或空白都存成空字串。 */
     public function optionalText(string $key, int $max = 255): string
     {
         return array_key_exists($key, $this->values) ? $this->text($key, 0, $max) : '';
     }
 
-    /** [U-13／原型] 共用八字密碼邊界；單一初始密碼不要求不存在的確認欄。 */
+    /** 密碼至少 8 字；只有一個密碼欄位的情境（例如初始密碼）不要求確認欄。 */
     public function password(): string
     {
         return $this->text('password', 8, 128, false);
     }
 
-    /** [U-15] 註冊、重設及更改密碼必須再次輸入，且逐字一致；不修剪密碼。 */
+    /** 註冊、重設與更改密碼時要再輸入一次且完全一致；密碼不做前後空白修剪。 */
     public function confirmedPassword(): string
     {
         $password = $this->password();

@@ -9,7 +9,7 @@ use Yinghua\Models\SeoRobots;
 use Yinghua\Policies\SeoTargetPolicy;
 use Yinghua\Policies\SeoUrlPolicy;
 
-/** [E-28] 完整文件／version 為技術更新契約，不要求管理員填滿選填 SEO。 */
+/** SEO 設定一次送出整份文件並帶 version 以偵測同時編輯；選填欄位可以留空。 */
 readonly class SeoSettingsInput
 {
     /** @param list<SeoOverride> $overrides */

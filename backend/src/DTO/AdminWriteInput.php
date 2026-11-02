@@ -27,7 +27,7 @@ readonly class AdminWriteInput
         $input->only($creating
             ? ['account', 'displayName', 'email', 'roleId', 'status', 'password']
             : ['account', 'displayName', 'email', 'roleId', 'status', 'version']);
-        // [U-12／原型] 一般登入帳號僅要求非空；不擅加英文字首及三字限制。
+        // 登入帳號只要求非空白，不額外限制開頭字元或最少字數。
         $account = mb_strtolower($input->text('account', 1, 60));
         $status = $input->text('status');
         if (!in_array($status, ['active', 'disabled'], true)) {

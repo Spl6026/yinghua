@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Models\IdentityKind;
 
-/** [E-01／E-02／U-06] 認證輸出與內部 AuthGrant 分離；Cookie、CSRF 仍由 HTTP 層處理。 */
+/** 登入身分的 API 輸出，和內部的 AuthGrant 分開；Cookie 與 CSRF 仍由 HTTP 層處理。 */
 readonly class IdentityResponse
 {
     /** @param list<array{module:string,action:string,allowed:bool}> $permissions */

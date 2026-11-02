@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [U-06／E-01] 對外只提供操作者摘要；不持有 session、token 或完整帳號。 */
+/** 模擬檢視的狀態；只提供操作者的摘要，不含 session、token 或完整帳號資料。 */
 readonly class PreviewStatus
 {
     public function __construct(

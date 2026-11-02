@@ -12,6 +12,7 @@ readonly class CurrentItineraryPage
     /** @return array<string,mixed> */
     public function toArray(): array
     {
-        return ['itinerary' => $this->itinerary === null ? null : [...$this->itinerary->toArray(), 'items' => $this->items], 'nextCursor' => $this->nextCursor];
+        return ['itinerary' => $this->itinerary === null ? null : [...$this->itinerary->toArray(), 'items' => $this->items],
+            'nextCursor' => $this->nextCursor];
     }
 }

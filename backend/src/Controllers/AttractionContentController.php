@@ -27,7 +27,12 @@ class AttractionContentController
         $this->authorization->requireAny($context->actor(), 'attractions', ['create', 'edit']);
         $input = new Input($context->request->json());
         $input->only(['summary', 'description', 'linked']);
-        $content = AttractionContentPolicy::select($input->optionalText('summary', 500), $input->optionalText('description', 20000), $input->boolean('linked'));
-        return new Response(200, ['summary' => $content->summary, 'description' => $content->description, 'contentSource' => $content->sources()]);
+        $content = AttractionContentPolicy::select(
+            $input->optionalText('summary', 500),
+            $input->optionalText('description', 20000),
+            $input->boolean('linked'),
+        );
+        return new Response(200, ['summary' => $content->summary, 'description' => $content->description,
+            'contentSource' => $content->sources()]);
     }
 }

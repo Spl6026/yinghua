@@ -7,7 +7,7 @@ namespace Yinghua\DTO;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 
-/** [E-01／E-13] 對外欄位白名單；不持有內部 Account，避免帶出密碼雜湊或刪除資訊。 */
+/** 對外輸出的帳號欄位白名單；刻意不持有內部 Account，避免不小心帶出密碼雜湊或刪除資訊。 */
 readonly class AccountSummary
 {
     public function __construct(

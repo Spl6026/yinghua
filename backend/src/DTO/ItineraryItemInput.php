@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [E-27] version=0 只用於尚無目前行程；此階段不接受名稱／日期等完整編排。 */
+/** 加入或移除目前行程站點的輸入；version=0 代表會員還沒有目前行程。名稱、日期等編排走完整行程 API。 */
 readonly class ItineraryItemInput
 {
     public function __construct(public int $version) {}

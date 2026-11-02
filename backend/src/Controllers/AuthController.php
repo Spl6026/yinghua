@@ -59,14 +59,23 @@ class AuthController
 
     public function register(ApiContext $context): Response
     {
-        $grant = $this->authentication->register(RegisterInput::fromArray($context->request->json()), $context->client, $context->sessionToken);
+        $grant = $this->authentication->register(
+            RegisterInput::fromArray($context->request->json()),
+            $context->client,
+            $context->sessionToken,
+        );
 
         return $this->signedIn($grant->account, $grant->token, $context, 201);
     }
 
     public function login(ApiContext $context): Response
     {
-        $grant = $this->authentication->login($context->kind, LoginInput::fromArray($context->request->json(), $context->kind), $context->client, $context->sessionToken);
+        $grant = $this->authentication->login(
+            $context->kind,
+            LoginInput::fromArray($context->request->json(), $context->kind),
+            $context->client,
+            $context->sessionToken,
+        );
 
         return $this->signedIn($grant->account, $grant->token, $context);
     }

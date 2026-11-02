@@ -39,14 +39,24 @@ class AttractionController
 
     public function create(ApiContext $context): Response
     {
-        $result = $this->service->save($context->actor(), null, AttractionInput::fromArray($context->request->json(), true), $context->client);
+        $result = $this->service->save(
+            $context->actor(),
+            null,
+            AttractionInput::fromArray($context->request->json(), true),
+            $context->client,
+        );
 
         return new Response($result->synchronized ? 201 : 202, $result->toArray());
     }
 
     public function update(ApiContext $context): Response
     {
-        $result = $this->service->save($context->actor(), $context->id(), AttractionInput::fromArray($context->request->json(), false), $context->client);
+        $result = $this->service->save(
+            $context->actor(),
+            $context->id(),
+            AttractionInput::fromArray($context->request->json(), false),
+            $context->client,
+        );
 
         return new Response($result->synchronized ? 200 : 202, $result->toArray());
     }

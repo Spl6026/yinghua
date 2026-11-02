@@ -7,7 +7,7 @@ namespace Yinghua\DTO;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\OpeningDayStatus;
 
-/** [U-09／E-20] 人工與 Google Adapter 共用的常態週表；不保存即時 openNow。 */
+/** 一般營業時間的週表，人工輸入與 Google 匯入共用；不保存「現在是否營業」這類即時狀態。 */
 readonly class OpeningHours
 {
     /** @param list<OpeningDay> $days */
@@ -15,7 +15,8 @@ readonly class OpeningHours
 
     public static function fromValue(mixed $value): self
     {
-        if (!is_array($value) || array_diff(array_keys($value), ['timezone','note','days']) !== [] || ($value['timezone'] ?? null) !== 'Asia/Taipei') {
+        if (!is_array($value) || array_diff(array_keys($value), ['timezone','note','days']) !== []
+            || ($value['timezone'] ?? null) !== 'Asia/Taipei') {
             throw ApplicationError::invalid('openingHours', '請提供台北時區的每週營業時間。');
         }
         $note = $value['note'] ?? null;
@@ -59,7 +60,8 @@ readonly class OpeningHours
     /** @return array{timezone:string,note:string,days:list<array{day:int,status:string,periods:list<array{opens:string,closes:string,nextDay:bool}>}>} */
     public function toArray(): array
     {
-        return ['timezone' => 'Asia/Taipei','note' => $this->note,'days' => array_map(static fn(OpeningDay $day): array => $day->toArray(), $this->days)];
+        return ['timezone' => 'Asia/Taipei','note' => $this->note,
+            'days' => array_map(static fn(OpeningDay $day): array => $day->toArray(), $this->days)];
     }
 
     public function summary(): string

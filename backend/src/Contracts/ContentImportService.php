@@ -9,7 +9,7 @@ use Yinghua\DTO\ImportItem;
 use Yinghua\DTO\PreparedImport;
 use Yinghua\Models\Account;
 
-/** [E-26] CLI 與後續管理入口共用業務操作；批次交易由外層使用案例協調。 */
+/** CLI 匯入與管理介面共用的內容操作；批次匯入的交易由呼叫端負責。 */
 interface ContentImportService
 {
     public function prepare(Account $actor, ImportItem $item, bool $lock): PreparedImport;

@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [U-09／E-20] 一個開始日的本地時段，最長 24 小時。 */
+/** 某一天開始的一段營業時間（台北時間），最長 24 小時，可跨到隔天。 */
 readonly class OpeningPeriod
 {
     private function __construct(public string $opens, public string $closes, public bool $nextDay) {}

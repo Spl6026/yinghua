@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Contracts;
 
-/** [S：功能規格 G10／G22；E-26] 只由 Adapter 知道第三方淨化工具。 */
+/** 富文字淨化介面；實際使用哪個第三方淨化套件只有 Adapter 知道。 */
 interface RichTextSanitizer
 {
     public function clean(string $html): string;

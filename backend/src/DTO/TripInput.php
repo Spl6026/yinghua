@@ -6,11 +6,17 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S E15/G15；原型planner欄位無required；E-33] 空名稱日期與空行程皆可保存。 */
+/** 行程表單輸入；名稱、日期與站點都可以是空的，空行程也能保存。 */
 readonly class TripInput
 {
     /** @param list<TripStopInput> $items */
-    public function __construct(public ?string $id, public string $title, public ?string $tripDate, public array $items, public int $version) {}
+    public function __construct(
+        public ?string $id,
+        public string $title,
+        public ?string $tripDate,
+        public array $items,
+        public int $version,
+    ) {}
 
     /** @param array<string,mixed> $values */
     public static function from(array $values, bool $creating): self

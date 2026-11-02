@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Models;
 
-/** [S：功能規格 G32；原型 SEO 三選項] */
+/** SEO 設定中的三種搜尋引擎索引選項。 */
 enum SeoRobots: string
 {
     case Index = 'index,follow';

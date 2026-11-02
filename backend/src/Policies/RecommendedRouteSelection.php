@@ -6,7 +6,7 @@ namespace Yinghua\Policies;
 
 use Yinghua\DTO\RecommendedRoute;
 
-/** [S G14；D API草案 G14；E-32] 跳過下架站點；全數不可用時不公開路線。 */
+/** 公開推薦路線時略過已下架的站點；所有站點都不可用時，整條路線不公開。 */
 final class RecommendedRouteSelection
 {
     /** @param list<RecommendedRoute> $routes

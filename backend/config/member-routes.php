@@ -8,7 +8,7 @@ use Yinghua\Http\Route;
 use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
-/** [S：E13／G15；E-27] 本人資料一律用會員 session，不掛管理員 RBAC。 */
+/** 收藏與目前行程都是會員本人的資料，只認會員 session，不套用管理員的權限設定。 */
 return static function (Router $router, FavoriteController $favorites, CurrentItineraryController $itinerary): void {
     $kind = IdentityKind::Member;
     $router->add(new Route('GET', '/api/v1/me/favorites', $kind, $favorites->listing(...), true));

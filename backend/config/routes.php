@@ -13,13 +13,35 @@ use Yinghua\Http\Route;
 use Yinghua\Http\Router;
 use Yinghua\Models\IdentityKind;
 
-/** [S-016／17／26／27；S：功能規格 6/13/19/20；E-18] 路由只宣告 HTTP、身分與授權。 */
-return static function (Router $router, AuthController $auth, AdminController $admins, PermissionController $permissions, AttractionController $attractions, PublicAttractionController $publicAttractions, MediaController $media, MapController $maps, \Yinghua\Controllers\PublicFilmController $films, \Yinghua\Controllers\FilmController $filmAdmin, \Yinghua\Controllers\PublicNewsController $news, \Yinghua\Controllers\PublicOfferController $offers, \Yinghua\Controllers\PublicHomeController $home): void {
+/** 這裡只宣告 HTTP 方法、路徑、身分類型與所需權限，業務邏輯都在 Controller 之後。 */
+return static function (
+    Router $router,
+    AuthController $auth,
+    AdminController $admins,
+    PermissionController $permissions,
+    AttractionController $attractions,
+    PublicAttractionController $publicAttractions,
+    MediaController $media,
+    MapController $maps,
+    \Yinghua\Controllers\PublicFilmController $films,
+    \Yinghua\Controllers\FilmController $filmAdmin,
+    \Yinghua\Controllers\PublicNewsController $news,
+    \Yinghua\Controllers\PublicOfferController $offers,
+    \Yinghua\Controllers\PublicHomeController $home,
+): void {
     foreach (IdentityKind::cases() as $kind) {
         $prefix = $kind === IdentityKind::Admin ? '/api/v1/admin/auth/' : '/api/v1/auth/';
         $router->add(new Route('GET', $prefix . 'csrf', $kind, $auth->csrf(...), allowPreviewControl: true));
         $router->add(new Route('POST', $prefix . 'login', $kind, $auth->login(...)));
-        $router->add(new Route('POST', $prefix . 'logout', $kind, $auth->logout(...), true, allowPasswordChange: true, allowPreviewControl: true));
+        $router->add(new Route(
+            'POST',
+            $prefix . 'logout',
+            $kind,
+            $auth->logout(...),
+            true,
+            allowPasswordChange: true,
+            allowPreviewControl: true,
+        ));
         $router->add(new Route('GET', $prefix . 'me', $kind, $auth->me(...), true, allowPasswordChange: true, allowPreviewControl: true));
         $router->add(new Route('POST', $prefix . 'forgot-password', $kind, $auth->forgotPassword(...)));
         $router->add(new Route('POST', $prefix . 'reset-password', $kind, $auth->resetPassword(...)));
@@ -40,14 +62,30 @@ return static function (Router $router, AuthController $auth, AdminController $a
     $router->add(new Route('GET', '/api/v1/admin/roles', $kind, $permissions->roles(...), true));
     $router->add(new Route('GET', '/api/v1/admin/permissions/catalog', $kind, $permissions->catalog(...), true, 'permissions', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/admins/{id}/permissions', $kind, $permissions->matrix(...), true, 'permissions', 'view'));
-    $router->add(new Route('PUT', '/api/v1/admin/admins/{id}/permissions', $kind, $permissions->saveMatrix(...), true, 'permissions', 'edit'));
+    $router->add(new Route(
+        'PUT',
+        '/api/v1/admin/admins/{id}/permissions',
+        $kind,
+        $permissions->saveMatrix(...),
+        true,
+        'permissions',
+        'edit',
+    ));
     $router->add(new Route('GET', '/api/v1/admin/attractions', $kind, $attractions->listing(...), true, 'attractions', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/attractions/samples', $kind, $attractions->samples(...), true, 'attractions', 'create'));
     $router->add(new Route('GET', '/api/v1/admin/attractions/{id}', $kind, $attractions->get(...), true, 'attractions', 'view'));
     $router->add(new Route('POST', '/api/v1/admin/attractions', $kind, $attractions->create(...), true, 'attractions', 'create'));
     $router->add(new Route('PUT', '/api/v1/admin/attractions/{id}', $kind, $attractions->update(...), true, 'attractions', 'edit'));
     $router->add(new Route('DELETE', '/api/v1/admin/attractions/{id}', $kind, $attractions->delete(...), true, 'attractions', 'delete'));
-    $router->add(new Route('POST', '/api/v1/admin/attractions/publish-retry', $kind, $attractions->retry(...), true, 'attractions', 'edit'));
+    $router->add(new Route(
+        'POST',
+        '/api/v1/admin/attractions/publish-retry',
+        $kind,
+        $attractions->retry(...),
+        true,
+        'attractions',
+        'edit',
+    ));
     $router->add(new Route('GET', '/api/v1/admin/films', $kind, $filmAdmin->listing(...), true, 'films', 'view'));
     $router->add(new Route('GET', '/api/v1/admin/films/{id}', $kind, $filmAdmin->get(...), true, 'films', 'view'));
     $router->add(new Route('POST', '/api/v1/admin/films', $kind, $filmAdmin->create(...), true, 'films', 'create'));

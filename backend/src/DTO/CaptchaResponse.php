@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-01／E-06／S-SEC-10] 不保存驗證答案；圖片與 Email 模式保留原有的可選欄位。 */
+/** 驗證碼回應不含答案；圖片模式帶 imageDataUrl，Email 模式帶 message。 */
 readonly class CaptchaResponse
 {
-    public function __construct(public string $challengeToken, public string $expiresAt, public ?string $imageDataUrl = null, public ?string $message = null) {}
+    public function __construct(
+        public string $challengeToken,
+        public string $expiresAt,
+        public ?string $imageDataUrl = null,
+        public ?string $message = null,
+    ) {}
 
     /** @return array{challengeToken:string,expiresAt:string,imageDataUrl?:string,message?:string} */
     public function toArray(): array

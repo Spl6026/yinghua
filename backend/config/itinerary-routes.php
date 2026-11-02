@@ -6,7 +6,7 @@ use Yinghua\Http\{Router, Route};
 use Yinghua\Models\IdentityKind;
 use Yinghua\Controllers\MemberItineraryController;
 
-/** [S H15；E-33] 在P0 current靜態路由之後註冊，所有操作強制會員session。 */
+/** 會員的多份行程路由；必須註冊在 current 靜態路由之後，所有操作都要求會員登入。 */
 return static function (Router $router, MemberItineraryController $trips): void {
     $kind = IdentityKind::Member;
     $base = '/api/v1/me/itineraries';

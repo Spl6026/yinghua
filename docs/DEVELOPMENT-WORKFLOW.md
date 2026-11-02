@@ -52,7 +52,7 @@
 
 本文件定義後續實作如何選擇 skills 及驗證改動。skills 與 Docker／Composer 品質工具環境已完成安裝；階段二認證、階段三景點／媒體／發布、階段四電影／多場次及階段五公開消息／優惠／首頁已實作，實際驗收分見 PHASE-2-ACCEPTANCE.md 至 PHASE-5-ACCEPTANCE.md。安裝、命令與驗證結果見 [ENVIRONMENT-SETUP.md](ENVIRONMENT-SETUP.md)。
 
-目標架構見 [ARCHITECTURE.md](ARCHITECTURE.md)：前端 HTML View＋PHP API，Controller／Service／Repository 分工。新功能使用 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md) 的 S／D／U／E 標記，並附模組閱讀指南與真實資料流。backend/ 與 frontend/ 於階段二從零建立，沒有後端遷移。
+目標架構見 [ARCHITECTURE.md](ARCHITECTURE.md)：前端 HTML View＋PHP API，Controller／Service／Repository 分工。新功能的來源（S／D／U／E）記在 [DESIGN-TRACEABILITY.md](DESIGN-TRACEABILITY.md)，程式註解只用一般文字說明原因，並附模組閱讀指南與真實資料流。backend/ 與 frontend/ 於階段二從零建立，沒有後端遷移。
 
 ## 規格基準（U-12，2026-10-18）
 

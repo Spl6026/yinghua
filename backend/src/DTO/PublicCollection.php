@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-26] 確認成功快照中的主題清單型別，再交給公開使用案例。 */
+/** 從發布成功的快照中取出某類內容清單，並先確認型別正確再交給公開 API 使用。 */
 final class PublicCollection
 {
     /** @param array<string,mixed> $snapshot

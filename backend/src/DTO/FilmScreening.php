@@ -11,6 +11,7 @@ readonly class FilmScreening
     /** @return array<string,string> */
     public function toArray(): array
     {
-        return ['id' => $this->id,'startsAt' => $this->startsAt,'ticketUrl' => $this->ticketUrl,'effectiveTicketUrl' => $this->effectiveTicketUrl];
+        return ['id' => $this->id,'startsAt' => $this->startsAt,'ticketUrl' => $this->ticketUrl,
+            'effectiveTicketUrl' => $this->effectiveTicketUrl];
     }
 }

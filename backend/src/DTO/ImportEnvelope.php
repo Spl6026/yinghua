@@ -23,7 +23,8 @@ readonly class ImportEnvelope
         } catch (JsonException) {
             throw ApplicationError::invalid('file', 'JSON 格式無效。');
         }
-        if (!is_array($data) || array_is_list($data) || array_diff(array_keys($data), ['schemaVersion','items']) !== [] || ($data['schemaVersion'] ?? null) !== 1) {
+        if (!is_array($data) || array_is_list($data) || array_diff(array_keys($data), ['schemaVersion','items']) !== []
+            || ($data['schemaVersion'] ?? null) !== 1) {
             throw ApplicationError::invalid('schemaVersion', '請提供 schemaVersion=1 的匯入物件。');
         }
         $rows = $data['items'] ?? null;

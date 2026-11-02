@@ -12,7 +12,10 @@ readonly class ContentPage
     /** @return array<string,mixed> */
     public function toArray(): array
     {
-        return ['items' => array_map(static fn(NewsPost|Offer|Merchant $record): array => (new ContentRecordView($record))->toArray(), $this->items),
+        return ['items' => array_map(
+            static fn(NewsPost|Offer|Merchant $record): array => (new ContentRecordView($record))->toArray(),
+            $this->items,
+        ),
             'total' => $this->total, 'page' => $this->page, 'pageSize' => $this->pageSize];
     }
 }

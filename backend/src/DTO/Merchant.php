@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [D：資料表建議 C15；E-26] 店家 profile 與景點內容有明確各自的用途。 */
+/** 優惠店家資料；店家和景點是兩種不同的資料，各自維護。 */
 readonly class Merchant
 {
     /** @param array<string,string|int|null> $fields */

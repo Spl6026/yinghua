@@ -73,7 +73,9 @@ readonly class Request
                 }
             }
             foreach ($_FILES as $name => $file) {
-                if (!is_string($name) || !is_array($file) || !is_string($file['tmp_name'] ?? null) || !is_int($file['error'] ?? null) || !is_int($file['size'] ?? null)) {
+                if (!is_string($name) || !is_array($file)
+                    || !is_string($file['tmp_name'] ?? null) || !is_int($file['error'] ?? null)
+                    || !is_int($file['size'] ?? null)) {
                     throw ApplicationError::invalid('image', '上傳格式無效。');
                 }
                 $files[$name] = new UploadedImage($file['tmp_name'], $file['error'], $file['size']);
@@ -116,14 +118,14 @@ readonly class Request
         if (!$value instanceof \stdClass) {
             throw new ApplicationError('BAD_REQUEST', 'JSON 最外層須為物件。');
         }
-        // 再以 associative 模式讀取，巢狀物件交給 DTO 的欄位驗證。
+        // 確認最外層是物件後，再以陣列模式讀取；巢狀內容交給 DTO 驗證。
         $values = json_decode($this->body, true, 32, JSON_THROW_ON_ERROR);
         if (!is_array($values)) {
             throw new ApplicationError('BAD_REQUEST', 'JSON 格式不正確。');
         }
         $result = [];
         foreach ($values as $key => $entry) {
-            // [E-01] PHP 會把數字字串 key 轉成 int；不能默默丟棄而繞過 DTO 欄位白名單。
+            // PHP 會把數字字串 key 轉成 int，這裡直接拒絕，避免繞過 DTO 的欄位白名單。
             if (!is_string($key)) {
                 throw ApplicationError::invalid((string) $key, '不允許的欄位。');
             }

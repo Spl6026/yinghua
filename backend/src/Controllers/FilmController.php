@@ -17,7 +17,16 @@ class FilmController
     public function listing(ApiContext $context): Response
     {
         $request = $context->request;
-        return new Response(200, $this->service->listing($context->actor(), $request->queryText('q'), $request->queryText('status'), $request->queryInteger('page', 1, 100000), $request->queryInteger('pageSize', 20, 100))->toArray());
+        return new Response(
+            200,
+            $this->service->listing(
+                $context->actor(),
+                $request->queryText('q'),
+                $request->queryText('status'),
+                $request->queryInteger('page', 1, 100000),
+                $request->queryInteger('pageSize', 20, 100),
+            )->toArray(),
+        );
     }
 
     public function get(ApiContext $context): Response
@@ -33,7 +42,12 @@ class FilmController
 
     public function update(ApiContext $context): Response
     {
-        $result = $this->service->save($context->actor(), $context->id(), FilmInput::fromArray($context->request->json(), false), $context->client);
+        $result = $this->service->save(
+            $context->actor(),
+            $context->id(),
+            FilmInput::fromArray($context->request->json(), false),
+            $context->client,
+        );
         return new Response($result->synchronized ? 200 : 202, $result->toArray());
     }
 
@@ -48,6 +62,7 @@ class FilmController
     public function retry(ApiContext $context): Response
     {
         $success = $this->service->retry($context->actor());
-        return new Response($success ? 200 : 503, ['publication' => ['status' => $success ? 'succeeded' : 'failed'], 'message' => $success ? '公開頁面已同步。' : '發布仍未完成，請稍後重試。']);
+        return new Response($success ? 200 : 503, ['publication' => ['status' => $success ? 'succeeded' : 'failed'],
+            'message' => $success ? '公開頁面已同步。' : '發布仍未完成，請稍後重試。']);
     }
 }

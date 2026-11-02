@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-01／S-027] 明確保存對象與權限版本，維持既有 JSON 契約。 */
+/** 單一管理員的權限矩陣，帶版本號以偵測同時編輯。 */
 readonly class PermissionMatrix
 {
     /** @param list<array{module:string,action:string,allowed:bool}> $permissions */

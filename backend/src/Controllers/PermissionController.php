@@ -11,14 +11,17 @@ use Yinghua\Http\Response;
 use Yinghua\Services\PermissionManagement;
 use Yinghua\Services\RoleTemplates;
 
-/** [E-01／S-027] 權限與角色 API 的 HTTP 邊界；業務與交易留在各 Service。 */
+/** 權限與角色 API 的 HTTP 入口；業務規則與交易都交給 Service。 */
 class PermissionController
 {
     public function __construct(private readonly PermissionManagement $permissions, private readonly RoleTemplates $roles) {}
 
     public function roles(ApiContext $context): Response
     {
-        return new Response(200, ['roles' => array_map(static fn(RoleTemplate $role): array => $role->toArray(), $this->roles->listing($context->actor()))]);
+        return new Response(
+            200,
+            ['roles' => array_map(static fn(RoleTemplate $role): array => $role->toArray(), $this->roles->listing($context->actor()))],
+        );
     }
 
     public function catalog(ApiContext $context): Response
@@ -33,7 +36,12 @@ class PermissionController
 
     public function saveMatrix(ApiContext $context): Response
     {
-        $this->permissions->saveMatrix($context->actor(), $context->id(), PermissionMatrixInput::fromArray($context->request->json()), $context->client);
+        $this->permissions->saveMatrix(
+            $context->actor(),
+            $context->id(),
+            PermissionMatrixInput::fromArray($context->request->json()),
+            $context->client,
+        );
 
         return new Response(204);
     }

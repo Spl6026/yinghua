@@ -23,7 +23,7 @@ final class ImportVersion
 
     public static function assertCurrent(?int $provided, int $actual, bool $unchanged): void
     {
-        // [E-26] 完全相同的重跑可不寫入；不同內容不能以過期版本覆蓋。
+        // 內容完全相同的重跑可以略過；內容不同時，不能用過期版本覆蓋。
         if (!$unchanged && $provided !== $actual) {
             throw new ApplicationError('CONFLICT', '內容已更新，請重新載入最新版本後再儲存。');
         }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Models;
 
-/** [S：功能規格 G9／G22] 優惠不屬於消息分類。 */
+/** 消息分類；優惠另有自己的模組，不在這裡。 */
 enum NewsType: string
 {
     case Event = 'event';

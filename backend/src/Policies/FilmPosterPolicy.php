@@ -9,7 +9,7 @@ use Yinghua\DTO\FilmInput;
 use Yinghua\DTO\MediaAsset;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S：功能規格 G7／G21] 無海報可留空；有圖時須有有效替代文字。 */
+/** 電影海報可以不放；有放圖時必須填替代文字。 */
 class FilmPosterPolicy
 {
     public function assertValid(?Film $before, FilmInput $input, ?MediaAsset $media): void

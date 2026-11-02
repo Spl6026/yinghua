@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [U-16／E-25] 開始時間採分鐘精度；不接收結束時間或場地。 */
+/** 一個放映場次的輸入；開始時間精確到分鐘，不收結束時間或場地。 */
 readonly class ScreeningInput
 {
     public function __construct(public ?string $id, public DateTimeImmutable $startsAt, public string $ticketUrl) {}

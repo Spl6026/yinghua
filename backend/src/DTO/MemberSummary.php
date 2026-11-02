@@ -4,10 +4,16 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [S：功能規格 F25/G25；E-36] 最小投影；不接觸密碼或驗證欄位。 */
+/** 會員列表只需要的欄位，不碰密碼或驗證相關資料。 */
 readonly class MemberSummary
 {
-    public function __construct(public string $memberId, public string $displayName, public string $email, public string $status, public string $joinedAt) {}
+    public function __construct(
+        public string $memberId,
+        public string $displayName,
+        public string $email,
+        public string $status,
+        public string $joinedAt,
+    ) {}
 
     public static function mask(string $text): string
     {

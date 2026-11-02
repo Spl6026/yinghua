@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S：功能規格 G11／G23；原型 offer-add；E-26] 條款必填、日期不擅加必填。 */
+/** 優惠表單輸入；使用條款必填，有效期間可以留空。 */
 readonly class OfferInput
 {
     /** @param array<string,string|int|null> $fields */

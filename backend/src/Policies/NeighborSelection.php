@@ -6,7 +6,7 @@ namespace Yinghua\Policies;
 
 use Yinghua\DTO\{ContentNeighbor, ContentNeighbors, PublicCollection};
 
-/** [S G8／L10／G29；E-31] 只對成功投影的白名單選鄰居；發布與公開API共用結果。 */
+/** 詳情頁的上一篇／下一篇，只從發布成功的公開資料中挑選；發布與公開 API 共用同一份結果。 */
 final class NeighborSelection
 {
     /** @param array<string,mixed> $snapshot

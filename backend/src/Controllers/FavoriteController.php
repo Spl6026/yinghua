@@ -17,12 +17,18 @@ class FavoriteController
 
     public function listing(ApiContext $context): Response
     {
-        return new Response(200, $this->service->listing($context->actor(), MemberPageInput::fromArray($context->request->query))->toArray());
+        return new Response(
+            200,
+            $this->service->listing($context->actor(), MemberPageInput::fromArray($context->request->query))->toArray(),
+        );
     }
 
     public function status(ApiContext $context): Response
     {
-        return new Response(200, ['statuses' => $this->service->status($context->actor(), FavoriteStatusInput::fromArray($context->request->query))]);
+        return new Response(
+            200,
+            ['statuses' => $this->service->status($context->actor(), FavoriteStatusInput::fromArray($context->request->query))],
+        );
     }
 
     public function add(ApiContext $context): Response

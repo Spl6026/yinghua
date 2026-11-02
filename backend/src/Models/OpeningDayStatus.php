@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Models;
 
-/** [U-09／E-20] 未提供時間不等於公休。 */
+/** 每日營業狀態；沒有提供時間（Unknown）不等於公休。 */
 enum OpeningDayStatus: string
 {
     case Unknown = 'unknown';

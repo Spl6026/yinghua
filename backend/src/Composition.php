@@ -53,15 +53,15 @@ use Yinghua\Controllers\MapController;
 use Yinghua\Policies\GoogleUrlPolicy;
 use Yinghua\Services\MapResolver;
 
-/** [E-01] 唯一組裝位置；業務類別不查容器，也不自行 new 資料庫／SMTP。 */
+/** 整個應用程式唯一組裝物件的地方；業務類別只透過建構子取得依賴，不自行建立資料庫或 SMTP 連線。 */
 readonly class Composition
 {
-    /** [E-29] 入口與操作清單共用唯一的 eager-DB 前置路徑。 */
+    /** 入口檔用這個路徑判斷是否要在連線資料庫之前先處理健康檢查。 */
     public const string HEALTH_PATH = '/api/v1/health';
 
     public function __construct(private Config $config) {}
 
-    /** [E-29] health 在任何強制 DB 連線之前組裝，普通 API 的權限管線保持完整。 */
+    /** 健康檢查要在資料庫掛掉時仍能回應，所以在建立任何資料庫連線之前單獨組裝。 */
     public function health(): \Yinghua\Controllers\HealthController
     {
         return new \Yinghua\Controllers\HealthController(new \Yinghua\Services\ApplicationHealth(
@@ -87,25 +87,107 @@ readonly class Composition
         $authorization = new Authorization($accounts, $permissions, $policy);
         $mailer = new PhpMailerAdapter($this->config);
         $captcha = new Captcha(new ChallengeRepository($database), $transactions, $limiter, $secrets, $clock, $this->config, $mailer);
-        $policies = new \Yinghua\Services\PublishedPolicies(new \Yinghua\Repositories\GeneralSettingsRepository($database), new NodeContentRenderer($this->config), $this->config);
-        $authentication = new Authentication($accounts, $sessions, $passwords, $limiter, $events, $transactions, $captcha, $this->config, new ConsentRepository($database), $policies);
-        $passwordReset = new PasswordReset($accounts, $resets, $sessions, $passwords, $limiter, $events, $transactions, $clock, $this->config, $mailer);
+        $policies = new \Yinghua\Services\PublishedPolicies(
+            new \Yinghua\Repositories\GeneralSettingsRepository($database),
+            new NodeContentRenderer($this->config),
+            $this->config,
+        );
+        $authentication = new Authentication(
+            $accounts,
+            $sessions,
+            $passwords,
+            $limiter,
+            $events,
+            $transactions,
+            $captcha,
+            $this->config,
+            new ConsentRepository($database),
+            $policies,
+        );
+        $passwordReset = new PasswordReset(
+            $accounts,
+            $resets,
+            $sessions,
+            $passwords,
+            $limiter,
+            $events,
+            $transactions,
+            $clock,
+            $this->config,
+            $mailer,
+        );
         $csrf = new Csrf($this->config, $clock, $secrets);
-        $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config, new AdminPreview($accounts, $sessions, $events, $transactions), $policies);
+        $authController = new AuthController(
+            $authentication,
+            $authorization,
+            $captcha,
+            $passwordReset,
+            $csrf,
+            $this->config,
+            new AdminPreview($accounts, $sessions, $events, $transactions),
+            $policies,
+        );
         $roles = new RoleTemplates($permissions, $authorization);
-        $permissionController = new PermissionController(new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events), $roles);
-        $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));
+        $permissionController = new PermissionController(
+            new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events),
+            $roles,
+        );
+        $adminController = new AdminController(new AdminManagement(
+            $accounts,
+            $permissions,
+            $roles,
+            $authorization,
+            $policy,
+            $passwords,
+            $transactions,
+            $events,
+            $sessions,
+            $resets,
+        ));
         $publication = $this->publication($database);
-        $attractionController = new AttractionController(new AttractionManagement(new AttractionRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\GooglePlaceLinkPolicy()));
+        $attractionController = new AttractionController(new AttractionManagement(
+            new AttractionRepository($database),
+            $authorization,
+            $transactions,
+            $events,
+            $publication,
+            new \Yinghua\Policies\GooglePlaceLinkPolicy(),
+        ));
         $publicAttractions = new PublicAttractionController(new PublicAttractions($publication), $publication);
-        $mediaController = new MediaController(new MediaManagement(new MediaRepository($database), new LocalImageStorage($this->config), $authorization, $transactions, $events), new MediaAccess($publication, $authentication, $authorization, new MediaRepository($database)));
+        $mediaController = new MediaController(
+            new MediaManagement(
+                new MediaRepository($database),
+                new LocalImageStorage($this->config),
+                $authorization,
+                $transactions,
+                $events,
+            ),
+            new MediaAccess($publication, $authentication, $authorization, new MediaRepository($database)),
+        );
         $mapPolicy = new GoogleUrlPolicy();
-        $mapController = new MapController(new MapResolver(new CurlGoogleHttp($mapPolicy), $mapPolicy, $this->config, $authorization, $limiter, new \Yinghua\Adapters\GooglePlaceMapper(new \Yinghua\Adapters\GoogleOpeningHours())));
+        $mapController = new MapController(new MapResolver(
+            new CurlGoogleHttp($mapPolicy),
+            $mapPolicy,
+            $this->config,
+            $authorization,
+            $limiter,
+            new \Yinghua\Adapters\GooglePlaceMapper(new \Yinghua\Adapters\GoogleOpeningHours()),
+        ));
         $filmController = new \Yinghua\Controllers\PublicFilmController(new \Yinghua\Services\PublicFilms($publication), $clock);
         $filmScreens = new \Yinghua\Repositories\FilmScreeningRepository($database);
-        $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, $filmScreens), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy(), $filmScreens, new \Yinghua\Policies\ScreeningStartPolicy()));
+        $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(
+            new \Yinghua\Repositories\FilmRepository($database, $filmScreens),
+            new MediaRepository($database),
+            $authorization,
+            $transactions,
+            $events,
+            $publication,
+            new \Yinghua\Policies\FilmPosterPolicy(),
+            $filmScreens,
+            new \Yinghua\Policies\ScreeningStartPolicy(),
+        ));
         $router = new Router();
-        // [U-23／E-40] 補位預覽與即時Google原文分開；不增加資料表。
+        // 摘要補位預覽與即時取得的 Google 原文分開處理，不另存資料表。
         $content = new \Yinghua\Controllers\AttractionContentController(new \Yinghua\Services\AttractionSummary(
             new PublicAttractions($publication),
             new AttractionRepository($database),
@@ -113,8 +195,19 @@ readonly class Composition
             $limiter,
             new \Yinghua\Repositories\ExternalRequestSlot($database),
         ), $authorization);
-        $router->add(new \Yinghua\Http\Route('POST', '/api/v1/admin/attractions/content-preview', \Yinghua\Models\IdentityKind::Admin, $content->preview(...), true));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/attractions/{slug}/google-summary', \Yinghua\Models\IdentityKind::Member, $content->summary(...)));
+        $router->add(new \Yinghua\Http\Route(
+            'POST',
+            '/api/v1/admin/attractions/content-preview',
+            \Yinghua\Models\IdentityKind::Admin,
+            $content->preview(...),
+            true,
+        ));
+        $router->add(new \Yinghua\Http\Route(
+            'GET',
+            '/api/v1/attractions/{slug}/google-summary',
+            \Yinghua\Models\IdentityKind::Member,
+            $content->summary(...),
+        ));
         /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController,\Yinghua\Controllers\PublicOfferController,\Yinghua\Controllers\PublicHomeController):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
         $routes(
@@ -133,65 +226,216 @@ readonly class Composition
             new \Yinghua\Controllers\PublicHomeController(new \Yinghua\Services\PublicHome($publication)),
         );
 
-        // [S G22；E-31] HTTP與CLI共用明確editor，不組裝匯入封裝。
+        // 消息管理：HTTP 與 CLI 共用同一個 editor。
         $contentMedia = new MediaRepository($database);
         $contentCover = new \Yinghua\Policies\ContentCover();
         $newsRecords = new \Yinghua\Repositories\NewsRepository($database);
-        $newsEditor = new \Yinghua\Services\NewsManagement($newsRecords, $contentMedia, $authorization, $events, new \Yinghua\Adapters\HtmlPurifierSanitizer(), $contentCover, $clock);
+        $newsEditor = new \Yinghua\Services\NewsManagement(
+            $newsRecords,
+            $contentMedia,
+            $authorization,
+            $events,
+            new \Yinghua\Adapters\HtmlPurifierSanitizer(),
+            $contentCover,
+            $clock,
+        );
         /** @var Closure(Router,\Yinghua\Controllers\AdminNewsController):void $newsRoutes */
         $newsRoutes = require dirname(__DIR__) . '/config/news-admin-routes.php';
-        $newsRoutes($router, new \Yinghua\Controllers\AdminNewsController(new \Yinghua\Services\AdminNewsManagement($newsRecords, $newsEditor, $authorization, $transactions, $publication, $events, $clock)));
+        $newsRoutes(
+            $router,
+            new \Yinghua\Controllers\AdminNewsController(new \Yinghua\Services\AdminNewsManagement(
+                $newsRecords,
+                $newsEditor,
+                $authorization,
+                $transactions,
+                $publication,
+                $events,
+                $clock,
+            )),
+        );
 
-        // [S G23；E-31] 優惠與共享店家分開動作；靜態merchants路由先註冊。
+        // 優惠與店家分開管理；路由檔會先註冊靜態的 merchants 路徑，避免被 {id} 吃掉。
         $offerRecords = new \Yinghua\Repositories\OfferRepository($database);
         $merchantRecords = new \Yinghua\Repositories\MerchantRepository($database);
-        $offerEditor = new \Yinghua\Services\OfferManagement($offerRecords, $merchantRecords, $contentMedia, $authorization, $events, $contentCover, $clock);
+        $offerEditor = new \Yinghua\Services\OfferManagement(
+            $offerRecords,
+            $merchantRecords,
+            $contentMedia,
+            $authorization,
+            $events,
+            $contentCover,
+            $clock,
+        );
         $merchantEditor = new \Yinghua\Services\MerchantManagement($merchantRecords, $authorization, $events);
         /** @var Closure(Router,\Yinghua\Controllers\AdminOfferController,\Yinghua\Controllers\OfferMerchantController):void $offerRoutes */
         $offerRoutes = require dirname(__DIR__) . '/config/offer-admin-routes.php';
         $offerRoutes(
             $router,
-            new \Yinghua\Controllers\AdminOfferController(new \Yinghua\Services\AdminOfferManagement($offerRecords, $offerEditor, $authorization, $transactions, $publication, $events, $clock)),
-            new \Yinghua\Controllers\OfferMerchantController(new \Yinghua\Services\OfferMerchants($merchantRecords, $merchantEditor, $authorization, $transactions, $publication)),
+            new \Yinghua\Controllers\AdminOfferController(new \Yinghua\Services\AdminOfferManagement(
+                $offerRecords,
+                $offerEditor,
+                $authorization,
+                $transactions,
+                $publication,
+                $events,
+                $clock,
+            )),
+            new \Yinghua\Controllers\OfferMerchantController(new \Yinghua\Services\OfferMerchants(
+                $merchantRecords,
+                $merchantEditor,
+                $authorization,
+                $transactions,
+                $publication,
+            )),
         );
 
         /** @var Closure(Router,\Yinghua\Controllers\RecommendedRouteController):void $recommendedRoutes */
         $recommendedRoutes = require dirname(__DIR__) . '/config/recommended-route-routes.php';
-        $recommendedRoutes($router, new \Yinghua\Controllers\RecommendedRouteController(new \Yinghua\Services\RecommendedRoutes(new \Yinghua\Repositories\RecommendedRouteRepository($database), $authorization, $transactions, $publication, $events), new \Yinghua\Services\PublicRecommendedRoutes($publication)));
+        $recommendedRoutes(
+            $router,
+            new \Yinghua\Controllers\RecommendedRouteController(
+                new \Yinghua\Services\RecommendedRoutes(
+                    new \Yinghua\Repositories\RecommendedRouteRepository($database),
+                    $authorization,
+                    $transactions,
+                    $publication,
+                    $events,
+                ),
+                new \Yinghua\Services\PublicRecommendedRoutes($publication),
+            ),
+        );
 
         $neighborController = new \Yinghua\Controllers\PublicNeighborController(new \Yinghua\Services\PublicNeighbors($publication));
         foreach (['attractions','films','news','offers'] as $topic) {
-            $router->add(new \Yinghua\Http\Route('GET', '/api/v1/' . $topic . '/{slug}/neighbors', \Yinghua\Models\IdentityKind::Member, $neighborController->{$topic}(...)));
+            $router->add(new \Yinghua\Http\Route(
+                'GET',
+                '/api/v1/' . $topic . '/{slug}/neighbors',
+                \Yinghua\Models\IdentityKind::Member,
+                $neighborController->{$topic}(...),
+            ));
         }
 
         $memberAccess = new \Yinghua\Services\MemberAccess($accounts);
         $memberAttractions = new \Yinghua\Services\MemberAttractions($publication, new AttractionRepository($database), $clock);
-        $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(new \Yinghua\Repositories\FavoriteRepository($database), $memberAccess, $memberAttractions, $transactions));
-        $itineraryController = new \Yinghua\Controllers\CurrentItineraryController(new \Yinghua\Services\CurrentItinerary(new \Yinghua\Repositories\ItineraryRepository($database), $memberAccess, $memberAttractions, $transactions));
+        $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(
+            new \Yinghua\Repositories\FavoriteRepository($database),
+            $memberAccess,
+            $memberAttractions,
+            $transactions,
+        ));
+        $itineraryController = new \Yinghua\Controllers\CurrentItineraryController(new \Yinghua\Services\CurrentItinerary(
+            new \Yinghua\Repositories\ItineraryRepository($database),
+            $memberAccess,
+            $memberAttractions,
+            $transactions,
+        ));
         /** @var Closure(Router,\Yinghua\Controllers\FavoriteController,\Yinghua\Controllers\CurrentItineraryController):void $memberRoutes */
         $memberRoutes = require dirname(__DIR__) . '/config/member-routes.php';
         $memberRoutes($router, $favoriteController, $itineraryController);
 
         /** @var Closure(Router,\Yinghua\Controllers\MemberItineraryController):void $itineraryRoutes */
         $itineraryRoutes = require dirname(__DIR__) . '/config/itinerary-routes.php';
-        $itineraryRoutes($router, new \Yinghua\Controllers\MemberItineraryController(new \Yinghua\Services\MemberItineraries(new \Yinghua\Repositories\ItineraryRepository($database), $memberAccess, $memberAttractions, $transactions, $publication, new \Yinghua\Repositories\RecommendedRouteRepository($database))));
+        $itineraryRoutes(
+            $router,
+            new \Yinghua\Controllers\MemberItineraryController(new \Yinghua\Services\MemberItineraries(
+                new \Yinghua\Repositories\ItineraryRepository($database),
+                $memberAccess,
+                $memberAttractions,
+                $transactions,
+                $publication,
+                new \Yinghua\Repositories\RecommendedRouteRepository($database),
+            )),
+        );
 
         $seoCatalog = new \Yinghua\Adapters\SeoCatalog($this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source'));
-        $seoController = new \Yinghua\Controllers\SeoSettingsController(new \Yinghua\Services\SeoSettings(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database), new \Yinghua\Repositories\SeoContentRepository($database), $authorization, $transactions, $events, $publication, $seoCatalog, $this->config), $seoCatalog->policy());
+        $seoController = new \Yinghua\Controllers\SeoSettingsController(
+            new \Yinghua\Services\SeoSettings(
+                new \Yinghua\Repositories\SiteSettingsRepository($database),
+                new \Yinghua\Repositories\ContentSeoRepository($database),
+                new \Yinghua\Repositories\SeoContentRepository($database),
+                $authorization,
+                $transactions,
+                $events,
+                $publication,
+                $seoCatalog,
+                $this->config,
+            ),
+            $seoCatalog->policy(),
+        );
         /** @var Closure(Router,\Yinghua\Controllers\SeoSettingsController,\Yinghua\Controllers\PublicSiteSettingsController):void $seoRoutes */
         $seoRoutes = require dirname(__DIR__) . '/config/seo-routes.php';
-        $seoRoutes($router, $seoController, new \Yinghua\Controllers\PublicSiteSettingsController(new \Yinghua\Services\PublicSiteSettings($publication)));
+        $seoRoutes(
+            $router,
+            $seoController,
+            new \Yinghua\Controllers\PublicSiteSettingsController(new \Yinghua\Services\PublicSiteSettings($publication)),
+        );
 
-        $search = new \Yinghua\Controllers\SearchController(new \Yinghua\Services\PublicSearch($publication, new \Yinghua\Repositories\SearchRepository($database, $transactions)));
+        $search = new \Yinghua\Controllers\SearchController(new \Yinghua\Services\PublicSearch(
+            $publication,
+            new \Yinghua\Repositories\SearchRepository($database, $transactions),
+        ));
         $router->add(new \Yinghua\Http\Route('GET', '/api/v1/search', \Yinghua\Models\IdentityKind::Member, $search->listing(...)));
-        $directory = new \Yinghua\Controllers\MemberDirectoryController(new \Yinghua\Services\MemberDirectory(new \Yinghua\Repositories\MemberDirectoryRepository($database), $authorization));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/members', \Yinghua\Models\IdentityKind::Admin, $directory->listing(...), true, 'members', 'view'));
-        $general = new \Yinghua\Controllers\GeneralSettingsController(new \Yinghua\Services\GeneralSiteSettings(new \Yinghua\Repositories\GeneralSettingsRepository($database), new \Yinghua\Repositories\SiteSettingsRepository($database), $authorization, $transactions, $events, $publication));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->read(...), true, 'settings', 'view'));
-        $router->add(new \Yinghua\Http\Route('PUT', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->save(...), true, 'settings', 'edit'));
-        $operations = new \Yinghua\Controllers\OperationsController(new \Yinghua\Services\OperationsOverview(new \Yinghua\Repositories\OperationsRepository($database), $authorization));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/dashboard', \Yinghua\Models\IdentityKind::Admin, $operations->read(...), true, 'dashboard', 'view'));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/audit-logs', \Yinghua\Models\IdentityKind::Admin, $operations->audits(...), true, 'dashboard', 'view'));
+        $directory = new \Yinghua\Controllers\MemberDirectoryController(new \Yinghua\Services\MemberDirectory(
+            new \Yinghua\Repositories\MemberDirectoryRepository($database),
+            $authorization,
+        ));
+        $router->add(new \Yinghua\Http\Route(
+            'GET',
+            '/api/v1/admin/members',
+            \Yinghua\Models\IdentityKind::Admin,
+            $directory->listing(...),
+            true,
+            'members',
+            'view',
+        ));
+        $general = new \Yinghua\Controllers\GeneralSettingsController(new \Yinghua\Services\GeneralSiteSettings(
+            new \Yinghua\Repositories\GeneralSettingsRepository($database),
+            new \Yinghua\Repositories\SiteSettingsRepository($database),
+            $authorization,
+            $transactions,
+            $events,
+            $publication,
+        ));
+        $router->add(new \Yinghua\Http\Route(
+            'GET',
+            '/api/v1/admin/settings',
+            \Yinghua\Models\IdentityKind::Admin,
+            $general->read(...),
+            true,
+            'settings',
+            'view',
+        ));
+        $router->add(new \Yinghua\Http\Route(
+            'PUT',
+            '/api/v1/admin/settings',
+            \Yinghua\Models\IdentityKind::Admin,
+            $general->save(...),
+            true,
+            'settings',
+            'edit',
+        ));
+        $operations = new \Yinghua\Controllers\OperationsController(new \Yinghua\Services\OperationsOverview(
+            new \Yinghua\Repositories\OperationsRepository($database),
+            $authorization,
+        ));
+        $router->add(new \Yinghua\Http\Route(
+            'GET',
+            '/api/v1/admin/dashboard',
+            \Yinghua\Models\IdentityKind::Admin,
+            $operations->read(...),
+            true,
+            'dashboard',
+            'view',
+        ));
+        $router->add(new \Yinghua\Http\Route(
+            'GET',
+            '/api/v1/admin/audit-logs',
+            \Yinghua\Models\IdentityKind::Admin,
+            $operations->audits(...),
+            true,
+            'dashboard',
+            'view',
+        ));
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 
@@ -199,7 +443,23 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database), new \Yinghua\Repositories\SearchRepository($database, new PdoTransactions($database)), new \Yinghua\Repositories\GeneralSettingsRepository($database));
+        return new ContentPublication(
+            new AttractionRepository($database),
+            new PublicationRepository($database),
+            new NodeContentRenderer($this->config),
+            $this->config,
+            new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)),
+            new SystemClock(),
+            new \Yinghua\Repositories\NewsRepository($database),
+            new \Yinghua\Repositories\OfferRepository($database),
+            new \Yinghua\Services\SeoPublication(
+                new \Yinghua\Repositories\SiteSettingsRepository($database),
+                new \Yinghua\Repositories\ContentSeoRepository($database),
+            ),
+            new \Yinghua\Repositories\RecommendedRouteRepository($database),
+            new \Yinghua\Repositories\SearchRepository($database, new PdoTransactions($database)),
+            new \Yinghua\Repositories\GeneralSettingsRepository($database),
+        );
     }
 
     public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands

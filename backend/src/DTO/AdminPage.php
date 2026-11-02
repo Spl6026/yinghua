@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-01／E-13] 管理員列表的資料與分頁資訊；不依賴 HTTP。 */
+/** 管理員列表的資料與分頁資訊。 */
 readonly class AdminPage
 {
     /** @param list<AccountSummary> $items */

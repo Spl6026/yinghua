@@ -14,7 +14,14 @@ class MemberItineraryController
 
     public function listing(ApiContext $context): Response
     {
-        return new Response(200, $this->service->listing($context->actor(), $context->request->queryInteger('page', 1, 100000), $context->request->queryInteger('pageSize', 20, 100)));
+        return new Response(
+            200,
+            $this->service->listing(
+                $context->actor(),
+                $context->request->queryInteger('page', 1, 100000),
+                $context->request->queryInteger('pageSize', 20, 100),
+            ),
+        );
     }
 
     public function get(ApiContext $context): Response
@@ -30,14 +37,24 @@ class MemberItineraryController
 
     public function update(ApiContext $context): Response
     {
-        return new Response(200, ['itinerary' => $this->service->save($context->actor(), $context->id(), TripInput::from($context->request->json(), false))->toArray()]);
+        return new Response(
+            200,
+            ['itinerary' => $this->service->save(
+                $context->actor(),
+                $context->id(),
+                TripInput::from($context->request->json(), false),
+            )->toArray()],
+        );
     }
 
     public function select(ApiContext $context): Response
     {
         $input = new Input($context->request->json());
         $input->only(['version']);
-        return new Response(200, ['itinerary' => $this->service->select($context->actor(), $context->id(), $input->positiveInt('version'))->toArray()]);
+        return new Response(
+            200,
+            ['itinerary' => $this->service->select($context->actor(), $context->id(), $input->positiveInt('version'))->toArray()],
+        );
     }
 
     public function delete(ApiContext $context): Response
@@ -53,6 +70,14 @@ class MemberItineraryController
         $values = $context->request->json();
         $input = new Input($values);
         $input->only(['version','routeId']);
-        return new Response(200, ['itinerary' => $this->service->apply($context->actor(), $context->id(), $input->text('routeId', 36, 36), $input->positiveInt('version'))->toArray()]);
+        return new Response(
+            200,
+            ['itinerary' => $this->service->apply(
+                $context->actor(),
+                $context->id(),
+                $input->text('routeId', 36, 36),
+                $input->positiveInt('version'),
+            )->toArray()],
+        );
     }
 }

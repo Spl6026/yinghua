@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [E-25] 只驗證外連，不在伺服器下載任意網址。 */
+/** 只驗證外部連結的格式，伺服器不會去下載這些網址。 */
 readonly class ContentUrl
 {
     public static function validate(string $value, string $field): string

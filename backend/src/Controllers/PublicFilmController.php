@@ -17,7 +17,14 @@ class PublicFilmController
     public function listing(ApiContext $context): Response
     {
         $r = $context->request;
-        $query = FilmQuery::fromValues($r->queryText('week'), $r->queryText('from'), $r->queryText('to'), $r->queryInteger('page', 1, 100000), $r->queryInteger('pageSize', 20, 100), $this->clock->now());
+        $query = FilmQuery::fromValues(
+            $r->queryText('week'),
+            $r->queryText('from'),
+            $r->queryText('to'),
+            $r->queryInteger('page', 1, 100000),
+            $r->queryInteger('pageSize', 20, 100),
+            $this->clock->now(),
+        );
 
         return new Response(200, $this->service->listing($query));
     }

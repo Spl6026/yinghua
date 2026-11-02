@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Models;
 
-/** [S E18；E-35] 固定分組順序；美食由景點分類獨立篩選。 */
+/** 搜尋結果的分組與固定顯示順序；「美食」是從景點中依分類另外篩出來的一組。 */
 enum SearchType: string
 {
     case Place = 'place';

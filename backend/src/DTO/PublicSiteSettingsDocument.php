@@ -6,7 +6,12 @@ namespace Yinghua\DTO;
 
 readonly class PublicSiteSettingsDocument
 {
-    public function __construct(public int $version, public SeoDefaults $defaults, public string $generation, public GeneralSettingsDocument $general = new GeneralSettingsDocument()) {}
+    public function __construct(
+        public int $version,
+        public SeoDefaults $defaults,
+        public string $generation,
+        public GeneralSettingsDocument $general = new GeneralSettingsDocument(),
+    ) {}
 
     /** @return array<string,mixed> */
     public function toArray(): array

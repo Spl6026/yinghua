@@ -18,7 +18,8 @@
 - 表單與介面驗收使用 [.agents/skills/web-design-guidelines/SKILL.md](.agents/skills/web-design-guidelines/SKILL.md)，範圍為本次修改的 frontend/ 頁面與資產；需要實際操作時搭配可用的 browser skill。
 - website/ 保留原始交付檔案；新增後端程式放 backend/，新前端來源放 frontend/，新增工程文件放專案根目錄 docs/。維持 PHP＋MariaDB＋Docker、原生 JavaScript／jQuery 架構與原型設計。
 - 後續架構依 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)：PHP 網站 HTTP 責任只提供 API；HTML View 在前端，Controller／Service／Repository 分工，使用 DTO、建構子依賴與適當共用規則。必要 CLI 不受 API-only 限制。
-- 新功能與業務註解標出規格、文件草案、使用者指定或工程補充，來源 ID 見 [docs/DESIGN-TRACEABILITY.md](docs/DESIGN-TRACEABILITY.md)。完成模組提供中文閱讀指南，不能把工程提案寫成規格硬性要求。
+- 程式註解以一般繁體中文說明「為什麼」，寫給接手的開發者看，不夾帶 `[S：…]`、`E-xx`、`U-xx` 等內部代碼或階段／日期紀錄（使用者 2026-11-02 指定）。規格、文件草案、使用者指定與工程補充的來源追溯改記在 [docs/DESIGN-TRACEABILITY.md](docs/DESIGN-TRACEABILITY.md)，改寫前的代碼對照見 [docs/CODE-COMMENT-TRACEABILITY.md](docs/CODE-COMMENT-TRACEABILITY.md)。完成模組提供中文閱讀指南，不能把工程提案寫成規格硬性要求。
+- 前端 JS／CSS 以 Prettier（`frontend/.prettierrc.json`，`npm run format`）、PHP 以 PHP-CS-Fixer PER-CS 維持格式；不寫成壓縮的單行程式。
 - 每完成一個階段，必須在宣告完成及合併 main 前更新 [docs/PROJECT-GUIDE.md](docs/PROJECT-GUIDE.md)：更新日期、實際完成範圍、架構與檔案用途、頁面／API 狀態、資料表／migration、Docker／環境及操作命令；核對檔案清單與連結，不提前標記後續功能。功能開發期間有相關變更亦應隨功能提交同步維護。
 - 計畫依 [docs/IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md) 分為共用準備 1、P0 階段 2–8、P1 階段 9–12、P2 階段 13–15；依序完成優先級界線驗收後再進入下一級。必要前置能力標明用途，不提前冒充後續功能；重排不等於新增實作或授權。
 - 使用者已授權實作階段三、四；認證／權限、景點／媒體／地圖／發布及電影／多場次已完成本機驗收，實際範圍見各階段驗收文件。階段五已於 2026-10-22 依授權實作並完成本機驗收，見 docs/PHASE-5-ACCEPTANCE.md。階段六已依授權於 phase/06-favorites-basic-itinerary 建立收藏／目前行程，2026-10-24 完成本機驗收，範圍與限制見 docs/PHASE-6-ACCEPTANCE.md；合併前須備份並核對完整內容。階段七已另行授權並完成本機範圍；階段八已由使用者另行授權，於phase/08-p0-validation實作health／發布部署／復原及整合驗證；完整人工AA／正式環境與安全差項仍待驗，未合併main，見docs/PHASE-8-ACCEPTANCE.md。階段九以後未開始，P0界線通過後依後續授權處理。U-16 只檢查放映日期及開始時間，結束時間延後。狀態與驗收只記錄實際結果。
