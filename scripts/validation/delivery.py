@@ -1,8 +1,8 @@
-"""[E-38] Reproducible delivery checks; never reset root or restore the main DB.
+"""可重現的交付檢查；不會重設 root 帳號，也不會還原主資料庫。
 
-inventory is read-only. integration reuses an explicitly prepared, active named
-yinghua_test fixture; it stops on the first failed suite and preserves logs.
-Browser and external-service acceptance remain separate evidence.
+inventory 只讀取資料。integration 使用事先明確準備、正在運行的 yinghua_test
+測試資料庫，遇到第一個失敗的測試組就停止，並保留紀錄檔。
+瀏覽器與外部服務的驗收不在這裡，需另外檢查。
 """
 import argparse
 import hashlib
@@ -75,7 +75,7 @@ def main():
     parser.add_argument('--dependency-path')
     parser.add_argument('--schema-vocabulary')
     options = parser.parse_args()
-    # Fresh directory prevents a failed run being confused with older green evidence.
+    # 每次使用新的目錄，避免把失敗的執行結果和之前通過的紀錄搞混。
     target = ROOT / 'artifacts/phase15' / (time.strftime('%Y%m%d-%H%M%S') + '-' + str(os.getpid()))
     target.mkdir(parents=True, exist_ok=False)
     report = {'commit': git('rev-parse', 'HEAD').decode().strip(), 'mode': options.mode,

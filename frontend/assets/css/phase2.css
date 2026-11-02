@@ -1,4 +1,4 @@
-/* [E-14] 只補充真實 API 的狀態與新欄位；原始版型由 style.css 提供。 */
+/* 只補充串接真實 API 後需要的狀態與新欄位，原始版型仍由 style.css 提供。 */
 [hidden] {
   display: none !important;
 }
@@ -107,7 +107,7 @@
 .admin-top-actions button {
   white-space: nowrap;
 }
-/* [U-05／E-14] 真實登入操作加入頂列後，保留原型「查看網站」連結的完整文字與箭頭。 */
+/* 頂列加入登入操作後，原型的「查看網站」連結仍要保留完整文字與箭頭。 */
 .admin-topbar > .admin-preview {
   flex-shrink: 0;
   white-space: nowrap;
@@ -247,7 +247,7 @@ select {
     font-size: 12px;
   }
 }
-/* [U-05／S G34；E-29] 返回列表與真實登入操作並存時，窄螢幕頂列分行，頁名不擠成直排。 */
+/* 「返回列表」與登入操作同時出現時，窄螢幕的頂列改成分行，避免頁名被擠成直排。 */
 @media (max-width: 640px) {
   .admin-topbar {
     display: grid;
@@ -280,7 +280,7 @@ select {
   }
 }
 
-/* [S：功能規格 E34/G34；E-14] 保留原型色系，提高已串接表單的提示文字對比。 */
+/* 保留原型色系，但提高已串接表單提示文字的對比。 */
 :root {
   --muted: #5b5f55;
 }
@@ -290,14 +290,14 @@ select {
 .form-privacy {
   color: #62665c;
 }
-/* [S：G34／串接總覽 B15；E-29] 原型小字在紙色背景仍須達一般文字對比。 */
+/* 原型的小字放在紙色背景上，仍須達到一般文字的對比要求。 */
 .section-kicker,
 .film-meta,
 .demo-note {
   color: #62665c;
 }
 
-/* [S G34／E-29] 標題換行或瀏覽器放大時，封面由內容撐高，避免按鈕與底部註記重疊。 */
+/* 標題換行或瀏覽器放大時，封面改由內容撐高，避免按鈕與底部註記重疊。 */
 .hero {
   height: auto;
   min-height: clamp(560px, calc(100svh - 82px), 710px);
@@ -315,14 +315,14 @@ select {
     padding: 100px 8% 90px;
   }
 }
-/* [S G34／E-29] 已發布館舍圖片使用 inline background-image；遮罩獨立成層，避免圖片覆蓋遮罩。 */
+/* 已發布的館舍圖片以 inline background-image 設定，遮罩獨立成一層，避免圖片蓋住遮罩。 */
 .museum-photo::after {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(0deg, rgba(25, 29, 23, 0.82) 0%, rgba(25, 29, 23, 0.82) 35%, transparent 58%);
 }
-/* [S G34／串接總覽 B15；E-29] 空白欄位仍須有可辨識的邊界；不改原型尺寸與紙色。 */
+/* 空白欄位仍要看得出邊界，但不改動原型的尺寸與紙色。 */
 .form-field input,
 .form-field select,
 .form-field textarea,
@@ -340,11 +340,11 @@ select {
 .permission-toolbar select {
   border-color: #77796d;
 }
-/* [S G34／E-29] 裝飾不持續自動移動，避免閱讀行程時受干擾。 */
+/* 裝飾不持續自動移動，避免使用者閱讀行程時分心。 */
 .planner-orbit {
   animation: none;
 }
-/* [S G34／B15；E-29] 到期提醒可重排、捲動；不改動或重建原表單。 */
+/* 到期提醒可以重排與捲動，不改動或重建原本的表單。 */
 #session-prompt {
   width: min(520px, calc(100% - 32px));
   max-height: calc(100dvh - 32px);
@@ -427,7 +427,7 @@ select {
   flex-wrap: wrap;
 }
 
-/* [E-36] 沿原型面板／快捷格線；長政策標題在窄螢幕換整行。 */
+/* 沿用原型的面板與快捷格線；較長的政策標題在窄螢幕上整行換行。 */
 .general-settings-panel .admin-panel-heading {
   display: block;
 }
@@ -465,7 +465,7 @@ select {
   overflow-wrap: anywhere;
 }
 
-/* [U：保留website頁首樣式；E-37] 僅保留中性載入／重試，不新增下拉選單。 */
+/* 保留 website 原本的頁首樣式，只提供中性的載入／重試狀態，不另外新增下拉選單。 */
 .account-loading {
   display: inline-block;
   color: var(--muted);

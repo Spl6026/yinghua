@@ -1,4 +1,4 @@
-"""[E-29] 從已提交、乾淨的發布來源建置一組新標籤，拒絕覆寫既有映像。"""
+"""從已提交且乾淨的原始碼建置一組新標籤的發布映像；標籤已存在時拒絕覆寫。"""
 import argparse, subprocess
 from operations import Deployment, ROOT, OperationError
 

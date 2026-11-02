@@ -1,4 +1,4 @@
-/* E-37: self-hosted OFL fonts; common Unicode subset and complete fallback, no late font swap. */
+/* 自架 OFL 授權字型：涵蓋常用 Unicode 子集並保留完整的後備字型，避免頁面顯示後才替換字型。 */
 @font-face {
   font-family: 'Noto Sans TC';
   src: url('/assets/fonts/NotoSansTC-common.woff2') format('woff2');
@@ -1293,7 +1293,7 @@
     U+2A64A, U+2A65B, U+2A6A9, U+2ADFF, U+2D544, U+2F825, U+2F83B, U+2F840, U+2F878, U+2F894, U+2F8A6,
     U+2F8CD, U+2F8DB, U+2F994, U+2F9B2, U+2F9BC, U+2F9D4;
 }
-/* [E-39] Rare characters stay in the system fallback rather than loading a late face. */
+/* 罕用字直接使用系統後備字型，不為了少數字另外載入晚到的字型檔。 */
 html.fonts-ready {
   --sans: 'Noto Sans TC', 'Microsoft JhengHei', 'PingFang TC', sans-serif;
   --serif: 'Noto Serif TC', 'PMingLiU', 'Songti TC', serif;

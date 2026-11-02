@@ -1,4 +1,4 @@
-/* [U-05／E-25] 沿用原型表單與預覽；場次區塊依窄螢幕換行。 */
+/* 電影表單沿用原型的表單與預覽，場次區塊在窄螢幕上換行。 */
 .film-screenings {
   display: grid;
   gap: 14px;
@@ -24,7 +24,7 @@
 .film-screenings a {
   overflow-wrap: anywhere;
 }
-/* [U-05／E-25] 手機標題旁的重新載入維持完整按鈕文字，避免被表單標題擠成逐字直排。 */
+/* 手機版標題旁的「重新載入」要維持完整的按鈕文字，避免被表單標題擠成逐字直排。 */
 .admin-page-heading > #reload-film {
   flex-shrink: 0;
   white-space: nowrap;

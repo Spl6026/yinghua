@@ -1,4 +1,4 @@
-"""[E-29] Scan immutable runtime images without Docker socket or project-secret mounts."""
+"""掃描不可變的執行期映像；掃描時不掛載 Docker socket 或專案的秘密檔。"""
 import argparse,collections,json,re,subprocess
 from pathlib import Path
 from operations import Deployment,OperationError,private_target

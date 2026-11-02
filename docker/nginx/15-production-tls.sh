@@ -1,6 +1,6 @@
 #!/bin/sh
 set -eu
-# [E-29] 重用共用路由；只在正式 image 轉為 TLS。容器內8082僅為 liveness。
+# 重用共用的路由設定，只在正式環境的 image 改為 TLS。容器內的 8082 只用於 liveness 檢查。
 template=/etc/nginx/templates/default.conf.template
 mkdir -p /etc/nginx/templates
 cp /etc/nginx/yinghua-base.template "$template"

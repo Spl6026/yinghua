@@ -1,6 +1,6 @@
-/* 映畫竹塹：全站色彩、排版與共用元件；[S G34／E-29] muted 與封面遮罩提供足夠對比，保留原型版型。 */
-/* [U：載入穩定性；E-37] 本機字型 optional：未及首屏時保留系統字型，不晚換造成跳動。 */
-/* 字型樣式由HTML head先載入，避免額外的@import載入鏈。 */
+/* 映畫竹塹：全站色彩、排版與共用元件。muted 文字與封面遮罩需保有足夠對比，同時維持原型版型。 */
+/* 本機字型採 optional 載入：首屏前來不及載入就維持系統字型，不在之後才替換而造成版面跳動。 */
+/* 字型樣式由 HTML head 先載入，避免多一層 @import 載入鏈。 */
 :root {
   --paper: #f5f1e8;
   --paper2: #ece7db;
@@ -165,7 +165,8 @@ select:focus-visible {
   display: flex;
   align-items: center;
   gap: 15px;
-} /* [U-21] 圖示在原按鈕範圍內雙向置中。 */
+}
+/* 圖示在原按鈕範圍內水平、垂直置中。 */
 .icon-button {
   display: inline-flex;
   align-items: center;
@@ -2600,7 +2601,7 @@ select:focus-visible {
   }
 }
 
-/* Standalone detail-page presentation */
+/* 獨立詳情頁的版面 */
 .detail-page {
   max-width: 1050px;
   margin: auto;
@@ -2867,7 +2868,7 @@ body {
   margin: 0;
 }
 
-/* 全站字級第二階段：提高導覽、資訊標籤、表單與管理介面的閱讀尺寸。 */
+/* 全站字級（續）：提高導覽、資訊標籤、表單與管理介面的閱讀尺寸。 */
 body {
   font-size: 18px;
 }
@@ -3673,7 +3674,7 @@ body {
   }
 }
 
-/* [U：卡片下緣對齊；E-37] 無摘要或摘要多寡不改變底部資訊／操作列的對齊。 */
+/* 卡片下緣對齊：不論有沒有摘要、摘要長短，底部的資訊與操作列都保持對齊。 */
 .place-card {
   display: flex;
   flex-direction: column;

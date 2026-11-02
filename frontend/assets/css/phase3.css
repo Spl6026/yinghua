@@ -1,4 +1,4 @@
-/* [U-05／E-18] 補齊正式表單狀態；沿用原型 admin-grid／panel／table 版型。 */
+/* 補齊正式表單的各種狀態，版型沿用原型的 admin-grid／panel／table。 */
 .place-photo-preview {
   display: block;
   max-width: 100%;
@@ -48,7 +48,7 @@
   white-space: nowrap;
   color: #1f1f1f;
 }
-/* [U-10／E-21] 狀態與展開操作共用一列；詳細內容獨立向下展開，避免 flex 對齊跳動。 */
+/* 狀態與展開按鈕放在同一列，詳細內容另起一塊向下展開，避免 flex 對齊時跳動。 */
 .google-place-link {
   display: grid;
   gap: 8px;
@@ -236,7 +236,7 @@
   }
 }
 
-/* [S E20／E-24] 保留原型配色，讓範例選單與操作於窄畫面換行。 */
+/* 保留原型配色，讓範例選單與操作按鈕在窄畫面上可以換行。 */
 #place-samples .url-import {
   grid-template-columns: minmax(0, 1fr) auto auto;
 }
@@ -250,7 +250,7 @@
   }
 }
 
-/* [U-23／E-40] 原文來源與自家內容分開，窄版不截短Google原文。 */
+/* Google 原文來源與自家內容分開呈現，窄版也不截短 Google 原文。 */
 .google-summary-reference,
 .attraction-content-preview {
   padding: 16px;

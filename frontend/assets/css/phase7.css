@@ -1,4 +1,4 @@
-/* [U-05／E-28] 保留原型 admin-panel／details，僅補必要狀態與長值換行。 */
+/* SEO 設定頁沿用原型的 admin-panel／details，只補上必要的狀態與長值換行。 */
 .seo-page-config {
   border: 1px solid var(--line);
   margin-block: 12px;

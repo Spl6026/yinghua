@@ -1,4 +1,4 @@
-/* [U-05／E-25] 公開電影沿用原型卡片／片單，處理任意海報比例與長介紹。 */
+/* 公開電影頁沿用原型的卡片與片單版型，並處理任意比例的海報與較長的介紹文字。 */
 .film-art {
   background-size: cover;
   background-position: center;

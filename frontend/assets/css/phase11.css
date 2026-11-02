@@ -1,4 +1,4 @@
-/* [S E15；U-05；E-33] 沿用原型planner殼，補上多行程與站點編輯。 */
+/* 會員行程：沿用原型 planner 的外框，補上多份行程與站點編輯。 */
 .planner-card select {
   width: 100%;
   padding: 12px;
@@ -97,7 +97,7 @@
   }
 }
 
-/* [U：行程編排改善；E-37] 統一表單字級與換行，操作留在同頁。 */
+/* 行程編排：統一表單字級與換行方式，讓所有操作都能在同一頁完成。 */
 .planner-aside,
 .planner-card,
 .suggestion-card,
@@ -297,7 +297,7 @@
   min-height: 180px;
 }
 
-/* [U：無簡介仍保持層級；E-37] 類別與介紹連結各佔一列。 */
+/* 沒有簡介時仍要維持資訊層級，類別與介紹連結各佔一列。 */
 .itinerary-stop .stop-info > .trip-stop-meta {
   display: block;
 }

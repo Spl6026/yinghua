@@ -1,4 +1,4 @@
-// [E-29] 同一 build stage 產生 app/web 共用清單；不讀 .env、不把秘密寫入映像。
+// 在同一個 build stage 產生 app 與 web 共用的發布清單；不讀取 .env，也不把秘密寫進映像。
 import {readFile,writeFile,readdir} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {join} from 'node:path';

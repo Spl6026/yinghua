@@ -1,4 +1,4 @@
-/* [U-05／E-27] 沿用原型卡片；僅補充本人資源的操作／錯誤狀態。 */
+/* 收藏與行程沿用原型卡片，只補上個人資料的操作與錯誤狀態。 */
 .member-intent {
   padding-block: 24px;
   border-bottom: 1px solid var(--line);
@@ -15,7 +15,7 @@
 .member-unavailable .place-body {
   padding: 24px;
 }
-/* [S：G34／E-27] 真實長名稱不能撐大 grid 的最小內容寬度或被外框裁切。 */
+/* 實際資料中的長名稱不能撐大 grid 的最小內容寬度，也不能被外框裁切。 */
 .planner-layout > .itinerary,
 .itinerary-stop > .stop-info {
   min-width: 0;

@@ -1,4 +1,4 @@
-# [E-30] Disposable test desktop; never used by application/release images.
+# 用完即丟的無障礙測試桌面環境，不會被應用程式或正式發布的 image 使用。
 FROM debian:trixie-slim@sha256:62bd423aeee912639ca8ee681c2b762cb3e25137e0a92b20be455898a9f034ad
 
 RUN apt-get update && apt-get install -y --no-install-recommends \

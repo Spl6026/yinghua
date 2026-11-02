@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 umask 077
-# Firefox's canonical localhost origins stay unchanged inside this desktop.
+# 在這個測試桌面內，Firefox 使用的 localhost 來源維持不變。
 for port in 8080 8081; do
     socat "TCP-LISTEN:$port,bind=127.0.0.1,reuseaddr,fork" "TCP:host.docker.internal:$port" > "/state/proxy-$port.log" 2>&1 &
 done

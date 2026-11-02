@@ -1,4 +1,4 @@
-"""[E-29] Damaged metadata and tar traversal must fail before any database operation."""
+"""備份的中繼資料損毀或 tar 內含路徑穿越時，必須在動到資料庫之前就失敗。"""
 import io,json,sys,tarfile,tempfile,unittest
 from pathlib import Path
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))

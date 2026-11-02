@@ -1,4 +1,4 @@
-"""[E-29] Python 3 + Docker CLI，Windows/Linux 共用；不需主機 PHP 或額外 Python 套件。"""
+"""維運指令（備份、還原等），只需要 Python 3 與 Docker CLI，Windows 與 Linux 共用；主機不需安裝 PHP 或額外的 Python 套件。"""
 import argparse, datetime, hashlib, json, os, re, subprocess, sys, tarfile, time
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -69,7 +69,7 @@ class Deployment:
     def pause_writes(self):
         active=[name for name in ['web','publisher'] if self.running(name)]
         if active:self.run(['stop',*active])
-        # SIGQUIT 等候／結束已送入 FPM 的請求，避免只停 Nginx 後仍有背景寫入。
+        # 用 SIGQUIT 讓 FPM 處理完已收到的請求再結束，避免只停掉 Nginx 後仍有背景寫入。
         self.run(['restart','--timeout','30','app'])
         return active
 
@@ -88,7 +88,7 @@ class Deployment:
         manifest=self.manifest();self.readiness(True)
         active=self.pause_writes();started=time.monotonic()
         try:
-            # 所有 HTTP 寫入口及 worker 停止後才讀取同窗口的 DB／媒體。
+            # 等所有 HTTP 寫入口與 worker 都停止後，才在同一個時間窗內讀取資料庫與媒體檔，確保兩者一致。
             self.readiness(True);media=self.media();target.mkdir(parents=True,mode=0o700)
             self.stream(['exec','-T','db','sh','-c','MYSQL_PWD="$MARIADB_PASSWORD" exec mariadb-dump -u "$MARIADB_USER" --single-transaction --quick --triggers --routines --events --hex-blob --skip-comments "$MARIADB_DATABASE"'],target/'database.sql')
             self.stream(['exec','-T','app','tar','-C','/var/www/media','-cf','-','.'],target/'media.tar')
@@ -103,11 +103,11 @@ class Deployment:
                 'appKeyFingerprint':hashlib.sha256(self.config['services']['app']['environment']['APP_KEY'].encode()).hexdigest(),
                 'files':{name:hash_file(target/name) for name in ['database.sql','media.tar','release.json']},'elapsedSeconds':round(time.monotonic()-started,3)}
             (target/'manifest.json').write_text(json.dumps(report,indent=2),encoding='utf8')
-            # 清單本身不能替代外部受保護／加密的備份位置與完整性信任。
+            # 這份清單無法取代外部受保護、加密的備份位置，也不能單靠它證明備份完整。
             verify_backup(target)
             return {'project':self.project,'backup':str(target),'mediaFiles':len(media),'elapsedSeconds':report['elapsedSeconds']}
         finally:
-            # 備份失敗沒有改變原資料；只恢復原本已運行的入口，不自動開啟原本關閉的站。
+            # 備份失敗不會動到原資料；只恢復原本就在運行的入口，不會自動打開原本關閉的站。
             if active:self.run(['start',*active])
 
     def restore(self,target):

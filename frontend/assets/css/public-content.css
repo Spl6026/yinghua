@@ -1,4 +1,4 @@
-/* [E-26] 保留原型卡片與詳情；只補分頁、狀態及安全正文需要的樣式。 */
+/* 保留原型的卡片與詳情版型，只補上分頁、狀態，以及安全呈現正文所需的樣式。 */
 .public-content-pager {
   display: flex;
   align-items: center;
