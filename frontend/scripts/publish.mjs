@@ -26,6 +26,7 @@ import { resolveSeo } from '../assets/js/core/seo-resolver.js';
 import { crawlerEntry, buildSitemaps, robotsText } from './crawler-index.mjs';
 import { assetVersion } from './asset-version.mjs';
 import { mustReplace } from './html-edit.mjs';
+import { contentDetailUrl, contentKind, snapshotContent } from '../assets/js/core/content-kinds.js';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const modulePreloadCache = new Map();
@@ -38,8 +39,8 @@ for await (const chunk of process.stdin) {
 }
 const snapshot = JSON.parse(input);
 const seoCatalog = JSON.parse(await readFile(join(source, 'resources/seo-pages.json'), 'utf8'));
-const publicImages = ['items', 'films', 'news', 'offers']
-  .flatMap(key => (snapshot[key] || []).flatMap(item => [item.image, ...(item.bodyImages || [])]))
+const publicImages = snapshotContent(snapshot)
+  .flatMap(item => [item.image, ...(item.bodyImages || [])])
   .filter(Boolean);
 if (
   !/^[a-f0-9]{64}$/.test(snapshot.generation) ||
@@ -47,7 +48,7 @@ if (
   !/^https?:\/\//.test(snapshot.origin)
 )
   throw new Error('Invalid publication');
-const url = item => (item.isMuseum ? '/museum.html' : `/places/${item.slug}.html`);
+const url = item => contentDetailUrl(contentKind('attraction'), item);
 // 資料庫保存 UTC 時間，網站上的日期依台北時區顯示。
 const localDate = value =>
   new Intl.DateTimeFormat('en-CA', {

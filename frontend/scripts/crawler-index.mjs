@@ -1,5 +1,6 @@
 import { isIndexablePublication } from '../assets/js/core/seo-resolver.js';
 import { validTimestamp } from '../assets/js/core/structured-data.js';
+import { isContentDetailPath } from '../assets/js/core/content-kinds.js';
 
 const xml = value =>
   String(value).replace(
@@ -36,8 +37,7 @@ export function crawlerEntry(context, meta) {
   )
     throw new Error('Invalid sitemap canonical');
   // 集合頁與固定頁沒有可靠的內容修改時間，不用建置時間冒充。
-  const detail =
-    url.pathname === '/museum.html' || /^\/(?:places|films|news|offers)\/[^/]+\.html$/.test(url.pathname);
+  const detail = isContentDetailPath(url.pathname);
   const content = detail ? validTimestamp(context.item?.updatedAt || context.modifiedAt) : null;
   const seo = validTimestamp(context.seo?.updatedAt);
   const lastmod = content ? [content, seo].filter(Boolean).sort().at(-1) : null;
