@@ -86,24 +86,7 @@
   text-underline-offset: 3px;
   cursor: pointer;
 }
-.member-menu {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-  font-size: 13px;
-}
-#member-navigation:not(.member-menu) {
-  display: contents;
-}
-.member-menu button {
-  font: inherit;
-  color: inherit;
-  cursor: pointer;
-  background: none;
-  border: 0;
-  text-decoration: underline;
-}
+
 .admin-top-actions a,
 .admin-top-actions button {
   white-space: nowrap;
@@ -248,10 +231,6 @@ select {
   touch-action: manipulation;
 }
 @media (max-width: 640px) {
-  .member-menu {
-    font-size: 12px;
-    gap: 8px;
-  }
   .admin-top-actions {
     gap: 8px;
     font-size: 12px;
@@ -467,13 +446,7 @@ select {
 }
 
 /* 保留 website 原本的頁首樣式，只提供中性的載入／重試狀態，不另外新增下拉選單。 */
-.account-loading {
-  display: inline-block;
-  color: var(--muted);
-  font-size: 13px;
-  line-height: 44px;
-  white-space: nowrap;
-}
+
 .account-retry {
   border: 1px solid var(--line);
   background: transparent;
@@ -545,41 +518,65 @@ select {
   }
 }
 
-/* 會員選單：桌面版維持頁首連結；手機版頁首只留名稱，收藏、更改密碼與登出移到漢堡選單。 */
-.nav-account {
-  display: none;
+/* 頁首帳號區：一格固定和「會員登入」按鈕同尺寸，看不見的 sizer 撐住大小，
+   確認中、未登入與已登入的按鈕都疊在同一格，主選單不會因為帳號狀態而移動。 */
+.account-slot {
+  position: relative;
+  display: inline-grid;
+  vertical-align: middle;
 }
-@media (max-width: 760px) {
-  .member-menu > :not(:first-child) {
-    display: none;
-  }
-  .member-menu > span:first-child {
-    max-width: 7em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .primary-nav.open {
-    max-height: 520px;
-  }
-  .nav-account {
-    display: flex;
-    flex-direction: column;
-    border-top: 1px solid rgba(60, 60, 50, 0.15);
-    margin-top: 6px;
-    padding-top: 6px;
-  }
-  .nav-account a,
-  .nav-account button {
-    display: block;
-    text-align: left;
-    padding: 12px 0;
-    font: inherit;
-    font-size: 13px;
-    letter-spacing: 0.06em;
-    color: #55574f;
-    background: none;
-    border: 0;
-    cursor: pointer;
-  }
+.account-slot > * {
+  grid-area: 1 / 1;
+}
+.account-sizer {
+  visibility: hidden;
+}
+.account-slot > .login-button:not(.account-sizer) {
+  min-width: 0;
+  text-align: center;
+}
+.account-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: inherit;
+  line-height: inherit;
+  white-space: nowrap;
+}
+.account-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  min-width: 168px;
+  padding: 6px 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+}
+.account-menu a,
+.account-menu button {
+  padding: 12px 18px;
+  font: inherit;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  text-align: left;
+  white-space: nowrap;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.account-menu a:hover,
+.account-menu button:hover,
+.account-menu a:focus-visible,
+.account-menu button:focus-visible {
+  background: rgba(60, 60, 50, 0.06);
 }

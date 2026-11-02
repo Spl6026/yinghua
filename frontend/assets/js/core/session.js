@@ -111,58 +111,106 @@ export async function requireSession(kind = 'member', allowChange = false) {
 }
 
 let memberNavigationVersion = 0;
+// 頁首帳號區塊永遠和「會員登入」按鈕一樣大：裡面固定放一個看不見的登入按鈕撐住尺寸，
+// 確認中、未登入、已登入三種狀態都疊在同一格，主選單就不會因為帳號狀態改變而左右移動。
+function fillAccountSlot(node, ...children) {
+  const sizer =
+    node.querySelector?.('.account-sizer') ||
+    element('span', { className: 'login-button account-sizer', 'aria-hidden': 'true' }, '會員登入 ↗');
+  node.replaceChildren(sizer, ...children);
+}
+
+// 已登入時只顯示一個「會員名稱 ▾」按鈕，收藏、更改密碼與登出放進下拉選單；
+// 按 Esc 或點選單外面會關閉。文件層級的監聽只註冊一次，重新確認帳號時改用最新的選單。
+let openAccountMenu = null;
+function closeAccountMenu({ focus = false } = {}) {
+  if (!openAccountMenu) return;
+  const { menu, toggle } = openAccountMenu;
+  menu.hidden = true;
+  toggle.setAttribute('aria-expanded', 'false');
+  if (focus) toggle.focus();
+  openAccountMenu = null;
+}
+let accountMenuListeners = false;
+function listenForAccountMenuDismiss() {
+  if (accountMenuListeners || typeof document.addEventListener !== 'function') return;
+  accountMenuListeners = true;
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') closeAccountMenu({ focus: true });
+  });
+  document.addEventListener('click', event => {
+    if (openAccountMenu && !openAccountMenu.slot.contains(event.target)) closeAccountMenu();
+  });
+}
+
+function accountMenu(node, member) {
+  const toggle = element('button', {
+    type: 'button',
+    className: 'login-button account-button',
+    'aria-haspopup': 'true',
+    'aria-expanded': 'false',
+    'aria-controls': 'account-menu',
+  });
+  toggle.append(
+    element('span', { className: 'account-name' }, member.displayName),
+    element('span', { 'aria-hidden': 'true' }, ' ▾')
+  );
+  const menu = element('div', { className: 'account-menu', id: 'account-menu' });
+  menu.hidden = true;
+  const signOut = element('button', { type: 'button' }, '登出');
+  signOut.addEventListener('click', async () => {
+    signOut.disabled = true;
+    try {
+      await authApi().logout();
+      location.assign('/index.html');
+    } catch (error) {
+      toast(error.message);
+      signOut.disabled = false;
+    }
+  });
+  menu.append(
+    element('a', { href: '/favorites.html' }, '我的收藏'),
+    element('a', { href: '/change-password.html' }, '更改密碼'),
+    signOut
+  );
+  toggle.addEventListener('click', () => {
+    if (!menu.hidden) {
+      closeAccountMenu();
+      return;
+    }
+    closeAccountMenu();
+    menu.hidden = false;
+    toggle.setAttribute('aria-expanded', 'true');
+    openAccountMenu = { menu, toggle, slot: node };
+  });
+  listenForAccountMenuDismiss();
+  return [toggle, menu];
+}
+
 export async function memberNavigation() {
   const generation = ++memberNavigationVersion;
   initializeMenus();
   const node = document.querySelector('#member-navigation');
   if (!node) return;
+  closeAccountMenu();
   node.setAttribute('aria-busy', 'true');
-  node.replaceChildren(element('span', { className: 'account-loading', role: 'status' }, '確認帳號中…'));
+  fillAccountSlot(node, element('span', { className: 'sr-only', role: 'status' }, '確認帳號中…'));
   try {
     const { member } = await authApi().me();
     if (generation !== memberNavigationVersion) return;
-    node.replaceChildren(
-      element('span', {}, member.displayName),
-      element('a', { href: '/favorites.html' }, '我的收藏'),
-      element('a', { href: '/change-password.html' }, '更改密碼')
-    );
-    node.className = 'member-menu';
-    const button = element('button', { type: 'button' }, '登出');
-    button.addEventListener('click', async () => {
-      button.disabled = true;
-      try {
-        await authApi().logout();
-        location.assign('/index.html');
-      } catch (error) {
-        toast(error.message);
-        button.disabled = false;
-      }
-    });
-    node.append(button);
-    // 手機寬度時把會員連結放進漢堡選單，避免在 65px 高的頁首和品牌標誌擠在一起而折行。
-    const navigation = document.querySelector('#primary-nav');
-    if (navigation) {
-      navigation.querySelector('.nav-account')?.remove();
-      const account = element('div', { className: 'nav-account' });
-      const signOut = element('button', { type: 'button' }, '登出');
-      signOut.addEventListener('click', () => button.click());
-      account.append(
-        element('a', { href: '/favorites.html' }, '我的收藏'),
-        element('a', { href: '/change-password.html' }, '更改密碼'),
-        signOut
-      );
-      navigation.append(account);
-    }
+    fillAccountSlot(node, ...accountMenu(node, member));
   } catch (error) {
-    document.querySelector('#primary-nav .nav-account')?.remove();
     if (generation !== memberNavigationVersion) return;
     if (error.status === 401) {
-      node.replaceChildren(element('a', { className: 'login-button', href: '/login.html' }, '會員登入 ↗'));
-      node.className = '';
+      fillAccountSlot(node, element('a', { className: 'login-button', href: '/login.html' }, '會員登入 ↗'));
     } else {
-      const retry = element('button', { type: 'button', className: 'account-retry' }, '重新確認帳號');
+      const retry = element(
+        'button',
+        { type: 'button', className: 'login-button account-button' },
+        '重新確認'
+      );
       retry.addEventListener('click', () => void memberNavigation());
-      node.replaceChildren(retry);
+      fillAccountSlot(node, retry);
     }
   } finally {
     if (generation === memberNavigationVersion) node.removeAttribute('aria-busy');

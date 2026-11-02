@@ -83,7 +83,7 @@ function fixture({
   };
   const node = navigation
     ? {
-        className: 'member-menu',
+        className: 'account-slot',
         children: [],
         setAttribute() {},
         removeAttribute() {},
@@ -487,7 +487,8 @@ test('過期會員導覽恢復登入按鈕，舊me回應不能恢復已登出名
   await f.sandbox.memberNavigation();
   pending.resolve({ member: { displayName: '舊身分' } });
   await old;
-  assert.equal(f.node.children.length, 1);
-  assert.equal(f.node.children[0].href, '/login.html');
-  assert.equal(f.node.className, '');
+  // 帳號區另含一個看不見的尺寸撐框，只檢查實際顯示的控制項。
+  const shown = f.node.children.filter(child => !String(child.className || '').includes('account-sizer'));
+  assert.equal(shown.length, 1);
+  assert.equal(shown[0].href, '/login.html');
 });

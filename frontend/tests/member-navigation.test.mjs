@@ -59,7 +59,13 @@ function fixture(read) {
   vm.runInContext(source, sandbox);
   return { node, navigation, run: () => sandbox.memberNavigation() };
 }
-test('等待帳號回應時不先顯示訪客；成功才顯示原有橫列會員資訊', async () => {
+// 帳號區永遠含一個看不見、用來撐住尺寸的登入按鈕；檢查時只看實際顯示的內容。
+const visibleTexts = node =>
+  node.children
+    .filter(child => !String(child.className || '').includes('account-sizer'))
+    .flatMap(child => child.texts());
+
+test('等待帳號回應時不先顯示訪客；成功才顯示會員帳號按鈕', async () => {
   let resolve;
   const f = fixture(
     () =>
@@ -68,13 +74,12 @@ test('等待帳號回應時不先顯示訪客；成功才顯示原有橫列會�
       })
   );
   const pending = f.run();
-  assert.deepEqual(f.node.texts(), ['', '確認帳號中…']);
+  assert.deepEqual(visibleTexts(f.node), ['確認帳號中…']);
   assert.equal(f.node.attrs['aria-busy'], 'true');
   resolve({ member: { displayName: '本人' } });
   await pending;
-  assert.ok(f.node.texts().includes('本人'));
-  assert.ok(f.node.texts().includes('我的收藏'));
-  assert.ok(!f.node.children.some(n => n.tag === 'details'));
+  assert.ok(visibleTexts(f.node).includes('本人'));
+  assert.ok(!visibleTexts(f.node).includes('確認帳號中…'));
   assert.equal(f.node.attrs['aria-busy'], undefined);
 });
 test('401才顯示登入；網路失敗提供重試，不冒稱訪客', async () => {
@@ -82,13 +87,13 @@ test('401才顯示登入；網路失敗提供重試，不冒稱訪客', async ()
     throw { status: 401 };
   });
   await guest.run();
-  assert.ok(guest.node.texts().includes('會員登入 ↗'));
+  assert.ok(visibleTexts(guest.node).includes('會員登入 ↗'));
   const failure = fixture(async () => {
     throw { status: 0 };
   });
   await failure.run();
-  assert.ok(failure.node.texts().includes('重新確認帳號'));
-  assert.ok(!failure.node.texts().includes('會員登入 ↗'));
+  assert.ok(visibleTexts(failure.node).includes('重新確認'));
+  assert.ok(!visibleTexts(failure.node).includes('會員登入 ↗'));
 });
 test('舊帳號回應不得蓋過較新的身分確認', async () => {
   let first,
@@ -107,17 +112,25 @@ test('舊帳號回應不得蓋過較新的身分確認', async () => {
   await fresh;
   first({ member: { displayName: '舊帳號' } });
   await old;
-  assert.ok(f.node.texts().includes('新帳號'));
-  assert.ok(!f.node.texts().includes('舊帳號'));
+  assert.ok(visibleTexts(f.node).includes('新帳號'));
+  assert.ok(!visibleTexts(f.node).includes('舊帳號'));
 });
 
-test('手機漢堡選單另附收藏、更改密碼與登出，頁首不需擠入全部連結', async () => {
+test('已登入時收藏、更改密碼與登出收在帳號下拉選單，點按鈕才展開', async () => {
   const f = fixture(async () => ({ member: { displayName: '本人' } }));
   await f.run();
-  const account = f.navigation.children.find(n => n.className === 'nav-account');
-  assert.ok(account);
+  const toggle = f.node.children.find(n => String(n.className).includes('account-button'));
+  const menu = f.node.children.find(n => n.className === 'account-menu');
+  assert.ok(toggle && menu);
   assert.deepEqual(
-    account.children.map(n => n.textContent),
+    menu.children.map(n => n.textContent),
     ['我的收藏', '更改密碼', '登出']
   );
+  assert.equal(menu.hidden, true);
+  assert.equal(toggle.attrs['aria-expanded'] ?? toggle['aria-expanded'], 'false');
+  toggle.listeners.click();
+  assert.equal(menu.hidden, false);
+  assert.equal(toggle.attrs['aria-expanded'], 'true');
+  toggle.listeners.click();
+  assert.equal(menu.hidden, true);
 });
