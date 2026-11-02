@@ -103,10 +103,10 @@ export async function initializeAdminForm(identity, page) {
         updateControls();
         let completed = false;
         try {
-          if (creating) await adminApi.create(body);
+          if (creating) await adminApi.save(null, body);
           else {
             body.version = version;
-            await adminApi.update(id, body);
+            await adminApi.save(id, body);
           }
           dirty = false;
           completed = true;

@@ -94,7 +94,7 @@ export async function initializeAdmins(identity) {
               button.disabled = true;
               // 列表重建後被刪除的按鈕已不存在，改為聚焦現有的結果訊息。
               try {
-                await adminApi.remove(account.id, account.version);
+                await adminApi.delete(account.id, account.version);
                 await load();
                 status(message, `已刪除管理員 ${account.displayName}。${message.textContent}`);
                 message.focus();

@@ -223,12 +223,8 @@ function fixture(module, identity = {}, creating = false) {
         state.saves.push({ id, body });
         if (state.write) await state.write();
       },
-      async update(id, body) {
-        state.saves.push({ id, body });
-        if (state.write) await state.write();
-      },
-      async create(body) {
-        state.saves.push({ body });
+      async save(id, body) {
+        state.saves.push(id ? { id, body } : { body });
         if (state.write) await state.write();
       },
     },
