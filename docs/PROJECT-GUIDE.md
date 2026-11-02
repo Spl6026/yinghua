@@ -1,5 +1,13 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 程式可讀性與效能整理（使用者指定）：
+- 註解：前後端、測試、Docker／Nginx 與維運腳本的註解改為一般繁體中文說明原因，不再夾帶 `[S：…]`／`E-xx`／`U-xx` 等代碼；411 則原始帶代碼註解保留在 [CODE-COMMENT-TRACEABILITY.md](CODE-COMMENT-TRACEABILITY.md)，AGENTS.md 與架構文件的註解規則同步更新。migration SQL 因有 checksum 保護未改。
+- 格式：前端 JS／CSS／測試以 Prettier 3.9.10（dev only，`frontend/.prettierrc.json`，`npm run format`／`format:check`）格式化；PHP 維持 PER-CS，長參數與陣列改為一行一項。每個檔案都以「去除註解後的語法樹／token 相同」驗證未改動程式行為。
+- 樣式表依功能命名：phase2→states、phase3→places、phase4→film-form、phase6→member-actions、phase7→seo-settings、phase9→content-admin、phase10→routes、phase11→planner、phase13→search；未使用的 seo.css 移除。各頁載入順序不變，全頁截圖比對一致。
+- 效能：Nginx 對 HTML／API 維持 no-store，`/assets`、`/media` 改 no-cache（ETag 304），字型快取 30 天，並對 CSS／JS／HTML／SVG／XML 啟用 gzip（API JSON 不壓縮）；build／publish 依各頁 import 關係加入 `modulepreload`（`frontend/scripts/module-preload.mjs`）。本機量測：第二頁傳輸量由約 2.3 MB 降到 53–752 KB，首頁 DOMContentLoaded 284→141 ms。Nginx 設定變更後需重啟 web。
+- 架構：四份重複的 HTML 跳脫函式改用 `core/content-view.js` 的 `escapeHtml`。
+- 297 JS、124 PHP／412 斷言、PHPStan 通過；無 API、DDL、env 或固定頁數量變更。
+
 2026-11-02 U-25文案整理：公開頁與後台中像內部測試的說明改為面向大眾／操作人員的文字（頁尾、會員條款與隱私權政策預設內容、註冊同意、密碼頁、SEO描述、列表空狀態、景點帶入、SEO設定等）。條款版本預設值改為 `2026-11-02`（compose.yaml、.env.example、前後端預設），既有 `.env` 若仍設 `local-development-v1` 需自行更新並重建服務。無API、DDL、依賴或固定頁數量變更；295 JS、124 PHP通過。詳見DESIGN-TRACEABILITY U-25。
 
 [本輪驗收與操作](GOOGLE-IMPORT-CORRECTION-20261102.md)；295 項前端測試及真 Google／隔離 MariaDB／Browser 儲存重載通過，測試資料已清理。

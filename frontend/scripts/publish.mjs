@@ -1,5 +1,5 @@
 import { renderFontHead } from './font-head.mjs';
-import { escapeHtml } from '../assets/js/core/content-view.js';
+import { escapeHtml, escapeHtml as e } from '../assets/js/core/content-view.js';
 // 由 PHP CLI／API 提供已驗證的資料，HTML 只在前端產生。
 // 每個 generation 都包含完整的公開資料與頁面，全部寫完後才以原子操作切換 current。
 import { readFile, writeFile, mkdir, rename, symlink, rm, realpath } from 'node:fs/promises';
@@ -45,11 +45,6 @@ if (
   !/^https?:\/\//.test(snapshot.origin)
 )
   throw new Error('Invalid publication');
-const e = value =>
-  String(value ?? '').replace(
-    /[&<>"']/g,
-    character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]
-  );
 const url = item => (item.isMuseum ? '/museum.html' : `/places/${item.slug}.html`);
 const json = value =>
   JSON.stringify(value).replaceAll('<', '\\u003c').replaceAll('>', '\\u003e').replaceAll('&', '\\u0026');

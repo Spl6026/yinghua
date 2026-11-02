@@ -1,9 +1,5 @@
+import { escapeHtml as e } from './content-view.js';
 // Node 發布流程與瀏覽器共用原型的電影版面渲染。
-const e = value =>
-  String(value ?? '').replace(
-    /[&<>"']/g,
-    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]
-  );
 const local = (stamp, options) =>
   new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Taipei', ...options }).format(new Date(stamp));
 export function screeningDate(stamp) {

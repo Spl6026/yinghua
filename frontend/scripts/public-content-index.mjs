@@ -1,9 +1,5 @@
+import { escapeHtml as escape } from '../assets/js/core/content-view.js';
 // 只使用已通過公開白名單的同一份發布快照，不另外建立內容資料。
-const escape = value =>
-  String(value ?? '').replace(
-    /[&<>"']/g,
-    char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]
-  );
 function contentUrl(kind, item) {
   if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid public index slug');
   return kind === 'places' && item.isMuseum ? '/museum.html' : `/${kind}/${item.slug}.html`;

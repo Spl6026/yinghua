@@ -1,11 +1,7 @@
+import { escapeHtml as escape } from '../assets/js/core/content-view.js';
 import { resolveSeo } from '../assets/js/core/seo-resolver.js';
 import { structuredDataGraph, jsonLdForHtml } from './structured-data.mjs';
 
-const escape = value =>
-  String(value ?? '').replace(
-    /[&<>"']/g,
-    char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]
-  );
 // HTML 中每個 SEO 標籤只有一個負責寫入的地方；所有動態值都會編碼。
 export function renderSeoHead(html, context, meta = resolveSeo(context)) {
   html = html
