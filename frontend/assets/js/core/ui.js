@@ -25,12 +25,17 @@ export function toast(message) {
 
 export function formErrors(form, error) {
   form.querySelectorAll('.field-error').forEach(node => node.remove());
-  form.querySelectorAll('[aria-invalid]').forEach(node => { node.removeAttribute('aria-invalid'); node.removeAttribute('aria-describedby'); });
+  form.querySelectorAll('[aria-invalid]').forEach(node => {
+    node.removeAttribute('aria-invalid');
+    node.removeAttribute('aria-describedby');
+  });
   let first;
   for (const [name, message] of Object.entries(error.fieldErrors || {})) {
     // [U-09／E-20] 複合表單（例如整週營業時間）也須顯示具體錯誤並可取得焦點。
     // [S：G34；E-29] 地圖解析等獨立欄位群組亦可共用，不清除其他表單區塊的錯誤。
-    const input = [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) || form.elements?.namedItem(name);
+    const input =
+      [...form.querySelectorAll('[data-field-name]')].find(node => node.dataset.fieldName === name) ||
+      form.elements?.namedItem(name);
     if (!(input instanceof HTMLElement)) continue;
     input.setAttribute('aria-invalid', 'true');
     const hint = element('span', { className: 'field-error', id: `${input.id}-error` }, message);
@@ -59,7 +64,8 @@ export async function submitForm(form, action, { canSubmit = () => true, onError
       throw error;
     }
     const confirmation = form.querySelector('input[name="passwordConfirmation"]');
-    const confirmationError = password && confirmation ? passwordConfirmationError(password.value, confirmation.value) : '';
+    const confirmationError =
+      password && confirmation ? passwordConfirmationError(password.value, confirmation.value) : '';
     if (confirmationError) {
       const error = new Error(confirmationError);
       error.fieldErrors = { passwordConfirmation: confirmationError };
@@ -74,20 +80,32 @@ export async function submitForm(form, action, { canSubmit = () => true, onError
     if (!focusedField) message.focus();
   } finally {
     button.disabled = retryAfter > 0 || !canSubmit();
-    if (retryAfter > 0) window.setTimeout(() => { button.disabled = !canSubmit(); }, Math.min(retryAfter, 86400) * 1000);
+    if (retryAfter > 0)
+      window.setTimeout(
+        () => {
+          button.disabled = !canSubmit();
+        },
+        Math.min(retryAfter, 86400) * 1000
+      );
     form.removeAttribute('aria-busy');
   }
 }
 
 export function unsavedChanges(isDirty) {
   window.addEventListener('beforeunload', event => {
-    if (isDirty()) { event.preventDefault(); event.returnValue = ''; }
+    if (isDirty()) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
   });
 }
 
 const initializedNavigation = new WeakSet();
 export function initializeMenus() {
-  for (const [selector, target, openClass] of [['.menu-toggle', '.primary-nav', 'open'], ['.admin-mobile-menu', '.admin-sidebar', 'open']]) {
+  for (const [selector, target, openClass] of [
+    ['.menu-toggle', '.primary-nav', 'open'],
+    ['.admin-mobile-menu', '.admin-sidebar', 'open'],
+  ]) {
     const button = document.querySelector(selector);
     const menu = document.querySelector(target);
     if (!button || !menu || initializedNavigation.has(button)) continue;
@@ -96,11 +114,16 @@ export function initializeMenus() {
     const closedLabel = button.getAttribute('aria-label');
     // [S 功能規格 G34／E-29] 被裁切／移出畫面的手機選單不可留下隱形 Tab 停駐點。
     const mobile = matchMedia('(max-width: 760px)');
-    const synchronizeFocusability = () => { menu.inert = mobile.matches && button.getAttribute('aria-expanded') !== 'true'; };
+    const synchronizeFocusability = () => {
+      menu.inert = mobile.matches && button.getAttribute('aria-expanded') !== 'true';
+    };
     mobile.addEventListener('change', synchronizeFocusability);
     synchronizeFocusability();
     const close = (restoreFocus = false) => {
-      const returnFocus = restoreFocus && button.getAttribute('aria-expanded') === 'true' && menu.contains(document.activeElement);
+      const returnFocus =
+        restoreFocus &&
+        button.getAttribute('aria-expanded') === 'true' &&
+        menu.contains(document.activeElement);
       menu.classList.remove(openClass);
       button.setAttribute('aria-expanded', 'false');
       button.setAttribute('aria-label', closedLabel);
@@ -114,7 +137,9 @@ export function initializeMenus() {
       menu.classList.toggle(openClass, open);
       synchronizeFocusability();
     });
-    document.addEventListener('keydown', event => { if (event.key === 'Escape') close(true); });
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') close(true);
+    });
     menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => close()));
   }
   const backTop = document.querySelector('.back-top');
@@ -122,15 +147,28 @@ export function initializeMenus() {
   initializedNavigation.add(backTop);
   backTop.addEventListener('click', event => {
     event.preventDefault();
-    window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    window.scrollTo({
+      top: 0,
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    });
   });
 }
 
 // [U-24] 新增／編輯成功後會導回列表；以本分頁 sessionStorage 暫存一次性成功訊息，列表載入後顯示。
 const flashKey = 'yinghua-admin-flash';
 export function flash(message) {
-  try { sessionStorage.setItem(flashKey, message); } catch { /* 儲存不可用時僅略過提示，不影響儲存結果。 */ }
+  try {
+    sessionStorage.setItem(flashKey, message);
+  } catch {
+    /* 儲存不可用時僅略過提示，不影響儲存結果。 */
+  }
 }
 export function consumeFlash() {
-  try { const message = sessionStorage.getItem(flashKey); sessionStorage.removeItem(flashKey); return message || ''; } catch { return ''; }
+  try {
+    const message = sessionStorage.getItem(flashKey);
+    sessionStorage.removeItem(flashKey);
+    return message || '';
+  } catch {
+    return '';
+  }
 }

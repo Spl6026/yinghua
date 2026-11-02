@@ -1,5 +1,5 @@
-import {renderFontHead} from './font-head.mjs';
-import {homeErrorView} from './home-error-view.mjs';
+import { renderFontHead } from './font-head.mjs';
+import { homeErrorView } from './home-error-view.mjs';
 // [E-12] 固定 HTML 在前端建置時組合；PHP 不輸出任何畫面。
 import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
@@ -10,17 +10,22 @@ import { annotateEnglishPassages } from './language-passages.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
-const seoCatalog=JSON.parse(await readFile(join(root,'resources/seo-pages.json'),'utf8'));
+const seoCatalog = JSON.parse(await readFile(join(root, 'resources/seo-pages.json'), 'utf8'));
 if (dirname(output) !== root || output === root) throw new Error('Invalid build output');
 await mkdir(output, { recursive: true });
-const templates = Object.fromEntries(await Promise.all(
-  ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [name.replaceAll('-', '_').toUpperCase(), await readFile(join(root, 'templates', `${name}.html`), 'utf8')])
-));
+const templates = Object.fromEntries(
+  await Promise.all(
+    ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [
+      name.replaceAll('-', '_').toUpperCase(),
+      await readFile(join(root, 'templates', `${name}.html`), 'utf8'),
+    ])
+  )
+);
 async function pages(directory) {
   const result = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...await pages(path));
+    if (entry.isDirectory()) result.push(...(await pages(path)));
     else if (entry.name.endsWith('.html')) result.push(path);
   }
   return result;
@@ -49,7 +54,7 @@ const navigationSections = {
 };
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
-  let html = renderPolicyVersion(await readFile(source, 'utf8'),process.env.TERMS_VERSION||'2026-11-02');
+  let html = renderPolicyVersion(await readFile(source, 'utf8'), process.env.TERMS_VERSION || '2026-11-02');
   if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
   }
@@ -58,16 +63,31 @@ for (const source of await pages(join(root, 'pages'))) {
     html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/ui-consistency.css">\n</head>');
   }
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
-  const selectedNavigation = Object.entries(navigationSections).find(([, paths]) => paths.some(path => path.endsWith('/') ? route.startsWith(path) : route === path))?.[0];
+  const selectedNavigation = Object.entries(navigationSections).find(([, paths]) =>
+    paths.some(path => (path.endsWith('/') ? route.startsWith(path) : route === path))
+  )?.[0];
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
     if (name === 'ADMIN_TOPBAR' && adminBackLinks[route]) {
       const [href, label] = adminBackLinks[route];
-      return templates[name].replace(/<a class="admin-preview"[^>]*>[^<]*<\/a>/, `<a class="admin-preview" href="${href}">${label}</a>`);
+      return templates[name].replace(
+        /<a class="admin-preview"[^>]*>[^<]*<\/a>/,
+        `<a class="admin-preview" href="${href}">${label}</a>`
+      );
     }
     if (name === 'SITE_HEADER' && selectedNavigation) {
-      return templates[name].replace(`href="${selectedNavigation}"`, `class="active" aria-current="page" href="${selectedNavigation}"`);
+      return templates[name].replace(
+        `href="${selectedNavigation}"`,
+        `class="active" aria-current="page" href="${selectedNavigation}"`
+      );
     }
-    return templates[name] ?? (name === 'PAGE_TITLE' ? title : (() => { throw new Error(`Unknown template: ${name}`); })());
+    return (
+      templates[name] ??
+      (name === 'PAGE_TITLE'
+        ? title
+        : (() => {
+            throw new Error(`Unknown template: ${name}`);
+          })())
+    );
   });
   html = html.replaceAll('{{PAGE_TITLE}}', title);
   html = html.replace(/<form id="(auth-form|admin-form|permissions-form)"/g, '<form method="post" id="$1"');
@@ -79,24 +99,38 @@ for (const source of await pages(join(root, 'pages'))) {
       return `<input${attributes} ${additions.join(' ')}>`;
     });
   }
-  html = html.replace(/<input\b[^>]*type="password"[^>]*>/g, match => match.replace(/\s(?:minlength|maxlength)="\d+"/g, ''));
+  html = html.replace(/<input\b[^>]*type="password"[^>]*>/g, match =>
+    match.replace(/\s(?:minlength|maxlength)="\d+"/g, '')
+  );
   // [S：SEO E7/E17；E-28] 固定／保護頁與發布頁共用 head，任何 query 均不含私人資料。
-  html=renderSeoHead(html,{path:'/'+route,title:html.match(/<title>([^<]*)<\/title>/)?.[1],
-    description:html.match(/<meta name="description" content="([^"]*)"/)?.[1],catalog:seoCatalog,origin:process.env.APP_URL||'http://localhost:8080'});
+  html = renderSeoHead(html, {
+    path: '/' + route,
+    title: html.match(/<title>([^<]*)<\/title>/)?.[1],
+    description: html.match(/<meta name="description" content="([^"]*)"/)?.[1],
+    catalog: seoCatalog,
+    origin: process.env.APP_URL || 'http://localhost:8080',
+  });
   if (html.includes('{{')) throw new Error(`Unresolved template: ${route}`);
   const target = join(output, route);
   await mkdir(dirname(target), { recursive: true });
   // [S G34／B15；E-29] 各頁共用期限監看；API 事件可在入口載入前暫存於記憶體。
-  html=renderFontHead(html);
-  html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
+  html = renderFontHead(html);
+  html = html.replace(
+    '</body>',
+    '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
+  );
   await writeFile(target, annotateEnglishPassages(html));
   // [S G5；E] 內部503回應資產，不列入固定公開頁／sitemap／正常發布資料。
-  if(route==='index.html')await writeFile(join(output,'home-unavailable.response'),annotateEnglishPassages(homeErrorView(html)));
+  if (route === 'index.html')
+    await writeFile(join(output, 'home-unavailable.response'), annotateEnglishPassages(homeErrorView(html)));
   routes.push(`/${route}`);
 }
 await cp(join(root, 'assets'), join(output, 'assets'), { recursive: true });
 await mkdir(join(output, 'assets/js/core'), { recursive: true });
-await writeFile(join(output, 'assets/js/core/routes.js'), `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`);
+await writeFile(
+  join(output, 'assets/js/core/routes.js'),
+  `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`
+);
 // [S E33；E-34] 真robots由成功publication供應；build不放過時sitemap網址。
 await writeFile(join(output, 'robots.txt'), 'User-agent: *\nDisallow: /admin/\n');
 console.log(`Built ${routes.length} HTML routes with shared templates.`);

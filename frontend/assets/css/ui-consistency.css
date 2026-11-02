@@ -3,69 +3,245 @@
    造成同一表單內字級與欄位高度忽大忽小；此處以原型後台的 15px 標籤／Serif 區塊標題為基準。 */
 
 /* 後台內容區基準字級，與原型 label／表格 15px 一致；手機與原型同降為 14px。 */
-.admin-main{font-size:15px}
-.admin-content .form-status,.admin-content .form-error{font-size:14px;line-height:1.7}
-.admin-content summary{font-size:15px;font-weight:600;cursor:pointer}
+.admin-main {
+  font-size: 15px;
+}
+.admin-content .form-status,
+.admin-content .form-error {
+  font-size: 14px;
+  line-height: 1.7;
+}
+.admin-content summary {
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
 
 /* 區塊標題：原型後台面板標題為 Noto Serif 19–20px／500，不使用粗體無襯線。 */
-.admin-panel h2,.admin-panel h3,.admin-content>section>h2,.admin-content .admin-panel-heading h2,.admin-content .admin-panel-heading h3{font-family:var(--serif);font-size:20px;font-weight:500;line-height:1.45;letter-spacing:.02em;color:#2f372d;margin:0 0 12px}
-.admin-form-grid>h2,.admin-form-grid>h3,.admin-form-grid .full>h2{margin:20px 0 4px}
-.admin-content legend{font-size:15px;font-weight:600}
+.admin-panel h2,
+.admin-panel h3,
+.admin-content > section > h2,
+.admin-content .admin-panel-heading h2,
+.admin-content .admin-panel-heading h3 {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: #2f372d;
+  margin: 0 0 12px;
+}
+.admin-form-grid > h2,
+.admin-form-grid > h3,
+.admin-form-grid .full > h2 {
+  margin: 20px 0 4px;
+}
+.admin-content legend {
+  font-size: 15px;
+  font-weight: 600;
+}
 
 /* 單行欄位一律同高：文字／數字／日期時間／下拉選單並排時底線對齊。 */
-.admin-field input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=color]),
+.admin-field
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']):not([type='color']),
 .admin-field select:not([multiple]),
-.url-import input,.url-import select,
-.admin-content .search-row input,.admin-content .search-row select{height:48px;min-height:48px;padding-top:0;padding-bottom:0;font-size:15px;line-height:normal}
-.admin-field select:not([multiple]),.url-import select{padding-left:10px;padding-right:10px}
-.admin-field textarea{font-size:15px;line-height:1.7}
-.admin-field input[type=datetime-local],.admin-field input[type=date],.admin-field input[type=time]{padding-left:10px;padding-right:10px}
+.url-import input,
+.url-import select,
+.admin-content .search-row input,
+.admin-content .search-row select {
+  height: 48px;
+  min-height: 48px;
+  padding-top: 0;
+  padding-bottom: 0;
+  font-size: 15px;
+  line-height: normal;
+}
+.admin-field select:not([multiple]),
+.url-import select {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+.admin-field textarea {
+  font-size: 15px;
+  line-height: 1.7;
+}
+.admin-field input[type='datetime-local'],
+.admin-field input[type='date'],
+.admin-field input[type='time'] {
+  padding-left: 10px;
+  padding-right: 10px;
+}
 
 /* 直接放在表單格線中的下拉與按鈕（如 SEO 單筆內容挑選）：沿用欄位外觀，按鈕對齊欄位底線。 */
-.admin-form-grid>select{width:100%;height:48px;padding:0 10px;border:1px solid #77796d;background:#fffefa;color:#30352e;font-size:15px;align-self:end}
-.admin-form-grid>.button{align-self:end}
+.admin-form-grid > select {
+  width: 100%;
+  height: 48px;
+  padding: 0 10px;
+  border: 1px solid #77796d;
+  background: #fffefa;
+  color: #30352e;
+  font-size: 15px;
+  align-self: end;
+}
+.admin-form-grid > .button {
+  align-self: end;
+}
 
 /* 推薦路線編輯：空狀態不顯示編號、區塊標題與標籤同級、分頁文字與按鈕垂直置中。 */
-#route-stops-label{margin:0 0 6px;font-size:15px}
-.route-stops-empty{list-style:none;margin-left:-1.5rem;padding:14px 16px;border:1px dashed #b9b6a8;color:#5d6258;font-size:14px}
-#route-place-page{align-self:center;font-size:14px;color:#5d6258}
-.route-candidates:empty{display:none}
+#route-stops-label {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.route-stops-empty {
+  list-style: none;
+  margin-left: -1.5rem;
+  padding: 14px 16px;
+  border: 1px dashed #b9b6a8;
+  color: #5d6258;
+  font-size: 14px;
+}
+#route-place-page {
+  align-self: center;
+  font-size: 14px;
+  color: #5d6258;
+}
+.route-candidates:empty {
+  display: none;
+}
 
 /* 檔案選擇：各頁原生按鈕樣式不一，統一成與外框按鈕相同的線框樣式。 */
-.admin-field input[type=file]{width:100%;max-width:100%;min-height:48px;padding:6px;border:1px solid #77796d;background:#fffefa;font-size:15px}
-.admin-field input[type=file]::file-selector-button{margin-right:12px;padding:6px 14px;border:1px solid #77796d;background:transparent;color:#30352e;font:inherit;cursor:pointer}
+.admin-field input[type='file'] {
+  width: 100%;
+  max-width: 100%;
+  min-height: 48px;
+  padding: 6px;
+  border: 1px solid #77796d;
+  background: #fffefa;
+  font-size: 15px;
+}
+.admin-field input[type='file']::file-selector-button {
+  margin-right: 12px;
+  padding: 6px 14px;
+  border: 1px solid #77796d;
+  background: transparent;
+  color: #30352e;
+  font: inherit;
+  cursor: pointer;
+}
 
 /* 後台按鈕：同一列的按鈕與欄位同高（48px），表格內文字操作連結不受影響。 */
-.admin-content .button{min-height:48px;padding-top:8px;padding-bottom:8px;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px;line-height:1.5}
-.admin-content .admin-form-actions .button{font-size:14px;padding-left:18px;padding-right:18px}
+.admin-content .button {
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.admin-content .admin-form-actions .button {
+  font-size: 14px;
+  padding-left: 18px;
+  padding-right: 18px;
+}
 
 /* 營業時間：七天改為兩欄卡片，避免每天一條滿版下拉造成過長頁面。 */
-.opening-hours-editor{grid-template-columns:repeat(auto-fill,minmax(min(100%,420px),1fr));align-items:start}
-.opening-hours-editor>:not(.opening-day){grid-column:1/-1}
+.opening-hours-editor {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+}
+.opening-hours-editor > :not(.opening-day) {
+  grid-column: 1/-1;
+}
 
 /* 景點圖片預覽：與其他後台縮圖同為直角、較小尺寸，不搶表單主體。 */
-.place-photo-preview{width:400px;height:250px;border-radius:0}
+.place-photo-preview {
+  width: 400px;
+  height: 250px;
+  border-radius: 0;
+}
 
-@media(max-width:760px){
-  .admin-main{font-size:14px}
-  .admin-field input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=range]):not([type=color]),
-  .admin-field select:not([multiple]),.url-import input,.url-import select,.admin-field textarea,.admin-field input[type=file],.admin-form-grid>select{font-size:14px}
-  .admin-panel h2,.admin-panel h3,.admin-content>section>h2,.admin-content .admin-panel-heading h2,.admin-content .admin-panel-heading h3{font-size:18px}
-  .place-photo-preview{width:100%;height:220px}
+@media (max-width: 760px) {
+  .admin-main {
+    font-size: 14px;
+  }
+  .admin-field
+    input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']):not(
+      [type='color']
+    ),
+  .admin-field select:not([multiple]),
+  .url-import input,
+  .url-import select,
+  .admin-field textarea,
+  .admin-field input[type='file'],
+  .admin-form-grid > select {
+    font-size: 14px;
+  }
+  .admin-panel h2,
+  .admin-panel h3,
+  .admin-content > section > h2,
+  .admin-content .admin-panel-heading h2,
+  .admin-content .admin-panel-heading h3 {
+    font-size: 18px;
+  }
+  .place-photo-preview {
+    width: 100%;
+    height: 220px;
+  }
 }
 
 /* [U-24] 圖形驗證碼原圖 230×64，原先縮成 115×32 數字僅約 4px；改與輸入框同高並保持比例可辨識。 */
-.captcha-row img{width:184px;height:51px;max-width:45%;border:1px solid #d5d1c5;background:#fff}
+.captcha-row img {
+  width: 184px;
+  height: 51px;
+  max-width: 45%;
+  border: 1px solid #d5d1c5;
+  background: #fff;
+}
 
 /* [U-24] 會員選單：桌面維持頁首連結；手機頁首只留名稱，收藏／更改密碼／登出移入漢堡選單。 */
-.nav-account{display:none}
-@media(max-width:760px){
-  .member-menu>:not(:first-child){display:none}
-  .member-menu>span:first-child{max-width:7em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .primary-nav.open{max-height:520px}
-  .nav-account{display:flex;flex-direction:column;border-top:1px solid rgba(60,60,50,.15);margin-top:6px;padding-top:6px}
-  .nav-account a,.nav-account button{display:block;text-align:left;padding:12px 0;font:inherit;font-size:13px;letter-spacing:.06em;color:#55574f;background:none;border:0;cursor:pointer}
+.nav-account {
+  display: none;
+}
+@media (max-width: 760px) {
+  .member-menu > :not(:first-child) {
+    display: none;
+  }
+  .member-menu > span:first-child {
+    max-width: 7em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .primary-nav.open {
+    max-height: 520px;
+  }
+  .nav-account {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgba(60, 60, 50, 0.15);
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+  .nav-account a,
+  .nav-account button {
+    display: block;
+    text-align: left;
+    padding: 12px 0;
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: #55574f;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
 }
 
 /* [U-24] 行程尚無站點時不保留 180px 空白，空狀態緊接儲存列顯示。 */
-#itinerary-list:not(:has(*)){min-height:0;padding-top:0}
+#itinerary-list:not(:has(*)) {
+  min-height: 0;
+  padding-top: 0;
+}

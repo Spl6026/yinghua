@@ -1,55 +1,289 @@
 /* [U-05／E-18] 補齊正式表單狀態；沿用原型 admin-grid／panel／table 版型。 */
-.place-photo-preview{display:block;max-width:100%;width:640px;height:400px;object-fit:cover;background:#ebe5d8;border-radius:14px}
-.map-candidates{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
-.map-candidates .button{white-space:normal;text-align:left}
-.map-candidate{grid-column:1/-1;flex:1 1 300px;min-width:0;border:1px solid #d9d7cd;background:#f5f3eb;padding:16px;display:grid;gap:10px;overflow-wrap:anywhere}
-.map-candidate[hidden]{display:none}.map-candidate h3,.map-candidate p{margin:0}
-.google-editorial-summary{white-space:pre-wrap}
-.google-maps-attribution{font-family:Roboto,sans-serif;font-size:14px;font-style:normal;font-weight:400;letter-spacing:normal;white-space:nowrap;color:#1f1f1f}
+.place-photo-preview {
+  display: block;
+  max-width: 100%;
+  width: 640px;
+  height: 400px;
+  object-fit: cover;
+  background: #ebe5d8;
+  border-radius: 14px;
+}
+.map-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.map-candidates .button {
+  white-space: normal;
+  text-align: left;
+}
+.map-candidate {
+  grid-column: 1/-1;
+  flex: 1 1 300px;
+  min-width: 0;
+  border: 1px solid #d9d7cd;
+  background: #f5f3eb;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  overflow-wrap: anywhere;
+}
+.map-candidate[hidden] {
+  display: none;
+}
+.map-candidate h3,
+.map-candidate p {
+  margin: 0;
+}
+.google-editorial-summary {
+  white-space: pre-wrap;
+}
+.google-maps-attribution {
+  font-family: Roboto, sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: normal;
+  white-space: nowrap;
+  color: #1f1f1f;
+}
 /* [U-10／E-21] 狀態與展開操作共用一列；詳細內容獨立向下展開，避免 flex 對齊跳動。 */
-.google-place-link{display:grid;gap:8px;min-width:0;font-size:13px;line-height:1.6;margin-top:4px}
-.google-place-link[hidden],.google-place-link button[hidden]{display:none}
-.google-place-link>details{min-width:0;border:1px solid var(--line);background:#f5f3eb}
-.google-place-link-summary{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px 16px;padding:8px 12px;cursor:pointer;list-style:none}
-.google-place-link-summary::-webkit-details-marker{display:none}
-.google-place-link-message{min-width:0;color:var(--green);overflow-wrap:anywhere}
-.google-place-link-message[data-error="true"]{color:#a12622}
-.google-place-link-toggle{display:inline-flex;align-items:center;gap:8px;color:var(--green);white-space:nowrap}
-.google-place-link-toggle::after{content:"";width:6px;height:6px;border-right:1px solid currentColor;border-bottom:1px solid currentColor;transform:translateY(-2px) rotate(45deg)}
-.google-place-link details[open] .google-place-link-toggle::after{transform:translateY(2px) rotate(225deg)}
-.google-place-link-summary:hover{background:#eeece2}
-.google-place-link-details{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px 16px;border-top:1px solid var(--line);padding:10px 12px}
-.google-place-link code{overflow-wrap:anywhere;min-width:0;max-width:100%;color:#686b60;font-size:12px}
-.google-place-link .button{justify-self:start;font-size:13px;padding:8px 12px;min-height:36px}
-.google-place-link .button:hover{transform:none}
-@media(prefers-reduced-motion:reduce){.google-place-link .button{transition:none}}
-.table-scroll{overflow-x:auto}
-.admin-toolbar{display:flex;flex-wrap:wrap;gap:16px;align-items:end;margin-bottom:18px}
-.admin-toolbar .admin-field{min-width:160px;flex:1}
-.admin-form-grid textarea{resize:vertical}
-.list-pagination{display:flex;gap:18px;align-items:center;justify-content:center;flex-wrap:wrap;margin:28px 0}
-.admin-field input[type="checkbox"]{width:auto;margin-right:10px}
-.opening-hours-editor{display:grid;gap:14px;min-width:0}
-.opening-day{min-width:0;border:1px solid #d9d7cd;padding:14px;display:grid;gap:10px}
-.opening-day legend{padding:0 6px;color:#485944;font-weight:600}
-.opening-period{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center;margin-bottom:10px}
-.opening-next-day{display:flex;align-items:center;grid-column:1/3}
-.opening-period .button{grid-column:3/5;white-space:normal}
-.opening-day>.button{justify-self:start}
-.opening-hours-detail{margin:24px 0}.opening-hours-detail h2{font:500 22px var(--serif)}
-.opening-hours-detail p{margin:6px 0}.opening-hours-detail small{display:block}
-@media(max-width:500px){.opening-period{grid-template-columns:auto minmax(0,1fr)}.opening-next-day,.opening-period .button{grid-column:1/-1}.opening-day{padding:10px}}
-@media(max-width:760px){.place-photo-preview{height:240px}.admin-toolbar .button{width:100%}}
+.google-place-link {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+.google-place-link[hidden],
+.google-place-link button[hidden] {
+  display: none;
+}
+.google-place-link > details {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: #f5f3eb;
+}
+.google-place-link-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.google-place-link-summary::-webkit-details-marker {
+  display: none;
+}
+.google-place-link-message {
+  min-width: 0;
+  color: var(--green);
+  overflow-wrap: anywhere;
+}
+.google-place-link-message[data-error='true'] {
+  color: #a12622;
+}
+.google-place-link-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--green);
+  white-space: nowrap;
+}
+.google-place-link-toggle::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.google-place-link details[open] .google-place-link-toggle::after {
+  transform: translateY(2px) rotate(225deg);
+}
+.google-place-link-summary:hover {
+  background: #eeece2;
+}
+.google-place-link-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  border-top: 1px solid var(--line);
+  padding: 10px 12px;
+}
+.google-place-link code {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
+  color: #686b60;
+  font-size: 12px;
+}
+.google-place-link .button {
+  justify-self: start;
+  font-size: 13px;
+  padding: 8px 12px;
+  min-height: 36px;
+}
+.google-place-link .button:hover {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .google-place-link .button {
+    transition: none;
+  }
+}
+.table-scroll {
+  overflow-x: auto;
+}
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: end;
+  margin-bottom: 18px;
+}
+.admin-toolbar .admin-field {
+  min-width: 160px;
+  flex: 1;
+}
+.admin-form-grid textarea {
+  resize: vertical;
+}
+.list-pagination {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 28px 0;
+}
+.admin-field input[type='checkbox'] {
+  width: auto;
+  margin-right: 10px;
+}
+.opening-hours-editor {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.opening-day {
+  min-width: 0;
+  border: 1px solid #d9d7cd;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+.opening-day legend {
+  padding: 0 6px;
+  color: #485944;
+  font-weight: 600;
+}
+.opening-period {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.opening-next-day {
+  display: flex;
+  align-items: center;
+  grid-column: 1/3;
+}
+.opening-period .button {
+  grid-column: 3/5;
+  white-space: normal;
+}
+.opening-day > .button {
+  justify-self: start;
+}
+.opening-hours-detail {
+  margin: 24px 0;
+}
+.opening-hours-detail h2 {
+  font: 500 22px var(--serif);
+}
+.opening-hours-detail p {
+  margin: 6px 0;
+}
+.opening-hours-detail small {
+  display: block;
+}
+@media (max-width: 500px) {
+  .opening-period {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .opening-next-day,
+  .opening-period .button {
+    grid-column: 1/-1;
+  }
+  .opening-day {
+    padding: 10px;
+  }
+}
+@media (max-width: 760px) {
+  .place-photo-preview {
+    height: 240px;
+  }
+  .admin-toolbar .button {
+    width: 100%;
+  }
+}
 
 /* [S E20／E-24] 保留原型配色，讓範例選單與操作於窄畫面換行。 */
-#place-samples .url-import{grid-template-columns:minmax(0,1fr) auto auto}#place-samples select{min-width:0;width:100%}
-@media(max-width:760px){#place-samples .url-import{grid-template-columns:1fr}}
+#place-samples .url-import {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+#place-samples select {
+  min-width: 0;
+  width: 100%;
+}
+@media (max-width: 760px) {
+  #place-samples .url-import {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* [U-23／E-40] 原文來源與自家內容分開，窄版不截短Google原文。 */
-.google-summary-reference,.attraction-content-preview{padding:16px;border:1px solid var(--line);margin:16px 0;overflow-wrap:anywhere}
-.google-summary-reference .google-editorial-summary{white-space:pre-wrap}
-.google-summary-reference a{display:block;margin-top:8px;text-decoration:underline}
-.google-maps-attribution{font:400 14px/1.5 var(--sans);color:#5e5e5e;white-space:nowrap;letter-spacing:normal}
-.attraction-content-preview p{white-space:pre-wrap;font-size:14px}
+.google-summary-reference,
+.attraction-content-preview {
+  padding: 16px;
+  border: 1px solid var(--line);
+  margin: 16px 0;
+  overflow-wrap: anywhere;
+}
+.google-summary-reference .google-editorial-summary {
+  white-space: pre-wrap;
+}
+.google-summary-reference a {
+  display: block;
+  margin-top: 8px;
+  text-decoration: underline;
+}
+.google-maps-attribution {
+  font: 400 14px/1.5 var(--sans);
+  color: #5e5e5e;
+  white-space: nowrap;
+  letter-spacing: normal;
+}
+.attraction-content-preview p {
+  white-space: pre-wrap;
+  font-size: 14px;
+}
 
-.attraction-content-preview{grid-column:1/-1}.attraction-content-preview summary{cursor:pointer;font-size:14px}.attraction-content-preview .button{margin-top:8px}
+.attraction-content-preview {
+  grid-column: 1/-1;
+}
+.attraction-content-preview summary {
+  cursor: pointer;
+  font-size: 14px;
+}
+.attraction-content-preview .button {
+  margin-top: 8px;
+}

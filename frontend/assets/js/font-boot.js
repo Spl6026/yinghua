@@ -6,7 +6,12 @@
   Promise.all([
     document.fonts.load('400 16px "Noto Sans TC"', '映畫竹塹ABC'),
     document.fonts.load('500 16px "Noto Serif TC"', '映畫竹塹ABC'),
-  ]).then(() => { ready = true; }, () => {});
+  ]).then(
+    () => {
+      ready = true;
+    },
+    () => {}
+  );
   window.requestAnimationFrame(() => {
     if (ready) root.classList.add('fonts-ready');
   });

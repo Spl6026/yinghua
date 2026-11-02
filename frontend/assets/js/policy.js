@@ -1,3 +1,3 @@
-import {memberNavigation} from './core/session.js';
+import { memberNavigation } from './core/session.js';
 
 void memberNavigation();

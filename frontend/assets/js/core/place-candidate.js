@@ -1,7 +1,17 @@
 // [U-10／E-21] 候選套用只有一條路徑；不保留上個地點的行政區，不猜測缺值。
 export function applyPlaceCandidate(form, item, openingEditor) {
-  for (const name of ['name','address','latitude','longitude','hours','websiteUrl','mapUrl','googlePlaceId']) form.elements[name].value = String(item[name] ?? '');
-  form.elements.district.value = ['北區','東區','香山區'].includes(item.district) ? item.district : '';
+  for (const name of [
+    'name',
+    'address',
+    'latitude',
+    'longitude',
+    'hours',
+    'websiteUrl',
+    'mapUrl',
+    'googlePlaceId',
+  ])
+    form.elements[name].value = String(item[name] ?? '');
+  form.elements.district.value = ['北區', '東區', '香山區'].includes(item.district) ? item.district : '';
   if (form.elements.phone) form.elements.phone.value = ''; // 新地點尚無已核實電話，不沿用上一筆。
   openingEditor.load(item.openingHours, item.hours);
   const notes = [];
@@ -13,7 +23,9 @@ export function applyPlaceCandidate(form, item, openingEditor) {
       if (field && !field.value.trim()) {
         // 不截斷 Google 原文；超出既有欄位容量時留空，避免帶入無法儲存的值。
         if (field.maxLength > 0 && introduction.length > field.maxLength) {
-          notes.push(`${name === 'summary' ? '列表摘要' : '景點介紹'}未帶入：Google 簡介超過欄位長度，請自行撰寫。`);
+          notes.push(
+            `${name === 'summary' ? '列表摘要' : '景點介紹'}未帶入：Google 簡介超過欄位長度，請自行撰寫。`
+          );
         } else {
           field.value = introduction;
         }
