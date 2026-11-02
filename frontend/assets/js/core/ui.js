@@ -45,12 +45,17 @@ export function onPageReturn(callback) {
   });
 }
 
-export function formErrors(form, error) {
+/** 移除表單上一輪的欄位錯誤提示與無效標記。 */
+export function clearFieldErrors(form) {
   form.querySelectorAll('.field-error').forEach(node => node.remove());
   form.querySelectorAll('[aria-invalid]').forEach(node => {
     node.removeAttribute('aria-invalid');
     node.removeAttribute('aria-describedby');
   });
+}
+
+export function formErrors(form, error) {
+  clearFieldErrors(form);
   let first;
   for (const [name, message] of Object.entries(error.fieldErrors || {})) {
     // 複合表單（例如整週營業時間）也要顯示具體錯誤並能取得焦點；

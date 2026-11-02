@@ -6,7 +6,7 @@ import {
   adminNavigation,
   adminDestination,
 } from './core/session.js';
-import { initializeMenus, status, element, toast, consumeFlash } from './core/ui.js';
+import { initializeMenus, status, element, toast, consumeFlash, clearFieldErrors } from './core/ui.js';
 import { initializeAdminPreview } from './components/admin-preview.js';
 
 // 每個後台頁只載入自己的模組；原本在入口一次 import 全部頁面，任何一頁都要下載十幾個用不到的檔案。
@@ -85,11 +85,7 @@ document.addEventListener(
     if (!form || form.dataset.clearingErrors) return;
     form.dataset.clearingErrors = 'true';
     queueMicrotask(() => delete form.dataset.clearingErrors);
-    form.querySelectorAll('.field-error').forEach(node => node.remove());
-    form.querySelectorAll('[aria-invalid="true"]').forEach(node => {
-      node.removeAttribute('aria-invalid');
-      node.removeAttribute('aria-describedby');
-    });
+    clearFieldErrors(form);
     form.querySelectorAll('.form-status[data-error="true"]').forEach(node => {
       node.textContent = '';
       node.dataset.error = 'false';

@@ -1,7 +1,7 @@
 import { authApi } from '../api/auth-api.js';
 import { memberResourcesApi } from '../api/member-resources-api.js';
 import { api } from './api-client.js';
-import { element, onPageReturn, status, toast } from './ui.js';
+import { element, onPageReturn, status, toast, unsavedChanges } from './ui.js';
 import { MemberResourceState } from './member-resource-state.js';
 import { recoverSession } from './session-expiry.js';
 import { PendingWrites } from './pending-writes.js';
@@ -247,12 +247,7 @@ export async function mountMemberActions() {
         }
       }
     });
-    window.addEventListener('beforeunload', event => {
-      if (favoriteWrites.active) {
-        event.preventDefault();
-        event.returnValue = '';
-      }
-    });
+    unsavedChanges(() => favoriteWrites.active);
     const resume = () => {
       ++state.generation;
       state.member = undefined;

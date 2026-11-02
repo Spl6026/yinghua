@@ -1,6 +1,6 @@
 import { authApi } from '../api/auth-api.js';
 import { routes } from './routes.js';
-import { element, initializeMenus, toast } from './ui.js';
+import { element, initializeMenus, status, toast } from './ui.js';
 import { recoverSession } from './session-expiry.js';
 
 // 只允許導向已建置的站內頁面，不把 query 直接當成 redirect URL，避免開放式重導向。
@@ -199,10 +199,9 @@ export async function memberNavigation() {
 export function handleAdminError(error, message) {
   if (error.status === 401) {
     handleSessionExpiry('admin');
-    message.textContent = '登入已到期，重新登入後請再儲存；未儲存內容仍保留。';
+    status(message, '登入已到期，重新登入後請再儲存；未儲存內容仍保留。');
   } else {
-    message.textContent = error.message;
-    message.dataset.error = 'true';
+    status(message, error.message, true);
     message.focus();
   }
 }
