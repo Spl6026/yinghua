@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [S：G15；D：C19–D21；E-27] 真實 MariaDB 約束／本人條件；自有 fixture 全部回滾。 */
+/** 在真實 MariaDB 驗證會員資源的資料庫約束，以及只能存取本人資料的條件；測試資料全部回滾。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Config;

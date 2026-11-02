@@ -1,4 +1,4 @@
-"""[E-18] 隔離 app/web 重啟後，真實內容、HTML 及媒體仍保留；不刪 volume。"""
+"""重啟隔離的 app／web 之後，確認真實內容、HTML 與媒體都還在；不刪除 volume。"""
 import json
 import subprocess
 import time

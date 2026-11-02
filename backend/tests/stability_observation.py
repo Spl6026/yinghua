@@ -1,4 +1,4 @@
-"""[E-29] Fixed 100-round CSRF/publication observation; no automatic retries or secrets."""
+"""固定跑 100 輪，觀察 CSRF 與發布是否穩定；不自動重試，也不輸出機密。"""
 import json, time, urllib.request, urllib.error
 from api_integration import Client, ROOT
 

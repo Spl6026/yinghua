@@ -1,4 +1,4 @@
-"""[E-35] Read-only exact search WHERE/ORDER profiles on the actual MariaDB, not a load test."""
+"""在實際的 MariaDB 上唯讀分析全站搜尋確切的 WHERE／ORDER 查詢；這不是壓力測試。"""
 import json
 from api_integration import ROOT,fixture
 from phase8_browser_fixture import literal

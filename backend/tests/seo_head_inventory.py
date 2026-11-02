@@ -1,4 +1,4 @@
-"""[S SEO 5-9/15-17; E-28] Parse real fixed/generated HTML without executing JS."""
+"""解析實際固定頁與產生頁的 HTML head，不執行 JavaScript。"""
 import json,math,urllib.request,urllib.error
 from api_integration import ROOT,Client,fixture
 from seo_publication_integration import Head

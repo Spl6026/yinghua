@@ -1,4 +1,4 @@
-"""[E-29] Own test DB record; API/gate reject stale content with correlated, bounded logs."""
+"""使用測試資料庫自有的紀錄；API 與發布檢查要拒絕過期內容，並留下可對應、有長度上限的紀錄。"""
 import json,subprocess,uuid
 from datetime import datetime,timezone
 from api_integration import Client,fixture,ROOT

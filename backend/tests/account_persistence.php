@@ -12,7 +12,7 @@ use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\Database;
 use Yinghua\Support\Secrets;
 
-/** [E-01／E-15] 真實 MariaDB 驗證例外轉譯與交易；只接受 yinghua_test，不產生持久帳號。 */
+/** 在真實 MariaDB 驗證例外轉換與交易行為；只允許 yinghua_test，不會留下任何帳號。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 $config = new Config();
 if ($config->string('APP_ENV') !== 'test' || $config->string('DB_DATABASE') !== 'yinghua_test') {

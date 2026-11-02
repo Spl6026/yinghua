@@ -1,4 +1,4 @@
-"""[S G32/L32; E-28] Real isolated settings permissions, versions, rollback and contracts."""
+"""在隔離環境驗證 SEO 設定的權限、版本、回滾與回應契約。"""
 import argparse,concurrent.futures,copy,json,secrets,subprocess,sys,uuid
 from pathlib import Path
 parser=argparse.ArgumentParser();parser.add_argument('--dependency-path');options=parser.parse_args()

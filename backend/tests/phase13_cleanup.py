@@ -1,4 +1,4 @@
-"""[E-35] Only named yinghua_test fixture, no shared/demo content."""
+"""只清理指定的 yinghua_test 測試資料，不動共用或示範內容。"""
 import json,sys
 from api_integration import ROOT,fixture
 from phase8_browser_fixture import literal,publish

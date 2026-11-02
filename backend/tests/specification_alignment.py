@@ -1,4 +1,4 @@
-"""[U-12] Excel／原型限制校正的真實 HTTP、MariaDB 與請求契約回歸。"""
+"""以真實 HTTP、MariaDB 與請求契約，回歸測試依 Excel 規格與原型校正過的限制。"""
 import json
 import secrets
 import urllib.error
@@ -90,7 +90,7 @@ def main():
         check('root identity remains intact', root.call('GET', root.auth + 'me')[1]['admin']['account'] == 'admin')
         check('Unicode account unique index available', any(row.get('key') == 'account' for row in fixture("EXPLAIN SELECT id FROM admin_users WHERE account='" + renamed + "'")))
         check('all migrations completed', all(row['applied_at'] is not None for row in fixture('SELECT applied_at FROM schema_migrations')))
-        # [U-13] Exercise the exact security-policy changes explicitly approved by the user.
+        # 逐項驗證已確認調整過的會員安全政策行為。
         member = Client()
         email = 'spec-eight-' + suffix + '@example.test'
         token, answer = challenge(member, email)

@@ -1,4 +1,4 @@
-"""[S L15; E-27] Recreate only isolated HTTP services; preserve member data and session."""
+"""只重建隔離的 HTTP 服務，確認會員資料與登入狀態都會保留。"""
 import json,subprocess,time,uuid
 import member_resources_integration as probe
 from api_integration import ROOT,fixture

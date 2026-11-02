@@ -1,4 +1,4 @@
-"""[S：功能規格 11／G23；E-26] 店家、優惠期限、媒體與失敗流程；只清理本次 UUID。"""
+"""驗證合作店家、優惠期限、媒體與失敗流程；只清理本次產生的 UUID 資料。"""
 from pathlib import Path
 from datetime import datetime,timedelta,timezone
 import argparse,json,secrets,sys,uuid
@@ -38,7 +38,7 @@ def api(path,expected=200):
     if route not in spec['paths']:route='/api/v1/offers/{slug}'
     schema=spec['paths'][route]['get']['responses'].get(str(code),{}).get('content',{}).get('application/json',{}).get('schema')
     if schema:validate(schema,data);contracts+=1
-    # [E-29] 首次非預期回應保留安全診斷，不讓缺少total變成無法追查的KeyError；不自動重試。
+    # 第一次出現非預期回應就保存安全的診斷資訊，免得後面只看到缺少 total 的 KeyError 而無從追查；不自動重試。
     if code!=expected:
         failure={'route':route,'expected':expected,'status':code,'code':data.get('code'),'requestId':data.get('requestId')}
         (ROOT/'artifacts/phase5-offers-http-failure.json').write_text(json.dumps(failure,indent=2),encoding='utf8')

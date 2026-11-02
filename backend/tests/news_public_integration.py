@@ -1,4 +1,4 @@
-"""[S：功能規格 9；E-26] 受控 CLI→MariaDB→HTML/API；只清理本次 UUID fixture。"""
+"""從受控的 CLI 經過 MariaDB 到 HTML／API 驗證最新消息的發布；只清理本次產生的 UUID 資料。"""
 from pathlib import Path
 import argparse,base64,json,secrets,subprocess,urllib.request,urllib.error,uuid,sys
 

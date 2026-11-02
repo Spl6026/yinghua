@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// [E-40] 真MariaDB讀寫／限速／並行；外部provider及已發布讀取邊界使用明確替身，無對外請求。
+// 以真實 MariaDB 驗證讀寫、限速與並行；外部 provider 與已發布內容的讀取改用明確的替身，不會發出對外請求。
 require __DIR__ . '/../vendor/autoload.php';
 $config = new Yinghua\Config();
 if ($config->string('DB_DATABASE') !== 'yinghua_test') {

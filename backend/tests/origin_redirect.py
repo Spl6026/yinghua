@@ -1,4 +1,4 @@
-"""[E-02] 真實 Nginx canonical URL／API CSRF 回歸；不需要登入帳密。"""
+"""以真實 Nginx 回歸測試 canonical 網址轉址與 API 的 CSRF 檢查；不需要登入帳密。"""
 import argparse
 import http.cookiejar
 import json

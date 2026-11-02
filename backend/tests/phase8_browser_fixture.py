@@ -1,4 +1,4 @@
-"""[E-29] Named yinghua_test-only UI fixtures. Cleanup preserves normal audit/account references."""
+"""只存在 yinghua_test 的指定介面測試資料；清理時保留一般的稽核與帳號引用。"""
 import argparse,json,re,secrets,subprocess,uuid
 from datetime import datetime,timezone,timedelta
 from api_integration import ROOT,fixture
@@ -49,7 +49,7 @@ def main(cleanup):
     fixture("INSERT INTO attractions(id,slug,name,category,summary,description,address,status,publish_at) VALUES('"+place+"',"+literal(prefix+'-place')+','+literal(prefix+' 景點驗收')+",'景點','測試摘要','測試介紹','新竹市','published','2020-01-01')")
     sample=json.loads((ROOT/'backend/resources/films-demo.json').read_text(encoding='utf8'))[0]
     fixture("INSERT INTO films(id,slug,title,genre,synopsis,poster_url,poster_alt,status,publish_at,created_by,updated_by) VALUES('"+film+"',"+literal(prefix+'-film')+','+literal(prefix+' 電影驗收')+','+literal(sample['genre'])+','+literal(sample['synopsis'])+','+literal(sample['posterUrl'])+",'隔離海報','published','2020-01-01','"+actor+"','"+actor+"')")
-    # 只給獨立驗收電影當週合成場次，未替原始無年份的電影推定年份。
+    # 只替獨立驗收用的電影產生當週場次，不替原始資料中沒有年份的電影推測年份。
     local=datetime.now(timezone(timedelta(hours=8))).replace(hour=12,minute=0,second=0,microsecond=0)
     for offset in [0,6]:
         starts=(local+timedelta(hours=offset)).astimezone(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')

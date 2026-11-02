@@ -1,4 +1,4 @@
-"""[U-06／E-16] 真實 HTTP＋MariaDB 的唯讀模擬驗收；只使用 yinghua_test。"""
+"""以真實 HTTP 與 MariaDB 驗證管理員的唯讀模擬檢視；只使用 yinghua_test。"""
 import concurrent.futures
 import json
 import secrets

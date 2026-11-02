@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [D D19；E-33] 實際MariaDB查詢；自有資料於finally全部回滾，不改環境。 */
+/** 檢查會員行程查詢在實際 MariaDB 上的執行計畫；測試資料在 finally 全部回滾，不更動環境。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Config;

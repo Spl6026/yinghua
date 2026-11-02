@@ -1,4 +1,4 @@
-"""[E-18/E-25] Post-commit publication record failures must not lose saved identity."""
+"""資料已提交、但寫入發布紀錄失敗時，不能弄丟已儲存的資料識別。"""
 import json
 import secrets
 from api_integration import Client, fixture, password

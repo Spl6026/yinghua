@@ -1,4 +1,4 @@
-"""[E-25] 受控電影匯入不猜日期、不覆寫編輯；原型四網址與 legacy 0 仍可讀。"""
+"""受控的電影匯入不推測日期、不覆寫已編輯的內容；原型的四個網址與舊的 0 號網址仍可讀取。"""
 import json
 from api_integration import Client,ROOT,fixture,password
 from attractions_integration import cli,raw

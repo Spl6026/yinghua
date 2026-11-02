@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [D：C24–D25；E-28] 真 MariaDB 資料層／唯一約束／rollback，不修改正式設定。 */
+/** 在真實 MariaDB 驗證 SEO 設定的資料層、唯一約束與回滾；不會改到正式設定。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Config;

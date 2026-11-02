@@ -1,4 +1,4 @@
-"""[E-25] 電影搜尋、狀態及管理／公開穩定分頁；fixture 僅限 yinghua_test。"""
+"""驗證電影搜尋、狀態篩選，以及管理端與公開端的穩定分頁；測試資料只放在 yinghua_test。"""
 import datetime,json,secrets,sys,urllib.parse,uuid
 from api_integration import Client,ROOT,fixture,password
 from attractions_integration import cli

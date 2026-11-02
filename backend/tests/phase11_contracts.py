@@ -1,4 +1,4 @@
-"""Validate actual HTTP requests/responses against the independent OpenAPI contract."""
+"""依獨立的 OpenAPI 契約驗證會員行程實際的 HTTP 請求與回應。"""
 import argparse,json,re,sys
 from pathlib import Path
 parser=argparse.ArgumentParser();parser.add_argument('--dependency-path');args=parser.parse_args()
@@ -20,7 +20,7 @@ def wrapped(self,method,path,body=None,csrf=True,extra=None):
     for schema,value in pairs:
         if schema:
             for error in validator.evolve(schema=schema).iter_errors(value):errors.append({'operation':method+' '+route,'status':code,'path':list(error.path),'validator':error.validator})
-    # Client represents an empty body as {}; HTTP length must remain zero/absent.
+    # Client 會把空的 body 當成 {}，但實際的 HTTP 回應長度必須是 0 或不帶 Content-Length。
     if code==204:assert data=={} and headers.get('Content-Length','0')=='0'
     responses+=1;observed.add((method,route));return code,data,headers
 try:

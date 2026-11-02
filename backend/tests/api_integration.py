@@ -1,4 +1,4 @@
-"""[E-15] 真實 HTTP／MariaDB／Mailpit 驗收，固定 localhost:8081 與 yinghua_test。"""
+"""以真實 HTTP、MariaDB 與 Mailpit 做整合驗收，固定使用 localhost:8081 與 yinghua_test。"""
 import concurrent.futures, copy, hashlib, http.cookiejar, json, os, re, secrets, subprocess, time
 import urllib.request, urllib.error
 from pathlib import Path

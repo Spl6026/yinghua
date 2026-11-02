@@ -1,4 +1,4 @@
-"""HTTP asset delivery only; this is explicitly not Browser/CLS acceptance."""
+"""只檢查 HTTP 的資產傳送；這裡明確不涵蓋瀏覽器與 CLS 的驗收。"""
 import json,re,urllib.request,socket
 from pathlib import Path
 from api_integration import ROOT

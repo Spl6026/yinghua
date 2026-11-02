@@ -1,7 +1,7 @@
-"""[E-34] Independent check of emitted terms/domain/range against official Schema.org JSON-LD.
+"""依 Schema.org 官方 JSON-LD，獨立檢查輸出的詞彙、domain 與 range。
 
-This checks our deliberately small JSON-LD subset; it is not Google's Rich Results engine.
-The vocabulary file is downloaded to ignored artifacts, never shipped as app dependency.
+這裡只檢查我們刻意精簡的 JSON-LD 子集，並不是 Google 的複合式搜尋結果引擎。
+詞彙檔會下載到被忽略的 artifacts 目錄，不會成為應用程式的相依套件。
 """
 import json,re
 from datetime import datetime,date

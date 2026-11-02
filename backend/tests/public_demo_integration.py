@@ -1,4 +1,4 @@
-"""[E-26] 本階段原型 demo 可重跑且保留編輯；只在隔離庫測試固定 demo UUID。"""
+"""原型示範資料可以重複匯入，且保留後台的編輯；只在隔離資料庫測試固定的示範 UUID。"""
 import json
 from news_public_integration import ROOT,db,run,get
 

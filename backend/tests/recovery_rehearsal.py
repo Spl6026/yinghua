@@ -1,4 +1,4 @@
-"""[E-29] Real dump/media recovery, rejection and authorization revocation on new volumes."""
+"""在新的 volume 上演練以資料庫 dump 與媒體還原、拒絕不正確的還原，以及撤銷舊的授權。"""
 import argparse, copy, hashlib, json, secrets, shutil, sys, tarfile, time, uuid
 from pathlib import Path
 from production_rehearsal import Client, check, checks, sql, await_status, ROOT
@@ -32,15 +32,15 @@ def data_snapshot(d):
     result={}
     for table in tables:
         if table in excluded:continue
-        # [E-38] Search is regenerated with a fresh publication generation on restore.
-        # Compare every public field, not the expected-to-change generation identifier.
+        # 還原時會以新的發布世代重建搜尋資料，
+        # 所以比對所有公開欄位，但不比對本來就會改變的 generation。
         fields='resource_type,resource_id,type_order,title,summary,search_text,slug,url,thumbnail,thumbnail_alt' if table=='search_documents' else '*'
         result[table]=hashlib.sha256(sql(d,'SELECT '+fields+' FROM `'+table+'` ORDER BY 1,2').encode()).hexdigest()
     return result
 
 
 def extended_delivery(source,root,prefix,member,published,second):
-    """[E-38] Later modules must contain real data before the backup is taken."""
+    """備份之前，後續加入的模組都必須先有真實資料。"""
     body=root.call('GET','/api/v1/admin/settings')[1]
     settings={key:body[key] for key in ['version','seoVersion','siteName','description','values']}
     settings['values'].update(contactEmail='delivery@example.test',termsVersion='delivery-v1',privacyVersion='delivery-v1',termsText='Delivery recovery terms',privacyText='Delivery recovery privacy')

@@ -1,4 +1,4 @@
-"""[S L31/L33; E-34] Read-only sitemap/canonical/JSON-LD checks; no fixture or JavaScript required."""
+"""唯讀檢查 sitemap、canonical 與 JSON-LD；不需要測試資料，也不執行 JavaScript。"""
 import argparse,json,re,urllib.request,urllib.error,xml.etree.ElementTree as ET
 from pathlib import Path
 from urllib.parse import urlsplit

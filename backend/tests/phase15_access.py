@@ -1,7 +1,7 @@
-"""[S G17/L17/G34/L34; E-38] All protected operations reject anonymous access.
+"""所有受保護的操作都必須拒絕匿名存取。
 
-No root credential reset, no role grants; login/logout only owned test accounts.
-This supplements, rather than replaces, the earlier owner/CSRF/RBAC tests.
+不重設 root 憑證、不授予角色權限；只登入登出測試自有的帳號。
+這是補充先前的本人、CSRF 與角色權限測試，而不是取代它們。
 """
 import json
 import re
@@ -25,7 +25,7 @@ def main():
                 continue
             status, body, _ = guest.call(method.upper(), concrete, {} if method in {'post', 'put', 'patch'} else None)
             assert status in {401, 403}, (method, path, status)
-            # auth_request probe has a deliberately minimal 403 contract.
+            # 媒體存取檢查是給 Nginx auth_request 使用的，403 回應刻意只帶最少的欄位。
             required = ['requestId'] if path == '/api/v1/admin/media/access' else ['code', 'message', 'fieldErrors', 'requestId']
             assert all(key in body for key in required), (method, path, status, list(body))
             results.append({'method': method, 'path': path, 'status': status})

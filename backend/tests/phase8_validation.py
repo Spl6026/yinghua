@@ -1,4 +1,4 @@
-"""[E-29] Fixed remaining P0 suites; stop at first failure, no rerun-until-green."""
+"""依固定順序執行剩下的驗證測試組；遇到第一個失敗就停止，不重跑到通過為止。"""
 import argparse,json,subprocess,sys,time
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]

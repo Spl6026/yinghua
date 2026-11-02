@@ -11,7 +11,7 @@ use Yinghua\DTO\UploadedImage;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ImageOrigin;
 
-/** [E-26／U-14] 本機匯入不能放寬 HTTP 上傳來源及圖片內容檢查。 */
+/** 本機匯入圖片的路徑不能連帶放寬 HTTP 上傳的來源與圖片內容檢查。 */
 class ImageOriginTest extends TestCase
 {
     public function testLocalFileCannotMasqueradeAsHttpUpload(): void

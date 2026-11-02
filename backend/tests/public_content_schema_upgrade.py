@@ -1,4 +1,4 @@
-"""[E-26] MariaDB 空庫與保留舊資料升級；只建立／清除本程序新建的隨機測試 schema。"""
+"""驗證公開內容 migration 在空資料庫與既有資料上的升級；只建立與清除本程式新建的隨機測試 schema。"""
 from pathlib import Path
 import json,re,secrets,subprocess
 

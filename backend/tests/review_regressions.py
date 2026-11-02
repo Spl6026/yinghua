@@ -1,4 +1,4 @@
-"""[S G26/L26, U-12, E-01/E-23] Independent review regressions; isolated HTTP/MariaDB only."""
+"""針對獨立審查發現的問題做回歸測試；只使用隔離的 HTTP 與 MariaDB。"""
 import json
 import secrets
 import subprocess

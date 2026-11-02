@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-18／R3-04] 真實 MariaDB CHECK，測試結束回滾。 */
+/** 驗證景點資料表在真實 MariaDB 上的 CHECK 約束，測試結束後回滾。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 $config = new Yinghua\Config();
 if ($config->string('APP_ENV') !== 'test' || $config->string('DB_DATABASE') !== 'yinghua_test') {

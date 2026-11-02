@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-26] 真實 MariaDB＋Node 的跨日發布：獨立 /tmp 產物，交易回滾，不換主／測試 current。 */
+/** 以真實 MariaDB 與 Node 驗證跨日發布：產物放在獨立的 /tmp，交易會回滾，不切換主站或測試站的 current。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Adapters\NodeContentRenderer;
@@ -94,7 +94,7 @@ try {
     $generation = $publication->read()['generation'];
     $clock->value++;
     $check($publication->tick() && $publication->read()['generation'] === $generation);
-    // [S：功能規格 5／7；E-26] 台北週一切換，首頁只使用新週的場次。
+    // 以台北時間的週一為界切換，首頁只能顯示新一週的場次。
     $screenings = new FilmScreeningRepository($db);
     $films = new FilmRepository($db, $screenings);
     $filmId = Secrets::uuid();

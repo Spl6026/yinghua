@@ -1,4 +1,4 @@
-"""[E-27] Repeated public-version changes must not leak drafts into private resources."""
+"""公開內容反覆改版時，草稿內容不能外洩到會員的私人資料裡。"""
 import json,uuid
 import member_resources_integration as probe
 from api_integration import ROOT,fixture

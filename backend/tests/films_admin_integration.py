@@ -1,4 +1,4 @@
-"""[S：功能規格 21；E-25] 真實電影 CRUD、海報及分模組權限；只使用 yinghua_test。"""
+"""以真實環境驗證電影 CRUD、海報上傳與各模組分開的權限；只使用 yinghua_test。"""
 import concurrent.futures, copy, json, secrets, urllib.parse, uuid
 from api_integration import Client, ROOT, fixture, password, admin_body
 from attractions_integration import upload, test_png, raw, cli
@@ -48,7 +48,7 @@ def main():
         film=update(film,slug=prefix+'-new')
         check('old slug resolves',raw(guest,'/films/'+prefix+'.html')[0]==200)
         check('old slug reserved',root.call('POST','/api/v1/admin/films',{'title':'other','slug':prefix})[0]==409)
-        # 4C 編輯資訊不能意外刪除已存在的資料層場次。
+        # 編輯電影資訊時沒有帶場次，不能因此刪掉資料庫裡既有的場次。
         screen_id=str(uuid.uuid4());fixture(f"INSERT INTO film_screenings(id,film_id,starts_at) VALUES('{screen_id}','{film['id']}','2032-01-02 06:00:00')")
         film=update(film,genre='紀錄片')
         check('omitted screenings preserved',film['screenings'][0]['id']==screen_id and len(film['screenings'])==1)

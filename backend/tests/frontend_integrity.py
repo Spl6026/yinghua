@@ -1,8 +1,8 @@
-"""E: check built HTML/assets and optional read-only HTTP routes; no business writes.
+"""檢查建置後的 HTML 與資產，並可選擇檢查唯讀的 HTTP 路由；不寫入任何業務資料。
 
-Run frontend build first. Four legacy detail endpoints require an identifier;
-their identifier-less HTTP response must be 404 rather than a fabricated item.
-This checks file/route integrity, not visual rendering or future functionality.
+執行前請先建置前端。四個舊的詳情端點需要帶識別碼，
+沒有識別碼時必須回 404，而不是捏造一筆資料。
+這裡只檢查檔案與路由是否完整，不檢查畫面呈現。
 """
 import argparse
 import json

@@ -1,4 +1,4 @@
-"""[U-09／E-20] 真實 MariaDB／HTTP／SSR 週表保存與拒絕越權；只使用隔離環境。"""
+"""以真實 MariaDB、HTTP 與伺服器端渲染驗證營業時間週表的保存與越權拒絕；只使用隔離環境。"""
 import copy
 import json
 import secrets

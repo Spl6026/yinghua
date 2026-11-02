@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 use Yinghua\Config;
 
-/** [E-18] 僅隔離測試 volume 的故障注入；沒有 HTTP 入口。 */
+/** 只在隔離的測試 volume 做故障注入，沒有任何 HTTP 入口。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 $config = new Config();
 if ($config->string('APP_ENV') !== 'test' || $config->string('DB_DATABASE') !== 'yinghua_test'

@@ -1,4 +1,4 @@
-"""[E-26] 全新專用隨機 schema 的初始化順序、原型店家與不覆寫；最後刪除自有 schema。"""
+"""在全新的隨機 schema 驗證初始化順序、原型店家資料，以及不覆寫既有資料；最後刪除自建的 schema。"""
 import json,re,secrets
 from public_content_schema_upgrade import ROOT,root_sql,php
 

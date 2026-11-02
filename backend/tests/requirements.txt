@@ -1,2 +1,2 @@
-# Compatibility entry point; validation dependencies have one canonical list.
+# 保留給舊指令使用的入口；驗證所需套件統一維護在 tools/validation/requirements.txt。
 -r ../../tools/validation/requirements.txt

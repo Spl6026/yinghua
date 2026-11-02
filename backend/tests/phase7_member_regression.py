@@ -1,4 +1,4 @@
-"""[E-28] Phase-six regressions through the existing browser CSRF policy, once per suite."""
+"""透過既有的瀏覽器 CSRF 策略重跑收藏與目前行程的回歸測試，每個測試組只跑一次。"""
 import contextlib,importlib,io,json
 import phase6_regression as policy
 

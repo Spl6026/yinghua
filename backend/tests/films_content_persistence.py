@@ -1,4 +1,4 @@
-"""[E-25] 重建隔離 app/web 後，電影、複數場次、海報及同版 HTML 保留；不清 volume。"""
+"""重建隔離的 app／web 之後，電影、多個場次、海報與同一版 HTML 都要保留；不清除 volume。"""
 import datetime,json,secrets,subprocess,time
 from api_integration import Client,ROOT,fixture,password
 from attractions_integration import upload,test_png,raw

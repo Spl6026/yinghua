@@ -1,8 +1,8 @@
-"""[E-27] Cross-module regression with the browser's single CSRF refresh policy.
+"""跨模組的回歸測試，使用與瀏覽器相同、只重新整理一次 CSRF 的策略。
 
-Only a normal same-origin request explicitly rejected as CSRF_INVALID is retried.
-Missing/stale-token and origin/security probes keep their original rejection checks.
-No retry for network failures, business errors or authorization failures.
+只有一般同源請求被明確以 CSRF_INVALID 拒絕時才重試。
+刻意缺少或過期的 token、來源與安全性探測，仍維持原本的拒絕檢查。
+網路錯誤、業務錯誤或授權失敗一律不重試。
 """
 import argparse,contextlib,importlib,io,json,runpy,sys
 from pathlib import Path

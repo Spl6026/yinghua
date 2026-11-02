@@ -1,4 +1,4 @@
-"""[S：功能規格 7/21；E-25] 真實 MariaDB、Nginx、PHP 與 Node 公開發布驗證。"""
+"""透過真實的 MariaDB、Nginx、PHP 與 Node 驗證電影公開頁的發布。"""
 import datetime, json, secrets, subprocess, urllib.request, urllib.error, uuid
 from api_integration import BASE, ROOT, Client, fixture, password
 

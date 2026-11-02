@@ -1,4 +1,4 @@
-"""[S P1 rows8/10/12/14/15/22/23/24/29; E-34] Reuse owned fixture; never reset root credentials."""
+"""重用測試自有的資料，依序重跑最新消息／優惠、推薦路線與會員行程的契約測試；絕不重設 root 的憑證。"""
 import argparse,json,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]

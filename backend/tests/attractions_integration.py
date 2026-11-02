@@ -1,4 +1,4 @@
-"""[S：功能規格 6/13/19/20；E-18/E-19] 隔離 MariaDB／HTTP／Node 發布驗收。"""
+"""在隔離的 MariaDB、HTTP 與 Node 發布環境中驗收景點管理與公開頁面。"""
 import base64
 import http.cookiejar
 import json
@@ -121,7 +121,7 @@ def main():
     check('public projection omits admin fields',all(key not in guest.call('GET','/api/v1/attractions/'+prefix)[1]['attraction'] for key in ['status','deletedAt','googlePlaceId','legacyImage']))
     update.update(version=item['version'],slug=prefix+'-renamed',name='已改名景點 '+prefix)
     item,result=write(root,update,identifier)
-    # urllib follows the stable 301; final Location must point to the new slug.
+    # urllib 會跟著永久 301 轉址，最終位置必須指向新的 slug。
     check('old slug resolves to renamed content',raw(guest,'/places/'+prefix+'.html')[0]==200)
     check('unknown slug true 404',raw(guest,'/places/'+prefix+'-missing.html')[0]==404)
     check('legacy numeric URL resolves',raw(guest,'/place-detail.html?id=2')[0]==200)
@@ -152,7 +152,7 @@ def main():
     cli('content:tick')
     check('schedule tick activates HTML',raw(guest,'/places/'+prefix+'-scheduled.html')[0]==200)
     route_id=str(uuid.uuid4())
-    # [E-32] P1路線schema已要求slug；保留P0的景點引用刪除檢查，不依賴舊表的缺省值。
+    # 路線表要求 slug，這裡明確帶入，再確認被路線引用的景點不能刪除。
     fixture("INSERT INTO routes (id,slug,title) VALUES ('"+route_id+"','p0-reference-"+route_id+"','P0 reference test')")
     fixture("INSERT INTO route_attractions (route_id,attraction_id,sort_order) VALUES ('"+route_id+"','"+identifier+"',1)")
     check('referenced attraction delete blocked',root.call('DELETE',path,{'version':item['version']})[0]==409)

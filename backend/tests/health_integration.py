@@ -1,4 +1,4 @@
-"""[D API草案 C43:H43; E-29] Anonymous HTTP contract and real MariaDB readiness failures."""
+"""驗證匿名存取健康檢查的 HTTP 契約，以及真實 MariaDB 無法就緒時的回應。"""
 import json, subprocess, time
 from api_integration import Client, ROOT, fixture
 

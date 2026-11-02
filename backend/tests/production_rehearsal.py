@@ -1,4 +1,4 @@
-"""[E-29] New-volume production packaging rehearsal. Only explicit spl-p0-* projects."""
+"""在新的 volume 上演練正式環境的打包與啟動；只操作明確命名為 spl-p0-* 的 project。"""
 import argparse, http.client, http.cookiejar, json, secrets, socket, ssl, subprocess, sys, time, urllib.error, urllib.request, uuid
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[2]
@@ -48,7 +48,7 @@ def await_status(client,path,status,seconds=25):
     raise AssertionError('State transition timed out: '+path+' '+str(seen))
 
 def await_database_health(deployment,seconds=30):
-    """Docker's health label can lag behind recovered SQL after a deliberate pause."""
+    """刻意暫停資料庫後，即使 SQL 已經恢復，Docker 的 health 標記可能還沒跟上。"""
     start=time.monotonic();seen=[]
     while time.monotonic()-start<seconds:
         lines=deployment.run(['ps','--format','json','db']).stdout.decode().splitlines()

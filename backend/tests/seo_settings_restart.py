@@ -1,4 +1,4 @@
-"""[S L32; E-28] Isolated application recreation preserves SEO revision and session."""
+"""重建隔離的應用程式後，SEO 設定的修訂版本與登入狀態都要保留。"""
 import json,subprocess,time
 from api_integration import Client,ROOT,fixture,password
 from seo_settings_integration import payload,restore,publish

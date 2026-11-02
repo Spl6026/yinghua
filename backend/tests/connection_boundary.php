@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-29] 普通 API 在 eager DB 組裝失敗時同樣安全503，僅隔離測試環境可執行。 */
+/** 一般 API 在啟動時就連不上資料庫，也要安全地回 503；這支腳本只能在隔離的測試環境執行。 */
 if (getenv('APP_ENV') !== 'test' || getenv('DB_DATABASE') !== 'yinghua_test') {
     throw new RuntimeException('Named isolated environment required.');
 }

@@ -1,4 +1,4 @@
-"""[S E30/G32/L32; E-28] Real HTTP head, same-generation publication and recovery."""
+"""以真實 HTTP 驗證 SEO head、同一版發布與故障恢復。"""
 import argparse,copy,json,secrets,subprocess,sys,urllib.request,urllib.error,uuid
 from html.parser import HTMLParser
 from pathlib import Path
@@ -66,7 +66,7 @@ def main():
             {'target':{'type':'page','path':'/planner.html'},'robots':'index,follow'}]
         code,saved,_=call(root,'PUT',base,current);check('save publishes immediately',code==200 and saved['publicationReady'])
         pub=call(guest,'GET',public)[1];check('public version matches saved',pub['version']==saved['version'] and pub['siteName']=='隔離 SEO')
-        # [E-36] P2新增已發布general公開設定；仍嚴格排除管理欄位與草稿覆寫。
+        # 公開回應會帶出已發布的一般設定，但管理欄位與尚未發布的草稿內容都不能出現。
         check('public excludes admin/private metadata',set(pub)=={'siteName','seoDefaults','verification','version','generation','requestId','general'} and '不應公開' not in json.dumps(pub,ensure_ascii=False))
         code="<?php require 'vendor/autoload.php'; $c=new Yinghua\\Config(); if($c->string('DB_DATABASE')!=='yinghua_test')throw new RuntimeException('Test required'); $p=(new Yinghua\\Composition($c))->publication()->read(); echo json_encode(array_column($p['seo']['overrides'],'title'));"
         projection=subprocess.run(['docker','compose','exec','-T','app-test','php'],cwd=ROOT,input=code,capture_output=True,text=True,encoding='utf8',check=True)

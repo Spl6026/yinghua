@@ -1,8 +1,8 @@
-"""[E-02/E-15] Validate real isolated HTTP responses against OpenAPI using python-jsonschema.
+"""使用 python-jsonschema，依 OpenAPI 驗證隔離環境的真實 HTTP 回應。
 
-Requires tests/requirements.txt. Uses localhost:8081/yinghua_test and local Mailpit;
-origin_redirect only probes public 8080 redirects without credentials. Never calls Google.
-Captured artifacts contain schema paths and counts, never request/password/token payloads.
+需要先安裝 tests/requirements.txt。使用 localhost:8081、yinghua_test 與本機 Mailpit；
+origin_redirect 只檢查公開 8080 的轉址，不帶任何憑證。不會呼叫 Google。
+輸出的紀錄只包含 schema 路徑與數量，絕不包含請求內容、密碼或 token。
 """
 from pathlib import Path
 import sys, json, re, subprocess, importlib, contextlib, io

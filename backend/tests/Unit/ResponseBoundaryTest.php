@@ -12,7 +12,7 @@ use Yinghua\DTO\PreviewStatus;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 
-/** [E-01] 對外物件不能攜帶內部憑證；兩種身分與模擬操作者不可混用。 */
+/** 對外回應的物件不能帶出內部憑證；會員與管理員兩種身分、以及模擬操作者都不可混用。 */
 class ResponseBoundaryTest extends TestCase
 {
     private function account(IdentityKind $kind): Account

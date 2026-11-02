@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-26] 隔離 MariaDB：資料層、引用與資料庫限制；所有 fixture 在 finally 回滾。 */
+/** 在隔離的 MariaDB 驗證資料層、引用關係與資料庫限制；所有測試資料在 finally 回滾。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Config;
