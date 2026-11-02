@@ -89,7 +89,9 @@ export function adminReturnTo(identity) {
     if (
       pages[2] &&
       path === `/admin/${pages[2]}.html` &&
-      (hasPermission(identity, module, 'view') || ['news', 'offers'].includes(module)) &&
+      // 內容的編輯頁依規格給「具 create／edit 權限者」使用，有編輯權限即可回到原本的編輯連結；
+      // 管理員帳號的單筆資料仍需檢視權限。
+      (hasPermission(identity, module, 'view') || module !== 'admins') &&
       hasPermission(identity, module, 'edit')
     )
       return target;
