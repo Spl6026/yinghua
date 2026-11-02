@@ -35,7 +35,35 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
     const label = element('span', { 'aria-live': 'polite' });
     navigation.append(previous, label, next);
     grid.after(navigation);
-    if (query) query.value = new URLSearchParams(location.search).get('q') || '';
+    // 篩選條件寫進網址：重新整理、分享連結或按上一頁都會回到同一個篩選結果，和一般網站的列表一致。
+    // 換分類、區域與換頁會新增一筆瀏覽紀錄；邊打字邊搜尋只更新目前這筆，不讓上一頁塞滿每個字。
+    // 美食頁預設顯示「美食」分類；網址只記錄與預設不同的分類，「全部」以 all 表示。
+    const defaultCategory = category;
+    const categories = tabs.map(button => (button.dataset.category === 'all' ? '' : button.dataset.category));
+    function readUrl() {
+      const params = new URLSearchParams(location.search);
+      if (query) query.value = params.get('q') || '';
+      const area = params.get('district');
+      if (district)
+        district.value = [...district.options].some(option => option.value === area) ? area : 'all';
+      const wanted = params.get('category');
+      const value = wanted === 'all' ? '' : wanted;
+      category = wanted !== null && categories.includes(value) ? value : defaultCategory;
+      page = Math.max(1, Number.parseInt(params.get('page') || '1', 10) || 1);
+    }
+    function writeUrl(push) {
+      const params = new URLSearchParams();
+      const text = query?.value.trim();
+      if (text) params.set('q', text);
+      if (category !== defaultCategory) params.set('category', category || 'all');
+      if (district?.value && district.value !== 'all') params.set('district', district.value);
+      if (page > 1) params.set('page', String(page));
+      const search = params.toString();
+      const target = location.pathname + (search ? '?' + search : '');
+      if (target === location.pathname + location.search) return;
+      history[push ? 'pushState' : 'replaceState'](null, '', target);
+    }
+    readUrl();
     function markTabs(counts) {
       tabs.forEach((button, index) => {
         const value = button.dataset.category === 'all' ? '' : button.dataset.category;
@@ -74,6 +102,7 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
         if (request !== generation) return;
         if (page > 1 && (page - 1) * 12 >= data.total) {
           page = Math.max(1, Math.ceil(data.total / 12));
+          writeUrl(false);
           await load();
           return;
         }
@@ -111,6 +140,7 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
       button.addEventListener('click', () => {
         category = button.dataset.category === 'all' ? '' : button.dataset.category;
         page = 1;
+        writeUrl(true);
         void load();
       })
     );
@@ -131,19 +161,27 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
       clearTimeout(timer);
       timer = setTimeout(() => {
         page = 1;
+        writeUrl(false);
         void load();
       }, 250);
     });
     district?.addEventListener('change', () => {
       page = 1;
+      writeUrl(true);
       void load();
     });
     previous.addEventListener('click', () => {
       page--;
+      writeUrl(true);
       void load();
     });
     next.addEventListener('click', () => {
       page++;
+      writeUrl(true);
+      void load();
+    });
+    window.addEventListener('popstate', () => {
+      readUrl();
       void load();
     });
     await load();

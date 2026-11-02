@@ -42,11 +42,17 @@ test('美食原型沒有分類數字仍載入完成，切換在地店家可使�
   const grid = node(),
     group = node(),
     messages = [],
-    requests = [];
+    requests = [],
+    urls = [];
   let mounted = 0;
   const sandbox = {
     URLSearchParams,
     location: { pathname: '/food.html', search: '' },
+    window: { addEventListener() {} },
+    history: {
+      pushState: (_state, _title, url) => urls.push(url),
+      replaceState: (_state, _title, url) => urls.push(url),
+    },
     document: {
       body: { dataset: { managedAttractions: 'true' } },
       querySelector: selector => ({ '#place-grid': grid, '.guide-tabs': group })[selector] || null,
@@ -70,6 +76,8 @@ test('美食原型沒有分類數字仍載入完成，切換在地店家可使�
   tabs[3].listeners.click();
   await settle();
   assert.equal(requests[1].get('category'), '在地店家');
+  // 與預設不同的分類寫進網址，重新整理或分享時保留。
+  assert.deepEqual(urls, ['/food.html?category=%E5%9C%A8%E5%9C%B0%E5%BA%97%E5%AE%B6']);
   assert.equal(mounted, 2);
   assert.ok(messages.every(message => !message.error));
 });

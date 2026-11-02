@@ -154,8 +154,20 @@ function mobileAccountLinks(signOut) {
   navigation.append(account);
 }
 
+// 公開頁允許瀏覽器的「上一頁快取」，還原時頁面不會重新執行；這時重新確認一次帳號，
+// 才不會在別處登出後，按上一頁仍看到舊的會員名稱。
+let restoreListener = false;
+function refreshOnRestore() {
+  if (restoreListener || typeof window === 'undefined' || !window.addEventListener) return;
+  restoreListener = true;
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) void memberNavigation();
+  });
+}
+
 export async function memberNavigation() {
   const generation = ++memberNavigationVersion;
+  refreshOnRestore();
   initializeMenus();
   const node = document.querySelector('#member-navigation');
   if (!node) return;
