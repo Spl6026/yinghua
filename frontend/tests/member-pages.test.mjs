@@ -1,20 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import { TripEditorState } from '../assets/js/core/trip-editor-state.js';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
 // 執行真正頁面程式，只替換 DOM、session 與 HTTP 邊界；不代表瀏覽器排版驗收。
-const sources = Object.fromEntries(
-  await Promise.all(
-    ['favorites', 'planner'].map(async name => [
-      name,
-      (await readFile(new URL('../assets/js/pages/' + name + '.js', import.meta.url), 'utf8'))
-        .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-        .replace(/\bexport /g, ''),
-    ])
-  )
-);
 const settle = async () => {
   for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve));
 };
@@ -185,9 +174,7 @@ async function fixture(page, search = '') {
     attractionCardData: item => item,
     mountMemberActions: async () => {},
   };
-  vm.createContext(sandbox);
-  const ready = vm.runInContext('(async()=>{' + sources[page] + '})()', sandbox);
-  await ready;
+  await loadWithSandbox(`pages/${page}.js`, sandbox);
   await settle();
   return { data, api, trips, node, document, docEvents, windowEvents };
 }

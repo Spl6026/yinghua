@@ -1,11 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
-const file = await readFile(new URL('../assets/js/core/session.js', import.meta.url), 'utf8');
-const source = file
-  .slice(file.indexOf('let memberNavigationVersion'), file.indexOf('export function handleAdminError'))
-  .replace('export async function', 'async function');
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 class Node {
   constructor(tag, text = '') {
     this.tag = tag;
@@ -36,7 +31,7 @@ class Node {
     return [this.textContent, ...this.children.flatMap(n => n.texts())];
   }
 }
-function fixture(read) {
+async function fixture(read) {
   const node = new Node('span');
   node.append(new Node('a', '會員登入'));
   const navigation = new Node('nav');
@@ -55,15 +50,14 @@ function fixture(read) {
     authApi: () => ({ me: read }),
     toast() {},
   };
-  vm.createContext(sandbox);
-  vm.runInContext(source, sandbox);
-  return { node, navigation, run: () => sandbox.memberNavigation() };
+  const { memberNavigation } = await loadWithSandbox('core/session.js', sandbox);
+  return { node, navigation, run: () => memberNavigation() };
 }
 const visibleTexts = node => node.children.flatMap(child => child.texts());
 
 test('等待帳號回應時不先顯示訪客；成功才顯示會員連結', async () => {
   let resolve;
-  const f = fixture(
+  const f = await fixture(
     () =>
       new Promise(done => {
         resolve = done;
@@ -79,12 +73,12 @@ test('等待帳號回應時不先顯示訪客；成功才顯示會員連結', as
   assert.equal(f.node.attrs['aria-busy'], undefined);
 });
 test('401才顯示登入；網路失敗提供重試，不冒稱訪客', async () => {
-  const guest = fixture(async () => {
+  const guest = await fixture(async () => {
     throw { status: 401 };
   });
   await guest.run();
   assert.ok(visibleTexts(guest.node).includes('會員登入 ↗'));
-  const failure = fixture(async () => {
+  const failure = await fixture(async () => {
     throw { status: 0 };
   });
   await failure.run();
@@ -95,7 +89,7 @@ test('舊帳號回應不得蓋過較新的身分確認', async () => {
   let first,
     second,
     calls = 0;
-  const f = fixture(
+  const f = await fixture(
     () =>
       new Promise(resolve => {
         if (++calls === 1) first = resolve;
@@ -113,7 +107,7 @@ test('舊帳號回應不得蓋過較新的身分確認', async () => {
 });
 
 test('已登入時沿用原本的名稱、收藏、更改密碼與登出文字連結', async () => {
-  const f = fixture(async () => ({ member: { displayName: '本人' } }));
+  const f = await fixture(async () => ({ member: { displayName: '本人' } }));
   await f.run();
   assert.equal(f.node.className, 'member-menu');
   assert.deepEqual(
@@ -126,7 +120,7 @@ test('已登入時沿用原本的名稱、收藏、更改密碼與登出文字�
   );
 });
 test('手機漢堡選單另附收藏、更改密碼與登出，頁首不需擠入全部連結', async () => {
-  const f = fixture(async () => ({ member: { displayName: '本人' } }));
+  const f = await fixture(async () => ({ member: { displayName: '本人' } }));
   await f.run();
   const account = f.navigation.children.find(n => n.className === 'nav-account');
   assert.ok(account);

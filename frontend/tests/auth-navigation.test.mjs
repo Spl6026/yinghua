@@ -1,13 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
 // 執行實際認證／session 模組；替換 DOM、提交外框及 HTTP 邊界。
-const strip = source => source.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, '');
-const sessionSource = strip(await readFile(new URL('../assets/js/core/session.js', import.meta.url), 'utf8'));
-const authSource = strip(await readFile(new URL('../assets/js/auth.js', import.meta.url), 'utf8'));
-const uiSource = strip(await readFile(new URL('../assets/js/core/ui.js', import.meta.url), 'utf8'));
 const settle = async () => {
   for (let i = 0; i < 5; i++) await new Promise(resolve => setImmediate(resolve));
 };
@@ -19,7 +14,7 @@ function deferred() {
   });
   return { resolve, promise };
 }
-function fixture({
+async function fixture({
   kind = 'member',
   mode = 'login',
   identity,
@@ -206,10 +201,10 @@ function fixture({
       await action();
     },
   };
-  vm.createContext(sandbox);
-  if (realSubmit) vm.runInContext(uiSource, sandbox);
-  vm.runInContext(sessionSource, sandbox);
-  const initialize = () => vm.runInContext('(async () => {\n' + authSource + '\n})()', sandbox);
+  // 需要真正的送出流程時不提供 submitForm 替身，改用 ui.js 的實作。
+  if (realSubmit) delete sandbox.submitForm;
+  Object.assign(sandbox, await loadWithSandbox('core/session.js', sandbox));
+  const initialize = () => loadWithSandbox('auth.js', sandbox);
   const send = async () => {
     form.listeners.submit({ preventDefault() {} });
     await settle();
@@ -237,7 +232,7 @@ test('登入與註冊互切保留安全行程待辦，拒絕外站及管理頁�
       'https://attacker.test',
       '/admin/index.html',
     ]) {
-      const f = fixture({ mode, query: '?returnTo=' + encodeURIComponent(target) });
+      const f = await fixture({ mode, query: '?returnTo=' + encodeURIComponent(target) });
       await f.initialize();
       const link = new URL(f.switchLink.href, 'http://localhost:8080');
       assert.equal(link.pathname, mode === 'login' ? '/register.html' : '/login.html');
@@ -254,19 +249,19 @@ test('已登入會員開登入頁返回合法原頁，拒絕跨站目的地', as
     ['?returnTo=%2Fexplore.html', '/explore.html'],
     ['?returnTo=https%3A%2F%2Fattacker.test', '/index.html'],
   ]) {
-    const f = fixture({ identity: { member: { id: 'member' } }, query });
+    const f = await fixture({ identity: { member: { id: 'member' } }, query });
     await f.initialize();
     assert.deepEqual(f.state.redirects, [destination]);
     assert.equal(f.submit.disabled, true);
   }
 });
 test('已登入會員開註冊頁直接返回，不建立新驗證碼', async () => {
-  const f = fixture({ mode: 'register', identity: { member: { id: 'member' } } });
+  const f = await fixture({ mode: 'register', identity: { member: { id: 'member' } } });
   await f.initialize();
   assert.deepEqual(f.state.redirects, ['/index.html']);
 });
 test('後台登入頁使用管理員 session，不借會員身分判斷', async () => {
-  const f = fixture({ kind: 'admin', identity: { admin: {} } });
+  const f = await fixture({ kind: 'admin', identity: { admin: {} } });
   await f.initialize();
   assert.deepEqual(f.state.calls, ['admin']);
   assert.deepEqual(f.state.redirects, ['/admin/index.html']);
@@ -276,7 +271,7 @@ test('管理員與唯讀模擬登入後都回到後台', async () => {
     [false, '/admin/index.html'],
     [true, '/admin/index.html'],
   ]) {
-    const f = fixture({
+    const f = await fixture({
       kind: 'admin',
       identity: { admin: {}, preview: { active: preview } },
     });
@@ -286,7 +281,7 @@ test('管理員與唯讀模擬登入後都回到後台', async () => {
 });
 test('匿名401保持登入表單；其他API錯誤仍顯示並可重試登入', async () => {
   for (const failure of [unauthorized(), Object.assign(new Error('連線暫時失敗'), { status: 503 })]) {
-    const f = fixture();
+    const f = await fixture();
     f.state.me = async () => {
       throw failure;
     };
@@ -297,10 +292,11 @@ test('匿名401保持登入表單；其他API錯誤仍顯示並可重試登入',
   }
 });
 test('登入身分確認未完成時不提交另一筆登入', async () => {
-  const f = fixture();
+  const f = await fixture();
   const pending = deferred();
   f.state.me = () => pending.promise;
   const ready = f.initialize();
+  await ready.evaluating;
   await f.send();
   assert.equal(f.state.submits, 0);
   pending.resolve({ member: { id: 'member' } });
@@ -309,7 +305,7 @@ test('登入身分確認未完成時不提交另一筆登入', async () => {
 });
 test('未更改密碼的正常會員／管理員保留返回首頁／後台', async () => {
   for (const kind of ['member', 'admin']) {
-    const f = fixture({
+    const f = await fixture({
       kind,
       mode: 'change-password',
       identity: { member: {}, admin: {} },
@@ -320,7 +316,7 @@ test('未更改密碼的正常會員／管理員保留返回首頁／後台', as
   }
 });
 test('管理員改密碼前可返回，成功後顯示重新登入連結', async () => {
-  const f = fixture({
+  const f = await fixture({
     kind: 'admin',
     mode: 'change-password',
     identity: { admin: {} },
@@ -334,7 +330,7 @@ test('管理員改密碼前可返回，成功後顯示重新登入連結', async
 });
 
 test('改密碼頁可登出換帳號，等待登出時不更改密碼或重送', async () => {
-  const f = fixture({
+  const f = await fixture({
     kind: 'admin',
     mode: 'change-password',
     identity: { admin: {} },
@@ -342,6 +338,7 @@ test('改密碼頁可登出換帳號，等待登出時不更改密碼或重送',
   const identity = deferred();
   f.state.me = () => identity.promise;
   const ready = f.initialize();
+  await ready.evaluating;
   await f.logout.listener();
   assert.equal(f.state.logouts, 0);
   identity.resolve({ admin: {} });
@@ -364,7 +361,7 @@ test('改密碼頁可登出換帳號，等待登出時不更改密碼或重送',
 });
 
 test('改密碼期間不能登出，登出失敗可重試，失效session則回登入', async () => {
-  const f = fixture({
+  const f = await fixture({
     kind: 'admin',
     mode: 'change-password',
     identity: { admin: {} },
@@ -387,7 +384,7 @@ test('改密碼期間不能登出，登出失敗可重試，失效session則回�
   pending.resolve();
   await settle();
   assert.equal(f.logout.hidden, true);
-  const expired = fixture({
+  const expired = await fixture({
     kind: 'admin',
     mode: 'change-password',
     identity: { admin: {} },
@@ -400,10 +397,11 @@ test('改密碼期間不能登出，登出失敗可重試，失效session則回�
   assert.deepEqual(expired.state.redirects, ['/admin/login.html']);
 });
 test('更改密碼身分尚未讀取時拒絕提交，載入後可正常更新', async () => {
-  const f = fixture({ mode: 'change-password' });
+  const f = await fixture({ mode: 'change-password' });
   const pending = deferred();
   f.state.me = () => pending.promise;
   const ready = f.initialize();
+  await ready.evaluating;
   await f.send();
   assert.equal(f.state.submits, 0);
   pending.resolve({ member: { id: 'member' } });
@@ -412,7 +410,7 @@ test('更改密碼身分尚未讀取時拒絕提交，載入後可正常更新',
   assert.equal(f.link.href, '/login.html');
   assert.equal(f.link.textContent, '重新登入');
   assert.equal(f.submit.hidden, true);
-  const failed = fixture({ mode: 'change-password' });
+  const failed = await fixture({ mode: 'change-password' });
   failed.state.me = async () => {
     throw new Error('服務暫時失敗');
   };
@@ -424,7 +422,7 @@ test('更改密碼身分尚未讀取時拒絕提交，載入後可正常更新',
 
 test('登入與更改密碼的請求未完成時不重複提交，成功後不再送出', async () => {
   for (const mode of ['login', 'change-password']) {
-    const f = fixture({ mode, identity: mode === 'change-password' ? { member: {} } : undefined });
+    const f = await fixture({ mode, identity: mode === 'change-password' ? { member: {} } : undefined });
     await f.initialize();
     const pending = deferred();
     f.state.write = () => pending.promise;
@@ -439,10 +437,11 @@ test('登入與更改密碼的請求未完成時不重複提交，成功後不�
 });
 
 test('註冊驗證碼準備中或讀取失敗時禁止提交，重試取得後恢復', async () => {
-  const f = fixture({ mode: 'register' });
+  const f = await fixture({ mode: 'register' });
   const pending = deferred();
   f.state.captcha = () => pending.promise;
   const ready = f.initialize();
+  await ready.evaluating;
   await f.send();
   assert.equal(f.state.submits, 0);
   assert.equal(f.submit.disabled, true);
@@ -460,7 +459,7 @@ test('註冊驗證碼準備中或讀取失敗時禁止提交，重試取得後�
 });
 
 test('註冊429等待期間更新驗證碼仍不能提前重送，到期才恢復', async () => {
-  const f = fixture({ mode: 'register', realSubmit: true });
+  const f = await fixture({ mode: 'register', realSubmit: true });
   await f.initialize();
   f.state.write = async () => {
     throw Object.assign(new Error('請稍後再試'), { retryAfter: 30 });
@@ -477,7 +476,7 @@ test('註冊429等待期間更新驗證碼仍不能提前重送，到期才恢�
   assert.equal(f.submit.disabled, false);
 });
 test('過期會員導覽恢復登入按鈕，舊me回應不能恢復已登出名稱', async () => {
-  const f = fixture({ navigation: true });
+  const f = await fixture({ navigation: true });
   const pending = deferred();
   f.state.me = () => pending.promise;
   const old = f.sandbox.memberNavigation();

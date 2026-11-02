@@ -24,11 +24,13 @@ const browserGlobals = [
   'addEventListener',
   'removeEventListener',
   'scrollTo',
+  // 測試用的可控時鐘（只有 sandbox 有提供時才換）。
+  'Date',
 ];
 let instance = 0;
 const active = [];
 
-// 以目前測試的 sandbox 取值：函式、物件與類別都透過 Proxy 轉給 sandbox 裡最新的值。
+// 以目前測試的 sandbox 取值：函式與類別透過 Proxy 轉給 sandbox 裡最新的值。
 function delegate(holder, name) {
   return new Proxy(function () {}, {
     get: (_, key) => holder.sandbox[name][key],
@@ -78,10 +80,8 @@ async function prepare(moduleUrl, holder, mocks, prepared) {
     for (const name of Object.keys(exports)) {
       if (name in holder.sandbox) {
         const value = holder.sandbox[name];
-        exports[name] =
-          value !== null && (typeof value === 'object' || typeof value === 'function')
-            ? delegate(holder, name)
-            : value;
+        // 函式轉給 sandbox 最新的值（測試可能中途換掉替身）；物件（含 Set、Map）直接傳入原物件。
+        exports[name] = typeof value === 'function' ? delegate(holder, name) : value;
       }
     }
     // import { a as b } 以本地名稱 b 對應 sandbox。
@@ -101,12 +101,33 @@ async function prepare(moduleUrl, holder, mocks, prepared) {
  * @param {string} path 例如 'pages/route-form.js'
  * @param {object} sandbox 測試原本的替身集合
  */
-export async function loadWithSandbox(path, sandbox) {
-  // 上一次載入的替身保留到這裡才撤除：頁面在初始化後才用 import() 載入的模組，也要拿到替身。
-  for (const handle of active.splice(0)) handle.restore();
-  installGlobals(sandbox);
-  const moduleUrl = new URL(path, root);
-  const holder = { sandbox };
-  await prepare(moduleUrl, holder, active, new Set());
-  return import(moduleUrl.href + '?sandbox=' + ++instance);
+// 同一時間只處理一次載入：替身是全域註冊的，兩次載入交錯會互相覆蓋。
+// 模組連結完成（或執行完畢）後就換下一次載入；頂層 await 可能等測試稍後才放行，不能等它整個結束。
+let queue = Promise.resolve();
+const settled = (promise, ms) =>
+  Promise.race([
+    promise.then(
+      () => {},
+      () => {}
+    ),
+    new Promise(resolve => setTimeout(resolve, ms)),
+  ]);
+
+export function loadWithSandbox(path, sandbox) {
+  const turn = queue.then(async () => {
+    // 上一次載入的替身保留到這裡才撤除：頁面在初始化後才用 import() 載入的模組，也要拿到替身。
+    for (const handle of active.splice(0)) handle.restore();
+    installGlobals(sandbox);
+    const moduleUrl = new URL(path, root);
+    const holder = { sandbox };
+    await prepare(moduleUrl, holder, active, new Set());
+    const imported = import(moduleUrl.href + '?sandbox=' + ++instance);
+    await settled(imported, 200);
+    return { imported };
+  });
+  queue = turn.catch(() => {});
+  // evaluating：模組已開始執行（事件已綁好），供刻意讓頁面停在等待中的測試使用。
+  const result = turn.then(({ imported }) => imported);
+  result.evaluating = turn.then(() => {});
+  return result;
 }
