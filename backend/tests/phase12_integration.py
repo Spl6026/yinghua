@@ -21,8 +21,8 @@ def check(name,value):
     assert value,name
     checks.append(name)
 
-def get(path,method='GET'):
-    req=urllib.request.Request('http://localhost:8081'+path,method=method)
+def get(path,method='GET',headers=None):
+    req=urllib.request.Request('http://localhost:8081'+path,method=method,headers=headers or {})
     try:response=http.open(req,timeout=20)
     except urllib.error.HTTPError as error:response=error
     text=response.read().decode('utf8');http_results.append({'path':path,'method':method,'status':response.status})
@@ -99,7 +99,9 @@ def main(schema_vocabulary,keep_browser=False):
         check('internal and private URLs absent',not any(word in xml for word in ['/admin/','/api/','planner.html','favorites.html','search.html','login.html','register.html','_content_pages']))
         for url in urls:inspect(urlsplit(url).path+('?' + urlsplit(url).query if urlsplit(url).query else ''),expected_origin=base)
         for path in ['/planner.html','/favorites.html','/search.html','/login.html','/register.html','/admin/settings.html']:
-            code,body,_=get(path);page=Page(body);check('private shell no schema '+path,code==200 and not page.blocks and page.metas.get('robots','').startswith('noindex'))
+            # 會員專屬頁沒有登入 cookie 時會被導向登入頁；帶上 cookie 才能檢查頁面本身的 head。
+            member_only=path in ('/planner.html','/favorites.html')
+            code,body,_=get(path,headers={'Cookie':'spl_member_session=seo-check'} if member_only else None);page=Page(body);check('private shell no schema '+path,code==200 and not page.blocks and page.metas.get('robots','').startswith('noindex'))
         code,robots,headers=get('/robots.txt');check('robots 200 plain text',code==200 and headers.get('Content-Type','').startswith('text/plain'))
         check('robots admin and same origin sitemap',robots=='User-agent: *\nDisallow: /admin/\nSitemap: '+base+'/sitemap.xml\n')
         code,body,_=get('/sitemap.xml','HEAD');check('sitemap HEAD without body',code==200 and body=='')

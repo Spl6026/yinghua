@@ -1,5 +1,9 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 頁首帳號區與會員頁導向（使用者回報）：
+- 頁首帳號區改為固定大小的一格（`site-header.html` 的 `.account-slot`，內含看不見的「會員登入」按鈕撐住尺寸），確認中、未登入、已登入三種狀態疊在同一格，主選單不再因帳號狀態左右移動（原本未登入會移 20px、已登入移 73px）。已登入時顯示「會員名稱 ▾」按鈕，我的收藏／更改密碼／登出收在下拉選單（`core/session.js`，Esc 或點外面關閉）；先前手機版漢堡選單內的帳號連結一併移除。
+- 行程、收藏、更改密碼三個會員頁：沒有登入 cookie 且網址不帶參數時，由 Nginx 直接 302 到登入頁（`$member_page_needs_login`），不再先顯示頁面再由 JS 跳轉；帶參數的網址（例如套用路線的待辦）與 cookie 已過期的情況仍由頁面處理。Nginx 設定變更需重啟 web。
+
 2026-11-03 移除「legacy」命名（使用者指定；網站從未上線，沒有舊系統）：
 - 資料：attractions／films／news_posts／offers 的 `legacy_id` 改名為 `prototype_id`（客戶原型詳情頁 `?id=N` 使用的項目編號），自動命名的唯一索引一併改為 `prototype_id`；新增 [021_prototype_ids.sql](../backend/database/migrations/021_prototype_ids.sql)，以 `RENAME COLUMN IF EXISTS`／`RENAME INDEX IF EXISTS` 寫成可重跑，既有編號原樣保留。migration 合計 21 份。
 - API／快照／示範 JSON：`legacyId` → `prototypeId`，示範店家與優惠的 `attractionLegacyId` → `attractionPrototypeId`；`MerchantRepository::forAttractionPrototypeId()`。

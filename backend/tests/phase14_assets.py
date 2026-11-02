@@ -1,13 +1,24 @@
 """只檢查 HTTP 的資產傳送；這裡明確不涵蓋瀏覽器與 CLS 的驗收。"""
-import json,re,urllib.request,socket
+import json,re,urllib.request,urllib.error,socket
 from pathlib import Path
 from api_integration import ROOT
 connect=socket.create_connection
 socket.create_connection=lambda address,*args,**kwargs: connect(('127.0.0.1',address[1]) if address[0]=='localhost' else address,*args,**kwargs)
 http=urllib.request.build_opener(urllib.request.ProxyHandler({}));results=[]
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self,*args,**kwargs):return None
+direct=urllib.request.build_opener(urllib.request.ProxyHandler({}),NoRedirect)
+for origin in ['http://localhost:8080','http://localhost:8081']:
+    for path in ['/planner.html','/favorites.html','/change-password.html']:
+        try:
+            direct.open(origin+path,timeout=15);raise AssertionError((origin,path,'guest should be redirected'))
+        except urllib.error.HTTPError as error:
+            assert error.code==302 and error.headers['Location'].endswith('/login.html?returnTo='+path),(origin,path,error.code,error.headers.get('Location'))
 for origin in ['http://localhost:8080','http://localhost:8081']:
     for path in ['/', '/planner.html', '/admin/members.html','/admin/settings.html','/admin/index.html']:
-        with http.open(origin+path,timeout=15) as response:
+        # 會員專屬頁沒有登入 cookie 時由伺服器直接導向登入頁；帶上 cookie 才拿得到頁面本身來檢查資產。
+        page=urllib.request.Request(origin+path,headers={'Cookie':'spl_member_session=asset-check'} if path=='/planner.html' else {})
+        with http.open(page,timeout=15) as response:
             html=response.read().decode();assert response.status==200
         assert '/assets/fonts/NotoSansTC-common.woff2' in html and '/assets/fonts/NotoSerifTC-common.woff2' in html,(origin,path,'both font preloads')
         assert html.index('/assets/css/fonts.css')<html.index('/assets/css/style.css'),(origin,path,'early font CSS')
