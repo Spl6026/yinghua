@@ -1,5 +1,10 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 後端路由與舊網址轉向整理（使用者指定）：
+- 路由：全部 111 條 API 路由（健康檢查仍由 `public/index.php` 提前處理）集中在 [config/routes.php](../backend/config/routes.php)，依原註冊順序排列；刪除 `favorite-routes.php`、`itinerary-routes.php`、`news-admin-routes.php`、`offer-admin-routes.php`、`recommended-routes.php`、`seo-routes.php`，以及原本寫在 Composition 裡的十二條路由。Composition 只組裝物件，透過 [ApiControllers](../backend/src/Controllers/ApiControllers.php) 一次交給路由表。
+- 舊網址：景點、電影、消息、優惠四處重複的舊網址轉向（alias、`*-detail.html?id=`、legacyId、目標網址檢查）合併為 [LegacyUrlResolver](../backend/src/Services/LegacyUrlResolver.php)，各類型差異（快照鍵、舊頁路徑、優惠 0–2→101–103、`/news/coffee-walk.html` 轉優惠）寫在 [LegacyUrlType](../backend/src/Models/LegacyUrlType.php)；景點的轉向邏輯從 Controller 移到 Service 層。狀態碼、Location 與錯誤內容不變。
+- 消息與優惠管理維持各自的 Controller／Service。API 仍為 115 個操作。
+
 2026-11-03 分階段開發遺留整理（使用者指定）：
 - 前端：移除原型示範資料層（`data/prototype.js`、`pages/public-details.js` 及未使用的卡片產生器）；`public.js` 只保留導覽、淡入、視差與收藏／加入行程。刪除無人引用的 `member-itinerary.js`、`current-trip-state.js`、`google-summary.js`、`attraction-content-preview.js` 及其測試與樣式。
 - 頁面：刪除從未對外提供的 4 個舊 `*-detail.html` 與 14 個範例詳情頁（舊網址仍由 Nginx／後端轉址）；電影、消息、優惠詳情的發布模板移到 `frontend/templates/{film,news,offer}-detail.html`。固定頁 69→48。
@@ -355,7 +360,7 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 
 | 檔案／群組 | 用途 |
 | --- | --- |
-| [config/seo-routes.php](../backend/config/seo-routes.php)、Composition | 三操作及建構子依賴；Kernel 沿用管理 session／CSRF |
+| [config/routes.php](../backend/config/routes.php)、Composition | 三操作及建構子依賴；Kernel 沿用管理 session／CSRF |
 | [SeoSettingsController](../backend/src/Controllers/SeoSettingsController.php)、[PublicSiteSettingsController](../backend/src/Controllers/PublicSiteSettingsController.php) | 管理輸入轉換與公開 JSON，不產 HTML |
 | [SeoSettings](../backend/src/Services/SeoSettings.php) | 重查權限、版本鎖、設定／覆寫／audit 同交易，提交後發布 |
 | [PublicSiteSettings](../backend/src/Services/PublicSiteSettings.php)、[SeoPublication](../backend/src/Services/SeoPublication.php) | 成功快照的公開白名單、當次公開內容覆寫篩選 |
@@ -398,12 +403,12 @@ PHP-FPM 是執行 PHP 程式的工作程序管理器；Nginx 收到 API 請求�
 | 檔案 | 用途與閱讀重點 |
 | --- | --- |
 | [public/index.php](../backend/public/index.php) | 唯一網站 PHP 入口：載入 Composer、擷取 Request、組裝 Kernel、處理並輸出 Response；入口本身的失敗也轉成安全 JSON。 |
-| [config/routes.php](../backend/config/routes.php) | 登記 61 個 API 的 HTTP 方法、路徑、會員／管理員身分、module/action 與模擬例外旗標（舊首登旗標已停用）。 |
-| [src/Composition.php](../backend/src/Composition.php) | 依賴組裝位置：建立共用連線、Repositories、Adapters、Services、Controllers，再接路由與 Kernel。 |
+| [config/routes.php](../backend/config/routes.php) | 全站唯一路由表：登記所有 API 的 HTTP 方法、路徑、會員／管理員身分、module/action 與模擬例外旗標；Router 先符合先用，順序即規則。 |
+| [src/Composition.php](../backend/src/Composition.php) | 依賴組裝位置：建立共用連線、Repositories、Adapters、Services、Controllers，包成 ApiControllers 交給 routes.php，再建立 Kernel；本身不登記路由。 |
+| [src/Controllers/ApiControllers.php](../backend/src/Controllers/ApiControllers.php) | Composition 交給路由表的 Controller 集合，只傳遞、不含邏輯。 |
 | [src/Config.php](../backend/src/Config.php) | 讀取容器環境變數，校驗數值、APP_KEY、APP_URL 與正式環境 HTTPS／Secure cookie 條件；不解析 .env 檔。 |
 | [composer.json](../backend/composer.json) | 應用程式的 PHP／extension／PHPMailer 依賴及 Yinghua 命名空間的 PSR-4 載入設定。 |
 | [composer.lock](../backend/composer.lock) | 應用依賴的確切版本；安裝時依鎖定版本還原。 |
-| [config/favorite-routes.php](../backend/config/favorite-routes.php) | 七個本人收藏／目前行程 API，與 routes.php 的 61 個操作由 Composition 一起註冊。 |
 | [resources/openapi.json](../backend/resources/openapi.json) | 68 個已實作 API 的請求、回應、狀態碼與安全契約。它描述 API，不會自行產生路由或程式。 |
 | [resources/role-templates.json](../backend/resources/role-templates.json) | 原始 Excel 四種角色、十個模組、四個動作的起始權限；供 seed 使用，不是每次請求直接查閱的個人權限。 |
 | [bin/console.php](../backend/bin/console.php) | CLI 入口：db:migrate、db:seed、admin:init、admin:recover、content:seed-demo／backfill-demo-labels／publish／tick／watch。密碼由 stdin／互動輸入；不提供 HTTP 路由。 |
@@ -1071,7 +1076,8 @@ python backend/tests/film_schema_upgrade.py
 | [src/Controllers/AttractionController.php](../backend/src/Controllers/AttractionController.php) | 管理列表、單筆、寫入、刪除及發布重試 HTTP 轉接。 |
 | [src/Controllers/MapController.php](../backend/src/Controllers/MapController.php) | 地圖網址／action 輸入與候選輸出。 |
 | [src/Controllers/MediaController.php](../backend/src/Controllers/MediaController.php) | multipart 上傳、分頁與 Nginx 媒體存取檢查。 |
-| [src/Controllers/PublicAttractionController.php](../backend/src/Controllers/PublicAttractionController.php) | 公開列表／詳情／博物館、版本存取檢查與歷史網址轉向。 |
+| [src/Controllers/PublicAttractionController.php](../backend/src/Controllers/PublicAttractionController.php) | 公開列表／詳情／博物館、版本存取檢查；歷史網址轉向交給 LegacyUrlResolver。 |
+| [src/Services/LegacyUrlResolver.php](../backend/src/Services/LegacyUrlResolver.php)／[src/Models/LegacyUrlType.php](../backend/src/Models/LegacyUrlType.php) | 景點、電影、消息、優惠共用的舊網址轉向：只讀成功發布快照，查 alias 與舊 `*-detail.html?id=`，目標須是該類型的公開網址；各類型差異集中在 LegacyUrlType。 |
 | [src/DTO/Attraction.php](../backend/src/DTO/Attraction.php) | Repository 的內容快照，區分管理與公開欄位。 |
 | [src/DTO/AttractionInput.php](../backend/src/DTO/AttractionInput.php) | 欄位白名單、slug、座標、網址、發布時間與版本校驗。 |
 | [src/DTO/AttractionPage.php](../backend/src/DTO/AttractionPage.php) | 管理列表的 typed 分頁結果。 |
@@ -1211,7 +1217,7 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 | [backend/resources/films-demo.json](../backend/resources/films-demo.json) | 原始四部電影的受控文案／海報／slug，不含猜測年份的場次。 |
 | [backend/src/Adapters/FilmSeeder.php](../backend/src/Adapters/FilmSeeder.php) | 交易內匯入四筆原型 metadata；重跑不覆寫人工內容。 |
 | [backend/src/Controllers/FilmController.php](../backend/src/Controllers/FilmController.php) | 管理清單、讀取、保存、刪除與同步重試的 HTTP 對應。 |
-| [backend/src/Controllers/PublicFilmController.php](../backend/src/Controllers/PublicFilmController.php) | 公開片單／詳情及歷史網址轉址。 |
+| [backend/src/Controllers/PublicFilmController.php](../backend/src/Controllers/PublicFilmController.php) | 公開片單／詳情；歷史網址轉址交給共用 LegacyUrlResolver。 |
 | [backend/src/DTO/ContentUrl.php](../backend/src/DTO/ContentUrl.php) | 共用 HTTP／HTTPS 外連格式邊界，不抓取任意 URL。 |
 | [backend/src/DTO/FilmInput.php](../backend/src/DTO/FilmInput.php) | 電影可寫欄位、型別、長度、slug 與發布日期；省略保留語意。 |
 | [backend/src/DTO/ScreeningInput.php](../backend/src/DTO/ScreeningInput.php) | 開始時間及每場售票網址；分鐘精度、嚴格日期、UTC 正規化。 |
@@ -1227,7 +1233,7 @@ Google地點關聯縮為地圖匯入欄下的可展開狀態列；狀態及詳�
 | [backend/src/Repositories/FilmRepository.php](../backend/src/Repositories/FilmRepository.php) | 電影 SQL、版本、公開投影、歷史網址及批次映射。 |
 | [backend/src/Repositories/FilmScreeningRepository.php](../backend/src/Repositories/FilmScreeningRepository.php) | 跨電影開始時間查詢、場次歸屬與整組替換；保留原 ID／建立時間。 |
 | [backend/src/Services/FilmManagement.php](../backend/src/Services/FilmManagement.php) | 重新授權、版本、海報與場次政策、交易、稽核及發布。 |
-| [backend/src/Services/PublicFilms.php](../backend/src/Services/PublicFilms.php) | 只讀成功發布快照；依期間過濾場次、電影分頁與安全轉址。 |
+| [backend/src/Services/PublicFilms.php](../backend/src/Services/PublicFilms.php) | 只讀成功發布快照；依期間過濾場次與電影分頁。 |
 | [backend/tests/Unit/FilmInputTest.php](../backend/tests/Unit/FilmInputTest.php) | 必填／省略、時區同時、無效日期、發布年份容量與巢狀錯誤。 |
 | [backend/tests/Unit/ScreeningWindowTest.php](../backend/tests/Unit/ScreeningWindowTest.php) | 台北星期一邊界、半開區間與 ISO 跨年。 |
 | [backend/tests/film_persistence.php](../backend/tests/film_persistence.php) | 真實 MariaDB 資料層保存、外來 ID 拒絕及下架釋放；全部回滾。 |

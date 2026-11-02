@@ -8,11 +8,17 @@ use Yinghua\Contracts\Clock;
 use Yinghua\DTO\FilmQuery;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
+use Yinghua\Models\LegacyUrlType;
+use Yinghua\Services\LegacyUrlResolver;
 use Yinghua\Services\PublicFilms;
 
 class PublicFilmController
 {
-    public function __construct(private readonly PublicFilms $service, private readonly Clock $clock) {}
+    public function __construct(
+        private readonly PublicFilms $service,
+        private readonly Clock $clock,
+        private readonly LegacyUrlResolver $legacyUrls,
+    ) {}
 
     public function listing(ApiContext $context): Response
     {
@@ -36,6 +42,6 @@ class PublicFilmController
 
     public function resolve(ApiContext $context): Response
     {
-        return new Response(301, [], [], ['Location' => $this->service->resolve($context->request->headers['x-original-uri'] ?? '')]);
+        return new Response(301, [], [], ['Location' => $this->legacyUrls->resolve(LegacyUrlType::Film, $context->request->headers['x-original-uri'] ?? '')]);
     }
 }

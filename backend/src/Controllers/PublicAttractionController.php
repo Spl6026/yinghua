@@ -8,12 +8,18 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
+use Yinghua\Models\LegacyUrlType;
 use Yinghua\Services\ContentPublication;
+use Yinghua\Services\LegacyUrlResolver;
 use Yinghua\Services\PublicAttractions;
 
 class PublicAttractionController
 {
-    public function __construct(private readonly PublicAttractions $service, private readonly ContentPublication $publication) {}
+    public function __construct(
+        private readonly PublicAttractions $service,
+        private readonly ContentPublication $publication,
+        private readonly LegacyUrlResolver $legacyUrls,
+    ) {}
 
     public function listing(ApiContext $context): Response
     {
@@ -55,29 +61,7 @@ class PublicAttractionController
 
     public function resolve(ApiContext $context): Response
     {
-        $snapshot = $this->publication->read();
-        $original = $context->request->headers['x-original-uri'] ?? '';
-        $path = parse_url($original, PHP_URL_PATH);
-        $aliases = $snapshot['aliases'] ?? [];
-        $target = is_string($path) && is_array($aliases) ? ($aliases[$path] ?? null) : null;
-        if ($path === '/place-detail.html') {
-            $queryString = parse_url($original, PHP_URL_QUERY);
-            parse_str(is_string($queryString) ? $queryString : '', $query);
-            $id = $query['id'] ?? null;
-            $items = $snapshot['items'] ?? [];
-            if (is_string($id) && is_array($items)) {
-                foreach ($items as $item) {
-                    $legacy = is_array($item) ? ($item['legacyId'] ?? null) : null;
-                    if (is_array($item) && (($item['id'] ?? null) === $id || (is_int($legacy) && (string) $legacy === $id))) {
-                        $target = $item['url'] ?? null;
-                        break;
-                    }
-                }
-            }
-        }
-        if (!is_string($target) || $target === $path || !preg_match('~^/(?:museum\.html|places/[a-z0-9-]+\.html)$~D', $target)) {
-            throw new ApplicationError('NOT_FOUND', '找不到此景點網址。');
-        }
+        $target = $this->legacyUrls->resolve(LegacyUrlType::Attraction, $context->request->headers['x-original-uri'] ?? '');
 
         return new Response(301, [], [], ['Location' => $target]);
     }

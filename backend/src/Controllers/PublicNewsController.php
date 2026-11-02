@@ -7,11 +7,13 @@ namespace Yinghua\Controllers;
 use Yinghua\DTO\NewsQuery;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
+use Yinghua\Models\LegacyUrlType;
+use Yinghua\Services\LegacyUrlResolver;
 use Yinghua\Services\PublicNews;
 
 class PublicNewsController
 {
-    public function __construct(private readonly PublicNews $service) {}
+    public function __construct(private readonly PublicNews $service, private readonly LegacyUrlResolver $legacyUrls) {}
 
     public function listing(ApiContext $context): Response
     {
@@ -35,6 +37,6 @@ class PublicNewsController
         if ($original === '' && $context->request->queryText('id') !== '') {
             $original = '/news-detail.html?id=' . rawurlencode($context->request->queryText('id'));
         }
-        return new Response(301, [], [], ['Location' => $this->service->resolve($original)]);
+        return new Response(301, [], [], ['Location' => $this->legacyUrls->resolve(LegacyUrlType::News, $original)]);
     }
 }

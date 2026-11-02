@@ -35,31 +35,4 @@ class PublicFilms
         }
         throw new ApplicationError('NOT_FOUND', '找不到此公開電影。');
     }
-
-    public function resolve(string $original): string
-    {
-        $snapshot = $this->publication->read();
-        $path = parse_url($original, PHP_URL_PATH);
-        $aliases = $snapshot['filmAliases'] ?? [];
-        $target = is_string($path) && is_array($aliases) ? ($aliases[$path] ?? null) : null;
-        if ($path === '/film-detail.html') {
-            $queryString = parse_url($original, PHP_URL_QUERY);
-            parse_str(is_string($queryString) ? $queryString : '', $query);
-            $id = $query['id'] ?? null;
-            if (is_string($id)) {
-                foreach (PublicCollection::items($snapshot, 'films') as $item) {
-                    $legacy = $item['legacyId'] ?? null;
-                    if (($item['id'] ?? null) === $id || (is_int($legacy) && (string) $legacy === $id)) {
-                        $target = $item['url'] ?? null;
-                        break;
-                    }
-                }
-            }
-        }
-        if (!is_string($target) || $target === $path || !preg_match('~^/films/[a-z0-9-]+\.html$~D', $target)) {
-            throw new ApplicationError('NOT_FOUND', '找不到此電影網址。');
-        }
-
-        return $target;
-    }
 }

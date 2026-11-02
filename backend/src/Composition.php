@@ -20,6 +20,7 @@ use Yinghua\Adapters\PublicContentSeeder;
 use Yinghua\Adapters\SeoCatalog;
 use Yinghua\Adapters\SystemClock;
 use Yinghua\Controllers\AdminController;
+use Yinghua\Controllers\ApiControllers;
 use Yinghua\Controllers\AdminNewsController;
 use Yinghua\Controllers\AdminOfferController;
 use Yinghua\Controllers\AttractionContentController;
@@ -49,9 +50,7 @@ use Yinghua\Controllers\SearchController;
 use Yinghua\Controllers\SeoSettingsController;
 use Yinghua\Http\Csrf;
 use Yinghua\Http\Kernel;
-use Yinghua\Http\Route;
 use Yinghua\Http\Router;
-use Yinghua\Models\IdentityKind;
 use Yinghua\Policies\ContentCover;
 use Yinghua\Policies\FilmPosterPolicy;
 use Yinghua\Policies\GooglePlaceLinkPolicy;
@@ -101,6 +100,7 @@ use Yinghua\Services\ContentPublication;
 use Yinghua\Services\CurrentItinerary;
 use Yinghua\Services\FilmManagement;
 use Yinghua\Services\GeneralSiteSettings;
+use Yinghua\Services\LegacyUrlResolver;
 use Yinghua\Services\MapResolver;
 use Yinghua\Services\MediaAccess;
 use Yinghua\Services\MediaManagement;
@@ -237,7 +237,7 @@ readonly class Composition
             new GooglePlaceLinkPolicy(),
         ));
         $publicAttractionService = new PublicAttractions($publication);
-        $publicAttractions = new PublicAttractionController($publicAttractionService, $publication);
+        $legacyUrls = new LegacyUrlResolver($publication);
         $mediaController = new MediaController(
             new MediaManagement(
                 $mediaRecords,
@@ -257,7 +257,6 @@ readonly class Composition
             $limiter,
             new GooglePlaceMapper(new GoogleOpeningHours()),
         ));
-        $filmController = new PublicFilmController(new PublicFilms($publication), $clock);
         $filmScreens = new FilmScreeningRepository($database);
         $filmAdmin = new FilmController(new FilmManagement(
             new FilmRepository($database, $filmScreens),
@@ -270,7 +269,6 @@ readonly class Composition
             $filmScreens,
             new ScreeningStartPolicy(),
         ));
-        $router = new Router();
         // 摘要補位預覽與即時取得的 Google 原文分開處理，不另存資料表。
         $content = new AttractionContentController(new AttractionSummary(
             $publicAttractionService,
@@ -279,36 +277,6 @@ readonly class Composition
             $limiter,
             new ExternalRequestSlot($database),
         ), $authorization);
-        $router->add(new Route(
-            'POST',
-            '/api/v1/admin/attractions/content-preview',
-            IdentityKind::Admin,
-            $content->preview(...),
-            true,
-        ));
-        $router->add(new Route(
-            'GET',
-            '/api/v1/attractions/{slug}/google-summary',
-            IdentityKind::Member,
-            $content->summary(...),
-        ));
-        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,PublicFilmController,FilmController,PublicNewsController,PublicOfferController,PublicHomeController):void $routes */
-        $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes(
-            $router,
-            $authController,
-            $adminController,
-            $permissionController,
-            $attractionController,
-            $publicAttractions,
-            $mediaController,
-            $mapController,
-            $filmController,
-            $filmAdmin,
-            new PublicNewsController(new PublicNews($publication)),
-            new PublicOfferController(new PublicOffers($publication)),
-            new PublicHomeController(new PublicHome($publication)),
-        );
 
         // 消息管理：HTTP 與 CLI 共用同一個 editor。
         $contentCover = new ContentCover();
@@ -322,22 +290,17 @@ readonly class Composition
             $contentCover,
             $clock,
         );
-        /** @var Closure(Router,AdminNewsController):void $newsRoutes */
-        $newsRoutes = require dirname(__DIR__) . '/config/news-admin-routes.php';
-        $newsRoutes(
-            $router,
-            new AdminNewsController(new AdminNewsManagement(
-                $newsRecords,
-                $newsEditor,
-                $authorization,
-                $transactions,
-                $publication,
-                $events,
-                $clock,
-            )),
-        );
+        $newsAdmin = new AdminNewsController(new AdminNewsManagement(
+            $newsRecords,
+            $newsEditor,
+            $authorization,
+            $transactions,
+            $publication,
+            $events,
+            $clock,
+        ));
 
-        // 優惠與店家分開管理；路由檔會先註冊靜態的 merchants 路徑，避免被 {id} 吃掉。
+        // 優惠與店家分開管理，各有自己的 Controller。
         $offerRecords = new OfferRepository($database);
         $merchantRecords = new MerchantRepository($database);
         $offerEditor = new OfferManagement(
@@ -350,53 +313,33 @@ readonly class Composition
             $clock,
         );
         $merchantEditor = new MerchantManagement($merchantRecords, $authorization, $events);
-        /** @var Closure(Router,AdminOfferController,OfferMerchantController):void $offerRoutes */
-        $offerRoutes = require dirname(__DIR__) . '/config/offer-admin-routes.php';
-        $offerRoutes(
-            $router,
-            new AdminOfferController(new AdminOfferManagement(
-                $offerRecords,
-                $offerEditor,
+        $offerAdmin = new AdminOfferController(new AdminOfferManagement(
+            $offerRecords,
+            $offerEditor,
+            $authorization,
+            $transactions,
+            $publication,
+            $events,
+            $clock,
+        ));
+        $merchants = new OfferMerchantController(new OfferMerchants(
+            $merchantRecords,
+            $merchantEditor,
+            $authorization,
+            $transactions,
+            $publication,
+        ));
+
+        $recommendedRoutes = new RecommendedRouteController(
+            new RecommendedRoutes(
+                $routeRecords,
                 $authorization,
                 $transactions,
                 $publication,
                 $events,
-                $clock,
-            )),
-            new OfferMerchantController(new OfferMerchants(
-                $merchantRecords,
-                $merchantEditor,
-                $authorization,
-                $transactions,
-                $publication,
-            )),
-        );
-
-        /** @var Closure(Router,RecommendedRouteController):void $recommendedRoutes */
-        $recommendedRoutes = require dirname(__DIR__) . '/config/recommended-routes.php';
-        $recommendedRoutes(
-            $router,
-            new RecommendedRouteController(
-                new RecommendedRoutes(
-                    $routeRecords,
-                    $authorization,
-                    $transactions,
-                    $publication,
-                    $events,
-                ),
-                new PublicRecommendedRoutes($publication),
             ),
+            new PublicRecommendedRoutes($publication),
         );
-
-        $neighborController = new PublicNeighborController(new PublicNeighbors($publication));
-        foreach (['attractions','films','news','offers'] as $topic) {
-            $router->add(new Route(
-                'GET',
-                '/api/v1/' . $topic . '/{slug}/neighbors',
-                IdentityKind::Member,
-                $neighborController->{$topic}(...),
-            ));
-        }
 
         $memberAccess = new MemberAccess($accounts);
         $memberAttractions = new MemberAttractions($publication, $attractionRecords, $clock);
@@ -412,23 +355,14 @@ readonly class Composition
             $memberAttractions,
             $transactions,
         ));
-        /** @var Closure(Router,FavoriteController,CurrentItineraryController):void $favoriteRoutes */
-        $favoriteRoutes = require dirname(__DIR__) . '/config/favorite-routes.php';
-        $favoriteRoutes($router, $favoriteController, $itineraryController);
-
-        /** @var Closure(Router,MemberItineraryController):void $itineraryRoutes */
-        $itineraryRoutes = require dirname(__DIR__) . '/config/itinerary-routes.php';
-        $itineraryRoutes(
-            $router,
-            new MemberItineraryController(new MemberItineraries(
-                $itineraryRecords,
-                $memberAccess,
-                $memberAttractions,
-                $transactions,
-                $publication,
-                $routeRecords,
-            )),
-        );
+        $trips = new MemberItineraryController(new MemberItineraries(
+            $itineraryRecords,
+            $memberAccess,
+            $memberAttractions,
+            $transactions,
+            $publication,
+            $routeRecords,
+        ));
 
         $seoCatalog = new SeoCatalog($this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source'));
         $seoController = new SeoSettingsController(
@@ -445,31 +379,14 @@ readonly class Composition
             ),
             $seoCatalog->policy(),
         );
-        /** @var Closure(Router,SeoSettingsController,PublicSiteSettingsController):void $seoRoutes */
-        $seoRoutes = require dirname(__DIR__) . '/config/seo-routes.php';
-        $seoRoutes(
-            $router,
-            $seoController,
-            new PublicSiteSettingsController(new PublicSiteSettings($publication)),
-        );
 
         $search = new SearchController(new PublicSearch(
             $publication,
             new SearchRepository($database, $transactions),
         ));
-        $router->add(new Route('GET', '/api/v1/search', IdentityKind::Member, $search->listing(...)));
         $directory = new MemberDirectoryController(new MemberDirectory(
             new MemberDirectoryRepository($database),
             $authorization,
-        ));
-        $router->add(new Route(
-            'GET',
-            '/api/v1/admin/members',
-            IdentityKind::Admin,
-            $directory->listing(...),
-            true,
-            'members',
-            'view',
         ));
         $general = new GeneralSettingsController(new GeneralSiteSettings(
             $generalRecords,
@@ -479,46 +396,45 @@ readonly class Composition
             $events,
             $publication,
         ));
-        $router->add(new Route(
-            'GET',
-            '/api/v1/admin/settings',
-            IdentityKind::Admin,
-            $general->read(...),
-            true,
-            'settings',
-            'view',
-        ));
-        $router->add(new Route(
-            'PUT',
-            '/api/v1/admin/settings',
-            IdentityKind::Admin,
-            $general->save(...),
-            true,
-            'settings',
-            'edit',
-        ));
         $operations = new OperationsController(new OperationsOverview(
             new OperationsRepository($database),
             $authorization,
         ));
-        $router->add(new Route(
-            'GET',
-            '/api/v1/admin/dashboard',
-            IdentityKind::Admin,
-            $operations->read(...),
-            true,
-            'dashboard',
-            'view',
+
+        // 這裡只組裝物件；所有路由（含順序）都在 config/routes.php 一個地方宣告。
+        $router = new Router();
+        /** @var Closure(Router,ApiControllers):void $routes */
+        $routes = require dirname(__DIR__) . '/config/routes.php';
+        $routes($router, new ApiControllers(
+            auth: $authController,
+            admins: $adminController,
+            permissions: $permissionController,
+            attractions: $attractionController,
+            attractionContent: $content,
+            publicAttractions: new PublicAttractionController($publicAttractionService, $publication, $legacyUrls),
+            media: $mediaController,
+            maps: $mapController,
+            films: new PublicFilmController(new PublicFilms($publication), $clock, $legacyUrls),
+            filmAdmin: $filmAdmin,
+            news: new PublicNewsController(new PublicNews($publication), $legacyUrls),
+            offers: new PublicOfferController(new PublicOffers($publication), $legacyUrls),
+            home: new PublicHomeController(new PublicHome($publication)),
+            newsAdmin: $newsAdmin,
+            offerAdmin: $offerAdmin,
+            merchants: $merchants,
+            recommendedRoutes: $recommendedRoutes,
+            neighbors: new PublicNeighborController(new PublicNeighbors($publication)),
+            favorites: $favoriteController,
+            currentItinerary: $itineraryController,
+            itineraries: $trips,
+            seo: $seoController,
+            siteSettings: new PublicSiteSettingsController(new PublicSiteSettings($publication)),
+            search: $search,
+            members: $directory,
+            settings: $general,
+            operations: $operations,
         ));
-        $router->add(new Route(
-            'GET',
-            '/api/v1/admin/audit-logs',
-            IdentityKind::Admin,
-            $operations->audits(...),
-            true,
-            'dashboard',
-            'view',
-        ));
+
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 

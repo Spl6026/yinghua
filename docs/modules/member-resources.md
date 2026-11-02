@@ -33,7 +33,7 @@ python backend/tests/member_resources_schema.py
 
 ## 6B 收藏 API 與共用愛心
 
-`config/member-routes.php` 由 Composition 明確載入，先註冊固定的 status 路徑，再註冊 attractionId。四個 API 均以會員 session 守門；FavoriteController → MemberFavorites → FavoriteRepository 完成本人收藏列表、批次狀態、明確 PUT 收藏與 DELETE 取消。唯一鍵與會員交易鎖使重送不反轉；已下架的本人收藏仍可取消。
+`config/routes.php` 的會員收藏區段先註冊固定的 status 路徑，再註冊 attractionId。四個 API 均以會員 session 守門；FavoriteController → MemberFavorites → FavoriteRepository 完成本人收藏列表、批次狀態、明確 PUT 收藏與 DELETE 取消。唯一鍵與會員交易鎖使重送不反轉；已下架的本人收藏仍可取消。
 
 `MemberAttractions` 把既有 ContentPublication 的成功投影加入私人記錄。生成中回 availability=unknown，已下架則 unavailable；兩者都不從草稿補任何公開資料。新增時還會鎖定重查景點狀態／公開版本；私人修改不觸發發布。
 

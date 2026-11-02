@@ -12,7 +12,7 @@ S：功能規格 E22/G22/L22 為消息管理，E23/G23/L23 為優惠管理，E8/
 
 `pages/content-list.js` 處理搜尋、分類、狀態、分頁與刪除確認；`pages/content-form.js` 共用消息／優惠保存、台北時間、上傳、409保留輸入、重新載入及成功後避免重複新增。`components/content-body-editor.js` 提供格式工具與安全預覽，伺服器仍是HTML清理的邊界。`components/offer-merchants.js` 以真實店家ID選取／建立／修正，修正共享資料前明示影響所有引用優惠；不擴張成完整店家後台。
 
-`backend/config/news-admin-routes.php`／`offer-admin-routes.php` 註冊13個管理操作，靜態 merchants 路徑在優惠 `{id}` 之前。三個Controller只解析HTTP與回應；`AdminNewsManagement`、`AdminOfferManagement`、`OfferMerchants` 負責授權、交易、版本、稽核及發布協調。既有 `NewsManagement`／`OfferManagement`／`MerchantManagement` 透過 `prepareValues`／`saveChange` 共用驗證，不在HTTP偽造CLI匯入物件；CLI原介面保留。
+`backend/config/routes.php` 的消息與優惠區段註冊13個管理操作，靜態 merchants 路徑在優惠 `{id}` 之前。三個Controller只解析HTTP與回應；`AdminNewsManagement`、`AdminOfferManagement`、`OfferMerchants` 負責授權、交易、版本、稽核及發布協調。既有 `NewsManagement`／`OfferManagement`／`MerchantManagement` 透過 `prepareValues`／`saveChange` 共用驗證，不在HTTP偽造CLI匯入物件；CLI原介面保留。
 
 `PreparedContentChange` 是與傳輸無關的已驗證變更。`AdminContentQuery` 驗證查詢；`ContentPage`、`ContentRecordView`、`ContentWriteResult` 將已授權資料明確轉成API結果。三個Repository負責參數化SQL與軟刪除；沒有新增業務表。更新／刪除必須帶正整數version；錯誤409不覆蓋舊資料。管理資料保存與公開頁面同步分開，202代表已保存、同步待處理，不能重送新增。
 
