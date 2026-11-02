@@ -7,7 +7,6 @@ import { openingHoursEditor } from '../components/opening-hours-editor.js';
 import { applyPlaceCandidate } from '../core/place-candidate.js';
 import { googlePlaceLink } from '../components/google-place-link.js';
 import { renderPlaceReference } from '../components/place-reference.js';
-import { attractionContentPreview } from '../components/attraction-content-preview.js';
 
 const fields = ['slug','name','category','district','typeLabel','summary','description','hours','address','phone','transport','websiteUrl','mapUrl','googlePlaceId','mediaId','seoTitle','seoDescription','status','imageAlt','imageSource','imageLicense','recommendationLabel'];
 
@@ -35,7 +34,6 @@ export async function initializeAttractionForm(identity, page) {
   const placeLink = googlePlaceLink(form, linkContainer, () => renderPlaceReference(reference, null));
   const writeAllowed = () => !identity.preview?.active && hasPermission(identity, 'attractions', id ? 'edit' : 'create');
   const available = () => writeAllowed() && loaded && !busy && !completed;
-  attractionContentPreview(form,available);
   const samples = attractionSamplePicker(creating ? document.querySelector('#place-samples') : null,
     form, openingEditor, available, () => {
       dirty = true; placeLink.load(); renderPlaceReference(reference, null);
@@ -127,7 +125,7 @@ export async function initializeAttractionForm(identity, page) {
           if (!available() || !await confirmAction('確認候選地點', `將「${item.name}」的資料帶入表單。請自行核實資料與保存授權；不會自動儲存或帶入 Google 照片。`, button)) return;
           if (!available()) return;
           const notes = applyPlaceCandidate(form, item, openingEditor);
-          placeLink.acceptCandidate();renderPlaceReference(reference, item);
+          placeLink.acceptCandidate();renderPlaceReference(reference, null);
           dirty = true; status(mapMessage, ['候選資料已帶入，請核實後儲存。',...notes].join(' ')); candidates.replaceChildren();
           form.elements[form.elements.district.value ? 'name' : 'district'].focus();
         });

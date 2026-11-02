@@ -35,6 +35,17 @@ test('公開 HTML 含可讀詳情、正確 canonical 與安全編碼', async () 
   } finally { await rm(directory, { recursive: true, force: true }); }
 });
 
+test('空白介紹即使舊資料標為 google-pending，也不產生獨立 Google 參考區',async()=>{
+  const directory=await mkdtemp(join(tmpdir(),'spl-import-empty-'));
+  try {
+    const item={...sample,description:'',contentSource:{description:'google-pending'}};
+    assert.equal(publish(directory,snapshot('f',[item])).status,0);
+    const html=await readFile(join(directory,'current/places/test-place.html'),'utf8');
+    assert.match(html,/尚未提供景點介紹/);
+    assert.doesNotMatch(html,/data-google-summary|components\/google-summary\.js|google-summary-reference/);
+  }finally{await rm(directory,{recursive:true,force:true});}
+});
+
 test('失敗不切換 current；下架後新版本不含舊詳情', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'spl-publish-'));
   try {
