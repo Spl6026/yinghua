@@ -12,7 +12,7 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Support\Secrets;
 use Yinghua\Models\ImageOrigin;
 
-/** [S：功能規格 G20/G29；E-18] 本地 volume adapter；驗證真實圖片並重新編碼。 */
+/** 把圖片存到本機 volume；會先確認是真的圖片，再重新編碼後儲存。 */
 class LocalImageStorage implements ImageStorage
 {
     public function __construct(private readonly Config $config) {}
@@ -24,7 +24,8 @@ class LocalImageStorage implements ImageStorage
         }
         $local = $upload->origin === ImageOrigin::LocalCli && PHP_SAPI === 'cli'
             && is_file($upload->temporaryPath) && str_starts_with(realpath($upload->temporaryPath) ?: '', '/tmp/');
-        if ($upload->error !== UPLOAD_ERR_OK || ($upload->origin === ImageOrigin::HttpUpload ? !is_uploaded_file($upload->temporaryPath) : !$local)) {
+        if ($upload->error !== UPLOAD_ERR_OK
+            || ($upload->origin === ImageOrigin::HttpUpload ? !is_uploaded_file($upload->temporaryPath) : !$local)) {
             throw ApplicationError::invalid('image', '請選擇可完整上傳的圖片。');
         }
         $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($upload->temporaryPath);

@@ -11,7 +11,7 @@ use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Exceptions\ApplicationError;
 
-/** 共用一個 PDO；每個 Repository 的寫入參與同一個交易。 */
+/** 所有 Repository 共用同一個 PDO，寫入才能參與同一筆交易。 */
 class Database
 {
     public function __construct(public readonly PDO $pdo) {}
@@ -33,7 +33,7 @@ class Database
             );
             $pdo->exec("SET time_zone = '+00:00'");
         } catch (PDOException $error) {
-            // [E-29] DB 暫停／斷線不讓公開請求等待預設30秒，也不洩漏連線內容。
+            // 資料庫暫停或斷線時，不讓請求卡在預設的 30 秒逾時，也不把連線細節洩漏給使用者。
             error_log('database_connect_exception=' . $error::class);
             throw new ApplicationError('SERVICE_UNAVAILABLE', '服務暫時無法使用。');
         }

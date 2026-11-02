@@ -13,10 +13,14 @@ use Yinghua\Repositories\Database;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\Row;
 
-/** [E-18] 僅由明確 content:seed-demo 命令匯入原始交付，不覆蓋已有內容。 */
+/** 只在明確執行 content:seed-demo 時匯入原始網站的景點資料，不覆蓋已存在的內容。 */
 class AttractionSeeder
 {
-    public function __construct(private readonly Database $database, private readonly AttractionRepository $attractions, private readonly Transactions $transactions) {}
+    public function __construct(
+        private readonly Database $database,
+        private readonly AttractionRepository $attractions,
+        private readonly Transactions $transactions,
+    ) {}
 
     public function seed(string $path): void
     {
@@ -46,20 +50,23 @@ class AttractionSeeder
                     "UPDATE attractions SET legacy_id=:legacy,external_image_url=:image,external_image_alt=:alt,status='published' WHERE id=:id",
                     ['id' => $id,'legacy' => $legacy,'image' => $item['image'],'alt' => $item['imageAlt']],
                 );
-                // [E-26] 只有本次新建的原型店家跟著受控發布；不重新啟用已有停用 profile。
+                // 只有這次新建的示範店家會跟著發布；已停用的既有店家資料不會被重新啟用。
                 $this->database->execute("UPDATE merchants SET status='active' WHERE attraction_id=:id AND version=1", ['id' => $id]);
             }
         });
     }
 
-    /** [U-05／R3-02] 明確維護命令；只補仍屬原始展示內容且尚無標籤的筆數。
+    /** 維護命令：只替仍是原始示範內容、而且還沒有標籤的景點補上標籤。
      * @return list<array{id:string,name:string,label:string}>
      */
     public function backfillLabels(string $path, bool $apply, string $actorId, EventRepository $events, ClientContext $client): array
     {
         $items = $this->source($path);
         return $this->transactions->run(function () use ($items, $apply, $actorId, $events, $client): array {
-            if ($apply && $this->database->row("SELECT id FROM admin_users WHERE id=:id AND is_root=1 AND status='active' AND deleted_at IS NULL FOR UPDATE", ['id' => $actorId]) === null) {
+            if ($apply && $this->database->row(
+                "SELECT id FROM admin_users WHERE id=:id AND is_root=1 AND status='active' AND deleted_at IS NULL FOR UPDATE",
+                ['id' => $actorId],
+            ) === null) {
                 throw new RuntimeException('Active fixed administrator required for maintenance.');
             }
             $changes = [];
@@ -82,8 +89,20 @@ class AttractionSeeder
                 }
                 $row = new Row($values);
                 if ($apply) {
-                    $this->database->execute('UPDATE attractions SET recommendation_label=:label,version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['label' => $label,'id' => $row->string('id')]);
-                    $events->content($actorId, 'attraction-demo-label-backfill', 'attraction', $row->string('id'), $row->integer('version'), $row->integer('version') + 1, $row->string('status'), $client);
+                    $this->database->execute(
+                        'UPDATE attractions SET recommendation_label=:label,version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
+                        ['label' => $label,'id' => $row->string('id')],
+                    );
+                    $events->content(
+                        $actorId,
+                        'attraction-demo-label-backfill',
+                        'attraction',
+                        $row->string('id'),
+                        $row->integer('version'),
+                        $row->integer('version') + 1,
+                        $row->string('status'),
+                        $client,
+                    );
                 }
                 $changes[] = ['id' => $row->string('id'),'name' => $row->string('name'),'label' => $label];
             }

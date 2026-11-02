@@ -8,7 +8,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use Yinghua\Config;
 use Yinghua\Contracts\Mailer;
 
-/** [E-11] SMTP 套件只出現在 Adapter；本機一律送 Mailpit。 */
+/** SMTP 套件只在這個 Adapter 內使用；本機開發時信件一律送到 Mailpit。 */
 class PhpMailerAdapter implements Mailer
 {
     public function __construct(private readonly Config $config) {}
@@ -27,7 +27,10 @@ class PhpMailerAdapter implements Mailer
         $mail->SMTPAutoTLS = $encryption !== 'none';
         $mail->Timeout = 5;
         $mail->CharSet = 'UTF-8';
-        $mail->setFrom($this->config->string('MAIL_FROM_ADDRESS', 'no-reply@example.test'), $this->config->string('MAIL_FROM_NAME', '映畫竹塹'));
+        $mail->setFrom(
+            $this->config->string('MAIL_FROM_ADDRESS', 'no-reply@example.test'),
+            $this->config->string('MAIL_FROM_NAME', '映畫竹塹'),
+        );
         $mail->addAddress($recipient);
         $mail->Subject = $subject;
         $mail->Body = $body;

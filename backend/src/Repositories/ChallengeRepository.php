@@ -10,19 +10,41 @@ class ChallengeRepository
 {
     public function __construct(private readonly Database $database) {}
 
-    public function create(string $id, string $tokenHash, string $mode, string $answerHash, string $binding, ?string $recipient, int $expires, int $maximum): void
-    {
-        $this->database->execute("UPDATE captcha_challenges SET revoked_at=UTC_TIMESTAMP() WHERE session_binding_hash=:binding AND purpose='register' AND revoked_at IS NULL AND used_at IS NULL", ['binding' => $binding]);
+    public function create(
+        string $id,
+        string $tokenHash,
+        string $mode,
+        string $answerHash,
+        string $binding,
+        ?string $recipient,
+        int $expires,
+        int $maximum,
+    ): void {
+        $this->database->execute(
+            "UPDATE captcha_challenges SET revoked_at=UTC_TIMESTAMP() WHERE session_binding_hash=:binding AND purpose='register' AND revoked_at IS NULL AND used_at IS NULL",
+            ['binding' => $binding],
+        );
         $this->database->execute(
             "INSERT INTO captcha_challenges (id,token_hash,purpose,mode,answer_hmac,session_binding_hash,recipient_hash,max_attempts,expires_at) VALUES (:id,:token,'register',:mode,:answer,:binding,:recipient,:maximum,:expires)",
-            ['id' => $id, 'token' => $tokenHash, 'mode' => $mode, 'answer' => $answerHash,
-                'binding' => $binding, 'recipient' => $recipient, 'maximum' => $maximum, 'expires' => gmdate('Y-m-d H:i:s', $expires)],
+            [
+                'id' => $id,
+                'token' => $tokenHash,
+                'mode' => $mode,
+                'answer' => $answerHash,
+                'binding' => $binding,
+                'recipient' => $recipient,
+                'maximum' => $maximum,
+                'expires' => gmdate('Y-m-d H:i:s', $expires),
+            ],
         );
     }
 
     public function lock(string $token): ?Challenge
     {
-        $record = $this->database->row("SELECT * FROM captcha_challenges WHERE token_hash=:token AND purpose='register' FOR UPDATE", ['token' => hash('sha256', $token)]);
+        $record = $this->database->row(
+            "SELECT * FROM captcha_challenges WHERE token_hash=:token AND purpose='register' FOR UPDATE",
+            ['token' => hash('sha256', $token)],
+        );
         if ($record === null) {
             return null;
         }

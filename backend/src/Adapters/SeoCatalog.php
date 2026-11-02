@@ -7,7 +7,7 @@ namespace Yinghua\Adapters;
 use RuntimeException;
 use Yinghua\Policies\SeoTargetPolicy;
 
-/** [E-28] PHP 與 Node 共用的來源文件；只讀已交付的明確頁面，不讀使用者檔案。 */
+/** PHP 與 Node 共用的頁面 SEO 目錄；只讀取明確列出的既有頁面，不讀使用者上傳的檔案。 */
 readonly class SeoCatalog
 {
     /** @var list<array{path:string,label:string,title:string,description:string,protected:bool,template:bool}> */
@@ -27,8 +27,14 @@ readonly class SeoCatalog
                 || !is_bool($value['protected'] ?? null) || !is_bool($value['template'] ?? null)) {
                 throw new RuntimeException('Invalid SEO page.');
             }
-            $pages[] = ['path' => $value['path'],'label' => $value['label'],'title' => $value['title'],'description' => $value['description'],
-                'protected' => $value['protected'],'template' => $value['template']];
+            $pages[] = [
+                'path' => $value['path'],
+                'label' => $value['label'],
+                'title' => $value['title'],
+                'description' => $value['description'],
+                'protected' => $value['protected'],
+                'template' => $value['template'],
+            ];
         }
         $this->pages = $pages;
     }

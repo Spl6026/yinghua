@@ -9,7 +9,10 @@ use Yinghua\DTO\RemoteResponse;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Policies\GoogleUrlPolicy;
 
-/** [E-19] 不自動 redirect；每次驗 DNS 並釘選 IP，避免驗證與連線之間 DNS 改變。 */
+/**
+ * 呼叫 Google API 的 HTTP 客戶端。不自動跟隨 redirect，並且每次都先解析 DNS 再釘選 IP，
+ * 避免驗證後到實際連線之間 DNS 被換掉。
+ */
 class CurlGoogleHttp implements GoogleHttp
 {
     public function __construct(private readonly GoogleUrlPolicy $policy) {}
@@ -35,7 +38,11 @@ class CurlGoogleHttp implements GoogleHttp
             CURLOPT_PROXY => '',CURLOPT_SSL_VERIFYPEER => true,CURLOPT_SSL_VERIFYHOST => 2,
             CURLOPT_RESOLVE => [$host . ':443:' . implode(',', $ips)],
             CURLOPT_USERAGENT => 'SPL-Content-Importer/1.0',
-            CURLOPT_HTTPHEADER => array_map(static fn(string $key, string $value): string => $key . ': ' . $value, array_keys($headers), array_values($headers)),
+            CURLOPT_HTTPHEADER => array_map(
+                static fn(string $key, string $value): string => $key . ': ' . $value,
+                array_keys($headers),
+                array_values($headers),
+            ),
             CURLOPT_WRITEFUNCTION => static function (\CurlHandle $handle, string $chunk) use (&$received): int {
                 if (strlen($received) + strlen($chunk) > 262144) {
                     return 0;

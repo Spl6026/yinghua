@@ -8,7 +8,7 @@ use Yinghua\DTO\SeoContentTarget;
 use Yinghua\DTO\SeoOverride;
 use Yinghua\Models\SeoResource;
 
-/** [E-28] 僅取 SEO 選擇器識別，不查正文；SQL 識別只來自 enum。 */
+/** 只查 SEO 選擇器需要的識別資料，不讀正文；SQL 中的表名／欄名一律來自 enum。 */
 class SeoContentRepository
 {
     public function __construct(private readonly Database $database) {}
@@ -28,7 +28,10 @@ class SeoContentRepository
     public function find(SeoResource $type, string $id): ?SeoContentTarget
     {
         [$table, $title] = $this->source($type);
-        $row = $this->database->row("SELECT id,$title AS title,slug,status,publish_at,seo_title,seo_description FROM $table WHERE id=:id AND deleted_at IS NULL", ['id' => $id]);
+        $row = $this->database->row(
+            "SELECT id,$title AS title,slug,status,publish_at,seo_title,seo_description FROM $table WHERE id=:id AND deleted_at IS NULL",
+            ['id' => $id],
+        );
         return $row === null ? null : $this->map($type, $row);
     }
 
@@ -55,7 +58,10 @@ class SeoContentRepository
                 $params['id' . $index] = $id;
             }
             $in = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($params)));
-            foreach ($this->database->rows("SELECT id,$title AS title,slug,status,publish_at,seo_title,seo_description FROM $table WHERE id IN ($in) AND deleted_at IS NULL", $params) as $row) {
+            foreach ($this->database->rows(
+                "SELECT id,$title AS title,slug,status,publish_at,seo_title,seo_description FROM $table WHERE id IN ($in) AND deleted_at IS NULL",
+                $params,
+            ) as $row) {
                 $item = $this->map($type, $row);
                 $result[$type->value . ':' . $item->id] = $item;
             }
@@ -72,7 +78,10 @@ class SeoContentRepository
         $params = $query === '' ? [] : ['query' => '%' . strtr($query, ['=' => '==','%' => '=%','_' => '=_']) . '%'];
         return array_map(
             fn(array $row): SeoContentTarget => $this->map($type, $row),
-            $this->database->rows("SELECT id,$title AS title,slug,status,publish_at,seo_title,seo_description FROM $table WHERE deleted_at IS NULL$where ORDER BY updated_at DESC,id LIMIT 51", $params),
+            $this->database->rows(
+                "SELECT id,$title AS title,slug,status,publish_at,seo_title,seo_description FROM $table WHERE deleted_at IS NULL$where ORDER BY updated_at DESC,id LIMIT 51",
+                $params,
+            ),
         );
     }
 

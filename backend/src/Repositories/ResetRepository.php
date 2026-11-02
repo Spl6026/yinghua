@@ -17,9 +17,14 @@ class ResetRepository
         $this->revokeAll($account->kind, $account->id);
         $this->database->execute(
             'INSERT INTO password_reset_tokens (id,member_id,admin_id,token_hash,purpose,expires_at) VALUES (:id,:member,:admin,:token,:purpose,:expires)',
-            ['id' => $id, 'member' => $account->kind === IdentityKind::Member ? $account->id : null,
+            [
+                'id' => $id,
+                'member' => $account->kind === IdentityKind::Member ? $account->id : null,
                 'admin' => $account->kind === IdentityKind::Admin ? $account->id : null,
-                'token' => hash('sha256', $token), 'purpose' => $account->kind->value . '-reset', 'expires' => gmdate('Y-m-d H:i:s', $expires)],
+                'token' => hash('sha256', $token),
+                'purpose' => $account->kind->value . '-reset',
+                'expires' => gmdate('Y-m-d H:i:s', $expires),
+            ],
         );
     }
 
@@ -54,6 +59,9 @@ class ResetRepository
 
     public function revokeAll(IdentityKind $kind, string $id): void
     {
-        $this->database->execute('UPDATE password_reset_tokens SET revoked_at=UTC_TIMESTAMP() WHERE ' . $kind->foreignKey() . '=:id AND used_at IS NULL AND revoked_at IS NULL', ['id' => $id]);
+        $this->database->execute(
+            'UPDATE password_reset_tokens SET revoked_at=UTC_TIMESTAMP() WHERE ' . $kind->foreignKey() . '=:id AND used_at IS NULL AND revoked_at IS NULL',
+            ['id' => $id],
+        );
     }
 }

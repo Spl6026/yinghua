@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Repositories;
 
-/** [E-29] 備份完整性與復原後憑證撤銷；不刪帳號、業務資料或 audit。 */
+/** 檢查備份完整性，並在復原後撤銷既有憑證；不刪除帳號、業務資料或稽核紀錄。 */
 readonly class RecoveryRepository
 {
     public function __construct(private Database $database) {}

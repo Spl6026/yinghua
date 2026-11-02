@@ -22,7 +22,7 @@ use Yinghua\Services\OfferManagement;
 use Yinghua\Services\MerchantManagement;
 use Yinghua\Support\Secrets;
 
-/** [E-17／26] 受信 Docker 維運 CLI；不建立可公開呼叫的 HTTP 匯入入口。 */
+/** 只在 Docker 內由維運人員執行的內容管理 CLI；刻意不提供可從外部呼叫的 HTTP 匯入入口。 */
 class PublicContentCommands
 {
     public function __construct(
@@ -40,7 +40,12 @@ class PublicContentCommands
     public function run(array $arguments): int
     {
         $requestId = bin2hex(random_bytes(16));
-        $client = new ClientContext('cli', $this->secrets->keyed('ip', 'cli'), $this->secrets->keyed('agent', 'public-content-cli'), $requestId);
+        $client = new ClientContext(
+            'cli',
+            $this->secrets->keyed('ip', 'cli'),
+            $this->secrets->keyed('agent', 'public-content-cli'),
+            $requestId,
+        );
         try {
             $actor = $this->root();
             $command = $arguments[1] ?? '';
@@ -96,13 +101,20 @@ class PublicContentCommands
             return ($result['status'] ?? '') === 'saved_publication_pending' ? 4 : 0;
         } catch (ApplicationError|ContentConflict $error) {
             $conflict = $error instanceof ContentConflict || $error->errorCode === 'CONFLICT';
-            fwrite(STDOUT, json_encode(['status' => $conflict ? 'conflict' : 'validation_failed',
+            fwrite(STDOUT, json_encode([
+                'status' => $conflict ? 'conflict' : 'validation_failed',
                 'message' => $error instanceof ApplicationError ? $error->getMessage() : '內容識別或網址衝突。',
-                'fieldErrors' => $error instanceof ApplicationError ? $error->fieldErrors : [],'requestId' => $requestId], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
+                'fieldErrors' => $error instanceof ApplicationError ? $error->fieldErrors : [],
+                'requestId' => $requestId,
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
             return $conflict ? 3 : 2;
         } catch (Throwable $error) {
             error_log('content-cli request=' . $requestId . ' exception=' . $error::class);
-            fwrite(STDOUT, json_encode(['status' => 'error','message' => '操作失敗，請以 requestId 查閱系統紀錄。','requestId' => $requestId], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
+            fwrite(STDOUT, json_encode([
+                'status' => 'error',
+                'message' => '操作失敗，請以 requestId 查閱系統紀錄。',
+                'requestId' => $requestId,
+            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
             return 1;
         }
     }

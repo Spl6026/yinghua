@@ -10,7 +10,10 @@ class PublicationRepository
 
     public function begin(string $generation): int
     {
-        $this->database->execute("INSERT INTO content_publications (generation,status) VALUES (:generation,'pending')", ['generation' => $generation]);
+        $this->database->execute(
+            "INSERT INTO content_publications (generation,status) VALUES (:generation,'pending')",
+            ['generation' => $generation],
+        );
 
         return (int) $this->database->pdo->lastInsertId();
     }

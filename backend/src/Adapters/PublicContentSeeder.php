@@ -17,7 +17,7 @@ use Yinghua\Services\MerchantManagement;
 use Yinghua\Services\NewsManagement;
 use Yinghua\Services\OfferManagement;
 
-/** [E-26] 明確原型示範匯入；只建立缺少內容，不更新已有正式／示範資料。 */
+/** 匯入原型的示範內容；只建立缺少的資料，不更新已存在的正式或示範資料。 */
 class PublicContentSeeder
 {
     public function __construct(

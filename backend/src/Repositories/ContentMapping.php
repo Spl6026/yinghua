@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Repositories;
 
-/** [E-26] 只共用 DB 型別及公開欄位映射；SQL 與主題規則仍在各 Repository。 */
+/** 共用的資料庫型別轉換與公開欄位映射；SQL 與各主題的規則仍各自放在對應的 Repository。 */
 final class ContentMapping
 {
     /** @param array<string,mixed> $values
