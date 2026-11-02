@@ -8,6 +8,7 @@ use Closure;
 use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Contracts\ContentRenderer;
+use Yinghua\Support\Json;
 
 /** PHP 只負責把資料交給前端的 Node 發布工具，畫面模板仍留在 frontend。 */
 class NodeContentRenderer implements ContentRenderer
@@ -24,7 +25,7 @@ class NodeContentRenderer implements ContentRenderer
 
     public function version(): string
     {
-        $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
+        $source = $this->config->frontendSourcePath();
         $precomputed = @file_get_contents($source . '/' . self::PRECOMPUTED_VERSION_FILE);
         if (is_string($precomputed) && preg_match('/^[a-f0-9]{64}$/', trim($precomputed)) === 1) {
             return trim($precomputed);
@@ -100,7 +101,7 @@ class NodeContentRenderer implements ContentRenderer
         $process = proc_open(
             [
                 '/usr/local/bin/node',
-                $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source') . '/scripts/publish.mjs',
+                $this->config->frontendSourcePath() . '/scripts/publish.mjs',
                 $this->directory,
             ],
             [0 => ['pipe','r'],1 => ['pipe','w'],2 => ['pipe','w']],
@@ -109,7 +110,7 @@ class NodeContentRenderer implements ContentRenderer
         if (!is_resource($process)) {
             throw new RuntimeException('Renderer unavailable.');
         }
-        fwrite($pipes[0], json_encode($snapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+        fwrite($pipes[0], Json::encode($snapshot));
         fclose($pipes[0]);
         stream_set_blocking($pipes[1], false);
         stream_set_blocking($pipes[2], false);

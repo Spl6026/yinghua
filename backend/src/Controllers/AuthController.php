@@ -24,6 +24,7 @@ use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
 use Yinghua\Services\PasswordReset;
 use Yinghua\Services\PublishedPolicies;
+use Yinghua\Support\Uuid;
 
 class AuthController
 {
@@ -41,7 +42,7 @@ class AuthController
     public function csrf(ApiContext $context): Response
     {
         return new Response(200, ['token' => $this->csrf->token($context->csrf, $context->kind),
-            'expiresIn' => $this->config->integer('CSRF_SECONDS', 3600),
+            'expiresIn' => $this->config->csrfSeconds(),
             'termsVersion' => $this->policies->configurationVersion()]);
     }
 
@@ -141,7 +142,7 @@ class AuthController
         $input = new Input($context->request->json());
         $input->only(['adminId']);
         $id = $input->text('adminId', 36, 36);
-        if (!preg_match('/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/D', $id)) {
+        if (!Uuid::isValid($id)) {
             throw ApplicationError::invalid('adminId', '請提供有效管理員 ID。');
         }
 

@@ -336,7 +336,7 @@ readonly class Composition
             $routeRecords,
         ));
 
-        $seoCatalog = new SeoCatalog($this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source'));
+        $seoCatalog = new SeoCatalog($this->config->frontendSourcePath());
         $seoController = new SeoSettingsController(
             new SeoSettings(
                 $seoSettingsRecords,

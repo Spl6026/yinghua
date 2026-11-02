@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\DTO;
 
 use Yinghua\Models\SearchType;
+use Yinghua\Support\Uuid;
 
 /** 全站搜尋的索引文件，只取公開白名單欄位，不複製整份資料或帳號資訊。 */
 readonly class SearchDocument
@@ -58,7 +59,7 @@ readonly class SearchDocument
                     : '/' . $prefix . '/' . $slug . '.html';
                 if ($url !== $expectedUrl
                     || !preg_match('~^/(?:places|films|news|offers)/[a-z0-9-]+\.html$|^/museum\.html$~D', $url)
-                    || !preg_match('/^[a-f0-9-]{36}$/D', $get('id'))) {
+                    || !Uuid::isValid($get('id'))) {
                     throw new \UnexpectedValueException('Invalid public search document.');
                 }
                 $documents[] = new self(

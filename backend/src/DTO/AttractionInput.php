@@ -9,6 +9,8 @@ use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
 use Yinghua\Policies\GoogleUrlPolicy;
+use Yinghua\Support\Uuid;
+use Yinghua\Support\Json;
 
 /** 景點表單輸入；後台表單與匯入共用同一組驗證。 */
 readonly class AttractionInput
@@ -49,7 +51,7 @@ readonly class AttractionInput
             return array_key_exists($key, $values) ? $input->text($key, 0, $max) : '';
         };
         $mediaId = $optional('mediaId', 36);
-        if ($mediaId !== '' && !preg_match('/^[a-f0-9-]{36}$/D', $mediaId)) {
+        if ($mediaId !== '' && !Uuid::isValid($mediaId)) {
             throw ApplicationError::invalid('mediaId', '請選擇有效圖片。');
         }
         $coordinates = [];
@@ -111,7 +113,7 @@ readonly class AttractionInput
         // 營業時間以結構化週表為準，hours 欄位只是由週表產生的文字摘要。
         if (array_key_exists('openingHours', $values)) {
             $opening = OpeningHours::fromValue($values['openingHours']);
-            $fields['opening_hours'] = json_encode($opening->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            $fields['opening_hours'] = Json::encode($opening->toArray());
             $fields['hours'] = $opening->summary();
         }
 

@@ -7,6 +7,7 @@ namespace Yinghua\DTO;
 use DateTimeImmutable;
 use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Support\Uuid;
 
 /** 一個放映場次的輸入；開始時間精確到分鐘，不收結束時間或場地。 */
 readonly class ScreeningInput
@@ -19,7 +20,7 @@ readonly class ScreeningInput
         $input = new Input($values);
         $input->only(['id', 'startsAt', 'ticketUrl']);
         $id = ($values['id'] ?? null) === null ? null : $input->text('id', 36, 36);
-        if ($id !== null && !preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/D', $id)) {
+        if ($id !== null && !Uuid::isValid($id)) {
             throw ApplicationError::invalid('id', '無效的場次識別。');
         }
         $text = $input->text('startsAt', 20, 30);

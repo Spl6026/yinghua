@@ -29,11 +29,11 @@ class PublicFilms
     public function get(string $slug): array
     {
         $snapshot = $this->publication->read();
-        foreach (PublicCollection::items($snapshot, 'films') as $item) {
-            if (($item['slug'] ?? null) === $slug) {
-                return ['film' => $item,'generation' => $snapshot['generation']];
-            }
+        $found = PublicCollection::find($snapshot, 'films', 'slug', $slug);
+        if ($found === null) {
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此公開電影。');
         }
-        throw new ApplicationError(ErrorCode::NotFound, '找不到此公開電影。');
+
+        return ['film' => $found,'generation' => $snapshot['generation']];
     }
 }

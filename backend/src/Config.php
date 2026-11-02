@@ -75,4 +75,31 @@ readonly class Config
 
         return $url;
     }
+
+    // 以下設定在多處使用；預設值集中在這裡，不在各處各寫一次。
+
+    public function csrfSeconds(): int
+    {
+        return $this->integer('CSRF_SECONDS', 3600);
+    }
+
+    public function sessionSeconds(): int
+    {
+        return $this->integer('AUTH_SESSION_SECONDS', 43200);
+    }
+
+    public function idleSeconds(): int
+    {
+        return $this->integer('AUTH_IDLE_SECONDS', 1800);
+    }
+
+    public function mediaPath(): string
+    {
+        return $this->string('MEDIA_PATH', '/var/www/media');
+    }
+
+    public function frontendSourcePath(): string
+    {
+        return $this->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
+    }
 }

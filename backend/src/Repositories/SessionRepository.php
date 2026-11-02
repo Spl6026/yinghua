@@ -25,8 +25,8 @@ class SessionRepository
             'INSERT INTO sessions (id,member_id,admin_id,token_hash,expires_at,idle_expires_at,last_seen_at,ip_hash,user_agent_hash) VALUES (:id,:member,:admin,:token,:expires,:idle,:seen,:ip,:agent)',
             ['id' => Secrets::uuid(), 'member' => $account->kind === IdentityKind::Member ? $account->id : null,
                 'admin' => $account->kind === IdentityKind::Admin ? $account->id : null, 'token' => hash('sha256', $token),
-                'expires' => UtcDateTime::sql($now + $this->config->integer('AUTH_SESSION_SECONDS', 43200)),
-                'idle' => UtcDateTime::sql($now + $this->config->integer('AUTH_IDLE_SECONDS', 1800)),
+                'expires' => UtcDateTime::sql($now + $this->config->sessionSeconds()),
+                'idle' => UtcDateTime::sql($now + $this->config->idleSeconds()),
                 'seen' => UtcDateTime::sql($now), 'ip' => $client->ipHash, 'agent' => $client->userAgentHash],
         );
     }
@@ -50,7 +50,7 @@ class SessionRepository
         }
         $record = new Row($row);
         $now = $this->clock->now();
-        $idleExpiry = min($record->integer('absolute_expiry'), $now + $this->config->integer('AUTH_IDLE_SECONDS', 1800));
+        $idleExpiry = min($record->integer('absolute_expiry'), $now + $this->config->idleSeconds());
         $this->database->execute(
             'UPDATE sessions SET last_seen_at=:now,idle_expires_at=LEAST(expires_at,:idle) WHERE id=:id AND revoked_at IS NULL',
             ['id' => $record->string('id'), 'now' => UtcDateTime::sql($now), 'idle' => UtcDateTime::sql($idleExpiry)],

@@ -8,6 +8,7 @@ use Yinghua\DTO\Input;
 use Yinghua\DTO\SeoOverride;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\SeoResource;
+use Yinghua\Support\Uuid;
 
 /** SEO 個別設定的目標檢查：不支援萬用字元，只接受頁面清單中的明確路徑或內容 UUID。 */
 readonly class SeoTargetPolicy
@@ -29,7 +30,7 @@ readonly class SeoTargetPolicy
         $target = $input->text($type === SeoResource::Page ? 'path' : 'id', 1, 180);
         if ($type === SeoResource::Page
             ? !in_array($target, $this->paths, true)
-            : !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/D', $target)) {
+            : !Uuid::isValid($target)) {
             throw ApplicationError::invalid('target', '請選擇有效頁面或內容識別。');
         }
 

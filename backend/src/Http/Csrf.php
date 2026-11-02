@@ -35,14 +35,14 @@ class Csrf
     public function rotate(IdentityKind $kind): CsrfContext
     {
         $id = Secrets::token();
-        $value = $id . '.' . ($this->clock->now() + $this->config->integer('CSRF_SECONDS', 3600));
+        $value = $id . '.' . ($this->clock->now() + $this->config->csrfSeconds());
 
         return new CsrfContext($id, $value . '.' . $this->secrets->keyed('anonymous-' . $kind->value, $value), true);
     }
 
     public function token(CsrfContext $context, IdentityKind $kind): string
     {
-        $expires = $this->clock->now() + $this->config->integer('CSRF_SECONDS', 3600);
+        $expires = $this->clock->now() + $this->config->csrfSeconds();
 
         return $expires . '.' . $this->secrets->keyed('csrf-' . $kind->value, $context->id . ':' . $expires);
     }
@@ -60,7 +60,7 @@ class Csrf
             $context->newCookie => 'anonymous-cookie',
             count($parts) !== 2 || !ctype_digit($parts[0]) => 'format',
             (int) $parts[0] <= $now => 'expired',
-            (int) $parts[0] > $now + $this->config->integer('CSRF_SECONDS', 3600) + self::CLOCK_SKEW_SECONDS => 'future',
+            (int) $parts[0] > $now + $this->config->csrfSeconds() + self::CLOCK_SKEW_SECONDS => 'future',
             !hash_equals($this->secrets->keyed('csrf-' . $kind->value, $context->id . ':' . $parts[0]), $parts[1]) => 'signature',
             default => null,
         };
@@ -81,7 +81,7 @@ class Csrf
         return new Cookie(
             $this->anonymousCookie($kind),
             $context->cookieValue,
-            $this->clock->now() + $this->config->integer('CSRF_SECONDS', 3600),
+            $this->clock->now() + $this->config->csrfSeconds(),
             $this->config->secureCookies(),
         );
     }
@@ -91,7 +91,7 @@ class Csrf
         return new Cookie(
             'spl_' . $kind->value . '_session',
             $token,
-            $clear ? 1 : $this->clock->now() + $this->config->integer('AUTH_SESSION_SECONDS', 43200),
+            $clear ? 1 : $this->clock->now() + $this->config->sessionSeconds(),
             $this->config->secureCookies(),
         );
     }

@@ -28,11 +28,11 @@ class PublicRecommendedRoutes
     {
         \Yinghua\DTO\ContentFields::uuid($id, 'id');
         $snapshot = $this->publication->read();
-        foreach (PublicCollection::items($snapshot, 'recommendedRoutes') as $route) {
-            if (($route['id'] ?? null) === $id) {
-                return ['route' => $route,'generation' => $snapshot['generation'] ?? ''];
-            }
+        $found = PublicCollection::find($snapshot, 'recommendedRoutes', 'id', $id);
+        if ($found === null) {
+            throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::NotFound, '找不到此公開推薦路線。');
         }
-        throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::NotFound, '找不到此公開推薦路線。');
+
+        return ['route' => $found,'generation' => $snapshot['generation'] ?? ''];
     }
 }

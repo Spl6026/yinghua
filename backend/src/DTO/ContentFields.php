@@ -9,13 +9,14 @@ use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
 use Yinghua\Support\UtcDateTime;
+use Yinghua\Support\Uuid;
 
 /** 消息與優惠共用的欄位格式驗證；只檢查格式，不決定哪些欄位必填。 */
 final class ContentFields
 {
     public static function uuid(string $value, string $field): string
     {
-        if (!preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/D', $value)) {
+        if (!Uuid::isValid($value)) {
             throw ApplicationError::invalid($field, '請提供有效 UUID。');
         }
         return $value;

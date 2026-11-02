@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Http;
 
 use Closure;
+use Yinghua\Support\Json;
 
 readonly class Response
 {
@@ -57,7 +58,7 @@ readonly class Response
             $cookie->emit();
         }
         if (!$head && $this->status !== 204) {
-            echo json_encode([...$this->payload, 'requestId' => $requestId], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            echo Json::encode([...$this->payload, 'requestId' => $requestId]);
         }
         if ($this->afterSend !== []) {
             if (function_exists('fastcgi_finish_request')) {

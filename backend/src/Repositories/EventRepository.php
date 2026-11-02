@@ -8,6 +8,7 @@ use Yinghua\DTO\ClientContext;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Support\Secrets;
+use Yinghua\Support\Json;
 
 class EventRepository
 {
@@ -56,8 +57,8 @@ class EventRepository
                 'actor' => $actorId,
                 'action' => $action,
                 'target' => $targetId,
-                'before' => $before === null ? null : json_encode($this->masked($before), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-                'after' => $after === null ? null : json_encode($this->masked($after), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+                'before' => $before === null ? null : Json::encode($this->masked($before)),
+                'after' => $after === null ? null : Json::encode($this->masked($after)),
                 'request' => $client->requestId,
                 'ip' => $client->ipHash,
             ],

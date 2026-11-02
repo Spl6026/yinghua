@@ -31,6 +31,7 @@ use Yinghua\Repositories\PublicationRepository;
 use Yinghua\Repositories\RecommendedRouteRepository;
 use Yinghua\Repositories\SearchRepository;
 use Yinghua\Support\ErrorLog;
+use Yinghua\Support\Json;
 
 /** 資料庫是編輯用的來源；公開頁面與 API 一律讀取最近一次成功產生、不再變動的快照。 */
 class ContentPublication
@@ -175,7 +176,7 @@ class ContentPublication
         $data['home'] = HomeSelection::fromSnapshot($data, $window)->toArray();
         $data['seo'] = $this->seo->project($data);
         $data['general'] = $general->toArray();
-        $data['generation'] = hash('sha256', json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+        $data['generation'] = hash('sha256', Json::encode($data));
 
         return $data;
     }

@@ -48,7 +48,7 @@ class LocalImageStorage implements ImageStorage
             'image/jpeg' => 'jpg','image/png' => 'png',default => 'webp',
         };
         $key = $id . '.' . $extension;
-        $path = $this->config->string('MEDIA_PATH', '/var/www/media') . '/' . $key;
+        $path = $this->config->mediaPath() . '/' . $key;
         $temporary = $path . '.part';
         try {
             imagesavealpha($image, true);
@@ -80,7 +80,7 @@ class LocalImageStorage implements ImageStorage
 
     public function discard(MediaAsset $asset): void
     {
-        $path = $this->config->string('MEDIA_PATH', '/var/www/media') . '/' . $asset->storageKey;
+        $path = $this->config->mediaPath() . '/' . $asset->storageKey;
         if (is_file($path)) {
             unlink($path);
         }

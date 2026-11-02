@@ -7,6 +7,7 @@ namespace Yinghua\Repositories;
 use Yinghua\DTO\GeneralSettings;
 use Yinghua\DTO\GeneralSettingsDocument;
 use Yinghua\DTO\SeoSettingsInput;
+use Yinghua\Support\Json;
 
 /** 只讀寫白名單內的固定設定 key，不開放任意設定寫入。 */
 class GeneralSettingsRepository
@@ -32,7 +33,7 @@ class GeneralSettingsRepository
             ? "INSERT INTO site_settings(`key`,value_json,published,version,updated_by) VALUES('general',:json,1,:version,:actor)"
             : "UPDATE site_settings SET value_json=:json,published=1,version=:version,updated_by=:actor,updated_at=UTC_TIMESTAMP() WHERE `key`='general'";
         $this->database->execute($sql, [
-            'json' => json_encode($values->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'json' => Json::encode($values->toArray()),
             'version' => $version,
             'actor' => $actor,
         ]);
