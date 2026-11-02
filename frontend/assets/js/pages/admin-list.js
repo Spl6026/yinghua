@@ -43,7 +43,7 @@ export async function initializeAdmins(identity) {
               if (!await confirmAction('刪除管理員', `確認刪除 ${account.displayName}？此帳號將立即失去登入資格。`, button)) return;
               button.disabled = true;
               // [S G34；E] 被刪除列重建後，聚焦現存結果而非消失的刪除按鈕。
-              try { await adminApi.remove(account.id, account.version); await load(); message.focus(); }
+              try { await adminApi.remove(account.id, account.version); await load(); status(message, `已刪除管理員 ${account.displayName}。${message.textContent}`); message.focus(); }
               catch (error) { handleAdminError(error, message); button.disabled = false; }
             });
             actions.append(button);

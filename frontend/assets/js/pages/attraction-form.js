@@ -1,7 +1,7 @@
 import { attractionSamplePicker } from '../components/attraction-samples.js';
 import { attractionsApi } from '../api/attractions-api.js';
 import { hasPermission, handleAdminError, adminDestination } from '../core/session.js';
-import { element, status, submitForm, unsavedChanges, formErrors } from '../core/ui.js';
+import { element, status, submitForm, unsavedChanges, formErrors, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { openingHoursEditor } from '../components/opening-hours-editor.js';
 import { applyPlaceCandidate } from '../core/place-candidate.js';
@@ -167,7 +167,7 @@ export async function initializeAttractionForm(identity, page) {
         id = result.attraction.id; version = result.attraction.version; dirty = false;
         if (result.publication.status === 'succeeded') {
           completed = true;
-          if (hasPermission(identity, 'attractions', 'view')) location.assign('/admin/places.html');
+          if (hasPermission(identity, 'attractions', 'view')) { flash('景點已儲存，公開頁面已同步。'); location.assign('/admin/places.html'); }
           else {
             status(message, result.publication.message || '景點已儲存。');
             document.querySelector('#place-another').hidden = !hasPermission(identity, 'attractions', 'create');

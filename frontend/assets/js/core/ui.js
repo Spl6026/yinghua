@@ -125,3 +125,12 @@ export function initializeMenus() {
     window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   });
 }
+
+// [U-24] 新增／編輯成功後會導回列表；以本分頁 sessionStorage 暫存一次性成功訊息，列表載入後顯示。
+const flashKey = 'yinghua-admin-flash';
+export function flash(message) {
+  try { sessionStorage.setItem(flashKey, message); } catch { /* 儲存不可用時僅略過提示，不影響儲存結果。 */ }
+}
+export function consumeFlash() {
+  try { const message = sessionStorage.getItem(flashKey); sessionStorage.removeItem(flashKey); return message || ''; } catch { return ''; }
+}

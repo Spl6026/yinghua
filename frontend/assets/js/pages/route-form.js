@@ -1,6 +1,6 @@
 import {recommendedRoutesApi as service} from '../api/recommended-routes-api.js';
 import {hasPermission,handleAdminError,adminDestination} from '../core/session.js';
-import {element,status,formErrors,submitForm,unsavedChanges} from '../core/ui.js';
+import {element,status,formErrors,submitForm,unsavedChanges, flash } from '../core/ui.js';
 import {confirmAction} from '../components/dialog.js';
 
 // [S E24/G24；E-32] 陣列次序是站點順序；按鈕同時支援滑鼠與鍵盤，無需拖曳。
@@ -43,7 +43,7 @@ export async function initializeRouteForm(identity,page){
       }
       row.append(actions);selected.append(row);
     });
-    if(!stops.length)selected.append(element('li',{},'尚未加入景點，路線至少需要一站。'));
+    if(!stops.length)selected.append(element('li',{className:'route-stops-empty'},'尚未加入景點，路線至少需要一站。'));
     controls();if(focusIndex!==undefined)(selected.children[focusIndex]?.querySelector('input')||selected).focus();
   }
   async function candidates(){
@@ -76,7 +76,7 @@ export async function initializeRouteForm(identity,page){
       const payload={title:value('title'),theme:value('theme'),summary:value('summary'),durationMinutes:value('durationMinutes')===''?null:Number(value('durationMinutes')),sortOrder:Number(value('sortOrder')),status:value('status'),stops:stops.map(stop=>({attractionId:stop.attractionId,suggestedTime:stop.suggestedTime||'',note:stop.note||''})),...(id?{version}:{})};
       const result=await service.save(id,payload);id=result.record.id;version=result.record.version;dirty=false;completed=true;
       status(message,result.publication.message,result.publication.status!=='succeeded');
-      if(result.publication.status==='succeeded'&&hasPermission(identity,'routes','view'))location.assign('/admin/routes.html');
+      if(result.publication.status==='succeeded'&&hasPermission(identity,'routes','view')){flash('推薦行程已儲存，公開頁面已同步。');location.assign('/admin/routes.html');}
     },{statusNode:message,canSubmit:()=>available()});
     busy=false;controls();
   });

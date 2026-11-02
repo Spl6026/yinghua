@@ -35,6 +35,18 @@ export function offerMerchants(identity,form,available,setBusy,changed) {
   query.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();page=1;void load();}});
   previous.addEventListener('click',()=>{if(!available()||loading||page<=1)return;page--;void load();});
   next.addEventListener('click',()=>{if(!available()||loading||page*20>=total)return;page++;void load();});
+  // [U-24] 店家面板不是獨立 form；伺服器欄位錯誤逐欄顯示於對應輸入下方，不只顯示「請檢查輸入內容」。
+  function fieldErrors(errors={}){
+    for(const node of document.querySelectorAll('[id^="merchant-"].merchant-invalid')){node.classList.remove('merchant-invalid');node.removeAttribute('aria-invalid');node.removeAttribute('aria-describedby');document.querySelector('#'+node.id+'-error')?.remove();}
+    let first;
+    for(const [name,text] of Object.entries(errors)){
+      const input=document.querySelector('#merchant-'+(name==='status'?'profile-status':name));if(!input)continue;
+      const hint=element('span',{className:'field-error',id:input.id+'-error'},text);
+      input.classList.add('merchant-invalid');input.setAttribute('aria-invalid','true');input.setAttribute('aria-describedby',hint.id);
+      (input.closest('.admin-field')||input.parentElement).append(hint);first??=input;
+    }
+    first?.focus();
+  }
   async function save(update){
     const action=update?'edit':'create';if(!available()||!allowed(action))return;
     const current=update?records.get(select.value):null;
@@ -45,9 +57,9 @@ export function offerMerchants(identity,form,available,setBusy,changed) {
       if(!await confirmAction('修正共享店家',`修正「${current.name}」將同步影響引用此店家的所有優惠。`,document.querySelector('#update-merchant')))return;
       body.version=current.version;body.attractionId=current.attractionId||null;
     }
-    setBusy(true);
+    setBusy(true);fieldErrors();let failed;
     try{const result=await api.save(current?.id||null,body);records.set(result.record.id,result.record);options([result.record]);select.value=result.record.id;fill(result.record);changed();status(message,result.publication.message,result.publication.status!=='succeeded');}
-    catch(error){handleAdminError(error,message);}finally{setBusy(false);}
+    catch(error){handleAdminError(error,message);failed=error.fieldErrors;}finally{setBusy(false);if(failed)fieldErrors(failed);}
   }
   document.querySelector('#create-merchant').addEventListener('click',()=>save(false));document.querySelector('#update-merchant').addEventListener('click',()=>save(true));
   return {load,refresh:controls,async select(id){

@@ -1,6 +1,6 @@
 import { filmsApi } from '../api/films-api.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
-import { status, submitForm, unsavedChanges, formErrors } from '../core/ui.js';
+import { status, submitForm, unsavedChanges, formErrors, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { screeningEditor } from '../components/screening-editor.js';
 
@@ -96,7 +96,7 @@ export async function initializeFilmForm(identity,page) {
         const result=await filmsApi.save(id,body);id=result.film.id;version=result.film.version;dirty=false;
         if(result.publication.status==='succeeded'){
           completed=true;
-          if(hasPermission(identity,'films','view'))location.assign('/admin/films.html');
+          if(hasPermission(identity,'films','view')){flash('電影已儲存，公開頁面已同步。');location.assign('/admin/films.html');}
           else{
             status(message,result.publication.message||'電影已儲存。');
             document.querySelector('#film-another').hidden=!hasPermission(identity,'films','create');

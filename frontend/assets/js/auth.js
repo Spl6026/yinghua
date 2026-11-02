@@ -18,6 +18,7 @@ let credentialsChanged = false;
 let challengeToken;
 let termsVersion;
 let refreshingCaptcha = false;
+let captchaByEmail = false;
 let submitting = false;
 let signingOut = false;
 let completed = false;
@@ -53,8 +54,17 @@ logoutButton?.addEventListener('click', async () => {
 const resetToken = mode === 'reset-password' ? new URLSearchParams(location.hash.slice(1)).get('token') : null;
 if (mode === 'reset-password') history.replaceState(null, '', location.pathname);
 
-async function refreshCaptcha(email = false) {
+// [U-24] 使用者手動換驗證碼時清除舊答案的欄位錯誤；提交失敗後自動換新圖但保留錯誤說明。
+function clearAnswerError() {
+  const answer = form.elements.answer;
+  answer?.removeAttribute?.('aria-invalid');
+  answer?.removeAttribute?.('aria-describedby');
+  answer?.closest?.('.form-field')?.querySelector('.field-error')?.remove();
+}
+
+async function refreshCaptcha(email = false, { keepErrors = false } = {}) {
   if (refreshingCaptcha) return;
+  if (!keepErrors) clearAnswerError();
   const message = document.querySelector('#captcha-status');
   const buttons = [document.querySelector('#refresh-captcha'), document.querySelector('#email-captcha')];
   refreshingCaptcha = true;
@@ -68,6 +78,7 @@ async function refreshCaptcha(email = false) {
     if (termsLabel) termsLabel.textContent = termsVersion;
     const result = email ? await api.emailCaptcha(form.elements.email.value) : await api.captcha();
     challengeToken = result.challengeToken;
+    captchaByEmail = email;
     const image = document.querySelector('#captcha-image');
     image.hidden = email;
     if (!email) image.src = result.imageDataUrl;
@@ -119,6 +130,8 @@ form.addEventListener('submit', async event => {
     }
   }, { canSubmit, onError: error => {
     if (error.retryAfter > 0) retryUntil = Date.now() + Math.min(error.retryAfter, 86400) * 1000;
+    // [U-24] 驗證碼一次性；註冊失敗後舊 token 不可再用，自動換新圖片避免使用者重送必定失敗。
+    if (mode === 'register' && !captchaByEmail && !(error.retryAfter > 0) && error.status !== 429 && !error.fieldErrors?.password && !error.fieldErrors?.passwordConfirmation) Promise.resolve().then(() => refreshCaptcha(false, { keepErrors: true }));
   } }); }
   finally { submitting = false; updateSubmit(); }
 });

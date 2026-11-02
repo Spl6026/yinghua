@@ -5,7 +5,7 @@ import { initializeFilmList } from './pages/film-list.js';
 import { initializeFilmForm } from './pages/film-form.js';
 import { authApi } from './api/auth-api.js';
 import { requireSession, hasPermission, handleAdminError, adminNavigation, adminDestination } from './core/session.js';
-import { initializeMenus, status, element } from './core/ui.js';
+import { initializeMenus, status, element, toast, consumeFlash } from './core/ui.js';
 import { initializeAdmins } from './pages/admin-list.js';
 import { initializeAdminForm } from './pages/admin-form.js';
 import { initializePermissions } from './pages/permissions.js';
@@ -19,6 +19,16 @@ import { initializeRouteList } from './pages/route-list.js';
 import { initializeRouteForm } from './pages/route-form.js';
 
 initializeMenus();
+// [U-24] 瀏覽器原生驗證攔下下一次送出時，清掉上一輪伺服器錯誤，避免畫面同時顯示已過時的錯誤。
+document.addEventListener('invalid', event => {
+  const form = event.target?.form;
+  if (!form || form.dataset.clearingErrors) return;
+  form.dataset.clearingErrors = 'true';
+  queueMicrotask(() => delete form.dataset.clearingErrors);
+  form.querySelectorAll('.field-error').forEach(node => node.remove());
+  form.querySelectorAll('[aria-invalid="true"]').forEach(node => { node.removeAttribute('aria-invalid'); node.removeAttribute('aria-describedby'); });
+  form.querySelectorAll('.form-status[data-error="true"]').forEach(node => { node.textContent = ''; node.dataset.error = 'false'; });
+}, true);
 const main = document.querySelector('.admin-content');
 const message = element('p', { role: 'status', tabindex: '-1', className: 'form-status' });
 main.prepend(message);
@@ -64,6 +74,8 @@ try {
     else if (['news-add','news-edit','offer-add','offer-edit'].includes(page)) await initializeContentForm(identity, module, page);
     else if (page === 'routes') await initializeRouteList(identity);
     else if (page === 'route-add' || page === 'route-edit') await initializeRouteForm(identity, page);
+    const saved = consumeFlash();
+    if (saved) { status(message, saved); toast(saved); }
   }
 } catch (error) { status(message, error.message, true); message.focus(); }
 finally { main.removeAttribute('aria-busy'); }
