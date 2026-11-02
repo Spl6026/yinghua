@@ -10,6 +10,7 @@ use PDOException;
 use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Support\ErrorLog;
 
 /** 所有 Repository 共用同一個 PDO，寫入才能參與同一筆交易。 */
 class Database
@@ -41,11 +42,29 @@ class Database
             $pdo->exec("SET time_zone = '+00:00'");
         } catch (PDOException $error) {
             // 資料庫暫停或斷線時，不讓請求卡在預設的 30 秒逾時，也不把連線細節洩漏給使用者。
-            error_log('database_connect_exception=' . $error::class);
+            ErrorLog::exception('database_connect', $error);
             throw new ApplicationError('SERVICE_UNAVAILABLE', '服務暫時無法使用。');
         }
 
         return new self($pdo);
+    }
+
+    /**
+     * 網頁請求用的連線：等鎖與單一查詢都設上限。
+     * Nginx 15 秒就放棄等待 PHP，但 PHP-FPM 的 worker 仍會卡在 InnoDB 預設 50 秒的等鎖上；
+     * worker 數量有限，幾個卡住的請求就會讓整個網站排隊。命令列工具（發布、migration）不套用。
+     */
+    public static function forRequest(Config $config): self
+    {
+        $database = self::connect($config);
+        try {
+            $database->pdo->exec('SET SESSION innodb_lock_wait_timeout = 5, max_statement_time = 10');
+        } catch (PDOException $error) {
+            ErrorLog::exception('database_session_limits', $error);
+            throw new ApplicationError('SERVICE_UNAVAILABLE', '服務暫時無法使用。');
+        }
+
+        return $database;
     }
 
     /** @param array<string, bool|int|string|null> $parameters */

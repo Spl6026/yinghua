@@ -153,7 +153,7 @@ readonly class Composition
 
     public function kernel(): Kernel
     {
-        $database = Database::connect($this->config);
+        $database = Database::forRequest($this->config);
         $clock = new SystemClock();
         $secrets = new Secrets($this->config);
         $transactions = new PdoTransactions($database);

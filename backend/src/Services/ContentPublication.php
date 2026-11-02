@@ -30,6 +30,7 @@ use Yinghua\Repositories\OfferRepository;
 use Yinghua\Repositories\PublicationRepository;
 use Yinghua\Repositories\RecommendedRouteRepository;
 use Yinghua\Repositories\SearchRepository;
+use Yinghua\Support\ErrorLog;
 
 /** 資料庫是編輯用的來源；公開頁面與 API 一律讀取最近一次成功產生、不再變動的快照。 */
 class ContentPublication
@@ -78,10 +79,10 @@ class ContentPublication
                 try {
                     $this->publications->finish($id, false);
                 } catch (Throwable $recordError) {
-                    error_log('publication=' . $id . ' record_exception=' . $recordError::class);
+                    ErrorLog::exception('publication=' . $id . ' record', $recordError);
                 }
             }
-            error_log('publication=' . ($id ?? 'unrecorded') . ' exception=' . $error::class);
+            ErrorLog::exception('publication=' . ($id ?? 'unrecorded'), $error);
 
             return false;
         }

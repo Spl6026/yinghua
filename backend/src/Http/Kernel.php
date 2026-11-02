@@ -14,6 +14,8 @@ use Yinghua\Services\Authorization;
 use Yinghua\Support\Secrets;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Models\IdentityKind;
+use Yinghua\Support\ErrorLog;
+use PDOException;
 
 /** 所有 API 請求共用的處理流程：錯誤處理 → 路由 → CSRF → 身分 → 權限 → Controller。 */
 class Kernel
@@ -81,7 +83,11 @@ class Kernel
 
             return $this->withSessionTiming(self::error($error), $context);
         } catch (Throwable $error) {
-            error_log('request=' . $request->requestId . ' exception=' . $error::class);
+            ErrorLog::exception('request=' . $request->requestId, $error);
+            // 等鎖逾時（1205）或查詢超過時間上限（1969）是暫時的忙碌，回 503 並請瀏覽器稍後再試，而不是當成程式錯誤。
+            if ($error instanceof PDOException && in_array($error->errorInfo[1] ?? null, [1205, 1969], true)) {
+                return self::error(new ApplicationError('SERVICE_UNAVAILABLE', '系統忙碌中，請稍後再試。', retryAfter: 5));
+            }
 
             return self::error(new ApplicationError('INTERNAL_ERROR', '系統暫時無法完成操作，請稍後再試。'));
         }

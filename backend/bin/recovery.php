@@ -25,7 +25,7 @@ try {
         throw new RuntimeException('Explicit recovery mode/window required.');
     }
 } catch (Throwable $error) {
-    error_log('recovery_exception=' . $error::class);
+    \Yinghua\Support\ErrorLog::exception('recovery', $error);
     fwrite(STDERR, "Recovery refused.\n");
     exit(1);
 }

@@ -1,5 +1,10 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 上線穩定性（使用者要求對照一般網站慣例、整理成可上線狀態；依前端／後端／維運三份盤點逐項處理）：
+- 錯誤紀錄：新增 [Support/ErrorLog.php](../backend/src/Support/ErrorLog.php)，未預期例外改記類別、錯誤代碼（PDO 含 SQLSTATE／資料庫編號）、發生位置與前 6 層呼叫位置；刻意不記例外訊息與參數（重複鍵訊息含電子郵件等值）。`php.ini` 加 `zend.exception_ignore_args`。原本只記類別名稱，正式環境出錯時無從追查。
+- 資料庫逾時：網頁請求改用 `Database::forRequest()`，每個連線設 `innodb_lock_wait_timeout=5`、`max_statement_time=10`；等鎖逾時（1205）與查詢超時（1969）回 503「系統忙碌中」並帶 `Retry-After`。命令列（發布、migration）不套用。
+- PHP-FPM（`docker/php/www.conf`）：`pm.max_children=16`、`pm.max_requests=500`、`request_terminate_timeout=30s`；原本是預設 5 個 worker、請求不限時，幾個卡住的請求就會讓公開頁排隊。變更需重建 app 映像。
+
 2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
 - 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。
 - 資產版本號：新增 [frontend/scripts/asset-version.mjs](../frontend/scripts/asset-version.mjs)，依 `assets/`（字型除外）、`scripts/` 內容與頁面清單算出 12 碼版本號；build 與 publish 各自計算得到同一值，HTML 引用的 CSS／JS／圖示（含 modulepreload）加上 `?v=版本號`，build 輸出的模組 import（含動態 import）也一併改寫，同一模組不會因網址不同載入兩份。Nginx 對帶版本號的 `/assets/` 網址回 `public, max-age=31536000, immutable`，不帶版本號的維持 no-cache，404 維持 no-store。

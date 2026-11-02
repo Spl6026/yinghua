@@ -21,6 +21,7 @@ use Yinghua\Services\NewsManagement;
 use Yinghua\Services\OfferManagement;
 use Yinghua\Services\MerchantManagement;
 use Yinghua\Support\Secrets;
+use Yinghua\Support\ErrorLog;
 
 /** 只在 Docker 內由維運人員執行的內容管理 CLI；刻意不提供可從外部呼叫的 HTTP 匯入入口。 */
 class PublicContentCommands
@@ -109,7 +110,7 @@ class PublicContentCommands
             ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
             return $conflict ? 3 : 2;
         } catch (Throwable $error) {
-            error_log('content-cli request=' . $requestId . ' exception=' . $error::class);
+            ErrorLog::exception('content-cli request=' . $requestId, $error);
             fwrite(STDOUT, json_encode([
                 'status' => 'error',
                 'message' => '操作失敗，請以 requestId 查閱系統紀錄。',

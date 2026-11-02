@@ -29,7 +29,7 @@ try {
         throw new RuntimeException('Unknown readiness mode.');
     }
 } catch (Throwable $error) {
-    error_log('readiness_exception=' . $error::class);
+    \Yinghua\Support\ErrorLog::exception('readiness', $error);
     fwrite(STDOUT, "{\"status\":\"unavailable\"}\n");
     exit(1);
 }
