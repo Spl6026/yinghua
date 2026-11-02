@@ -94,8 +94,8 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   if (snapshot.detailNeighbors?.[path])
     html = html.replace('</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
   html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02');
-  if (!html.includes('/assets/css/phase6.css'))
-    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css"></head>');
+  if (!html.includes('/assets/css/member-actions.css'))
+    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/member-actions.css"></head>');
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
   const context = {
     path: canonicalPath,
@@ -123,7 +123,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     );
   html = html.replace(
     '</head>',
-    '<link rel="stylesheet" href="/assets/css/phase3.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"><link rel="stylesheet" href="/assets/css/ui-consistency.css"></head>'
+    '<link rel="stylesheet" href="/assets/css/places.css"><link rel="stylesheet" href="/assets/css/films.css"><link rel="stylesheet" href="/assets/css/public-content.css"><link rel="stylesheet" href="/assets/css/ui-consistency.css"></head>'
   );
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
     const template = templates[name];
