@@ -6,7 +6,10 @@ namespace Yinghua\Adapters;
 
 use Yinghua\DTO\MapCandidate;
 
-/** [U-10／E-21] 外部欄位轉為本站候選。行政區需確認新竹市，官網不改寫協定、不抓取。 */
+/**
+ * 把 Google 地點欄位轉成本站的候選資料。
+ * 行政區必須確認在新竹市；官網網址照原樣保留，不改協定也不去抓取。
+ */
 class GooglePlaceMapper
 {
     public function __construct(private readonly GoogleOpeningHours $openingHours) {}
@@ -30,8 +33,9 @@ class GooglePlaceMapper
         }
         $summary = $value['editorialSummary'] ?? null;
         $summaryText = is_array($summary) ? ($summary['text'] ?? null) : null;
-        // [U-10] 僅回傳原文供參考，不截斷、改寫或保存進網站介紹。
-        $editorial = is_string($summaryText) && mb_check_encoding($summaryText, 'UTF-8') && mb_strlen($summaryText) <= 20000 && !str_contains($summaryText, "\0") ? $summaryText : '';
+        // 原文只回傳給管理員參考，不截斷、不改寫，也不存進網站介紹。
+        $editorial = is_string($summaryText) && mb_check_encoding($summaryText, 'UTF-8')
+            && mb_strlen($summaryText) <= 20000 && !str_contains($summaryText, "\0") ? $summaryText : '';
         $attributions = [];
         $providers = $value['attributions'] ?? [];
         if (is_array($providers)) {
@@ -69,11 +73,22 @@ class GooglePlaceMapper
             }
             $types = array_filter($component['types'], is_string(...));
             $text = $this->text($component['longText'] ?? null, 255);
-            if (array_intersect($types, ['administrative_area_level_1','administrative_area_level_2','locality']) !== [] && in_array($text, ['新竹市','Hsinchu City'], true)) {
+            if (array_intersect($types, ['administrative_area_level_1','administrative_area_level_2','locality']) !== []
+                && in_array($text, ['新竹市','Hsinchu City'], true)) {
                 $city = true;
             }
-            if (array_intersect($types, ['administrative_area_level_2','administrative_area_level_3','sublocality_level_1','sublocality']) !== []) {
-                $district = ['東區' => '東區','北區' => '北區','香山區' => '香山區','East District' => '東區','North District' => '北區','Xiangshan District' => '香山區'][$text] ?? '';
+            if (array_intersect(
+                $types,
+                ['administrative_area_level_2','administrative_area_level_3','sublocality_level_1','sublocality'],
+            ) !== []) {
+                $district = [
+                    '東區' => '東區',
+                    '北區' => '北區',
+                    '香山區' => '香山區',
+                    'East District' => '東區',
+                    'North District' => '北區',
+                    'Xiangshan District' => '香山區',
+                ][$text] ?? '';
                 if ($district !== '') {
                     $districts[$district] = true;
                 }
@@ -84,7 +99,8 @@ class GooglePlaceMapper
 
     private function text(mixed $value, int $maximum): string
     {
-        return is_string($value) && mb_check_encoding($value, 'UTF-8') && mb_strlen($value) <= $maximum && !str_contains($value, "\0") ? trim($value) : '';
+        return is_string($value) && mb_check_encoding($value, 'UTF-8') && mb_strlen($value) <= $maximum
+            && !str_contains($value, "\0") ? trim($value) : '';
     }
 
     private function coordinate(mixed $value, int $limit): ?float
@@ -95,7 +111,8 @@ class GooglePlaceMapper
     private function url(mixed $value, bool $allowHttp): string
     {
         $url = $this->text($value, 2000);
-        return $url !== '' && filter_var($url, FILTER_VALIDATE_URL) && in_array(parse_url($url, PHP_URL_SCHEME), $allowHttp ? ['http','https'] : ['https'], true)
+        return $url !== '' && filter_var($url, FILTER_VALIDATE_URL)
+            && in_array(parse_url($url, PHP_URL_SCHEME), $allowHttp ? ['http','https'] : ['https'], true)
             && parse_url($url, PHP_URL_USER) === null && parse_url($url, PHP_URL_PASS) === null ? $url : '';
     }
 }

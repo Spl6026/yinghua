@@ -6,7 +6,7 @@ namespace Yinghua\Policies;
 
 use Yinghua\DTO\AttractionContent;
 
-/** [U-23／E-40] 顯示補位，不改寫儲存值；Google文字不進此純自家文案政策。 */
+/** 決定景點摘要與介紹要顯示什麼：摘要空白時從介紹截取，只影響顯示，不改寫儲存值；Google 文字不在這裡處理。 */
 class AttractionContentPolicy
 {
     public static function select(string $summary, string $description, bool $linked): AttractionContent

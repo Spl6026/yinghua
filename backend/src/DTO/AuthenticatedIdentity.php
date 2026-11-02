@@ -6,10 +6,15 @@ namespace Yinghua\DTO;
 
 use Yinghua\Models\Account;
 
-/** [U-06] 保留登入者與驗收對象；停用／刪除對象不能回退取得 root 權限。 */
+/** 同時保存實際登入者與模擬檢視的對象；對象被停用或刪除時，不能退回使用登入者（root）的權限。 */
 readonly class AuthenticatedIdentity
 {
-    public function __construct(public Account $owner, public ?Account $preview, public ?string $previewAdminId, public SessionTiming $timing) {}
+    public function __construct(
+        public Account $owner,
+        public ?Account $preview,
+        public ?string $previewAdminId,
+        public SessionTiming $timing,
+    ) {}
 
     public function effective(): Account
     {

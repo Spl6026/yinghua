@@ -8,8 +8,9 @@
 <title>本週映演｜映畫竹塹後台</title>
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="stylesheet" href="/assets/css/phase2.css">
-<link rel="stylesheet" href="/assets/css/phase3.css">
+<link rel="stylesheet" href="/assets/css/states.css">
+<link rel="stylesheet" href="/assets/css/places.css">
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-module="films" data-action="view" data-page="films">
 <a class="skip-link" href="#main-content">跳到主要內容</a>
@@ -20,7 +21,7 @@
 <section class="admin-panel">
 <div class="admin-panel-heading"><h3>映演清單</h3><span id="film-total" aria-live="polite"></span></div>
 <div class="admin-toolbar">
-<div class="admin-field"><label for="admin-film-search">搜尋電影</label><input id="admin-film-search" type="search" placeholder="電影名稱" maxlength="80"></div>
+<div class="admin-field"><label for="admin-film-search">搜尋電影</label><input id="admin-film-search" type="search" placeholder="電影名稱" maxlength="80" spellcheck="false" autocomplete="off"></div>
 <div class="admin-field"><label for="film-status-filter">發布狀態</label><select id="film-status-filter"><option value="">全部狀態</option><option value="draft">草稿</option><option value="published">已發布／排程</option><option value="archived">已下架</option></select></div>
 <button type="button" class="button button-outline" id="reload-films">重新載入</button>
 <button type="button" class="button button-outline" id="retry-publication">重試公開頁面同步</button>

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-29] CLI 故障注入入口，只接受測試環境，沒有密碼或內部診斷輸出。 */
+/** 健康檢查的 CLI 故障注入入口：只接受測試環境，不輸出密碼或內部診斷資訊。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 if (getenv('APP_ENV') !== 'test') {
     throw new RuntimeException('Test environment required.');

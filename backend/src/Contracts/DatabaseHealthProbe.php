@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Contracts;
 
-/** [E-29] 核心 DB／migration 就緒探測，正式 PDO 與受控故障測試共用邊界。 */
+/** 檢查資料庫與 migration 是否就緒；正式環境用 PDO 實作，測試可替換成模擬故障的版本。 */
 interface DatabaseHealthProbe
 {
     public function ready(): bool;

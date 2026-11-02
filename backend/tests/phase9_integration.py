@@ -1,4 +1,4 @@
-"""[S G22/G23/G29; E-31] Real yinghua_test HTTP/DB checks. Own fixture only; no main data."""
+"""以 yinghua_test 實際驗證最新消息與優惠的 HTTP 與資料庫行為；只用測試自有的資料，不動主資料。"""
 import concurrent.futures,json,re,subprocess,sys
 from pathlib import Path
 from api_integration import ROOT,Client,fixture
@@ -68,7 +68,7 @@ def main():
         call('GET','/api/v1/offers/'+o['slug']+'/neighbors',client=guest)
         check('expired excluded active list',not any(x['id']==o['id'] for x in call('GET','/api/v1/offers?q='+prefix,client=guest)['items']))
         check('expired included admin filter',any(x['id']==o['id'] for x in call('GET','/api/v1/admin/offers?active=false&q='+prefix)['items']))
-        # Authorization is read fresh on every request; all SQL is guarded by integration-fixture.php.
+        # 權限在每次請求時重新讀取；所有 SQL 都經過 integration-fixture.php，限制只能動測試庫。
         fixture("UPDATE admin_role_permissions SET allowed=0 WHERE admin_id='"+actor+"'")
         for module in ['news','offers']:
             call('GET','/api/v1/admin/'+module,expected=403)

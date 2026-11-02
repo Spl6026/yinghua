@@ -18,14 +18,13 @@ readonly class Route
         public bool $authenticated = false,
         public ?string $module = null,
         public ?string $action = null,
-        public bool $allowPasswordChange = false,
         public bool $allowPreviewControl = false,
     ) {}
 
     /** @return array<string,string>|null */
     public function match(string $path): ?array
     {
-        // [E-27] 本人資源的 attractionId 與既有 id 採相同路由邊界，完整 UUID 由 DTO 驗證。
+        // 路由只粗略比對 UUID 的字元，完整格式由 DTO 驗證。
         $patterns = ['id' => '[a-f0-9-]{36}', 'slug' => '[a-z0-9][a-z0-9-]{0,159}', 'attractionId' => '[a-f0-9-]{36}'];
         $expression = preg_quote($this->path, '~');
         foreach ($patterns as $name => $pattern) {

@@ -1,4 +1,4 @@
-"""[E-28] Fresh and existing-data upgrades in newly created isolated schemas only."""
+"""只在新建立的隔離 schema 中，驗證 SEO 設定 migration 在空資料庫與既有資料上的升級。"""
 import json,re,secrets,subprocess
 from pathlib import Path
 

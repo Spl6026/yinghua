@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Models;
 
-/** [E-27] 公開生成故障不是下架；私人清單需明確區分未知。 */
+/** 收藏或行程中的景點目前能否顯示；公開快照讀取失敗時是 Unknown，不能當成已下架。 */
 enum AttractionAvailability: string
 {
     case Available = 'available';

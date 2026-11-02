@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [D：D19–D21；E-27] 實際 MariaDB 12.3 查詢計畫；自有資料最後全部回滾。 */
+/** 在實際的 MariaDB 上檢查會員資源查詢的執行計畫；測試自建的資料最後全部回滾。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Config;

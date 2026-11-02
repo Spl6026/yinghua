@@ -6,7 +6,6 @@ namespace Yinghua\Services;
 
 use Yinghua\Support\Secrets;
 use RuntimeException;
-use Yinghua\Config;
 use Yinghua\Contracts\Transactions;
 use Yinghua\DTO\AuthGrant;
 use Yinghua\DTO\AuthenticatedIdentity;
@@ -32,9 +31,8 @@ class Authentication
         private readonly EventRepository $events,
         private readonly Transactions $transactions,
         private readonly Captcha $captcha,
-        private readonly Config $config,
         private readonly ConsentRepository $consents,
-        private readonly ?PublishedPolicies $policies = null,
+        private readonly PublishedPolicies $policies,
     ) {}
 
     public function current(IdentityKind $kind, string $token): AuthenticatedIdentity
@@ -93,13 +91,13 @@ class Authentication
     {
         $this->limiter->check('register-ip', $client->ipHash, 20, 3600);
         $this->limiter->check('register-email', $input->email, 5, 900);
-        if ($input->termsVersion !== ($this->policies?->current() ?? $this->config->string('TERMS_VERSION', 'local-development-v1'))) {
+        if ($input->termsVersion !== $this->policies->current()) {
             throw ApplicationError::invalid('termsVersion', '條款版本已更新，請重新閱讀。');
         }
         $hash = $this->passwords->hash($input->password);
         try {
             $grant = $this->transactions->run(function () use ($input, $client, $hash, $previousToken): ?AuthGrant {
-                if ($this->policies !== null && $input->termsVersion !== $this->policies->current(true)) {
+                if ($input->termsVersion !== $this->policies->current(true)) {
                     throw ApplicationError::invalid('termsVersion', '條款版本已更新，請重新閱讀。');
                 }
                 if (!$this->captcha->consume($input, $client)) {

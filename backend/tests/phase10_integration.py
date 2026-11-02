@@ -1,4 +1,4 @@
-"""[S G14/G24/L14; E-32] Named yinghua_test fixture; actual HTTP/DB, no main writes."""
+"""推薦路線的整合測試：使用指定的 yinghua_test 測試資料與真實 HTTP／資料庫，不寫入主資料庫。"""
 import concurrent.futures,json,subprocess,uuid
 from api_integration import ROOT,Client,fixture
 from phase8_browser_fixture import literal,publish
@@ -52,7 +52,7 @@ def main():
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:
             responses=list(pool.map(lambda i:clients[i].call('PUT',base+'/'+a['id'],attempts[i])[0],range(2)))
         check('concurrent edit has one winner',sorted(responses)==[200,409])
-        # Public snapshot drops newly unavailable stops, and never exposes a zero-stop route.
+        # 公開快照會拿掉剛下架的站點，而且一站都沒有的路線絕不公開。
         fixture("UPDATE attractions SET status='archived' WHERE id='"+extra+"'");publish()
         public=call('GET','/api/v1/routes',client=guest)
         aa=next(x for x in public['items'] if x['id']==a['id']);check('archived stop skipped',len(aa['stops'])==1 and aa['stops'][0]['attractionId']==m['placeId'])
@@ -61,7 +61,7 @@ def main():
         fixture("UPDATE attractions SET status='archived' WHERE id='"+m['placeId']+"'");publish()
         check('zero usable routes hidden',all(x['id'] not in ids for x in call('GET','/api/v1/routes',client=guest)['items']))
         fixture("UPDATE attractions SET status='published' WHERE id IN ('"+extra+"','"+m['placeId']+"')");publish()
-        # Real permissions: no new accounts; restore owned fixture's original matrix in finally.
+        # 使用真實的權限設定、不建立新帳號；最後在 finally 還原測試帳號原本的權限矩陣。
         fixture("UPDATE admin_role_permissions ap JOIN permissions p ON p.id=ap.permission_id SET ap.allowed=(p.action_key='view') WHERE ap.admin_id='"+actor+"' AND p.module_key='routes'")
         call('GET',base)
         call('POST',base,route(),expected=403)

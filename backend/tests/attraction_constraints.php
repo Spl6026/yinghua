@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-18／R3-04] 真實 MariaDB CHECK，測試結束回滾。 */
+/** 驗證景點資料表在真實 MariaDB 上的 CHECK 約束，測試結束後回滾。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 $config = new Yinghua\Config();
 if ($config->string('APP_ENV') !== 'test' || $config->string('DB_DATABASE') !== 'yinghua_test') {
@@ -15,7 +15,7 @@ try {
     foreach ([[null,null,true],[24.8,120.97,true],[null,120.97,false],[24.8,null,false],[91,120,false],[24,181,false],[-90,-180,true],[90,180,true]] as [$latitude,$longitude,$allowed]) {
         $accepted = true;
         try {
-            $database->execute("UPDATE attractions SET latitude=:latitude,longitude=:longitude WHERE legacy_id=2", ['latitude' => $latitude,'longitude' => $longitude]);
+            $database->execute("UPDATE attractions SET latitude=:latitude,longitude=:longitude WHERE prototype_id=2", ['latitude' => $latitude,'longitude' => $longitude]);
         } catch (PDOException $error) {
             if (($error->errorInfo[1] ?? null) !== 4025) {
                 throw $error;

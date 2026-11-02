@@ -24,7 +24,10 @@ class PublicSiteSettings
         $general = $snapshot['general'] ?? null;
         $document = new \Yinghua\DTO\GeneralSettingsDocument();
         if (is_array($general) && is_int($general['version'] ?? null)) {
-            $document = new \Yinghua\DTO\GeneralSettingsDocument($general['version'], \Yinghua\DTO\GeneralSettings::fromArray(SeoSettingsInput::object($general['values'] ?? null, 'values')));
+            $document = new \Yinghua\DTO\GeneralSettingsDocument(
+                $general['version'],
+                \Yinghua\DTO\GeneralSettings::fromArray(SeoSettingsInput::object($general['values'] ?? null, 'values')),
+            );
         }
         return new PublicSiteSettingsDocument($seo['version'], $defaults, $snapshot['generation'], $document);
     }

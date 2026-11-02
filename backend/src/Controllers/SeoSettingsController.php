@@ -21,6 +21,13 @@ class SeoSettingsController
 
     public function save(ApiContext $context): Response
     {
-        return new Response(200, $this->service->save($context->actor(), SeoSettingsInput::fromArray($context->request->json(), $this->targets), $context->client)->toArray());
+        return new Response(
+            200,
+            $this->service->save(
+                $context->actor(),
+                SeoSettingsInput::fromArray($context->request->json(), $this->targets),
+                $context->client,
+            )->toArray(),
+        );
     }
 }

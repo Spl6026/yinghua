@@ -6,7 +6,7 @@ namespace Yinghua\Models;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [E-25] 共用媒體端點依所屬業務模組授權；不產生新的權限種類。 */
+/** 媒體 API 是共用的，依圖片所屬的業務模組檢查權限，沒有獨立的媒體權限。 */
 enum MediaModule: string
 {
     case Attractions = 'attractions';

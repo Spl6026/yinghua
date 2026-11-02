@@ -6,7 +6,7 @@ namespace Yinghua\Policies;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S：G32／SEO E8–E9；E-28] 純驗證，不抓取外部網址。 */
+/** SEO 網址欄位的格式檢查，不會去抓取外部網址。 */
 class SeoUrlPolicy
 {
     public static function https(string $value, string $field, bool $origin = false): string

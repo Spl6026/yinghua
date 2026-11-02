@@ -45,7 +45,12 @@ class AdminController
 
     public function update(ApiContext $context): Response
     {
-        $updated = $this->service->update($context->actor(), $context->id(), AdminWriteInput::fromArray($context->request->json(), false), $context->client);
+        $updated = $this->service->update(
+            $context->actor(),
+            $context->id(),
+            AdminWriteInput::fromArray($context->request->json(), false),
+            $context->client,
+        );
 
         return new Response(200, ['admin' => $updated->toArray()]);
     }
@@ -55,7 +60,12 @@ class AdminController
         $values = $context->request->json();
         $input = new Input($values);
         $input->only(['version']);
-        $this->service->delete($context->actor(), $context->id(), array_key_exists('version', $values) ? $input->positiveInt('version') : null, $context->client);
+        $this->service->delete(
+            $context->actor(),
+            $context->id(),
+            array_key_exists('version', $values) ? $input->positiveInt('version') : null,
+            $context->client,
+        );
 
         return new Response(204);
     }

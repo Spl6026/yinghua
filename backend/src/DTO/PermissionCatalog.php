@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-01／E-13] 矩陣欄位與最小選單摘要；不包含 Email 或登入憑證。 */
+/** 權限矩陣的欄位與可選對象清單；對象只帶顯示所需的欄位，不含 Email 或登入憑證。 */
 readonly class PermissionCatalog
 {
     /** @param list<array{module:string,action:string}> $permissions

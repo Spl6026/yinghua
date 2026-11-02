@@ -35,7 +35,8 @@ readonly class OpeningDay
     /** @return array{day:int,status:string,periods:list<array{opens:string,closes:string,nextDay:bool}>} */
     public function toArray(): array
     {
-        return ['day' => $this->day,'status' => $this->status->value,'periods' => array_map(static fn(OpeningPeriod $period): array => $period->toArray(), $this->periods)];
+        return ['day' => $this->day,'status' => $this->status->value,
+            'periods' => array_map(static fn(OpeningPeriod $period): array => $period->toArray(), $this->periods)];
     }
 
     public function description(): string
@@ -44,7 +45,10 @@ readonly class OpeningDay
             OpeningDayStatus::Unknown => '依店家公告',
             OpeningDayStatus::Closed => '公休',
             OpeningDayStatus::AllDay => '全天開放',
-            OpeningDayStatus::Periods => implode('、', array_map(static fn(OpeningPeriod $period): string => $period->description(), $this->periods)),
+            OpeningDayStatus::Periods => implode(
+                '、',
+                array_map(static fn(OpeningPeriod $period): string => $period->description(), $this->periods),
+            ),
         };
     }
 }

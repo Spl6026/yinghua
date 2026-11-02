@@ -8,11 +8,13 @@ use Yinghua\DTO\OfferQuery;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
+use Yinghua\Models\DetailUrlType;
+use Yinghua\Services\DetailUrlResolver;
 use Yinghua\Services\PublicOffers;
 
 class PublicOfferController
 {
-    public function __construct(private readonly PublicOffers $service) {}
+    public function __construct(private readonly PublicOffers $service, private readonly DetailUrlResolver $detailUrls) {}
 
     public function listing(ApiContext $context): Response
     {
@@ -41,6 +43,6 @@ class PublicOfferController
         if ($original === '' && $context->request->queryText('id') !== '') {
             $original = '/offer-detail.html?id=' . rawurlencode($context->request->queryText('id'));
         }
-        return new Response(301, [], [], ['Location' => $this->service->resolve($original)]);
+        return new Response(301, [], [], ['Location' => $this->detailUrls->resolve(DetailUrlType::Offer, $original)]);
     }
 }

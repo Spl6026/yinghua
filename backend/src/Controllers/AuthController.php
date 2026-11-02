@@ -23,6 +23,7 @@ use Yinghua\Services\AdminPreview;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
 use Yinghua\Services\PasswordReset;
+use Yinghua\Services\PublishedPolicies;
 
 class AuthController
 {
@@ -34,14 +35,14 @@ class AuthController
         private readonly Csrf $csrf,
         private readonly Config $config,
         private readonly AdminPreview $preview,
-        private readonly ?\Yinghua\Services\PublishedPolicies $policies = null,
+        private readonly PublishedPolicies $policies,
     ) {}
 
     public function csrf(ApiContext $context): Response
     {
         return new Response(200, ['token' => $this->csrf->token($context->csrf, $context->kind),
             'expiresIn' => $this->config->integer('CSRF_SECONDS', 3600),
-            'termsVersion' => $this->policies?->configurationVersion() ?? $this->config->string('TERMS_VERSION', 'local-development-v1')]);
+            'termsVersion' => $this->policies->configurationVersion()]);
     }
 
     public function captcha(ApiContext $context): Response
@@ -59,14 +60,23 @@ class AuthController
 
     public function register(ApiContext $context): Response
     {
-        $grant = $this->authentication->register(RegisterInput::fromArray($context->request->json()), $context->client, $context->sessionToken);
+        $grant = $this->authentication->register(
+            RegisterInput::fromArray($context->request->json()),
+            $context->client,
+            $context->sessionToken,
+        );
 
         return $this->signedIn($grant->account, $grant->token, $context, 201);
     }
 
     public function login(ApiContext $context): Response
     {
-        $grant = $this->authentication->login($context->kind, LoginInput::fromArray($context->request->json(), $context->kind), $context->client, $context->sessionToken);
+        $grant = $this->authentication->login(
+            $context->kind,
+            LoginInput::fromArray($context->request->json(), $context->kind),
+            $context->client,
+            $context->sessionToken,
+        );
 
         return $this->signedIn($grant->account, $grant->token, $context);
     }

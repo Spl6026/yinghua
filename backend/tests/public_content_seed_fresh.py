@@ -1,4 +1,4 @@
-"""[E-26] 全新專用隨機 schema 的初始化順序、原型店家與不覆寫；最後刪除自有 schema。"""
+"""在全新的隨機 schema 驗證初始化順序、原型店家資料，以及不覆寫既有資料；最後刪除自建的 schema。"""
 import json,re,secrets
 from public_content_schema_upgrade import ROOT,root_sql,php
 
@@ -26,11 +26,11 @@ def main():
             $check(count($db->rows("SELECT id FROM merchants WHERE status='active' AND attraction_id IS NOT NULL"))===$merchantCount);
             $check(count($composition->publication($db)->read()['offers'])===3);
             $check(count($composition->publication($db)->read()['news'])===4);
-            $check(count($db->rows('SELECT id FROM offers WHERE legacy_id BETWEEN 101 AND 103'))===3);
-            $db->execute("UPDATE news_posts SET title='管理員編寫內容',version=version+1 WHERE legacy_id=0");
-            $db->execute("UPDATE merchants SET status='inactive',name='已停用店家',version=version+1 WHERE id=(SELECT merchant_id FROM offers WHERE legacy_id=101)");
+            $check(count($db->rows('SELECT id FROM offers WHERE prototype_id BETWEEN 101 AND 103'))===3);
+            $db->execute("UPDATE news_posts SET title='管理員編寫內容',version=version+1 WHERE prototype_id=0");
+            $db->execute("UPDATE merchants SET status='inactive',name='已停用店家',version=version+1 WHERE id=(SELECT merchant_id FROM offers WHERE prototype_id=101)");
             $second=$commands->run(['console.php','content:seed-public-demo']);$check($second===0);
-            $check(($db->row('SELECT title FROM news_posts WHERE legacy_id=0')['title']??'')==='管理員編寫內容');
+            $check(($db->row('SELECT title FROM news_posts WHERE prototype_id=0')['title']??'')==='管理員編寫內容');
             $check(count($db->rows("SELECT id FROM merchants WHERE status='inactive' AND name='已停用店家'"))===1);
             $check(count($composition->publication($db)->read()['offers'])===2);
             echo json_encode(['freshDemoChecks'=>$checks,'merchantProfilesReused'=>true,'editedContentPreserved'=>true,'disabledMerchantPreserved'=>true,'temporarySchemaRemoved'=>true]);

@@ -64,7 +64,7 @@
 | --- | --- |
 | GET `/api/v1/films` | 成功快照中的指定週／日期區間電影與場次，公開分頁 |
 | GET `/api/v1/films/{slug}` | 成功快照的已發布詳情及場次 |
-| GET `/api/v1/films/resolve-url` | legacy 0–3、UUID、固定或歷史網址解析 |
+| GET `/api/v1/films/resolve-url` | 原型編號 0–3、UUID、固定或先前網址代稱解析 |
 | GET `/api/v1/admin/films` | 後台搜尋／狀態／分頁；films.view |
 | POST `/api/v1/admin/films` | 新增電影與場次；films.create |
 | GET `/api/v1/admin/films/{id}` | 編輯所需資料；films.view，寫入另驗 films.edit |

@@ -51,6 +51,14 @@ class MediaController
 
     public function listing(ApiContext $context): Response
     {
-        return new Response(200, $this->service->listing($context->actor(), $context->request->queryInteger('page', 1, 100000), $context->request->queryInteger('pageSize', 20, 100), MediaModule::parse($context->request->queryText('module') ?: 'attractions')));
+        return new Response(
+            200,
+            $this->service->listing(
+                $context->actor(),
+                $context->request->queryInteger('page', 1, 100000),
+                $context->request->queryInteger('pageSize', 20, 100),
+                MediaModule::parse($context->request->queryText('module') ?: 'attractions'),
+            ),
+        );
     }
 }

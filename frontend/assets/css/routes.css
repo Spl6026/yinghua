@@ -1,0 +1,62 @@
+/* 推薦路線：沿用原型的表單與卡片，補上有序站點的鍵盤操作。 */
+.route-stops {
+  padding-left: 1.5rem;
+  scroll-margin-top: 6rem;
+}
+.route-stop {
+  padding: 1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.route-stop h2 {
+  overflow-wrap: anywhere;
+}
+.route-stop-actions,
+.route-candidates,
+.route-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+.route-candidates .button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.route-picker-actions input {
+  flex: 1;
+  min-width: 0;
+}
+.route-card p,
+.route-card h3 {
+  overflow-wrap: anywhere;
+}
+.route-card .route-stop-links {
+  padding-left: 1.2rem;
+}
+.route-card {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 400px;
+}
+
+/* 路線編輯：空狀態不顯示編號，站點標題與一般標籤同級，分頁文字與按鈕垂直置中。 */
+#route-stops-label {
+  margin: 0 0 6px;
+  font-size: 15px;
+}
+.route-stops-empty {
+  list-style: none;
+  margin-left: -1.5rem;
+  padding: 14px 16px;
+  border: 1px dashed #b9b6a8;
+  color: #5d6258;
+  font-size: 14px;
+}
+#route-place-page {
+  align-self: center;
+  font-size: 14px;
+  color: #5d6258;
+}
+.route-candidates:empty {
+  display: none;
+}

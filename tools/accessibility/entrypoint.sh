@@ -1,5 +1,5 @@
 #!/bin/bash
-# [E-30] Private X display and authentication; no host X11/audio/input mounts.
+# 使用獨立的 X display 與認證，不掛載主機的 X11、音訊或輸入裝置。
 set -euo pipefail
 umask 077
 mkdir -p "$HOME/.vnc" "$XDG_RUNTIME_DIR" "$HOME/firefox-profile"

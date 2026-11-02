@@ -15,7 +15,9 @@ readonly class MemberAttractionSnapshot
     public function view(string $id): array
     {
         $item = $this->items[$id] ?? null;
-        $availability = !$this->ready ? AttractionAvailability::Unknown : ($item === null ? AttractionAvailability::Unavailable : AttractionAvailability::Available);
+        $availability = !$this->ready
+            ? AttractionAvailability::Unknown
+            : ($item === null ? AttractionAvailability::Unavailable : AttractionAvailability::Available);
 
         return ['availability' => $availability->value, 'attraction' => $item];
     }

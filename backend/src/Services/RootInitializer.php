@@ -47,7 +47,8 @@ class RootInitializer
     {
         $input = new Input(['password' => $password]);
         $hash = $this->passwords->hash($input->password());
-        $account = $this->accounts->byLogin(IdentityKind::Admin, 'admin') ?? throw new RuntimeException('Root account has not been initialized.');
+        $account = $this->accounts->byLogin(IdentityKind::Admin, 'admin')
+            ?? throw new RuntimeException('Root account has not been initialized.');
         $this->transactions->run(function () use ($account, $hash): void {
             $this->accounts->find(IdentityKind::Admin, $account->id, true);
             $this->accounts->savePassword(IdentityKind::Admin, $account->id, $hash);

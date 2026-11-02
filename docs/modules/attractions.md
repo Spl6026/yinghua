@@ -36,7 +36,7 @@ U-09／E-20 另新增共用營業週表：人工與 Google 帶入皆經 OpeningH
 
 首頁沿用原型博物館介紹與精選圖片版位，讀取同一景點資料。電影、活動、優惠等首頁區塊尚待後續。新頁保留 frontend 原型 CSS、導覽、footer；新增樣式在 phase3.css。原始 website 保持不動。
 
-`attraction_aliases` 保留舊 slug。舊網址只在目標仍公開時 301；下架／刪除後 404。原型 `place-detail.html?id=…` 僅用受控 legacy_id 對照，不以陣列索引推算新資料 ID。收藏按鈕仍屬原型互動，不能以此宣告階段六保存完成。
+`attraction_aliases` 保留舊 slug。舊網址只在目標仍公開時 301；下架／刪除後 404。原型 `place-detail.html?id=…` 僅用受控 prototype_id（原型編號）對照，不以陣列索引推算新資料 ID。收藏按鈕仍屬原型互動，不能以此宣告階段六保存完成。
 
 ## 內容初始化與操作
 

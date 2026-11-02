@@ -8,7 +8,7 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
 use Yinghua\Models\NewsType;
 
-/** [S G22／G23；E-31] 已有欄位的管理查詢，不新增業務必填。 */
+/** 消息、優惠與店家管理列表的查詢條件，全部都是可選的篩選。 */
 readonly class AdminContentQuery
 {
     public function __construct(

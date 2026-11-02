@@ -8,7 +8,7 @@ use DOMDocument;
 use Yinghua\DTO\ContentUrl;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S：功能規格 G10／G29；E-26] 對淨化後正文檢查圖片用途，不下載任意 URL。 */
+/** 檢查淨化後正文裡的圖片；只看網址與屬性，不會去下載任何 URL。 */
 final class BodyImages
 {
     /** @return list<string> */

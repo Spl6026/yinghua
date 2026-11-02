@@ -1,32 +1,39 @@
-import {renderFontHead} from './font-head.mjs';
-import {homeErrorView} from './home-error-view.mjs';
-// [E-12] 固定 HTML 在前端建置時組合；PHP 不輸出任何畫面。
+import { renderFontHead } from './font-head.mjs';
+import { homeErrorView } from './home-error-view.mjs';
+// 固定 HTML 頁面在前端建置時組合，PHP 不輸出任何畫面。
 import { readFile, writeFile, mkdir, readdir, cp } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
+import { addModulePreloads } from './module-preload.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
-const seoCatalog=JSON.parse(await readFile(join(root,'resources/seo-pages.json'),'utf8'));
+const modulePreloadCache = new Map();
+const seoCatalog = JSON.parse(await readFile(join(root, 'resources/seo-pages.json'), 'utf8'));
 if (dirname(output) !== root || output === root) throw new Error('Invalid build output');
 await mkdir(output, { recursive: true });
-const templates = Object.fromEntries(await Promise.all(
-  ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [name.replaceAll('-', '_').toUpperCase(), await readFile(join(root, 'templates', `${name}.html`), 'utf8')])
-));
+const templates = Object.fromEntries(
+  await Promise.all(
+    ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [
+      name.replaceAll('-', '_').toUpperCase(),
+      await readFile(join(root, 'templates', `${name}.html`), 'utf8'),
+    ])
+  )
+);
 async function pages(directory) {
   const result = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const path = join(directory, entry.name);
-    if (entry.isDirectory()) result.push(...await pages(path));
+    if (entry.isDirectory()) result.push(...(await pages(path)));
     else if (entry.name.endsWith('.html')) result.push(path);
   }
   return result;
 }
 const routes = [];
-// [U-05／E-29] 內容新增／編輯頁保留原型的上方返回列表；其他後台仍查看網站。
+// 內容新增／編輯頁保留原型上方的「返回列表」連結，其他後台頁則維持「查看網站」。
 const adminBackLinks = {
   'admin/route-add.html': ['/admin/routes.html', '← 返回推薦行程'],
   'admin/route-edit.html': ['/admin/routes.html', '← 返回推薦行程'],
@@ -39,64 +46,71 @@ const adminBackLinks = {
   'admin/film-add.html': ['/admin/films.html', '← 返回本週映演'],
   'admin/film-edit.html': ['/admin/films.html', '← 返回本週映演'],
 };
-// [U-03 / E-12] 保留原型各頁導覽的 active 樣式；food/search/auth 原版沒有選中項目。
+// 保留原型各頁導覽的 active 樣式；food、search、auth 原版本來就沒有選中項目。
 const navigationSections = {
-  '/explore.html': ['explore.html', 'museum.html', 'place-detail.html', 'places/'],
-  '/cinema.html': ['cinema.html', 'film-detail.html', 'films/'],
-  '/events.html': ['events.html', 'activities.html', 'city-news.html', 'news-detail.html', 'news/'],
-  '/offers.html': ['offers.html', 'offer-detail.html', 'offers/'],
+  '/explore.html': ['explore.html', 'museum.html'],
+  '/cinema.html': ['cinema.html'],
+  '/events.html': ['events.html', 'activities.html', 'city-news.html'],
+  '/offers.html': ['offers.html'],
   '/planner.html': ['planner.html', 'routes.html'],
 };
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
-  let html = renderPolicyVersion(await readFile(source, 'utf8'),process.env.TERMS_VERSION||'local-development-v1');
-  if (html.includes('/assets/js/public.js') && !html.includes('/assets/css/phase6.css')) {
-    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/phase6.css">\n</head>');
-  }
-  // [U-24／E-43] 一致性樣式最後載入，統一各階段樣式表遺留的字級與欄位高度差異。
-  if (!html.includes('/assets/css/ui-consistency.css')) {
-    html = html.replace('</head>', '<link rel="stylesheet" href="/assets/css/ui-consistency.css">\n</head>');
-  }
+  let html = renderPolicyVersion(await readFile(source, 'utf8'), process.env.TERMS_VERSION || '2026-11-02');
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
-  const selectedNavigation = Object.entries(navigationSections).find(([, paths]) => paths.some(path => path.endsWith('/') ? route.startsWith(path) : route === path))?.[0];
+  const selectedNavigation = Object.entries(navigationSections).find(([, paths]) =>
+    paths.some(path => (path.endsWith('/') ? route.startsWith(path) : route === path))
+  )?.[0];
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
     if (name === 'ADMIN_TOPBAR' && adminBackLinks[route]) {
       const [href, label] = adminBackLinks[route];
-      return templates[name].replace(/<a class="admin-preview"[^>]*>[^<]*<\/a>/, `<a class="admin-preview" href="${href}">${label}</a>`);
+      return templates[name].replace(
+        /<a class="admin-preview"[^>]*>[^<]*<\/a>/,
+        `<a class="admin-preview" href="${href}">${label}</a>`
+      );
     }
     if (name === 'SITE_HEADER' && selectedNavigation) {
-      return templates[name].replace(`href="${selectedNavigation}"`, `class="active" aria-current="page" href="${selectedNavigation}"`);
+      return templates[name].replace(
+        `href="${selectedNavigation}"`,
+        `class="active" aria-current="page" href="${selectedNavigation}"`
+      );
     }
-    return templates[name] ?? (name === 'PAGE_TITLE' ? title : (() => { throw new Error(`Unknown template: ${name}`); })());
+    if (name === 'PAGE_TITLE') return title;
+    if (!(name in templates)) throw new Error(`Unknown template: ${name}`);
+    return templates[name];
   });
   html = html.replaceAll('{{PAGE_TITLE}}', title);
-  html = html.replace(/<form id="(auth-form|admin-form|permissions-form)"/g, '<form method="post" id="$1"');
-  if (/data-auth-kind=/.test(html) || route.startsWith('admin/')) {
-    html = html.replace(/<input\b([^>]*)>/g, (match, attributes) => {
-      const additions = [];
-      if (!/spellcheck=/.test(attributes)) additions.push('spellcheck="false"');
-      if (!/autocomplete=/.test(attributes)) additions.push('autocomplete="off"');
-      return `<input${attributes} ${additions.join(' ')}>`;
-    });
-  }
-  html = html.replace(/<input\b[^>]*type="password"[^>]*>/g, match => match.replace(/\s(?:minlength|maxlength)="\d+"/g, ''));
-  // [S：SEO E7/E17；E-28] 固定／保護頁與發布頁共用 head，任何 query 均不含私人資料。
-  html=renderSeoHead(html,{path:'/'+route,title:html.match(/<title>([^<]*)<\/title>/)?.[1],
-    description:html.match(/<meta name="description" content="([^"]*)"/)?.[1],catalog:seoCatalog,origin:process.env.APP_URL||'http://localhost:8080'});
+  // 固定頁、保護頁與發布頁共用同一套 head；任何 query 都不含私人資料。
+  html = renderSeoHead(html, {
+    path: '/' + route,
+    title: html.match(/<title>([^<]*)<\/title>/)?.[1],
+    description: html.match(/<meta name="description" content="([^"]*)"/)?.[1],
+    catalog: seoCatalog,
+    origin: process.env.APP_URL || 'http://localhost:8080',
+  });
   if (html.includes('{{')) throw new Error(`Unresolved template: ${route}`);
   const target = join(output, route);
   await mkdir(dirname(target), { recursive: true });
-  // [S G34／B15；E-29] 各頁共用期限監看；API 事件可在入口載入前暫存於記憶體。
-  html=renderFontHead(html);
-  html=html.replace('</body>','<script type="module" src="/assets/js/session-monitor.js"></script></body>');
+  // 各頁共用登入期限監看；API 事件可以在入口程式載入前先暫存在記憶體。
+  html = renderFontHead(html);
+  html = html.replace(
+    '</body>',
+    '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
+  );
+  // 讓瀏覽器一開始就平行下載整棵模組依賴，而不是逐層等待 import。
+  html = addModulePreloads(html, join(root, 'assets'), modulePreloadCache);
   await writeFile(target, annotateEnglishPassages(html));
-  // [S G5；E] 內部503回應資產，不列入固定公開頁／sitemap／正常發布資料。
-  if(route==='index.html')await writeFile(join(output,'home-unavailable.response'),annotateEnglishPassages(homeErrorView(html)));
+  // 內部使用的 503 回應頁資產，不列入固定公開頁、sitemap 或正常發布資料。
+  if (route === 'index.html')
+    await writeFile(join(output, 'home-unavailable.response'), annotateEnglishPassages(homeErrorView(html)));
   routes.push(`/${route}`);
 }
 await cp(join(root, 'assets'), join(output, 'assets'), { recursive: true });
 await mkdir(join(output, 'assets/js/core'), { recursive: true });
-await writeFile(join(output, 'assets/js/core/routes.js'), `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`);
-// [S E33；E-34] 真robots由成功publication供應；build不放過時sitemap網址。
+await writeFile(
+  join(output, 'assets/js/core/routes.js'),
+  `export const routes = new Set(${JSON.stringify(['/', ...routes])});\n`
+);
+// 真正的 robots.txt 由成功的發布版本提供；建置階段不放入可能過時的 sitemap 網址。
 await writeFile(join(output, 'robots.txt'), 'User-agent: *\nDisallow: /admin/\n');
 console.log(`Built ${routes.length} HTML routes with shared templates.`);

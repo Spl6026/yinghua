@@ -8,7 +8,7 @@ use Yinghua\DTO\Attraction;
 use Yinghua\DTO\AttractionInput;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [U-10／E-21] 名稱／地址／座標改動後必須核對或解除關聯；確認是管理員行為。 */
+/** 景點的名稱、地址或座標改了之後，管理員必須重新確認 Google 地點關聯，或解除關聯。 */
 class GooglePlaceLinkPolicy
 {
     public function assertConfirmed(?Attraction $before, AttractionInput $input): void

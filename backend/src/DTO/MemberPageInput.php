@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [E-27] 游標只是位置，不是授權；Repository 必須另加會員條件。 */
+/** 會員清單的分頁游標；游標只表示位置，不代表授權，Repository 查詢時仍要加上會員條件。 */
 readonly class MemberPageInput
 {
     /** @param array<string,mixed> $position */
@@ -84,7 +84,8 @@ readonly class MemberPageInput
             $input = new Input($this->position);
             $input->only(['id', 'version', 'order']);
 
-            return ['id' => FavoriteStatusInput::id($input->text('id', 36, 36)), 'version' => $input->positiveInt('version'), 'order' => $input->positiveInt('order')];
+            return ['id' => FavoriteStatusInput::id($input->text('id', 36, 36)),
+                'version' => $input->positiveInt('version'), 'order' => $input->positiveInt('order')];
         } catch (ApplicationError) {
             throw ApplicationError::invalid('cursor', '無效的行程分頁位置。');
         }

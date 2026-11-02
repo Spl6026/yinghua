@@ -11,10 +11,16 @@ use Yinghua\Models\{Account, ContentStatus};
 use Yinghua\Repositories\{EventRepository, RecommendedRouteRepository};
 use Yinghua\Support\Secrets;
 
-/** [S E24/G24；E-32] 授權、交易、版本與發布流程集中；Controller 不操作資料庫。 */
+/** 推薦路線的後台管理：權限、交易、版本比對與發布都集中在這裡，Controller 不直接操作資料庫。 */
 class RecommendedRoutes
 {
-    public function __construct(private readonly RecommendedRouteRepository $records, private readonly Authorization $authorization, private readonly Transactions $transactions, private readonly ContentPublication $publication, private readonly EventRepository $events) {}
+    public function __construct(
+        private readonly RecommendedRouteRepository $records,
+        private readonly Authorization $authorization,
+        private readonly Transactions $transactions,
+        private readonly ContentPublication $publication,
+        private readonly EventRepository $events,
+    ) {}
 
     /** @return array<string,mixed> */
     public function listing(Account $actor, AdminContentQuery $query): array
@@ -57,7 +63,16 @@ class RecommendedRoutes
                 $this->records->assertAvailable($input);
                 $this->records->save($target, $input, $id === null);
                 $oldVersion = $before === null ? 0 : $before->version;
-                $this->events->content($fresh->id, $id === null ? 'route-create' : 'route-update', 'routes', $target, $oldVersion, $oldVersion + 1, $input->status->value, $client);
+                $this->events->content(
+                    $fresh->id,
+                    $id === null ? 'route-create' : 'route-update',
+                    'routes',
+                    $target,
+                    $oldVersion,
+                    $oldVersion + 1,
+                    $input->status->value,
+                    $client,
+                );
                 return $this->target($target);
             });
             return new RouteWriteResult($record, $this->publication->synchronize());

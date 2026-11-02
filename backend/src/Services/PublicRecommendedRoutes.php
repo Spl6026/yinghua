@@ -21,7 +21,7 @@ class PublicRecommendedRoutes
         return PublicCollection::page($items, $page, $pageSize, $snapshot);
     }
 
-    /** [S E15/L24；E-33] 待套用資訊只讀成功公開投影。
+    /** 提供會員套用前預覽的路線資訊，只讀成功發布的公開投影。
      * @return array<string,mixed>
      */
     public function get(string $id): array

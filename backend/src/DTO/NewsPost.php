@@ -4,5 +4,5 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [D：資料表建議 14；E-26] 明確主題資料，不把優惠混入消息。 */
+/** 最新消息；優惠有自己的資料表，不混在消息裡。 */
 readonly class NewsPost extends PublishedRecord {}

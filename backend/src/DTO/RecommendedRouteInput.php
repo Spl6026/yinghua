@@ -7,11 +7,20 @@ namespace Yinghua\DTO;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
 
-/** [S G14/G24；U-12；E-32] 僅名稱、至少一站必填；時間、主題、說明選填。 */
+/** 推薦路線表單輸入；只有名稱與至少一個站點必填，時間、主題、說明都是選填。 */
 readonly class RecommendedRouteInput
 {
     /** @param list<RouteStopInput> $stops */
-    public function __construct(public string $title, public string $theme, public string $summary, public ?int $durationMinutes, public int $sortOrder, public ContentStatus $status, public array $stops, public int $version) {}
+    public function __construct(
+        public string $title,
+        public string $theme,
+        public string $summary,
+        public ?int $durationMinutes,
+        public int $sortOrder,
+        public ContentStatus $status,
+        public array $stops,
+        public int $version,
+    ) {}
 
     /** @param array<string,mixed> $values */
     public static function from(array $values, bool $creating): self
@@ -43,6 +52,15 @@ readonly class RecommendedRouteInput
         if ($stops === []) {
             throw ApplicationError::invalid('stops', '路線至少需要一個有效景點。');
         }
-        return new self($input->text('title', 1, 160), $input->optionalText('theme'), $input->optionalText('summary', 20000), $duration, $order, $status, $stops, $creating ? 0 : $input->positiveInt('version'));
+        return new self(
+            $input->text('title', 1, 160),
+            $input->optionalText('theme'),
+            $input->optionalText('summary', 20000),
+            $duration,
+            $order,
+            $status,
+            $stops,
+            $creating ? 0 : $input->positiveInt('version'),
+        );
     }
 }

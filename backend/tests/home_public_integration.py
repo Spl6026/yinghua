@@ -1,4 +1,4 @@
-"""[S：功能規格 5；E-26] 首頁真實整合與同版故障，最後只清理本次 UUID。"""
+"""首頁的真實整合測試，以及同一版發布時的故障處理；最後只清理本次產生的 UUID 資料。"""
 from pathlib import Path
 from datetime import datetime,timedelta,timezone
 import argparse,json,re,secrets,sys,uuid

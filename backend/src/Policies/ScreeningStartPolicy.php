@@ -7,7 +7,7 @@ namespace Yinghua\Policies;
 use Yinghua\DTO\ScreeningInput;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [U-16] 僅比較開始分鐘，不推算片長／結束時間。 */
+/** 檢查同一部電影的場次不重複；只比較開始時間（到分鐘），不推算片長或結束時間。 */
 readonly class ScreeningStartPolicy
 {
     /** @param list<ScreeningInput> $items */

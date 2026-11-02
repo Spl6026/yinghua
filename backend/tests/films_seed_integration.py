@@ -1,4 +1,4 @@
-"""[E-25] 受控電影匯入不猜日期、不覆寫編輯；原型四網址與 legacy 0 仍可讀。"""
+"""受控的電影匯入不推測日期、不覆寫已編輯的內容；原型的四個網址與舊的 0 號網址仍可讀取。"""
 import json
 from api_integration import Client,ROOT,fixture,password
 from attractions_integration import cli,raw
@@ -10,17 +10,17 @@ def main():
         assert value,label
         checks.append(label)
     cli('film:seed-demo')
-    data=fixture('SELECT id,legacy_id,slug,title FROM films WHERE legacy_id BETWEEN 0 AND 3 ORDER BY legacy_id')
-    check('four stable original metadata records',len(data)==4 and [int(row['legacy_id']) for row in data]==[0,1,2,3])
+    data=fixture('SELECT id,prototype_id,slug,title FROM films WHERE prototype_id BETWEEN 0 AND 3 ORDER BY prototype_id')
+    check('four stable original metadata records',len(data)==4 and [int(row['prototype_id']) for row in data]==[0,1,2,3])
     for row in data:check('original URL '+row['slug'],raw(guest,'/films/'+row['slug']+'.html')[0]==200)
-    check('legacy id zero resolves',raw(guest,'/film-detail.html?id=0')[0]==200)
+    check('prototype id zero resolves',raw(guest,'/film-detail.html?id=0')[0]==200)
     first=root.call('GET','/api/v1/admin/films/'+data[0]['id'])[1]['film'];changed=None
     try:
         code,result,_=root.call('PUT','/api/v1/admin/films/'+first['id'],{'title':'已編寫的電影介紹驗收','version':first['version']})
         assert code==200;changed=result['film']
-        before=fixture('SELECT id,legacy_id,title,version FROM films WHERE legacy_id BETWEEN 0 AND 3 ORDER BY legacy_id')
+        before=fixture('SELECT id,prototype_id,title,version FROM films WHERE prototype_id BETWEEN 0 AND 3 ORDER BY prototype_id')
         cli('film:seed-demo')
-        after=fixture('SELECT id,legacy_id,title,version FROM films WHERE legacy_id BETWEEN 0 AND 3 ORDER BY legacy_id')
+        after=fixture('SELECT id,prototype_id,title,version FROM films WHERE prototype_id BETWEEN 0 AND 3 ORDER BY prototype_id')
         check('repeat seed leaves edits and versions unchanged',before==after)
         check('metadata seed invents no screening years',all(root.call('GET','/api/v1/admin/films/'+row['id'])[1]['film']['screenings']==[] for row in data))
     finally:

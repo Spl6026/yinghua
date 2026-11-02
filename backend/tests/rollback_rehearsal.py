@@ -1,4 +1,4 @@
-"""[E-29] Two committed-source release labels, compatible schema and current-data rollback."""
+"""演練以兩個已提交的版本標籤回滾，確認 schema 相容且保留目前的資料。"""
 import argparse,json,secrets,time
 from production_rehearsal import Client,ROOT,check,checks,sql,await_status
 from recovery_rehearsal import data_snapshot,refused

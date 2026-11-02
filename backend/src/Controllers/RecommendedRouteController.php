@@ -15,12 +15,33 @@ class RecommendedRouteController
     public function listing(ApiContext $context): Response
     {
         $r = $context->request;
-        return new Response(200, $this->service->listing($context->actor(), new AdminContentQuery($r->queryText('q'), $r->queryText('status'), '', '', '', $r->queryInteger('page', 1, 100000), $r->queryInteger('pageSize', 20, 100))));
+        return new Response(
+            200,
+            $this->service->listing(
+                $context->actor(),
+                new AdminContentQuery(
+                    $r->queryText('q'),
+                    $r->queryText('status'),
+                    '',
+                    '',
+                    '',
+                    $r->queryInteger('page', 1, 100000),
+                    $r->queryInteger('pageSize', 20, 100),
+                ),
+            ),
+        );
     }
 
     public function candidates(ApiContext $context): Response
     {
-        return new Response(200, $this->service->candidates($context->actor(), $context->request->queryText('q'), $context->request->queryInteger('page', 1, 100000)));
+        return new Response(
+            200,
+            $this->service->candidates(
+                $context->actor(),
+                $context->request->queryText('q'),
+                $context->request->queryInteger('page', 1, 100000),
+            ),
+        );
     }
 
     public function get(ApiContext $context): Response
@@ -56,6 +77,13 @@ class RecommendedRouteController
     public function published(ApiContext $context): Response
     {
         $r = $context->request;
-        return new Response(200, $this->publicRoutes->listing($r->queryText('theme'), $r->queryInteger('page', 1, 100000), $r->queryInteger('pageSize', 20, 100)));
+        return new Response(
+            200,
+            $this->publicRoutes->listing(
+                $r->queryText('theme'),
+                $r->queryInteger('page', 1, 100000),
+                $r->queryInteger('pageSize', 20, 100),
+            ),
+        );
     }
 }

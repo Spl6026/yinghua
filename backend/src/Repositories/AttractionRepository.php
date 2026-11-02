@@ -11,8 +11,9 @@ use Yinghua\DTO\AttractionPage;
 use Yinghua\DTO\OpeningHours;
 use Yinghua\DTO\PhoneNumber;
 use Yinghua\Exceptions\ContentConflict;
+use Yinghua\Support\UtcDateTime;
 
-/** [S：功能規格 13/19/20；E-18] SQL 僅在此層，公開投影與管理查詢共用映射。 */
+/** 景點的 SQL 都集中在這一層；公開頁面與後台查詢共用同一套映射。 */
 class AttractionRepository
 {
     private const string SELECT = 'SELECT a.*,m.storage_key,m.alt AS media_alt,m.source AS media_source,m.license AS media_license FROM attractions a LEFT JOIN media_assets m ON m.id=a.media_id';
@@ -49,19 +50,23 @@ class AttractionRepository
         return new AttractionPage(array_map($this->map(...), $rows), $total->integer('total'), $page, $size);
     }
 
-    /** [S：功能規格 E20；E-24] 僅原始六筆、已發布且未刪除的 DB 內容；不重建本機模擬資料。
+    /**
+     * 只取原始六筆中已發布且未刪除的資料庫內容，不另外重建本機模擬資料。
+     *
      * @return list<Attraction>
      */
     public function samples(): array
     {
-        $rows = $this->database->rows(self::SELECT . " WHERE a.legacy_id BETWEEN 1 AND 6 AND a.status='published' AND a.deleted_at IS NULL AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.legacy_id");
+        $rows = $this->database->rows(
+            self::SELECT . " WHERE a.prototype_id BETWEEN 1 AND 6 AND a.status='published' AND a.deleted_at IS NULL AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.prototype_id",
+        );
 
         return array_map($this->map(...), $rows);
     }
 
     public function save(string $id, AttractionInput $input, bool $creating, ?string $actorId = null): void
     {
-        // [D：資料表建議 C10] 真正操作者由服務層傳入，不能由 HTTP 欄位冒名。
+        // 操作者由服務層傳入，不能透過 HTTP 送來的欄位冒用他人身分。
         $fields = $input->fields;
         if ($actorId !== null) {
             $fields['updated_by'] = $actorId;
@@ -73,23 +78,38 @@ class AttractionRepository
             if ($creating) {
                 $columns = implode(',', array_keys($fields));
                 $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute('INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')', ['id' => $id,...$fields]);
+                $this->database->execute(
+                    'INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')',
+                    ['id' => $id,...$fields],
+                );
             } else {
-                // [U-09] 舊客戶端省略週表時，不可用舊摘要蓋掉已存在的結構化摘要。
+                // 舊版客戶端沒有送週表時，不能用舊格式的摘要蓋掉已存在的結構化營業時間。
                 $structured = array_key_exists('opening_hours', $input->fields);
                 $columns = implode(',', array_map(static fn(string $key): string => $key === 'hours' && !$structured
                     ? 'hours=CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END' : $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute('UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$fields]);
+                $this->database->execute(
+                    'UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
+                    ['id' => $id,...$fields],
+                );
             }
             if ($input->fields['category'] === '景點') {
-                // [E-17／26] 分類可修改；保留已被優惠引用的店家 profile，不以硬刪破壞歷史。
-                $this->database->execute('DELETE m FROM merchants m WHERE m.attraction_id=:id AND NOT EXISTS (SELECT 1 FROM offers o WHERE o.merchant_id=m.id)', ['id' => $id]);
-                $this->database->execute('UPDATE merchants SET attraction_id=NULL,version=version+1,updated_at=UTC_TIMESTAMP() WHERE attraction_id=:id', ['id' => $id]);
+                // 分類可以修改，但已被優惠引用的店家資料要保留，不能硬刪而破壞歷史紀錄。
+                $this->database->execute(
+                    'DELETE m FROM merchants m WHERE m.attraction_id=:id AND NOT EXISTS (SELECT 1 FROM offers o WHERE o.merchant_id=m.id)',
+                    ['id' => $id],
+                );
+                $this->database->execute(
+                    'UPDATE merchants SET attraction_id=NULL,version=version+1,updated_at=UTC_TIMESTAMP() WHERE attraction_id=:id',
+                    ['id' => $id],
+                );
             } else {
-                // 店家 profile 只在首次建立回填，後續景點編輯不覆寫優惠聯絡資料。
-                $this->database->execute("INSERT IGNORE INTO merchants (id,attraction_id,name,district,address,phone,website,status)
+                // 店家資料只在第一次建立時回填，之後編輯景點不會覆寫優惠用的聯絡資料。
+                $this->database->execute(
+                    "INSERT IGNORE INTO merchants (id,attraction_id,name,district,address,phone,website,status)
                     SELECT UUID(),id,name,COALESCE(district,''),address,phone,website_url,
-                    IF(status='published' AND publish_at<=UTC_TIMESTAMP(),'active','inactive') FROM attractions WHERE id=:id", ['id' => $id]);
+                    IF(status='published' AND publish_at<=UTC_TIMESTAMP(),'active','inactive') FROM attractions WHERE id=:id",
+                    ['id' => $id],
+                );
             }
             $this->alias('/places/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
@@ -106,24 +126,36 @@ class AttractionRepository
         if ($existing !== null && (new Row($existing))->string('attraction_id') !== $id) {
             throw new ContentConflict('Historical URL already reserved.');
         }
-        $this->database->execute('INSERT IGNORE INTO attraction_aliases (path,attraction_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
+        $this->database->execute(
+            'INSERT IGNORE INTO attraction_aliases (path,attraction_id) VALUES (:path,:id)',
+            ['path' => $path,'id' => $id],
+        );
     }
 
     public function delete(string $id): void
     {
-        $this->database->execute("UPDATE attractions SET status='archived',deleted_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id", ['id' => $id]);
+        $this->database->execute(
+            "UPDATE attractions SET status='archived',deleted_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
+            ['id' => $id],
+        );
     }
 
     public function referenced(string $id): bool
     {
-        return $this->database->row('SELECT id FROM attractions WHERE id=:id AND
+        return $this->database->row(
+            'SELECT id FROM attractions WHERE id=:id AND
             (EXISTS (SELECT 1 FROM route_attractions r WHERE r.attraction_id=attractions.id)
-            OR EXISTS (SELECT 1 FROM merchants m JOIN offers o ON o.merchant_id=m.id WHERE m.attraction_id=attractions.id AND o.deleted_at IS NULL))', ['id' => $id]) !== null;
+            OR EXISTS (SELECT 1 FROM merchants m JOIN offers o ON o.merchant_id=m.id WHERE m.attraction_id=attractions.id AND o.deleted_at IS NULL))',
+            ['id' => $id],
+        ) !== null;
     }
 
     public function hasMuseum(string $exceptId): bool
     {
-        return $this->database->row('SELECT id FROM attractions WHERE is_museum=1 AND deleted_at IS NULL AND id<>:id LIMIT 1', ['id' => $exceptId]) !== null;
+        return $this->database->row(
+            'SELECT id FROM attractions WHERE is_museum=1 AND deleted_at IS NULL AND id<>:id LIMIT 1',
+            ['id' => $exceptId],
+        ) !== null;
     }
 
     public function mediaExists(string $id): bool
@@ -134,17 +166,25 @@ class AttractionRepository
     /** @return list<Attraction> */
     public function published(?int $now = null): array
     {
-        // [U-05／R3-02] 發布時間優先；同時發布的受控 seed ID 按原型順序，其他 ID 亦有穩定次排序。
-        return array_map($this->map(...), $this->database->rows(self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now ORDER BY a.publish_at DESC,a.id ASC", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]));
+        // 先依發布時間排序；同時發布的示範資料依原型順序排列，其他資料也有穩定的次要排序。
+        return array_map($this->map(...), $this->database->rows(
+            self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now ORDER BY a.publish_at DESC,a.id ASC",
+            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+        ));
     }
 
     /** @return array<string,string> */
     public function aliases(?int $now = null): array
     {
         $result = [];
-        foreach ($this->database->rows("SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now", ['now' => gmdate('Y-m-d H:i:s', $now ?? time())]) as $values) {
+        foreach ($this->database->rows(
+            "SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now",
+            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+        ) as $values) {
             $row = new Row($values);
-            $result[$row->string('path')] = $row->integer('is_museum') === 1 ? '/museum.html' : '/places/' . $row->string('slug') . '.html';
+            $result[$row->string('path')] = $row->integer('is_museum') === 1
+                ? '/museum.html'
+                : '/places/' . $row->string('slug') . '.html';
         }
         ksort($result);
 
@@ -156,9 +196,25 @@ class AttractionRepository
     {
         $r = new Row($values);
         $data = [];
-        foreach (['id' => 'id','slug' => 'slug','name' => 'name','category' => 'category','district' => 'district','typeLabel' => 'type_label',
-            'phone' => 'phone','summary' => 'summary','description' => 'description','hours' => 'hours','address' => 'address','transport' => 'transport',
-            'websiteUrl' => 'website_url','mapUrl' => 'map_url','seoTitle' => 'seo_title','seoDescription' => 'seo_description','status' => 'status'] as $key => $column) {
+        foreach ([
+            'id' => 'id',
+            'slug' => 'slug',
+            'name' => 'name',
+            'category' => 'category',
+            'district' => 'district',
+            'typeLabel' => 'type_label',
+            'phone' => 'phone',
+            'summary' => 'summary',
+            'description' => 'description',
+            'hours' => 'hours',
+            'address' => 'address',
+            'transport' => 'transport',
+            'websiteUrl' => 'website_url',
+            'mapUrl' => 'map_url',
+            'seoTitle' => 'seo_title',
+            'seoDescription' => 'seo_description',
+            'status' => 'status',
+        ] as $key => $column) {
             $data[$key] = $r->string($column);
         }
         foreach (['latitude','longitude'] as $key) {
@@ -170,23 +226,31 @@ class AttractionRepository
         $key = $r->nullableString('storage_key');
         $data['image'] = $key === null ? $r->string('external_image_url') : '/media/' . $key;
         $data['imageAlt'] = $r->nullableString('image_alt') ?? ($key === null ? $r->string('external_image_alt') : $r->string('media_alt'));
-        $legacy = $r->string('external_image_url') !== '';
-        $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? ($legacy ? '原始交付展示素材' : '');
-        $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? ($legacy ? '正式上線前須確認授權' : '');
+        $hasExternalImage = $r->string('external_image_url') !== '';
+        $data['imageSource'] = $r->nullableString('image_source') ?? $r->nullableString('media_source') ?? ($hasExternalImage ? '原始交付展示素材' : '');
+        $data['imageLicense'] = $r->nullableString('image_license') ?? $r->nullableString('media_license') ?? ($hasExternalImage ? '正式上線前須確認授權' : '');
         $data['recommendationLabel'] = $r->string('recommendation_label');
         $opening = $r->nullableString('opening_hours');
-        $data['openingHours'] = $opening === null ? null : OpeningHours::fromValue(json_decode($opening, true, 32, JSON_THROW_ON_ERROR))->toArray();
-        $data['legacyImage'] = $r->string('external_image_url');
+        $data['openingHours'] = $opening === null
+            ? null
+            : OpeningHours::fromValue(json_decode($opening, true, 32, JSON_THROW_ON_ERROR))->toArray();
         $data['googlePlaceId'] = $r->nullableString('google_place_id');
         $data['version'] = $r->integer('version');
         $data['featured'] = $r->integer('featured') === 1;
         $data['isMuseum'] = $r->integer('is_museum') === 1;
         $data['url'] = $data['isMuseum'] ? '/museum.html' : '/places/' . $r->string('slug') . '.html';
-        $data['publishAt'] = str_replace(' ', 'T', $r->string('publish_at')) . '+00:00';
-        $data['updatedAt'] = str_replace(' ', 'T', $r->string('updated_at')) . '+00:00';
+        $data['publishAt'] = UtcDateTime::iso($r->string('publish_at'));
+        $data['updatedAt'] = UtcDateTime::iso($r->string('updated_at'));
         $data['deletedAt'] = $r->nullableString('deleted_at');
-        $data['legacyId'] = ($values['legacy_id'] ?? null) === null ? null : $r->integer('legacy_id');
+        $data['prototypeId'] = ($values['prototype_id'] ?? null) === null ? null : $r->integer('prototype_id');
 
-        return new Attraction($r->string('id'), $r->string('slug'), $r->integer('version'), $r->string('status'), $r->nullableString('deleted_at'), $data);
+        return new Attraction(
+            $r->string('id'),
+            $r->string('slug'),
+            $r->integer('version'),
+            $r->string('status'),
+            $r->nullableString('deleted_at'),
+            $data,
+        );
     }
 }

@@ -1,4 +1,4 @@
-"""[D API草案 C43:H43; E-29] Validate actual health HTTP responses, including failures."""
+"""驗證健康檢查實際的 HTTP 回應，包含失敗的情況。"""
 import argparse, json, sys
 from pathlib import Path
 

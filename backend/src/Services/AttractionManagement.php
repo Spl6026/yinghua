@@ -19,7 +19,7 @@ use Yinghua\Repositories\EventRepository;
 use Yinghua\Support\Secrets;
 use Yinghua\Policies\GooglePlaceLinkPolicy;
 
-/** [S：功能規格 19/20；E-01] 景點生命週期與授權／交易，Controller 不處理 SQL。 */
+/** 景點的新增、編輯、刪除流程，負責權限檢查與交易；Controller 不直接處理 SQL。 */
 class AttractionManagement
 {
     public function __construct(
@@ -41,7 +41,7 @@ class AttractionManagement
         return $this->attractions->listing($q, $status, $page, $size);
     }
 
-    /** [S：功能規格 E20] 新增權限足以試填；不因此開放一般管理列表或草稿。
+    /** 只有新增權限也能取得範例資料試填，但不會因此看到管理列表或草稿。
      * @return list<array<string,mixed>>
      */
     public function samples(Account $actor): array

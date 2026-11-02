@@ -122,8 +122,8 @@
   {
     "path": "/forgot-password.html",
     "label": "忘記密碼",
-    "title": "會員寄送重設連結｜映畫竹塹",
-    "description": "映畫竹塹忘記密碼與開發測試適用範圍。",
+    "title": "忘記密碼｜映畫竹塹",
+    "description": "忘記映畫竹塹會員密碼時，輸入註冊電子郵件以取得重設連結。",
     "protected": true,
     "template": false
   },
@@ -131,7 +131,7 @@
     "path": "/reset-password.html",
     "label": "重設密碼",
     "title": "會員重設密碼｜映畫竹塹",
-    "description": "映畫竹塹重設密碼與開發測試適用範圍。",
+    "description": "使用電子郵件中的重設連結，為映畫竹塹會員帳號設定新密碼。",
     "protected": true,
     "template": false
   },
@@ -139,23 +139,23 @@
     "path": "/change-password.html",
     "label": "更改密碼",
     "title": "會員更改密碼｜映畫竹塹",
-    "description": "映畫竹塹更改密碼與開發測試適用範圍。",
+    "description": "登入後更改映畫竹塹會員帳號密碼。",
     "protected": true,
     "template": false
   },
   {
     "path": "/terms.html",
-    "label": "服務條款",
-    "title": "開發測試服務條款｜映畫竹塹",
-    "description": "映畫竹塹本機開發驗收適用說明、條款版本及正式文案待提供狀態。",
+    "label": "會員服務條款",
+    "title": "會員服務條款｜映畫竹塹",
+    "description": "映畫竹塹會員服務條款：會員帳號、網站資訊、使用規範與條款修訂說明。",
     "protected": false,
     "template": false
   },
   {
     "path": "/privacy.html",
-    "label": "隱私說明",
-    "title": "開發測試隱私說明｜映畫竹塹",
-    "description": "映畫竹塹註冊頁既有的本機開發測試資料用途說明與正式隱私文案狀態。",
+    "label": "隱私權政策",
+    "title": "隱私權政策｜映畫竹塹",
+    "description": "映畫竹塹隱私權政策：會員資料的蒐集範圍、使用目的、保護方式與你的權利。",
     "protected": false,
     "template": false
   },
@@ -195,7 +195,7 @@
     "path": "/site-map.html",
     "label": "網站導覽",
     "title": "網站導覽｜映畫竹塹",
-    "description": "依分類瀏覽或按名稱尋找已發布的景點、電影、活動消息與店家優惠。",
+    "description": "依分類瀏覽或按名稱尋找映畫竹塹的景點、電影、活動消息與店家優惠。",
     "protected": false,
     "template": false
   }

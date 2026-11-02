@@ -1,4 +1,4 @@
-"""[E-36] Published policies, stale consent, pending publication and real consent persistence."""
+"""驗證已發布的條款政策、過期的同意紀錄、待發布狀態，以及同意紀錄確實寫入資料庫。"""
 import json,uuid
 from api_integration import ROOT,Client,fixture,challenge,register_body
 from phase8_browser_fixture import literal,publish

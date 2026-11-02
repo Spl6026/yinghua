@@ -7,7 +7,7 @@ namespace Yinghua\DTO;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\NewsType;
 
-/** [S：功能規格 G9／G22；原型 news-add；E-26] 只有標題／分類必填，活動區間可空。 */
+/** 消息表單輸入；只有標題與分類必填，活動期間可以留空。 */
 readonly class NewsInput
 {
     /** @param array<string,string|int|null> $fields */
@@ -24,7 +24,8 @@ readonly class NewsInput
             'event_label' => $input->optionalText('eventLabel'), 'event_location' => $input->optionalText('eventLocation'),
             'event_starts_at' => ContentFields::date($input->optionalText('eventStartAt', 30), 'eventStartAt', true),
             'event_ends_at' => ContentFields::date($input->optionalText('eventEndAt', 30), 'eventEndAt', true)];
-        if ($fields['event_starts_at'] !== null && $fields['event_ends_at'] !== null && $fields['event_ends_at'] < $fields['event_starts_at']) {
+        if ($fields['event_starts_at'] !== null && $fields['event_ends_at'] !== null
+            && $fields['event_ends_at'] < $fields['event_starts_at']) {
             throw ApplicationError::invalid('eventEndAt', '結束時間不可早於開始時間。');
         }
         return new self($fields, $creating || !array_key_exists('version', $values) ? null : $input->positiveInt('version'));

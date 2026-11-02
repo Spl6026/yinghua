@@ -1,4 +1,4 @@
-"""[E-29] Stop only an owned rehearsal DB; public API/HTML fail closed and recover."""
+"""只停掉演練專用的資料庫；公開 API 與 HTML 必須安全地失敗，並在恢復後回復正常。"""
 import argparse,json,sys,time,urllib.error
 from pathlib import Path
 from production_rehearsal import Client,ROOT,await_status

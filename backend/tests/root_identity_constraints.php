@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [S：功能規格 G26/L26；E-23] 真實 MariaDB 逐位元組保護，所有探測均回滾。 */
+/** 在真實 MariaDB 逐位元組驗證 root 管理員的保護限制，所有探測都會回滾。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 $config = new Yinghua\Config();
 if ($config->string('APP_ENV') !== 'test' || $config->string('DB_DATABASE') !== 'yinghua_test') {

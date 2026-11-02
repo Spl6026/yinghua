@@ -6,20 +6,20 @@ namespace Yinghua\Services;
 
 use Yinghua\DTO\SeoOverride;
 use Yinghua\Models\SeoResource;
-use Yinghua\Repositories\ContentSeoRepository;
-use Yinghua\Repositories\SiteSettingsRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 
-/** [S：G30/G32；E-28] 快照只含頁面與目前可公開內容的 SEO，草稿覆寫不出界。 */
+/** 產生發布快照用的 SEO 資料；只包含頁面與目前公開內容的設定，草稿內容的覆寫不會外流。 */
 class SeoPublication
 {
-    public function __construct(private readonly SiteSettingsRepository $settings, private readonly ContentSeoRepository $overrides) {}
+    public function __construct(private readonly SeoSettingsRepository $settings, private readonly SeoOverrideRepository $overrides) {}
 
     /** @param array<string,mixed> $snapshot
      * @return array<string,mixed>
      */
     public function project(array $snapshot): array
     {
-        $document = $this->settings->read(publishedOnly: true);
+        $document = $this->settings->read();
         $ids = [];
         foreach (['items' => 'attraction','films' => 'film','news' => 'news','offers' => 'offer'] as $key => $type) {
             $items = $snapshot[$key] ?? [];

@@ -8,7 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 
-/** [E-25] 台北週一至下週一，不包含結束邊界；UTC 用於比較及查詢。 */
+/** 一週的放映區間：台北時間週一到下週一（不含結束點），比較與查詢時換成 UTC。 */
 readonly class ScreeningWindow
 {
     public function __construct(public DateTimeImmutable $start, public DateTimeImmutable $end) {}

@@ -6,7 +6,7 @@ namespace Yinghua\Policies;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S：功能規格 G20；E-19] 精確網域／協定白名單；不以字串包含 google 判斷。 */
+/** Google 地圖網址檢查：比對精確的網域與協定白名單，不用「字串包含 google」這種寬鬆判斷。 */
 class GoogleUrlPolicy
 {
     public function validate(string $url, bool $api = false): string
@@ -15,7 +15,8 @@ class GoogleUrlPolicy
         $hosts = $api ? ['places.googleapis.com'] : ['maps.app.goo.gl','goo.gl','www.google.com','maps.google.com','www.google.com.tw'];
         if ($parts === false || strlen($url) > 2000 || preg_match('/[\x00-\x20\\\\]/', $url)
             || ($parts['scheme'] ?? '') !== 'https' || !in_array($parts['host'] ?? '', $hosts, true)
-            || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment']) || (isset($parts['port']) && $parts['port'] !== 443)) {
+            || isset($parts['user']) || isset($parts['pass']) || isset($parts['fragment'])
+            || (isset($parts['port']) && $parts['port'] !== 443)) {
             throw ApplicationError::invalid('mapUrl', '僅接受可信任的 HTTPS Google 地圖網址。');
         }
         $host = $parts['host'];

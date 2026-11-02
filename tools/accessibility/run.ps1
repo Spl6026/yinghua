@@ -9,7 +9,7 @@ if ($Stop) {
 }
 $readerPasswordFile = Join-Path $PSScriptRoot '.env.vnc-password'
 if (-not (Test-Path -LiteralPath $readerPasswordFile)) {
-    # VNC uses eight significant characters; a disposable loopback-only secret.
+    # VNC 密碼只取前八個字元；這是只綁定 loopback、用完即丟的密碼。
     $readerPassword = [Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(6))
     [IO.File]::WriteAllText($readerPasswordFile, $readerPassword + "`n")
 }

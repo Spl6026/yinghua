@@ -15,7 +15,8 @@ readonly class HealthController
     public function handle(Request $request): Response
     {
         if (!in_array($request->method, ['GET','HEAD'], true)) {
-            return new Response(405, ['code' => 'METHOD_NOT_ALLOWED', 'message' => '不支援此操作方式。', 'fieldErrors' => (object) []], headers: ['Allow' => 'GET, HEAD']);
+            return new Response(405, ['code' => 'METHOD_NOT_ALLOWED', 'message' => '不支援此操作方式。',
+                'fieldErrors' => (object) []], headers: ['Allow' => 'GET, HEAD']);
         }
         $report = $this->health->inspect();
 

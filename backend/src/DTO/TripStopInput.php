@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [S F15/G15；E-33] startTime映射既有planned_time；順序取陣列位置。 */
+/** 行程中的一站；startTime 存到 planned_time 欄位，站點順序就是陣列順序。 */
 readonly class TripStopInput
 {
     public function __construct(public string $attractionId, public ?string $startTime, public string $note) {}

@@ -11,10 +11,17 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Policies\GoogleUrlPolicy;
 
-/** [S：功能規格 20；E-19] 只回傳候選資料，不寫景點或下載 Google 照片。 */
+/** 從 Google 地圖網址查出候選地點資料；只回傳給前端參考，不寫入景點，也不下載 Google 照片。 */
 class MapResolver
 {
-    public function __construct(private readonly GoogleHttp $http, private readonly GoogleUrlPolicy $policy, private readonly Config $config, private readonly Authorization $authorization, private readonly RateLimiter $limiter, private readonly GooglePlaceMapper $mapper) {}
+    public function __construct(
+        private readonly GoogleHttp $http,
+        private readonly GoogleUrlPolicy $policy,
+        private readonly Config $config,
+        private readonly Authorization $authorization,
+        private readonly RateLimiter $limiter,
+        private readonly GooglePlaceMapper $mapper,
+    ) {}
 
     /** @return array<string,mixed> */
     public function resolve(Account $actor, string $url, string $action): array
@@ -56,7 +63,8 @@ class MapResolver
         $fields = 'id,displayName,formattedAddress,addressComponents,location,regularOpeningHours.periods,regularOpeningHours.weekdayDescriptions,websiteUri,googleMapsUri,editorialSummary,attributions';
         $headers = ['X-Goog-Api-Key' => $key,'X-Goog-FieldMask' => $fields,'Accept' => 'application/json'];
         if (is_string($placeId) && preg_match('/^[A-Za-z0-9_-]{5,255}$/D', $placeId)) {
-            $response = $this->http->request('https://places.googleapis.com/v1/places/' . rawurlencode($placeId) . '?languageCode=zh-TW', $headers, api: true);
+            $response = $this->http->request('https://places.googleapis.com/v1/places/' . rawurlencode($placeId)
+                . '?languageCode=zh-TW', $headers, api: true);
             $value = $this->decode($response->status, $response->body);
             $candidates = [$value];
         } else {
@@ -92,7 +100,9 @@ class MapResolver
             throw ApplicationError::invalid('mapUrl', 'Google 回傳的地點資料不完整，請人工輸入或重新查詢。');
         }
 
-        return ['candidates' => $result,'attribution' => 'Google Maps','notice' => '候選資料不會自動儲存。正式採用前須依 Google Maps Platform 條款確認可保存範圍，圖片請使用自行授權素材。'];
+        return ['candidates' => $result,
+            'attribution' => 'Google Maps',
+            'notice' => '候選資料不會自動儲存。正式採用前須依 Google Maps Platform 條款確認可保存範圍，圖片請使用自行授權素材。'];
     }
 
     /** @return array<string,mixed> */

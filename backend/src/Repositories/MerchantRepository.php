@@ -30,10 +30,17 @@ class MerchantRepository
             $params['merchantId'] = $query->merchantId;
         }
         $count = new Row($this->database->row('SELECT COUNT(*) AS total FROM merchants WHERE ' . $where, $params) ?? []);
-        $rows = $this->database->rows('SELECT * FROM merchants WHERE ' . $where . ' ORDER BY name,id LIMIT :size OFFSET :offset', [...$params,'size' => $query->pageSize,'offset' => ($query->page - 1) * $query->pageSize]);
+        $rows = $this->database->rows(
+            'SELECT * FROM merchants WHERE ' . $where . ' ORDER BY name,id LIMIT :size OFFSET :offset',
+            [...$params,'size' => $query->pageSize,'offset' => ($query->page - 1) * $query->pageSize],
+        );
         return new \Yinghua\DTO\ContentPage(array_map(static function (array $values): Merchant {
             $row = new Row($values);
-            return new Merchant($row->string('id'), $row->integer('version'), ContentMapping::fields($values, ['name','district','address','phone','website','status','attraction_id','deleted_at']));
+            return new Merchant(
+                $row->string('id'),
+                $row->integer('version'),
+                ContentMapping::fields($values, ['name','district','address','phone','website','status','attraction_id','deleted_at']),
+            );
         }, $rows), $count->integer('total'), $query->page, $query->pageSize);
     }
 
@@ -44,7 +51,11 @@ class MerchantRepository
             return null;
         }
         $row = new Row($values);
-        return new Merchant($row->string('id'), $row->integer('version'), ContentMapping::fields($values, ['name','district','address','phone','website','status','attraction_id','deleted_at']));
+        return new Merchant(
+            $row->string('id'),
+            $row->integer('version'),
+            ContentMapping::fields($values, ['name','district','address','phone','website','status','attraction_id','deleted_at']),
+        );
     }
 
     public function attractionExists(string $id): bool
@@ -52,15 +63,21 @@ class MerchantRepository
         return $this->database->row('SELECT id FROM attractions WHERE id=:id AND deleted_at IS NULL', ['id' => $id]) !== null;
     }
 
-    public function forAttractionLegacy(int $legacy): ?\Yinghua\DTO\Merchant
+    public function forAttractionPrototypeId(int $prototypeId): ?\Yinghua\DTO\Merchant
     {
-        $value = $this->database->row('SELECT m.id FROM merchants m JOIN attractions a ON a.id=m.attraction_id WHERE a.legacy_id=:legacy', ['legacy' => $legacy]);
+        $value = $this->database->row(
+            'SELECT m.id FROM merchants m JOIN attractions a ON a.id=m.attraction_id WHERE a.prototype_id=:prototypeId',
+            ['prototypeId' => $prototypeId],
+        );
         return $value === null ? null : $this->find((new Row($value))->string('id'), true);
     }
 
     public function assertLinkAvailable(string $attraction, string $merchant): void
     {
-        if ($this->database->row('SELECT id FROM merchants WHERE attraction_id=:attraction AND id<>:id', ['attraction' => $attraction,'id' => $merchant]) !== null) {
+        if ($this->database->row(
+            'SELECT id FROM merchants WHERE attraction_id=:attraction AND id<>:id',
+            ['attraction' => $attraction,'id' => $merchant],
+        ) !== null) {
             throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此景點已連結其他店家 profile。');
         }
     }
@@ -72,10 +89,16 @@ class MerchantRepository
             if ($creating) {
                 $columns = implode(',', array_keys($fields));
                 $parameters = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute('INSERT INTO merchants (id,' . $columns . ') VALUES (:id,' . $parameters . ')', ['id' => $id,...$fields]);
+                $this->database->execute(
+                    'INSERT INTO merchants (id,' . $columns . ') VALUES (:id,' . $parameters . ')',
+                    ['id' => $id,...$fields],
+                );
             } else {
                 $set = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute('UPDATE merchants SET ' . $set . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id', ['id' => $id,...$fields]);
+                $this->database->execute(
+                    'UPDATE merchants SET ' . $set . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
+                    ['id' => $id,...$fields],
+                );
             }
         } catch (PDOException $error) {
             if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {

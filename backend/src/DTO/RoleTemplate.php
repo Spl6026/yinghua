@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-01／E-10] 角色起始模板，不代表帳號即時的個人權限。 */
+/** 角色的起始權限模板；帳號實際擁有的權限以個人權限矩陣為準。 */
 readonly class RoleTemplate
 {
     /** @param list<array{module:string,action:string,allowed:bool}> $permissions */

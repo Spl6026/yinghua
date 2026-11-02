@@ -11,7 +11,7 @@ use Yinghua\Models\{Account};
 use Yinghua\Repositories\{MerchantRepository};
 use Yinghua\Support\Secrets;
 
-/** [S G22／G23；E-31] HTTP應用服務；與CLI共用Editor，不在Controller組裝匯入檔。 */
+/** 後台 HTTP 用的店家管理服務；與 CLI 匯入共用同一個 Editor，Controller 不必自行組裝匯入資料。 */
 class OfferMerchants
 {
     public function __construct(
@@ -49,7 +49,7 @@ class OfferMerchants
             try {
                 $record = $this->transactions->run(function () use ($actor, $id, $target, $values, $client): Merchant {
                     $change = $this->editor->prepareValues($actor, $target, $values, true, $id === null);
-                    // HTTP版本必須相符；CLI的冪等匯入仍保留原本語意。
+                    // 後台編輯必須帶著相符的版本號，避免覆蓋別人的修改；CLI 的重複匯入則維持原本的冪等行為。
                     if ($id !== null && $change->version !== $change->input->version) {
                         throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
                     }

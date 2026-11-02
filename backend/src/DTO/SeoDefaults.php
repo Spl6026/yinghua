@@ -8,10 +8,11 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\SeoRobots;
 use Yinghua\Policies\SeoUrlPolicy;
 
-/** [S：E32；E-28] 上限為資源邊界，不是 Excel 建議字數的強制限制。 */
+/** 全站 SEO 預設值；欄位長度上限只是防止過大輸入，不是建議字數。 */
 readonly class SeoDefaults
 {
-    public const array FIELDS = ['siteName','titleSuffix','description','keywords','canonicalOrigin','robots','ogImageUrl','twitterCard','twitterSite','googleVerification','bingVerification'];
+    public const array FIELDS = ['siteName','titleSuffix','description','keywords','canonicalOrigin','robots',
+        'ogImageUrl','twitterCard','twitterSite','googleVerification','bingVerification'];
 
     public function __construct(
         public string $siteName = '映畫竹塹',
@@ -72,8 +73,10 @@ readonly class SeoDefaults
     /** @return array<string,string> */
     public function toArray(): array
     {
-        return ['siteName' => $this->siteName,'titleSuffix' => $this->titleSuffix,'description' => $this->description,'keywords' => $this->keywords,
-            'canonicalOrigin' => $this->canonicalOrigin,'robots' => $this->robots->value,'ogImageUrl' => $this->ogImageUrl,
-            'twitterCard' => $this->twitterCard,'twitterSite' => $this->twitterSite,'googleVerification' => $this->googleVerification,'bingVerification' => $this->bingVerification];
+        return ['siteName' => $this->siteName,'titleSuffix' => $this->titleSuffix,'description' => $this->description,
+            'keywords' => $this->keywords,'canonicalOrigin' => $this->canonicalOrigin,
+            'robots' => $this->robots->value,'ogImageUrl' => $this->ogImageUrl,
+            'twitterCard' => $this->twitterCard,'twitterSite' => $this->twitterSite,
+            'googleVerification' => $this->googleVerification,'bingVerification' => $this->bingVerification];
     }
 }

@@ -14,6 +14,13 @@ class MemberDirectoryController
 
     public function listing(ApiContext $context): Response
     {
-        return new Response(200, $this->service->listing($context->actor(), $context->request->queryText('q', '', 80), $context->request->queryInteger('page', 1, 100000)));
+        return new Response(
+            200,
+            $this->service->listing(
+                $context->actor(),
+                $context->request->queryText('q', '', 80),
+                $context->request->queryInteger('page', 1, 100000),
+            ),
+        );
     }
 }

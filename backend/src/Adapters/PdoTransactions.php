@@ -15,7 +15,7 @@ class PdoTransactions implements Transactions
 
     public function run(callable $operation): mixed
     {
-        // [E-09] 交易內只有資料庫異動；死鎖重試不會重送郵件。
+        // 交易內只放資料庫異動，所以遇到死鎖重試時不會重複寄信。
         for ($attempt = 0; ; $attempt++) {
             $this->database->pdo->beginTransaction();
             try {

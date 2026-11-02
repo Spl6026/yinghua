@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [S G22／G23；E-31] HTTP與CLI共用的已驗證命令，不包含匯入檔格式。 */
+/** 驗證完成、準備寫入的內容變更，HTTP 與 CLI 共用；和匯入檔的格式無關。 */
 readonly class PreparedContentChange
 {
     /** @param list<string> $warnings */

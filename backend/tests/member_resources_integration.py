@@ -1,4 +1,4 @@
-"""[S E13/G15/L15; E-27] Real isolated HTTP/MariaDB ownership, failure and contract tests."""
+"""在隔離的 HTTP 與 MariaDB 上驗證會員資源的本人限制、失敗處理與回應契約。"""
 import argparse,concurrent.futures,json,secrets,subprocess,sys,uuid
 from pathlib import Path
 from urllib.parse import quote

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Models;
 
-/** [E-18] 共用內容狀態；排程由 published + publishAt 表達。 */
+/** 各類內容共用的狀態；排程發布用 published 搭配未來的 publishAt 表示。 */
 enum ContentStatus: string
 {
     case Draft = 'draft';

@@ -16,7 +16,7 @@ use Yinghua\Services\Authorization;
 use Yinghua\Services\MapResolver;
 use Yinghua\Services\RateLimiter;
 
-/** [E-19] 測外部邊界與惡意 redirect；不消耗 Google 額度，不替代真實 HTTP 授權驗收。 */
+/** 測試地圖網址解析的邊界與惡意 redirect；不呼叫 Google、不消耗額度，也不能取代真實 HTTP 授權驗收。 */
 class MapResolverTest extends TestCase
 {
     private string|false $previousKey;
@@ -34,7 +34,7 @@ class MapResolverTest extends TestCase
 
     private function actor(): Account
     {
-        return new Account('03000000-0000-4000-8000-000000000099', IdentityKind::Admin, 'editor', 'editor@example.test', '測試', 'unused', 'active', false, 'editor', false, 1, 1, null);
+        return new Account('03000000-0000-4000-8000-000000000099', IdentityKind::Admin, 'editor', 'editor@example.test', '測試', 'unused', 'active', false, 'editor', 1, 1, null);
     }
 
     private function resolver(GoogleHttp $http): MapResolver

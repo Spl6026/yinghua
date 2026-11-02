@@ -1,4 +1,4 @@
-"""[E-26] 隔離瀏覽器的深頁、長文字及缺圖 fixture；cleanup 只處理本次 manifest。"""
+"""建立隔離瀏覽器檢查用的深層頁面、長文字與缺圖測試資料；清理時只處理本次的 manifest。"""
 from pathlib import Path
 from datetime import datetime,timedelta,timezone
 import argparse,json,re,secrets,sys,uuid

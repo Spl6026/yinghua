@@ -20,6 +20,9 @@ class GeneralSettingsController
 
     public function save(ApiContext $context): Response
     {
-        return new Response(200, $this->service->save($context->actor(), GeneralSettingsInput::fromArray($context->request->json()), $context->client));
+        return new Response(
+            200,
+            $this->service->save($context->actor(), GeneralSettingsInput::fromArray($context->request->json()), $context->client),
+        );
     }
 }

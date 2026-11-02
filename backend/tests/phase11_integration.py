@@ -1,4 +1,4 @@
-"""[S G15/L15/L24; E-33] Actual yinghua_test HTTP/transactions/ownership and P0 compatibility."""
+"""以 yinghua_test 實際驗證多份會員行程的 HTTP、交易、本人限制，以及與既有目前行程的相容。"""
 import concurrent.futures,json,uuid,urllib.parse
 from api_integration import ROOT,Client,fixture
 from phase8_browser_fixture import literal,publish
@@ -22,7 +22,7 @@ def main():
         call('GET',base,expected=401,client=guest)
         call('GET',base,expected=401,client=admin)
         call('POST',base,{},expected=403,csrf=False)
-        # Existing P0 data is the same aggregate, not a copy.
+        # 原本的「目前行程」和多份行程是同一份資料，不是另外複製出來的。
         old=call('PUT',base+'/current/items/'+m['placeId'],{'version':0},expected=201)
         original=call('GET',base+'/'+old['itineraryId'])['itinerary']
         check('P0 current retained',original['items'][0]['attractionId']==m['placeId'])
@@ -33,7 +33,7 @@ def main():
         retry=call('POST',base,{'id':client_id,'title':'not overwritten'},expected=200)['itinerary']
         check('create retry does not duplicate or overwrite',retry['id']==t['id'] and retry['title']=='')
         check('current switch version advances beyond old',t['version']>original['version'])
-        call('DELETE',base+'/current/items/'+m['placeId'],{'version':original['version']}) # absent in new current: harmless no-op
+        call('DELETE',base+'/current/items/'+m['placeId'],{'version':original['version']}) # 新的目前行程若沒有這一站，這個刪除不會造成影響
         call('PUT',base+'/current/items/'+extra,{'version':original['version']},expected=409)
         check('old P0 request cannot edit new current',call('GET',base+'/'+t['id'])['itinerary']['items']==[])
         foreign=call('POST',base,{'title':'B private'},expected=201,client=b)['itinerary']
@@ -48,13 +48,13 @@ def main():
         check('ordered metadata roundtrip',t['tripDate']=='2026-11-05' and t['items'][0]['startTime']=='14:30' and t['items'][0]['note']=='先走這站')
         check('sort order unique positive',[s['sortOrder'] for s in t['items']]==[1,2])
         call('PUT',base+'/'+t['id'],data,expected=409)
-        # Inject a child insert failure after parent metadata and child deletion.
+        # 在更新行程主檔並刪除舊站點之後，故意讓新增站點失敗。
         fixture("CREATE TRIGGER "+trigger+" BEFORE INSERT ON itinerary_items FOR EACH ROW BEGIN IF NEW.itinerary_id='"+t['id']+"' AND NEW.attraction_id='"+extra+"' THEN SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT='owned phase11 rollback test'; END IF; END")
         try:
             call('PUT',base+'/'+t['id'],body(t,title='must roll back'),expected=500)
         finally:fixture('DROP TRIGGER IF EXISTS '+trigger)
         check('child failure rolls back metadata version and all stations',call('GET',base+'/'+t['id'])['itinerary']==t)
-        # One parent lock protects the entire aggregate.
+        # 整份行程只鎖主檔這一列，兩個同時儲存的請求只能有一個成功。
         clients=[a.clone(),a.clone()];attempts=[body(t,title='race'+str(i)) for i in range(2)]
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as pool:results=list(pool.map(lambda i:clients[i].call('PUT',base+'/'+t['id'],attempts[i])[0],range(2)))
         check('concurrent whole-save one winner',sorted(results)==[200,409])
@@ -64,8 +64,8 @@ def main():
         check('select uses member monotonic version',original['version']>previous_version)
         call('PUT',base+'/current/items/'+extra,{'version':previous_version},expected=409)
         original=call('PUT',base+'/'+original['id'],body(original,title='P0仍保留',items=[{'attractionId':m['placeId'],'startTime':'09:00','note':'原P0站'}]))['itinerary']
-        legacy=call('GET',base+'/current')['itinerary'];check('full save visible to P0',legacy['id']==original['id'] and legacy['items'][0]['plannedTime'].startswith('09:00'))
-        # Downed retained items keep their original private snapshot; new joins are refused.
+        p0_view=call('GET',base+'/current')['itinerary'];check('full save visible to P0',p0_view['id']==original['id'] and p0_view['items'][0]['plannedTime'].startswith('09:00'))
+        # 已下架但仍留在行程裡的站點保留原本的私人快照；不能再新加入下架的站點。
         fixture("UPDATE attractions SET status='archived',name='private draft' WHERE id='"+extra+"'");publish()
         t=call('GET',base+'/'+t['id'])['itinerary'];check('unavailable snapshot safe',t['items'][0]['attraction'] is None and t['items'][0]['snapshotName']=='階段十一第二站')
         t=call('PUT',base+'/'+t['id'],body(t,title='可保存其他欄位'))['itinerary']

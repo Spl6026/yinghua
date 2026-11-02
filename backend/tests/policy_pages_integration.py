@@ -1,4 +1,4 @@
-"""[S G16; E-28] Read-only real policy links/version; never records a new consent."""
+"""唯讀檢查條款頁的真實連結與版本；絕不新增同意紀錄。"""
 import json,urllib.request
 from api_integration import Client,ROOT,fixture
 from html.parser import HTMLParser

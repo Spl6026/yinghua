@@ -1,7 +1,7 @@
-"""[S E20/G6/L5/L6/L20/L26/L27, E-24] Excel gaps; isolated HTTP/MariaDB only.
+"""補足 Excel 規格中尚未被其他測試涵蓋的項目；只使用隔離的 HTTP 與 MariaDB。
 
-Existing suites cover authentication, RBAC, publication, media and map safety.
-This suite checks sample privilege boundaries and optional phone round trips.
+登入、權限、發布、媒體與地圖安全已由其他測試涵蓋。
+這裡檢查幾個權限邊界的樣本，以及選填電話欄位的存取來回。
 """
 import json
 import secrets
@@ -75,14 +75,14 @@ def main():
         check('G6 public phone matches saved data', public[0] == 200 and public[1]['attraction']['phone'] == item['phone'])
         html = raw(guest, '/places/' + item['slug'] + '.html')[1].decode('utf8')
         check('G6 server-produced HTML contains safe dial link', 'href="tel:+88631234567;ext=25"' in html and item['phone'] in html)
-        check('E20 unrelated newly published content is not a legacy sample', item_id not in [x['id'] for x in root.call('GET', route)[1]['items']])
+        check('E20 unrelated newly published content is not a prototype sample', item_id not in [x['id'] for x in root.call('GET', route)[1]['items']])
         for invalid in ['not-a-phone', 'javascript:123', '<script>123</script>', ')(03)123(', '1' * 81, 123, None]:
             code, result, _ = root.call('PUT', '/api/v1/admin/attractions/' + item_id, command(item, phone=invalid))
             check('G6 invalid phone rejected: ' + str(len(checks)), code == 422 and 'phone' in result.get('fieldErrors', {}))
         unchanged = root.call('GET', '/api/v1/admin/attractions/' + item_id)[1]['attraction']
         check('G6 failed validation changes neither phone nor version', unchanged['phone'] == item['phone'] and unchanged['version'] == item['version'])
 
-        # The real museum uses the same content model. Temporarily switch only isolated fixtures.
+        # 博物館與一般景點共用同一套內容模型；這裡只暫時切換隔離環境裡的資料。
         museum_public = guest.call('GET', '/api/v1/museum')[1]['attraction']
         museum_before = root.call('GET', '/api/v1/admin/attractions/' + museum_public['id'])[1]['attraction']
         write(command(museum_before, isMuseum=False), museum_before['id'])
@@ -102,14 +102,14 @@ def main():
         item = write(value, item_id)
         check('G6 omitted optional phone accepted', item['phone'] == '')
 
-        # Real repository probe, bounded to the isolated DB and always rolled back.
+        # 直接呼叫實際的 repository，限定在隔離資料庫內，而且一律回滾。
         php = r'''<?php
         require 'vendor/autoload.php';
         $config=new Yinghua\Config();
         if($config->string('APP_ENV')!=='test'||$config->string('DB_DATABASE')!=='yinghua_test')throw new RuntimeException('Isolated DB required');
         $db=Yinghua\Repositories\Database::connect($config);$repo=new Yinghua\Repositories\AttractionRepository($db);
         $db->pdo->beginTransaction();try {
-          $id=$db->row('SELECT id FROM attractions WHERE legacy_id=2')['id'];
+          $id=$db->row('SELECT id FROM attractions WHERE prototype_id=2')['id'];
           foreach(["status='draft'","status='published',publish_at=DATE_ADD(UTC_TIMESTAMP(),INTERVAL 1 DAY)","status='published',publish_at=UTC_TIMESTAMP(),deleted_at=UTC_TIMESTAMP()"] as $change){
             $db->execute('UPDATE attractions SET '.$change.' WHERE id=:id',['id'=>$id]);
             foreach($repo->samples() as $sample)if($sample->id===$id)throw new RuntimeException('Unavailable sample exposed');

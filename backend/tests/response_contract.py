@@ -1,4 +1,4 @@
-"""[E-01／E-15] 真實 HTTP 回應欄位契約；重構 DTO 不得破壞原生 JS 使用的格式。"""
+"""以真實 HTTP 驗證回應欄位契約；重構 DTO 時不能破壞原生 JS 使用的格式。"""
 import json
 import re
 import secrets
@@ -7,7 +7,7 @@ from api_integration import Client, ROOT, admin_body, challenge, fixture, passwo
 
 
 SUMMARY = {'id', 'kind', 'account', 'email', 'displayName', 'status', 'isRoot', 'roleId',
-           'mustChangePassword', 'version', 'permissionsVersion'}
+           'version', 'permissionsVersion'}
 checks = []
 
 

@@ -1,4 +1,4 @@
-"""[U-11／E-22] 選填文案的真實 HTTP／MariaDB 保存、失敗與越權驗證。"""
+"""以真實 HTTP 與 MariaDB 驗證選填文案的保存、失敗處理與越權拒絕。"""
 import json
 import secrets
 import sys

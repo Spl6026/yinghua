@@ -6,10 +6,10 @@ namespace Yinghua;
 
 use RuntimeException;
 
-/** [U-01／E-08] 設定只有一個來源，秘密由 Docker 的 .env 提供。 */
+/** 應用程式設定的唯一來源；密碼與金鑰等秘密由 Docker 的 .env 提供。 */
 readonly class Config
 {
-    /** [E-29] 公開 release 標籤；不能回傳內部映像 digest 或任意環境內容。 */
+    /** 對外顯示的 release 標籤；不可回傳內部映像 digest 或其他環境變數內容。 */
     public function applicationVersion(): string
     {
         $version = $this->string('APP_VERSION', $this->string('APP_ENV', 'local') === 'production' ? '' : 'development');
@@ -25,6 +25,12 @@ readonly class Config
         $value = getenv($key);
 
         return $value === false ? $default : $value;
+    }
+
+    /** 條款與隱私權政策在後台尚未設定版本時採用的預設版本。 */
+    public function termsVersion(): string
+    {
+        return $this->string('TERMS_VERSION', '2026-11-02');
     }
 
     public function integer(string $key, int $default): int

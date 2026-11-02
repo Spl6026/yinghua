@@ -1,4 +1,4 @@
-"""[U-16；S：功能規格 21；E-25] 開始時間、集合版本與真實交易／並行驗證。"""
+"""驗證場次開始時間、整批場次的版本控制，以及真實的交易與並行行為。"""
 import concurrent.futures, datetime, json, secrets, urllib.parse
 from api_integration import Client, ROOT, fixture, password
 from attractions_integration import raw, cli

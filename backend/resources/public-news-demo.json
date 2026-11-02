@@ -3,7 +3,7 @@
   "items": [
     {
       "id": "05000000-0000-4000-8200-000000000000",
-      "legacyId": 0,
+      "prototypeId": 0,
       "slug": "slow-market",
       "type": "event",
       "title": "風城慢慢市集｜老城散步日",
@@ -20,7 +20,7 @@
     },
     {
       "id": "05000000-0000-4000-8200-000000000001",
-      "legacyId": 1,
+      "prototypeId": 1,
       "slug": "street-photo",
       "type": "event",
       "title": "在城市裡收集光｜街拍小展",
@@ -37,7 +37,7 @@
     },
     {
       "id": "05000000-0000-4000-8200-000000000002",
-      "legacyId": 2,
+      "prototypeId": 2,
       "slug": "park-concert",
       "type": "event",
       "title": "風的聲音｜午後草地音樂會",
@@ -54,7 +54,7 @@
     },
     {
       "id": "05000000-0000-4000-8200-000000000003",
-      "legacyId": 3,
+      "prototypeId": 3,
       "slug": "old-town-notice",
       "type": "city",
       "title": "舊城街區步行環境改善公告",

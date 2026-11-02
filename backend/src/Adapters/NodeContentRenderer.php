@@ -9,7 +9,7 @@ use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Contracts\ContentRenderer;
 
-/** [E-12／E-18] PHP 只交付資料給前端 Node 工具，畫面模板留在 frontend。 */
+/** PHP 只負責把資料交給前端的 Node 發布工具，畫面模板仍留在 frontend。 */
 class NodeContentRenderer implements ContentRenderer
 {
     private readonly string $directory;
@@ -22,20 +22,16 @@ class NodeContentRenderer implements ContentRenderer
     public function version(): string
     {
         $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
-        $files = [$source . '/scripts/publish.mjs', $source . '/assets/js/core/opening-hours.js', ...glob($source . '/templates/*.html') ?: [],
-            $source . '/pages/index.html',$source . '/assets/js/core/home-view.js',$source . '/pages/explore.html',$source . '/pages/food.html',$source . '/pages/museum.html',
-            $source . '/assets/js/core/film-view.js',$source . '/pages/cinema.html',...glob($source . '/pages/films/*.html') ?: [],
-            $source . '/scripts/public-news.mjs',$source . '/assets/js/core/content-view.js',$source . '/assets/js/core/news-view.js',
-            $source . '/pages/events.html',$source . '/pages/activities.html',$source . '/pages/city-news.html',
-            ...glob($source . '/pages/news/*.html') ?: [],
-            $source . '/scripts/public-offers.mjs',$source . '/assets/js/core/offer-view.js',
-            $source . '/assets/js/core/route-view.js',
-            $source . '/pages/offers.html',...glob($source . '/pages/offers/*.html') ?: [],
-            $source . '/scripts/seo-head.mjs',$source . '/scripts/structured-data.mjs',$source . '/assets/js/core/structured-data.js',$source . '/scripts/crawler-index.mjs',$source . '/assets/js/core/seo-resolver.js',$source . '/resources/seo-pages.json',
-            $source . '/scripts/policy-pages.mjs',$source . '/scripts/font-head.mjs',$source . '/assets/js/font-boot.js',$source . '/assets/css/fonts.css',
-            ...glob($source . '/pages/*.html') ?: []];
+        // 發布結果由這些目錄的檔案決定：發布腳本、頁面與共用模板、SEO 目錄，以及發布時一起執行的前端模組。
+        // 逐一掃描整個目錄，新增檔案時不必再回來維護清單。
+        $files = [];
+        foreach (['scripts', 'pages', 'templates', 'resources', 'assets/js/core'] as $directory) {
+            array_push($files, ...self::filesUnder($source . '/' . $directory));
+        }
+        $files[] = $source . '/assets/js/font-boot.js';
+        $files[] = $source . '/assets/css/fonts.css';
         $hash = hash_init('sha256');
-        // [E-35] 搜尋投影規則更新亦重建同版HTML與MariaDB索引。
+        // 這兩個檔案決定搜尋索引的內容；納入版本雜湊後，規則一改就會重建同一版本的 HTML 與 MariaDB 搜尋索引。
         $files[] = dirname(__DIR__) . '/DTO/SearchDocument.php';
         $files[] = dirname(__DIR__) . '/Policies/AttractionContentPolicy.php';
         foreach ($files as $path) {
@@ -47,12 +43,36 @@ class NodeContentRenderer implements ContentRenderer
         return hash_final($hash);
     }
 
+    /** @return list<string> 依路徑排序，確保雜湊結果與檔案系統的列舉順序無關。 */
+    private static function filesUnder(string $directory): array
+    {
+        if (!is_dir($directory)) {
+            throw new RuntimeException('Cannot read publication templates.');
+        }
+        $files = [];
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($directory, \FilesystemIterator::SKIP_DOTS),
+        );
+        foreach ($iterator as $file) {
+            if ($file instanceof \SplFileInfo && $file->isFile()) {
+                $files[] = $file->getPathname();
+            }
+        }
+        sort($files);
+
+        return $files;
+    }
+
     /** @param array<string,mixed> $snapshot */
     public function render(array $snapshot): void
     {
         $pipes = [];
         $process = proc_open(
-            ['/usr/local/bin/node', $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source') . '/scripts/publish.mjs', $this->directory],
+            [
+                '/usr/local/bin/node',
+                $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source') . '/scripts/publish.mjs',
+                $this->directory,
+            ],
             [0 => ['pipe','r'],1 => ['pipe','w'],2 => ['pipe','w']],
             $pipes,
         );
@@ -65,7 +85,7 @@ class NodeContentRenderer implements ContentRenderer
         stream_set_blocking($pipes[2], false);
         $deadline = microtime(true) + 10;
         do {
-            // 排空子程序管道但不將內容／秘密寫入日誌。
+            // 讀完子程序的輸出管道以免卡住，但不把內容或秘密寫進日誌。
             stream_get_contents($pipes[1]);
             stream_get_contents($pipes[2]);
             $state = proc_get_status($process);
@@ -88,7 +108,7 @@ class NodeContentRenderer implements ContentRenderer
     /** @return array<string,mixed>|null */
     public function current(): ?array
     {
-        // Node 在另一程序原子切換 symlink；FPM 的 realpath cache 必須同步失效。
+        // Node 在另一個程序裡原子地切換 symlink，所以這裡要清掉 FPM 的 realpath cache。
         clearstatcache(true);
         $path = $this->directory . '/current/.snapshot.json';
         if (!is_file($path)) {

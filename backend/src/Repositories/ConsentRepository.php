@@ -15,7 +15,13 @@ class ConsentRepository
         foreach (['terms', 'privacy'] as $document) {
             $this->database->execute(
                 'INSERT INTO member_consents (id,member_id,document_key,document_version,source,ip_hash) VALUES (:id,:member,:document,:version,\'registration\',:ip)',
-                ['id' => Secrets::uuid(), 'member' => $memberId, 'document' => $document, 'version' => $version, 'ip' => $ipHash],
+                [
+                    'id' => Secrets::uuid(),
+                    'member' => $memberId,
+                    'document' => $document,
+                    'version' => $version,
+                    'ip' => $ipHash,
+                ],
             );
         }
     }

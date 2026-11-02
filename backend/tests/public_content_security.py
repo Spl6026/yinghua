@@ -1,4 +1,4 @@
-"""[S：功能規格 22／23／34；E-26] 真實 MariaDB／HTTP 的模組授權與 CLI 安全邊界。"""
+"""以真實 MariaDB 與 HTTP 驗證各模組的授權，以及 CLI 的安全邊界。"""
 from pathlib import Path
 import argparse,json,secrets,sys
 from api_integration import Client,ROOT,fixture,password,admin_body
@@ -58,7 +58,7 @@ def main():
             db('DELETE FROM media_assets WHERE id=:id',{'id':asset['id']})
             run(['docker','compose','exec','-T','app-test','php','-r',"$key="+json.dumps(asset['url'].split('/')[-1])+";if(!preg_match('/^[a-f0-9-]{36}\\.(jpg|png|webp)$/D',$key))exit(1);@unlink('/var/www/media/'.$key);"])
         if account_id:
-            # 正常管理刪除會撤銷 session／reset；固定 root 及主庫不受影響。
+            # 走正常的管理刪除流程，會一併撤銷 session 與重設連結；固定的 root 與主資料庫不受影響。
             current=root.call('GET','/api/v1/admin/admins/'+account_id)
             if current[0]==200:assert root.call('DELETE','/api/v1/admin/admins/'+account_id,{'version':current[1]['admin']['version']})[0]==204
 

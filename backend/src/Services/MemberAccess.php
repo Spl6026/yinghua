@@ -9,7 +9,7 @@ use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Repositories\AccountRepository;
 
-/** [S：G15；E-27] 會員所有權不使用管理員 RBAC。寫入交易內重查停權／刪除狀態。 */
+/** 會員只能存取自己的資料，不套用管理員的角色權限。寫入時會在交易內重新確認帳號沒有被停權或刪除。 */
 class MemberAccess
 {
     public function __construct(private readonly AccountRepository $accounts) {}

@@ -1,4 +1,4 @@
-"""[E-18] 真實路由／OpenAPI 一致性及內容回應欄位契約；僅使用隔離環境。"""
+"""確認實際路由與 OpenAPI 文件一致，並檢查內容回應的欄位契約；只使用隔離環境。"""
 import json
 import subprocess
 from api_integration import Client, ROOT, fixture, password
@@ -19,7 +19,7 @@ def main():
     actual = {tuple(item) for item in json.loads(result.stdout)}
     documented = {(method.upper(), path) for path, value in spec['paths'].items()
                   for method in value if method in {'get', 'post', 'put', 'delete', 'patch'}}
-    # [E-34] 爬蟲檔案由Nginx而非PHP Router提供，分別驗證，不能將三個GET誤判為PHP漏路由。
+    # 爬蟲用的檔案由 Nginx 提供，不經過 PHP Router，所以分開驗證，避免把這三個 GET 誤判成漏掉的路由。
     crawler = {('GET', '/robots.txt'), ('GET', '/sitemap.xml'), ('GET', '/sitemap-{part}.xml')}
     assert documented - crawler == actual, (actual - documented, documented - crawler - actual)
     assert crawler <= documented
@@ -53,7 +53,7 @@ def main():
     assert public['items']
     public_item = public['items'][0]
     assert set(public_item) == set(spec['components']['schemas']['PublicAttraction']['properties'])
-    assert not {'status', 'deletedAt', 'googlePlaceId', 'legacyImage'} & set(public_item)
+    assert not {'status', 'deletedAt', 'googlePlaceId'} & set(public_item)
     count += 1
     shape(guest, '/api/v1/attractions/' + public_item['slug'], 'PublicAttractionRecord')
     shape(guest, '/api/v1/museum', 'PublicAttractionRecord')

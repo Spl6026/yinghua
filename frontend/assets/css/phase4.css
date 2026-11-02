@@ -1,7 +1,0 @@
-/* [U-05／E-25] 沿用原型表單與預覽；場次區塊依窄螢幕換行。 */
-.film-screenings{display:grid;gap:14px;min-width:0}.film-screening{min-width:0;border:1px solid var(--line);padding:16px}
-.film-screening legend{padding:0 6px}.film-screening .admin-form-grid{margin:0}.film-screening .button{margin-top:12px}
-.film-screenings li{margin-bottom:12px}.film-screenings a{overflow-wrap:anywhere}
-/* [U-05／E-25] 手機標題旁的重新載入維持完整按鈕文字，避免被表單標題擠成逐字直排。 */
-.admin-page-heading>#reload-film{flex-shrink:0;white-space:nowrap}
-@media(max-width:760px){.film-screening{padding:12px}}

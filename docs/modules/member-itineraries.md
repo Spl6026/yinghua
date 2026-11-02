@@ -12,7 +12,7 @@
 
 | 檔案（相對專案根目錄） | 用途 |
 | --- | --- |
-| backend/config/itinerary-routes.php | 七個新會員操作；註冊於P0靜態current之後，避免泛用id攔走current。 |
+| backend/config/routes.php | 七個新會員操作；在路由表中排在P0靜態current之後，避免泛用id攔走current。 |
 | backend/src/Controllers/MemberItineraryController.php | 集合、單筆、新增、全量更新、刪除、切換、套用的HTTP入口。 |
 | backend/src/Services/MemberItineraries.php | 重查本人、鎖會員及行程、版本比較、去重建立、全量保存、套用公開路線。 |
 | backend/src/DTO/TripInput.php、TripStopInput.php | 輸入白名單、UUID／日期／時間／長度、重複景點。順序依items陣列位置。 |
@@ -20,7 +20,7 @@
 | backend/src/DTO/Input.php | 共用objects增加可傳容量上限；其他呼叫仍用原100。 |
 | backend/src/Repositories/ItineraryRepository.php | 本人集合及站點、建立／保存／切換／刪除；同會員單調版本。 |
 | backend/src/Services/MemberAttractions.php | 成功公開投影及即時景點驗證；批次固定ID次序鎖定，避免每站重讀投影。 |
-| backend/src/Services/PublicRecommendedRoutes.php、Controllers/RecommendedRouteController.php、config/recommended-route-routes.php | 公開路線單筆預覽；既有列表不變。 |
+| backend/src/Services/PublicRecommendedRoutes.php、Controllers/RecommendedRouteController.php、config/routes.php | 公開路線單筆預覽；既有列表不變。 |
 | backend/src/Composition.php、backend/phpstan.neon | 組裝與路由品質分析範圍。 |
 | frontend/pages/planner.html、assets/css/phase11.css | 保留原型hero、左右欄、編號卡片；補本人選單、頁碼、編輯／確認控制及手機重排。 |
 | frontend/assets/js/pages/planner.js | DOM、確認框、欄位錯誤、未保存提醒、地點／路線意圖及登入恢復。 |

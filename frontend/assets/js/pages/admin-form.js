@@ -8,7 +8,8 @@ export async function initializeAdminForm(identity, page) {
   const creating = page === 'admin-add';
   if (!hasPermission(identity, 'admins', 'view')) {
     const cancel = document.querySelector('#admin-cancel');
-    cancel.href = adminDestination(identity); cancel.textContent = '返回可用功能';
+    cancel.href = adminDestination(identity);
+    cancel.textContent = '返回可用功能';
   }
   const id = new URLSearchParams(location.search).get('id');
   const roles = (await adminApi.roles()).roles;
@@ -21,21 +22,30 @@ export async function initializeAdminForm(identity, page) {
   let loaded = creating;
   const readOnly = Boolean(identity.preview?.active);
   const save = form.querySelector('[type="submit"]');
-  // [E-14] 固定管理員會以保護說明取代表單；先保留控制項參照，避免讀取已移除節點。
+  // 固定管理員會以保護說明取代表單，所以先保留控制項參照，避免讀取已被移除的節點。
   const reload = document.querySelector('#reload-admin');
   const message = form.querySelector('.form-status');
-  // [E-14] 讀取失敗、重試與保存共用狀態；不能靠 finally 無條件開啟保存。
+  // 讀取失敗、重試與保存共用同一個狀態；不能在 finally 裡無條件重新開放保存。
   function updateControls() {
     save.disabled = readOnly || loading || saving || !loaded;
-    form.querySelectorAll('input,select').forEach(input => { input.disabled = readOnly || loading || saving || !loaded; });
+    form.querySelectorAll('input,select').forEach(input => {
+      input.disabled = readOnly || loading || saving || !loaded;
+    });
     reload.disabled = saving;
   }
   unsavedChanges(() => dirty);
-  form.addEventListener('input', () => { dirty = true; });
+  form.addEventListener('input', () => {
+    dirty = true;
+  });
   async function load() {
     if (creating) return;
+    // 網址缺少編號時直接說明，不顯示底層的 API 錯誤。
+    if (!id) {
+      status(message, '找不到要編輯的管理員，請返回清單重新開啟。', true);
+      return;
+    }
     const generation = ++loadVersion;
-    // [E-14] 只採用最後一次讀取，避免較慢的舊回應覆蓋新版本。
+    // 只採用最後一次讀取的結果，避免較慢的舊回應覆蓋新資料。
     loading = true;
     loaded = false;
     updateControls();
@@ -43,47 +53,81 @@ export async function initializeAdminForm(identity, page) {
       const { admin } = await adminApi.get(id);
       if (generation !== loadVersion) return;
       if (admin.isRoot) {
-        form.replaceChildren(element('p', {}, '固定管理員的個人資料與系統身分受保護；密碼請使用更改密碼功能。'));
+        form.replaceChildren(
+          element('p', {}, '固定管理員的個人資料與系統身分受保護；密碼請使用更改密碼功能。')
+        );
         return;
       }
-      for (const name of ['account', 'displayName', 'email', 'roleId', 'status']) form.elements[name].value = admin[name];
+      for (const name of ['account', 'displayName', 'email', 'roleId', 'status'])
+        form.elements[name].value = admin[name];
       version = admin.version;
       loaded = true;
       dirty = false;
-      // [E-14] 新資料已取代草稿，舊欄位錯誤也須清除。
+      // 新資料已取代草稿，舊的欄位錯誤也要一併清除。
       formErrors(form, { fieldErrors: {} });
       status(message, '資料已載入。');
-    } catch (error) { if (generation === loadVersion) handleAdminError(error, message); }
-    finally { if (generation === loadVersion) { loading = false; updateControls(); } }
+    } catch (error) {
+      if (generation === loadVersion) handleAdminError(error, message);
+    } finally {
+      if (generation === loadVersion) {
+        loading = false;
+        updateControls();
+      }
+    }
   }
   reload.hidden = creating;
   reload.addEventListener('click', async event => {
-    if (!dirty || await confirmAction('重新載入管理員資料', '重新載入將放棄尚未儲存的修改。', event.currentTarget)) await load();
+    if (
+      !dirty ||
+      (await confirmAction('重新載入管理員資料', '重新載入將放棄尚未儲存的修改。', event.currentTarget))
+    )
+      await load();
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
-    if (identity.preview?.active) { status(form.querySelector('.form-status'), '目前為唯讀模擬，無法儲存。'); return; }
+    if (identity.preview?.active) {
+      status(form.querySelector('.form-status'), '目前為唯讀模擬，無法儲存。');
+      return;
+    }
     if (saving) return;
-    if (loading || !loaded) { status(message, '請先重新載入有效資料，再進行儲存。', true); return; }
-    submitForm(form, async () => {
-      const body = Object.fromEntries(new FormData(form));
-      body.status = form.elements.status.value;
-      saving = true;
-      updateControls();
-      let completed = false;
-      try {
-        if (creating) await adminApi.create(body);
-        else { body.version = version; await adminApi.update(id, body); }
-        dirty = false;
-        completed = true;
-        if (hasPermission(identity, 'admins', 'view')) { flash('管理員帳號已儲存。'); location.assign('/admin/admins.html'); }
-        else {
-          status(message, '管理員已儲存。');
-          document.querySelector('#admin-another').hidden = !hasPermission(identity, 'admins', 'create');
-          message.focus();
+    if (loading || !loaded) {
+      status(message, '請先重新載入有效資料，再進行儲存。', true);
+      return;
+    }
+    submitForm(
+      form,
+      async () => {
+        const body = Object.fromEntries(new FormData(form));
+        body.status = form.elements.status.value;
+        saving = true;
+        updateControls();
+        let completed = false;
+        try {
+          if (creating) await adminApi.create(body);
+          else {
+            body.version = version;
+            await adminApi.update(id, body);
+          }
+          dirty = false;
+          completed = true;
+          if (hasPermission(identity, 'admins', 'view')) {
+            flash('管理員帳號已儲存。');
+            location.assign('/admin/admins.html');
+          } else {
+            status(message, '管理員已儲存。');
+            document.querySelector('#admin-another').hidden = !hasPermission(identity, 'admins', 'create');
+            message.focus();
+          }
+        } finally {
+          saving = completed;
+          updateControls();
         }
-      } finally { saving = completed; updateControls(); }
-    }, { canSubmit: () => !readOnly && !loading && !saving && loaded, onError: error => handleAdminError(error, message) });
+      },
+      {
+        canSubmit: () => !readOnly && !loading && !saving && loaded,
+        onError: error => handleAdminError(error, message),
+      }
+    );
   });
   await load();
   updateControls();

@@ -11,7 +11,7 @@ class PublicHome
     /** @return array<string,mixed> */
     public function get(): array
     {
-        // [E-26] 只讀一次，與 SSR 相同選取結果；不逐一呼叫多個主題 API。
+        // 快照只讀一次，挑選結果與伺服器產生的首頁相同，不必逐一呼叫各主題的 API。
         $snapshot = $this->publication->read();
         $home = $snapshot['home'] ?? null;
         if (!is_array($home)) {

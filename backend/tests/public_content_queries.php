@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-26] MariaDB 12.3 的實際發布查詢計畫；唯讀，不增加索引或重啟資料庫。 */
+/** 在 MariaDB 上檢查公開內容發布查詢的實際執行計畫；只讀取，不新增索引也不重啟資料庫。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $config = new Yinghua\Config();

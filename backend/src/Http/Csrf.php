@@ -10,10 +10,10 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Support\Secrets;
 
-/** [S-SEC-09／E-02] 匿名簽章 Cookie 與登入 token 分離，且每種身分各自綁定。 */
+/** CSRF 防護：匿名階段用簽章 Cookie，和登入 token 分開，會員與管理員各自綁定。 */
 class Csrf
 {
-    // [E-29] 虛擬主機校時的有限回撥預算；不延長到期時間、不接受未簽章 token。
+    // 容許虛擬機時鐘有幾秒誤差；不會延長到期時間，也不接受沒有簽章的 token。
     private const int CLOCK_SKEW_SECONDS = 5;
 
     public function __construct(private readonly Config $config, private readonly Clock $clock, private readonly Secrets $secrets) {}
@@ -70,7 +70,7 @@ class Csrf
 
     private function reject(Request $request, string $reason, string $message): never
     {
-        // 只記 requestId 與有限原因，禁止 Cookie、token、個資或 request body。
+        // 日誌只記 requestId 與固定的原因代碼，不可寫入 Cookie、token、個資或 request body。
         error_log('request=' . $request->requestId . ' csrf_reason=' . $reason);
         throw new ApplicationError('CSRF_INVALID', $message);
     }

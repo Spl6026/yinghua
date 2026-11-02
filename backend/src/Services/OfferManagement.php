@@ -21,7 +21,7 @@ use Yinghua\Repositories\MediaRepository;
 use Yinghua\Repositories\MerchantRepository;
 use Yinghua\Repositories\OfferRepository;
 
-/** [S：功能規格 G11／G23；E-17／26] 優惠的店家／條款／期間共用寫入規則。 */
+/** 優惠的寫入流程，統一處理店家、條款與活動期間的規則。 */
 class OfferManagement implements ContentImportService
 {
     public function __construct(
@@ -90,7 +90,18 @@ class OfferManagement implements ContentImportService
 
     public function save(Account $actor, PreparedImport $change, ClientContext $client): void
     {
-        $this->saveChange($actor, new PreparedContentChange($change->item->id, $change->input, $change->creating, $change->unchanged, $change->version, $change->warnings), $client);
+        $this->saveChange(
+            $actor,
+            new PreparedContentChange(
+                $change->item->id,
+                $change->input,
+                $change->creating,
+                $change->unchanged,
+                $change->version,
+                $change->warnings,
+            ),
+            $client,
+        );
     }
 
     public function saveChange(Account $actor, PreparedContentChange $change, ClientContext $client): void

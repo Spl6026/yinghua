@@ -6,7 +6,7 @@ namespace Yinghua\Policies;
 
 use Yinghua\DTO\ScreeningWindow;
 
-/** [S：功能規格 5／7；E-26] 首頁與電影 API 共用週篩選及第一場排序。 */
+/** 首頁與電影 API 共用的本週電影篩選，並依第一場放映時間排序。 */
 final class WeeklyFilmSelection
 {
     /** @param list<array<string,mixed>> $films

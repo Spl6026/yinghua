@@ -11,6 +11,7 @@ readonly class ItineraryWriteResult
     /** @return array{itineraryId:?string,version:int,attractionId:string,changed:bool} */
     public function toArray(): array
     {
-        return ['itineraryId' => $this->itineraryId, 'version' => $this->version, 'attractionId' => $this->attractionId, 'changed' => $this->changed];
+        return ['itineraryId' => $this->itineraryId, 'version' => $this->version,
+            'attractionId' => $this->attractionId, 'changed' => $this->changed];
     }
 }

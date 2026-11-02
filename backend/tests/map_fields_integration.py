@@ -1,4 +1,4 @@
-"""[U-10／E-21] 官網／行政區保存與參考資料不落DB；不消耗 Google 額度。"""
+"""驗證官網與行政區欄位的保存，參考資料不寫入資料庫；不消耗 Google 額度。"""
 import json
 import secrets
 from api_integration import Client, ROOT, fixture, password

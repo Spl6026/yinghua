@@ -1,4 +1,4 @@
-"""[S G15/L15; E-27] Current trip ownership, aggregate transactions and concurrency."""
+"""驗證目前行程只能由本人存取，以及整份行程的交易與並行處理。"""
 import concurrent.futures,json,secrets,uuid
 import member_resources_integration as probe
 from api_integration import Client,fixture,password

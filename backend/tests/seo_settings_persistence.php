@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-/** [D：C24–D25；E-28] 真 MariaDB 資料層／唯一約束／rollback，不修改正式設定。 */
+/** 在真實 MariaDB 驗證 SEO 設定的資料層、唯一約束與回滾；不會改到正式設定。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Config;
 use Yinghua\DTO\SeoDefaults;
 use Yinghua\DTO\SeoOverride;
 use Yinghua\Models\SeoResource;
-use Yinghua\Repositories\ContentSeoRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\Database;
-use Yinghua\Repositories\SiteSettingsRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 
 $db = Database::connect(new Config());
 if (($db->row('SELECT DATABASE() AS name')['name'] ?? '') !== 'yinghua_test') {
@@ -37,8 +37,8 @@ $reject = static function (callable $action) use ($check): void {
     }
     throw new RuntimeException('Expected SEO database constraint rejection.');
 };
-$settings = new SiteSettingsRepository($db);
-$overrides = new ContentSeoRepository($db);
+$settings = new SeoSettingsRepository($db);
+$overrides = new SeoOverrideRepository($db);
 $before = [$settings->read()->toArray(), array_map(static fn(SeoOverride $item): array => $item->toArray(), $overrides->all())];
 $db->pdo->beginTransaction();
 try {

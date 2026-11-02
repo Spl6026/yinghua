@@ -1,4 +1,4 @@
-"""[E-40] Named DB probe followed by real HTTP contracts; no root reset."""
+"""先執行指定的資料庫探測，再以真實 HTTP 驗證回應契約；不會重設 root 帳號。"""
 import json
 import subprocess
 import sys

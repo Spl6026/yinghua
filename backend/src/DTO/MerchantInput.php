@@ -6,7 +6,7 @@ namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
 
-/** [D：資料表建議 C15；原型 merchant；E-26] 店家可獨立於景點存在。 */
+/** 店家表單輸入；店家不必對應任何景點。 */
 readonly class MerchantInput
 {
     /** @param array<string,string|int|null> $fields */

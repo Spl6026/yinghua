@@ -14,7 +14,7 @@ use Yinghua\Http\Request;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Support\Secrets;
 
-/** [E-29] 真實簽章與可控時鐘：有限回撥不誤拒，其他安全邊界仍拒絕。 */
+/** 使用真實簽章搭配可控時鐘：時鐘小幅回撥時不誤拒，其他不安全的情況仍要拒絕。 */
 class CsrfTest extends TestCase
 {
     /** @return iterable<string,array{int,bool}> */

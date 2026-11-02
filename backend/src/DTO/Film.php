@@ -4,13 +4,21 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-25] 管理與公開輸出使用明確白名單。 */
+/** 電影資料；管理與公開輸出各自使用明確的欄位白名單。 */
 readonly class Film
 {
     /** @param array<string,mixed> $values
      * @param list<FilmScreening> $screenings
      */
-    public function __construct(public string $id, public string $slug, public int $version, public string $status, public ?string $deletedAt, public array $values, public array $screenings) {}
+    public function __construct(
+        public string $id,
+        public string $slug,
+        public int $version,
+        public string $status,
+        public ?string $deletedAt,
+        public array $values,
+        public array $screenings,
+    ) {}
 
     /** @return array<string,mixed> */
     public function toArray(): array

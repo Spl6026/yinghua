@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-29] 維護窗口專用 CLI，沒有 HTTP 路由；主庫復原不在演練授權內。 */
+/** 只在維護窗口使用的復原指令，沒有對應的 HTTP 路由；主資料庫的還原不由這支程式處理。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Adapters\PdoTransactions;

@@ -9,7 +9,7 @@ use Yinghua\DTO\SeoOverride;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\SeoResource;
 
-/** [D：D25；E-28] 不執行任意 wildcard；只允許共用 catalog 的明確目標。 */
+/** SEO 個別設定的目標檢查：不支援萬用字元，只接受頁面清單中的明確路徑或內容 UUID。 */
 readonly class SeoTargetPolicy
 {
     /** @param list<string> $paths */
@@ -27,7 +27,9 @@ readonly class SeoTargetPolicy
         }
         $input->only($type === SeoResource::Page ? ['type','path'] : ['type','id']);
         $target = $input->text($type === SeoResource::Page ? 'path' : 'id', 1, 180);
-        if ($type === SeoResource::Page ? !in_array($target, $this->paths, true) : !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/D', $target)) {
+        if ($type === SeoResource::Page
+            ? !in_array($target, $this->paths, true)
+            : !preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/D', $target)) {
             throw ApplicationError::invalid('target', '請選擇有效頁面或內容識別。');
         }
 
@@ -41,7 +43,8 @@ readonly class SeoTargetPolicy
         }
         SeoUrlPolicy::path($override->canonicalPath, 'canonicalPath');
         // 個別內容的 canonical 由穩定 UUID 解析最新 slug，不允許跨內容指定。
-        if ($override->type !== SeoResource::Page || str_contains($override->target, '*') || $override->canonicalPath !== $override->target) {
+        if ($override->type !== SeoResource::Page || str_contains($override->target, '*')
+            || $override->canonicalPath !== $override->target) {
             throw ApplicationError::invalid('canonicalPath', '此目標使用正式內容自身網址，請留空繼承。');
         }
     }

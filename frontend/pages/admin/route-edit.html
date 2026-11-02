@@ -10,22 +10,23 @@
 <meta name="theme-color" content="#f5f0e6">
 <link rel="icon" href="/assets/favicon.svg">
 <link rel="stylesheet" href="/assets/css/style.css">
-<link rel="stylesheet" href="/assets/css/phase2.css">
-<link rel="stylesheet" href="/assets/css/phase10.css">
+<link rel="stylesheet" href="/assets/css/states.css">
+<link rel="stylesheet" href="/assets/css/routes.css">
+<link rel="stylesheet" href="/assets/css/ui-consistency.css">
 </head>
 <body data-module="routes" data-action="edit" data-page="route-edit">
 <a class="skip-link" href="#main-content">跳到主要內容</a><div class="site-shell">
 <main id="main-content" tabindex="-1"><div class="admin-wrap">{{ADMIN_SIDEBAR}}<div class="admin-main">{{ADMIN_TOPBAR}}
 <div class="admin-content"><div class="admin-page-heading"><div><p class="eyebrow">CONTENT MANAGEMENT / ROUTES</p><h1>編輯推薦行程</h1><p>選擇景點並依旅遊順序排列，維護主題、時間與發布狀態。</p></div></div>
 <section class="admin-panel"><form id="route-form" autocomplete="off"><div class="admin-form-grid">
-<div class="admin-field"><label for="route-title">行程名稱 *</label><input id="route-title" name="title" required maxlength="160"></div>
-<div class="admin-field"><label for="route-theme">行程主題（選填）</label><input id="route-theme" name="theme" maxlength="255" placeholder="影像與舊城、慢活散策…"></div>
+<div class="admin-field"><label for="route-title">行程名稱 *</label><input id="route-title" name="title" required maxlength="160" spellcheck="false" autocomplete="off"></div>
+<div class="admin-field"><label for="route-theme">行程主題（選填）</label><input id="route-theme" name="theme" maxlength="255" placeholder="影像與舊城、慢活散策…" spellcheck="false" autocomplete="off"></div>
 <div class="admin-field full"><label for="route-summary">行程介紹（選填）</label><textarea id="route-summary" name="summary" maxlength="20000"></textarea></div>
-<div class="admin-field"><label for="route-duration">預估時間（分鐘，選填）</label><input id="route-duration" name="durationMinutes" type="number" min="1" max="4294967295" step="1"><p class="helper-text">可將天數換算為分鐘；不填也可儲存。</p></div>
-<div class="admin-field"><label for="route-order">路線顯示順序</label><input id="route-order" name="sortOrder" type="number" min="0" max="4294967295" step="1" value="0"><p class="helper-text">數字小的先顯示，相同時依固定識別排序。</p></div>
+<div class="admin-field"><label for="route-duration">預估時間（分鐘，選填）</label><input id="route-duration" name="durationMinutes" type="number" min="1" max="4294967295" step="1" spellcheck="false" autocomplete="off"><p class="helper-text">可將天數換算為分鐘；不填也可儲存。</p></div>
+<div class="admin-field"><label for="route-order">路線顯示順序</label><input id="route-order" name="sortOrder" type="number" min="0" max="4294967295" step="1" value="0" spellcheck="false" autocomplete="off"><p class="helper-text">數字小的排在前面。</p></div>
 <div class="admin-field"><label for="route-publish-status">發布狀態</label><select id="route-publish-status" name="status"><option value="draft">草稿</option><option value="published">已發布</option><option value="archived">下架</option></select></div>
 <div class="admin-field full"><p id="route-stops-label">行程站點（至少一站）</p><ol id="route-stops" class="route-stops" aria-labelledby="route-stops-label" tabindex="-1" data-field-name="stops"></ol></div>
-<div class="admin-field full"><label for="route-place-query">加入景點（只列已發布景點）</label><div class="route-picker-actions"><input id="route-place-query" type="search" maxlength="255"><button type="button" id="route-place-search" class="button button-outline">搜尋景點</button></div><div id="route-candidates" class="route-candidates"></div><div class="route-picker-actions"><button type="button" id="route-place-previous" class="button button-outline">上一頁景點</button><span id="route-place-page"></span><button type="button" id="route-place-next" class="button button-outline">下一頁景點</button></div></div>
+<div class="admin-field full"><label for="route-place-query">加入景點（只列已發布景點）</label><div class="route-picker-actions"><input id="route-place-query" type="search" maxlength="255" spellcheck="false" autocomplete="off"><button type="button" id="route-place-search" class="button button-outline">搜尋景點</button></div><div id="route-candidates" class="route-candidates"></div><div class="route-picker-actions"><button type="button" id="route-place-previous" class="button button-outline">上一頁景點</button><span id="route-place-page"></span><button type="button" id="route-place-next" class="button button-outline">下一頁景點</button></div></div>
 </div><div class="admin-form-actions"><a id="route-cancel" class="button button-outline" href="/admin/routes.html">取消</a><button class="button button-outline" type="button" id="route-reload">重新載入</button><button class="button button-dark" type="submit">儲存修改 ↗</button></div><p id="route-form-status" class="form-status" role="status" tabindex="-1"></p></form></section>
 </div>
 </div></div></main>{{DIALOG}}<div id="toast" class="toast" role="status" aria-live="polite"></div></div>

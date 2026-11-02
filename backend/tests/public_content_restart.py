@@ -1,4 +1,4 @@
-"""[E-26] 只重建 app-test／web-test，保留 DB／媒體／發布 volume；清理自有 UUID。"""
+"""只重建 app-test／web-test，保留資料庫、媒體與發布的 volume；清理測試自有的 UUID 資料。"""
 from pathlib import Path
 import argparse,hashlib,json,secrets,sys,time,urllib.request,urllib.error,uuid
 from news_public_integration import ROOT,run,db,cli as news_cli,get,opener

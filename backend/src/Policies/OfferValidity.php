@@ -7,7 +7,7 @@ namespace Yinghua\Policies;
 use DateTimeImmutable;
 use DateTimeZone;
 
-/** [S：功能規格 G11；E-26] 台北當地日期，迄日整天有效；空值不限制該端。 */
+/** 優惠有效期間以台北日期判斷，結束日當天整天有效；起訖日留空表示該端不限。 */
 final class OfferValidity
 {
     public static function day(int $now): string

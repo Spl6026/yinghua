@@ -9,7 +9,7 @@ use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
 
-/** [S：功能規格 7/21；U-12／16] 必填依原型；F 欄不是必填清單。 */
+/** 電影表單輸入，包含場次清單。 */
 readonly class FilmInput
 {
     /** @param array<string,string|int|bool|null> $fields
@@ -24,7 +24,8 @@ readonly class FilmInput
         $input->only(['title','slug','genre','synopsis','posterMediaId','posterUrl','posterAlt','posterSource','posterLicense',
             'ticketUrl','status','publishAt','seoTitle','seoDescription','screenings','version']);
         $fields = ['title' => $input->text('title'), 'slug' => $input->optionalText('slug', 160)];
-        if ($fields['slug'] !== '' && (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $fields['slug']) || $fields['slug'] === 'resolve-url')) {
+        if ($fields['slug'] !== '' && (!preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/D', $fields['slug'])
+            || $fields['slug'] === 'resolve-url')) {
             throw ApplicationError::invalid('slug', '請使用未保留的小寫英文、數字與連字號。');
         }
         foreach (['genre' => 255,'synopsis' => 20000,'seoTitle' => 160,'seoDescription' => 500] as $key => $max) {
@@ -61,7 +62,9 @@ readonly class FilmInput
         }
         if ($creating || array_key_exists('publishAt', $values)) {
             $text = $input->optionalText('publishAt', 30);
-            $date = $text === '' ? new DateTimeImmutable('now', new DateTimeZone('UTC')) : DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:sP', $text);
+            $date = $text === ''
+                ? new DateTimeImmutable('now', new DateTimeZone('UTC'))
+                : DateTimeImmutable::createFromFormat('!Y-m-d\TH:i:sP', $text);
             if ($date === false || ($text !== '' && $date->format('Y-m-d\TH:i:sP') !== $text)) {
                 throw ApplicationError::invalid('publishAt', '請提供含時區的有效發布時間。');
             }
@@ -105,6 +108,8 @@ readonly class FilmInput
 
     public function withDefaultSlug(string $slug): self
     {
-        return $this->fields['slug'] !== '' ? $this : new self([...$this->fields,'slug' => $slug], $this->version, $this->status, $this->screenings);
+        return $this->fields['slug'] !== ''
+            ? $this
+            : new self([...$this->fields,'slug' => $slug], $this->version, $this->status, $this->screenings);
     }
 }

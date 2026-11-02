@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-26] 同一公開投影中的首頁欄位；沒有額外首頁資料表或設定管理。 */
+/** 首頁內容，從同一份公開快照挑出來；首頁沒有獨立的資料表或設定。 */
 readonly class HomeContent
 {
     /** @param array<string,mixed>|null $museum

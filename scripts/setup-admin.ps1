@@ -11,6 +11,6 @@ $initialPassword = $settings['ADMIN_INITIAL_PASSWORD']
 if ([string]::IsNullOrWhiteSpace($adminEmail) -or [string]::IsNullOrWhiteSpace($initialPassword)) {
     throw 'Set ADMIN_EMAIL and a unique ADMIN_INITIAL_PASSWORD in your ignored .env.'
 }
-# [E-11] 密碼只經 stdin 傳遞，不出現在參數、終端輸出或提交內容。
+# 密碼只透過 stdin 傳遞，不會出現在命令參數、終端輸出或版本庫中。
 "$adminEmail`n$initialPassword`n$initialPassword" | docker compose exec -T app php bin/console.php admin:init
 if ($LASTEXITCODE -ne 0) { throw 'Admin initialization failed.' }

@@ -1,4 +1,4 @@
-"""[E-35] Read-only owned fixture cleanup, projection and migration integrity."""
+"""唯讀確認測試資料已清乾淨，並檢查公開投影與 migration 的完整性。"""
 import json,hashlib
 from api_integration import ROOT,fixture
 from phase8_browser_fixture import literal

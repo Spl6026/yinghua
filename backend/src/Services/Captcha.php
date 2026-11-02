@@ -63,7 +63,7 @@ class Captcha
         return new CaptchaResponse($token, gmdate('c', $expires), message: '驗證碼已寄送，請查看信箱。');
     }
 
-    /** 在註冊交易內呼叫；錯誤回傳而不 throw，使錯誤次數能提交。 */
+    /** 必須在註冊交易內呼叫。驗證失敗時回傳 false 而不丟例外，讓錯誤次數能跟著交易一起提交。 */
     public function consume(RegisterInput $input, ClientContext $client): bool
     {
         $challenge = $this->repository->lock($input->challengeToken);
@@ -74,7 +74,8 @@ class Captcha
         }
         $recipientMatches = $challenge->recipientHash === null
             || hash_equals($challenge->recipientHash, $this->secrets->keyed('captcha-email', $input->email));
-        if (!$recipientMatches || !hash_equals($challenge->answerHmac, $this->secrets->keyed('captcha-answer', $challenge->id . ':' . $input->answer))) {
+        if (!$recipientMatches
+            || !hash_equals($challenge->answerHmac, $this->secrets->keyed('captcha-answer', $challenge->id . ':' . $input->answer))) {
             $this->repository->failed($challenge->id);
 
             return false;
@@ -86,7 +87,7 @@ class Captcha
 
     private function image(string $answer): string
     {
-        // [S-016／S-SEC-10] 答案只畫入 PNG，不回傳文字、SVG 或 DOM 屬性。
+        // 答案只畫在 PNG 圖片裡，不以文字、SVG 或 DOM 屬性回傳，避免被程式直接讀取。
         $image = imagecreatetruecolor(230, 64);
         if ($image === false) {
             throw new RuntimeException('GD image creation failed.');

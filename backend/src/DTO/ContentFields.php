@@ -9,7 +9,7 @@ use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
 
-/** [E-26] 消息／優惠共用格式邊界；不增加業務必填。 */
+/** 消息與優惠共用的欄位格式驗證；只檢查格式，不決定哪些欄位必填。 */
 final class ContentFields
 {
     public static function uuid(string $value, string $field): string
@@ -49,7 +49,8 @@ final class ContentFields
         }
         $fields = ['title' => $input->text('title'), 'slug' => $slug];
         foreach (['coverUrl' => ['cover_url',2000], 'coverAlt' => ['cover_alt',255], 'coverSource' => ['cover_source',255],
-            'coverLicense' => ['cover_license',255], 'seoTitle' => ['seo_title',160], 'seoDescription' => ['seo_description',500]] as $key => [$column, $max]) {
+            'coverLicense' => ['cover_license',255], 'seoTitle' => ['seo_title',160],
+            'seoDescription' => ['seo_description',500]] as $key => [$column, $max]) {
             $fields[$column] = $input->optionalText($key, $max);
         }
         $fields['cover_url'] = ContentUrl::validate($input->optionalText('coverUrl', 2000), 'coverUrl');
@@ -74,6 +75,7 @@ final class ContentFields
     /** @return list<string> */
     public static function keys(): array
     {
-        return ['title','slug','coverMediaId','coverUrl','coverAlt','coverSource','coverLicense','status','publishAt','seoTitle','seoDescription','version'];
+        return ['title','slug','coverMediaId','coverUrl','coverAlt','coverSource','coverLicense',
+            'status','publishAt','seoTitle','seoDescription','version'];
     }
 }

@@ -8,7 +8,7 @@ use DirectoryIterator;
 use RuntimeException;
 use Yinghua\Config;
 
-/** [E-29] 只處理既有平面 UUID 圖檔儲存；拒絕遺失、連結、未知檔案及暫存殘留。 */
+/** 復原時檢查圖檔目錄：只接受平面的 UUID 檔名，遇到遺失、符號連結、未知檔案或暫存殘留都拒絕。 */
 readonly class RecoveryMediaInspector
 {
     public function __construct(private Config $config) {}

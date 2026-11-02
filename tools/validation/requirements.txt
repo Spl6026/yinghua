@@ -1,5 +1,5 @@
-# Development-only validation dependencies; isolated from the website runtime.
-# Versions recorded from the tested local environment on 2026-11-02.
+# 只在開發驗證時使用的套件，與網站執行環境隔離。
+# 版本取自實際測試過的本機環境。
 attrs==26.1.0
 jsonschema==4.26.0
 jsonschema-specifications==2025.9.1

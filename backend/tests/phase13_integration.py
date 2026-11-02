@@ -1,4 +1,4 @@
-"""[S E18/G18/L18; E-35] Real MariaDB, public API, independent OpenAPI, owned test content only."""
+"""以真實 MariaDB、公開 API 與獨立的 OpenAPI 驗證全站搜尋；只使用測試自有的內容。"""
 import argparse,json,sys,uuid,urllib.request,urllib.error,subprocess
 from pathlib import Path
 from urllib.parse import urlencode
@@ -57,7 +57,7 @@ try:
     check('blank has no prototype data',search('not-present-'+prefix)['items']==[])
     for row in items:
         req=urllib.request.Request('http://localhost:8081'+row['url']);http=urllib.request.build_opener(urllib.request.ProxyHandler({}));response=http.open(req,timeout=20);check('direct public detail '+row['type'],response.status==200)
-    # A downed item must disappear after publication, not retain an old result.
+    # 下架的項目在重新發布後必須從搜尋結果消失，不能殘留舊資料。
     fixture('UPDATE news_posts SET status='+literal('archived')+' WHERE id='+literal(ids[1]));publish();check('downed excluded',all(r['id']!=ids[1] for r in search(pageSize=100)['items']))
     fixture('UPDATE offers SET valid_to='+literal('2020-01-01')+' WHERE id='+literal(offer['id']));publish();check('expired offer excluded',search(type='offer')['total']==0)
     fixture('UPDATE offers SET valid_to=NULL WHERE id='+literal(offer['id']));publish()
@@ -67,7 +67,7 @@ try:
     fixture('UPDATE news_posts SET slug='+literal('bad/slug')+' WHERE id='+literal(ids[0]))
     try:
         search(expected=503)
-        # Publisher must fail safely without enabling malformed URLs.
+        # 遇到格式錯誤的網址時，發布流程必須安全失敗，不能讓錯誤網址上線。
         from phase8_browser_fixture import php
         result=php('require "vendor/autoload.php";$p=(new Yinghua\\Composition(new Yinghua\\Config()))->publication();echo $p->retry()?"ready":"failed";').decode();check('failed publisher closed',result=='failed');search(expected=503)
     finally:fixture('UPDATE news_posts SET slug='+literal(newslug)+' WHERE id='+literal(ids[0]));publish()

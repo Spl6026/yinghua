@@ -70,7 +70,12 @@ try {
         $publication = (new Composition($config))->publication($database);
         $publication->exclusive(function () use ($database, $publication, $actor, $secrets, $client): void {
             $screenings = new \Yinghua\Repositories\FilmScreeningRepository($database);
-            (new \Yinghua\Adapters\FilmSeeder($database, new \Yinghua\Repositories\FilmRepository($database, $screenings), new PdoTransactions($database), new EventRepository($database, $secrets)))
+            (new \Yinghua\Adapters\FilmSeeder(
+                $database,
+                new \Yinghua\Repositories\FilmRepository($database, $screenings),
+                new PdoTransactions($database),
+                new EventRepository($database, $secrets),
+            ))
                 ->seed(dirname(__DIR__) . '/resources/films-demo.json', $actor->id, $client);
             if (!$publication->synchronize()) {
                 throw new RuntimeException('Films saved; publication pending.');
@@ -86,7 +91,10 @@ try {
                 throw new RuntimeException('Demo saved; publication pending.');
             }
         });
-        fwrite(STDOUT, "Original demo imported; existing content was not overwritten. Replace unlicensed demonstration material before launch.\n");
+        fwrite(
+            STDOUT,
+            "Original demo imported; existing content was not overwritten. Replace unlicensed demonstration material before launch.\n",
+        );
     } elseif ($command === 'content:backfill-demo-labels') {
         if (count($arguments) > 3 || (isset($arguments[2]) && $arguments[2] !== '--apply')) {
             throw new RuntimeException('Only --apply is supported; omitted means preview.');
@@ -97,11 +105,22 @@ try {
             throw new RuntimeException('Initialize the fixed administrator before maintenance.');
         }
         $secrets = new Secrets($config);
-        $client = new ClientContext('cli', $secrets->keyed('ip', 'cli'), $secrets->keyed('agent', 'content-maintenance'), bin2hex(random_bytes(16)));
+        $client = new ClientContext(
+            'cli',
+            $secrets->keyed('ip', 'cli'),
+            $secrets->keyed('agent', 'content-maintenance'),
+            bin2hex(random_bytes(16)),
+        );
         $publication = (new Composition($config))->publication($database);
         $changes = $publication->exclusive(function () use ($database, $publication, $apply, $actor, $secrets, $client): array {
             $changes = (new AttractionSeeder($database, new AttractionRepository($database), new PdoTransactions($database)))
-                ->backfillLabels(dirname(__DIR__) . '/resources/attractions-demo.json', $apply, $actor->id, new EventRepository($database, $secrets), $client);
+                ->backfillLabels(
+                    dirname(__DIR__) . '/resources/attractions-demo.json',
+                    $apply,
+                    $actor->id,
+                    new EventRepository($database, $secrets),
+                    $client,
+                );
             if ($apply && !$publication->synchronize()) {
                 throw new RuntimeException('Labels saved; publication pending. Retry content:publish.');
             }
@@ -116,6 +135,11 @@ try {
                     if (!$publication->tick()) {
                         fwrite(STDERR, "Publication pending; retrying.\n");
                     }
+                } catch (PDOException $error) {
+                    // 資料庫重新啟動後，這個長駐程序手上的連線就失效了，之後每一輪都會失敗。
+                    // 直接結束，讓容器的 restart 策略重新啟動並建立新連線。
+                    fwrite(STDERR, "Publication worker lost its database connection; exiting so it restarts.\n");
+                    exit(1);
                 } catch (Throwable $error) {
                     fwrite(STDERR, 'Publication worker (' . $error::class . ").\n");
                 }
@@ -148,7 +172,10 @@ try {
             fwrite(STDOUT, "Fixed admin password recovered; previous sessions revoked.\n");
         }
     } else {
-        fwrite(STDOUT, "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, film:seed-demo, content:seed-public-demo, content:import, media:import, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch\n");
+        fwrite(
+            STDOUT,
+            "Commands: db:migrate, db:seed, admin:init, admin:recover, content:seed-demo, film:seed-demo, content:seed-public-demo, content:import, media:import, content:backfill-demo-labels [--apply], content:publish, content:tick, content:watch\n",
+        );
     }
 } catch (Throwable $error) {
     fwrite(STDERR, 'Command failed (' . $error::class . "). Check configuration and the documented input requirements.\n");

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-26] 匯入識別獨立於內容表單；ID 不由標題或目前陣列位置推算。 */
+/** 匯入檔中的一筆內容；ID 由匯入檔明確指定，不從標題或在陣列中的位置推算。 */
 readonly class ImportItem
 {
     /** @param array<string,mixed> $values */

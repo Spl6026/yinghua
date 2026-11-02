@@ -2,12 +2,13 @@
 
 declare(strict_types=1);
 
-/** [E-26] 真實 MariaDB＋Node 的跨日發布：獨立 /tmp 產物，交易回滾，不換主／測試 current。 */
+/** 以真實 MariaDB 與 Node 驗證跨日發布：產物放在獨立的 /tmp，交易會回滾，不切換主站或測試站的 current。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Adapters\NodeContentRenderer;
 use Yinghua\Config;
 use Yinghua\Contracts\Clock;
+use Yinghua\Contracts\Transactions;
 use Yinghua\DTO\MerchantInput;
 use Yinghua\DTO\NewsInput;
 use Yinghua\DTO\OfferInput;
@@ -19,11 +20,17 @@ use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\Database;
 use Yinghua\Repositories\FilmRepository;
 use Yinghua\Repositories\FilmScreeningRepository;
+use Yinghua\Repositories\GeneralSettingsRepository;
 use Yinghua\Repositories\MerchantRepository;
 use Yinghua\Repositories\NewsRepository;
 use Yinghua\Repositories\OfferRepository;
 use Yinghua\Repositories\PublicationRepository;
+use Yinghua\Repositories\RecommendedRouteRepository;
+use Yinghua\Repositories\SearchRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Services\ContentPublication;
+use Yinghua\Services\SeoPublication;
 use Yinghua\Services\PublicOffers;
 use Yinghua\Support\Secrets;
 
@@ -70,6 +77,16 @@ try {
         $clock,
         $news,
         $offers,
+        new SeoPublication(new SeoSettingsRepository($db), new SeoOverrideRepository($db)),
+        new RecommendedRouteRepository($db),
+        // 外層測試交易最後會回滾，搜尋索引寫入直接沿用該交易，不另開巢狀交易。
+        new SearchRepository($db, new class implements Transactions {
+            public function run(callable $operation): mixed
+            {
+                return $operation();
+            }
+        }),
+        new GeneralSettingsRepository($db),
     );
     $public = new PublicOffers($publication);
     $clock->value = (int) strtotime('2026-10-22T23:59:59+08:00');
@@ -94,7 +111,7 @@ try {
     $generation = $publication->read()['generation'];
     $clock->value++;
     $check($publication->tick() && $publication->read()['generation'] === $generation);
-    // [S：功能規格 5／7；E-26] 台北週一切換，首頁只使用新週的場次。
+    // 以台北時間的週一為界切換，首頁只能顯示新一週的場次。
     $screenings = new FilmScreeningRepository($db);
     $films = new FilmRepository($db, $screenings);
     $filmId = Secrets::uuid();

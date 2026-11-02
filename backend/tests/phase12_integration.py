@@ -1,7 +1,7 @@
-"""[S E31:G33/L31/L33; E-34] Real yinghua_test HTML/XML, live publication and official vocabulary.
+"""以 yinghua_test 實際驗證 HTML／XML、即時發布，以及 Schema.org 官方詞彙。
 
-Run after other suites sharing the named fixture. Keeps optional Browser content only
-when --keep-browser is passed; settings and failure injection always restore in finally.
+請在共用同一份測試資料的其他測試之後執行。只有傳入 --keep-browser 時才保留
+瀏覽器檢查用的內容；設定變更與故障注入一律在 finally 還原。
 """
 import argparse,copy,json,re,urllib.request,urllib.error,xml.etree.ElementTree as ET
 from datetime import datetime,timezone
@@ -104,7 +104,7 @@ def main(schema_vocabulary,keep_browser=False):
         check('robots admin and same origin sitemap',robots=='User-agent: *\nDisallow: /admin/\nSitemap: '+base+'/sitemap.xml\n')
         code,body,_=get('/sitemap.xml','HEAD');check('sitemap HEAD without body',code==200 and body=='')
         check('missing part 404',get('/sitemap-999.xml')[0]==404)
-        # A content update changes lastmod, not every repeated publication.
+        # lastmod 只在內容更新時改變，單純重複發布不應該改動它。
         old_path='/news/'+n['slug']+'.html'
         fixture("UPDATE news_posts SET updated_at='2020-01-01 01:02:03' WHERE id="+literal(n['id']));publish();urls,_=sitemap()
         stamp=call('GET','/api/v1/admin/settings/seo').get('updatedAt')
@@ -124,7 +124,7 @@ def main(schema_vocabulary,keep_browser=False):
         inspect(new_path,'Article','https://index-validation.example.test')
         check('robots canonical setting used','Sitemap: https://index-validation.example.test/sitemap.xml' in get('/robots.txt')[1])
         save_settings(seo_original['defaults'],seo_original['overrides']);seo_original=None
-        # Force renderer failure only for the owned record; gate must block stale files.
+        # 只讓測試自有的紀錄渲染失敗；發布檢查必須擋下過期的檔案。
         fixture('UPDATE news_posts SET slug='+literal(prefix+'_invalid')+' WHERE id='+literal(fault_id))
         import subprocess
         failed=subprocess.run(['docker','compose','exec','-T','-u','www-data','app-test','php','bin/console.php','content:publish'],cwd=ROOT,capture_output=True)
@@ -134,7 +134,7 @@ def main(schema_vocabulary,keep_browser=False):
         check('index recovery 200',get('/sitemap.xml')[0]==200)
         n=call('PUT','/api/v1/admin/news/'+n['id'],{**news,'slug':n['slug'],'version':n['version'],'status':'archived'})['record']
         check('archived excluded from sitemap',base+new_path not in sitemap()[0]);check('archived detail 404',get(new_path)[0]==404)
-        # Leave representative published content for UI only when explicitly requested by runner.
+        # 只有執行者明確要求時，才留下一份已發布內容供介面檢查使用。
         if keep_browser:
             n=call('PUT','/api/v1/admin/news/'+n['id'],{**news,'slug':n['slug'],'version':n['version'],'status':'published'})['record']
             (ROOT/'artifacts/phase12/browser-content.json').write_text(json.dumps({'prefix':prefix,'newsPath':new_path,'eventPath':'/news/'+e['slug']+'.html','offerPath':'/offers/'+o['slug']+'.html','created':created,'merchantId':merchant_id}),encoding='utf8')

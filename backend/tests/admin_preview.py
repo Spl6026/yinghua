@@ -1,4 +1,4 @@
-"""[U-06／E-16] 真實 HTTP＋MariaDB 的唯讀模擬驗收；只使用 yinghua_test。"""
+"""以真實 HTTP 與 MariaDB 驗證管理員的唯讀模擬檢視；只使用 yinghua_test。"""
 import concurrent.futures
 import json
 import secrets
@@ -99,7 +99,7 @@ def main():
     restored = root.call('GET', root.auth + 'me')[1]
     check('exit restores original root', restored['admin']['id'] == root_id and not restored['preview']['active'] and len(restored['permissions']) == 40 and all(right['allowed'] for right in restored['permissions']))
     check('old preview token invalid after exit', stale.call('GET', stale.auth + 'me')[0] == 401)
-    check('fresh account can be previewed before first password change', root.call('POST', BASE, {'adminId': deleted_id})[0] == 200 and not root.call('GET', root.auth + 'me')[1]['admin']['mustChangePassword'])
+    check('fresh account can be previewed before first password change', root.call('POST', BASE, {'adminId': deleted_id})[0] == 200 and root.call('GET', root.auth + 'me')[0] == 200)
     check('fresh preview uses normal permissions without a first-login gate', root.call('GET', '/api/v1/admin/admins')[1]['code'] == 'FORBIDDEN')
     check('preview does not create actual target session', not fixture("SELECT id FROM sessions WHERE admin_id='" + deleted_id + "'"))
     version = control.call('GET', '/api/v1/admin/admins/' + deleted_id)[1]['admin']['version']

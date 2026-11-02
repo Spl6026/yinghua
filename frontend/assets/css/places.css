@@ -1,0 +1,229 @@
+/* 補齊正式表單的各種狀態，版型沿用原型的 admin-grid／panel／table。 */
+.place-photo-preview {
+  display: block;
+  max-width: 100%;
+  width: 400px;
+  height: 250px;
+  object-fit: cover;
+  background: #ebe5d8;
+}
+.map-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+.map-candidates .button {
+  white-space: normal;
+  text-align: left;
+}
+.map-candidate {
+  grid-column: 1/-1;
+  flex: 1 1 300px;
+  min-width: 0;
+  border: 1px solid #d9d7cd;
+  background: #f5f3eb;
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+  overflow-wrap: anywhere;
+}
+.map-candidate[hidden] {
+  display: none;
+}
+.map-candidate h3,
+.map-candidate p {
+  margin: 0;
+}
+.google-editorial-summary {
+  white-space: pre-wrap;
+}
+.google-maps-attribution {
+  font: 400 14px/1.5 var(--sans);
+  color: #5e5e5e;
+  white-space: nowrap;
+  letter-spacing: normal;
+}
+/* 狀態與展開按鈕放在同一列，詳細內容另起一塊向下展開，避免 flex 對齊時跳動。 */
+.google-place-link {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 4px;
+}
+.google-place-link[hidden],
+.google-place-link button[hidden] {
+  display: none;
+}
+.google-place-link > details {
+  min-width: 0;
+  border: 1px solid var(--line);
+  background: #f5f3eb;
+}
+.google-place-link-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 8px 12px;
+  cursor: pointer;
+  list-style: none;
+}
+.google-place-link-summary::-webkit-details-marker {
+  display: none;
+}
+.google-place-link-message {
+  min-width: 0;
+  color: var(--green);
+  overflow-wrap: anywhere;
+}
+.google-place-link-message[data-error='true'] {
+  color: #a12622;
+}
+.google-place-link-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--green);
+  white-space: nowrap;
+}
+.google-place-link-toggle::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.google-place-link details[open] .google-place-link-toggle::after {
+  transform: translateY(2px) rotate(225deg);
+}
+.google-place-link-summary:hover {
+  background: #eeece2;
+}
+.google-place-link-details {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  border-top: 1px solid var(--line);
+  padding: 10px 12px;
+}
+.google-place-link code {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
+  color: #686b60;
+  font-size: 12px;
+}
+.google-place-link .button {
+  justify-self: start;
+  font-size: 13px;
+  padding: 8px 12px;
+  min-height: 36px;
+}
+.google-place-link .button:hover {
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .google-place-link .button {
+    transition: none;
+  }
+}
+.admin-form-grid textarea {
+  resize: vertical;
+}
+.admin-field input[type='checkbox'] {
+  width: auto;
+  margin-right: 10px;
+}
+/* 七天排成兩欄卡片，避免每天一條滿版下拉讓頁面過長；營業備註等其他欄位仍佔滿整列。 */
+.opening-hours-editor {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  align-items: start;
+  gap: 14px;
+  min-width: 0;
+}
+.opening-hours-editor > :not(.opening-day) {
+  grid-column: 1/-1;
+}
+.opening-day {
+  min-width: 0;
+  border: 1px solid #d9d7cd;
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+.opening-day legend {
+  padding: 0 6px;
+  color: #485944;
+  font-weight: 600;
+}
+.opening-period {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.opening-next-day {
+  display: flex;
+  align-items: center;
+  grid-column: 1/3;
+}
+.opening-period .button {
+  grid-column: 3/5;
+  white-space: normal;
+}
+.opening-day > .button {
+  justify-self: start;
+}
+.opening-hours-detail {
+  margin: 24px 0;
+}
+.opening-hours-detail h2 {
+  font: 500 22px var(--serif);
+}
+.opening-hours-detail p {
+  margin: 6px 0;
+}
+.opening-hours-detail small {
+  display: block;
+}
+@media (max-width: 500px) {
+  .opening-period {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .opening-next-day,
+  .opening-period .button {
+    grid-column: 1/-1;
+  }
+  .opening-day {
+    padding: 10px;
+  }
+}
+@media (max-width: 760px) {
+  .place-photo-preview {
+    width: 100%;
+    height: 220px;
+  }
+}
+
+/* 保留原型配色，讓範例選單與操作按鈕在窄畫面上可以換行。 */
+#place-samples .url-import {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+#place-samples select {
+  min-width: 0;
+  width: 100%;
+}
+@media (max-width: 760px) {
+  #place-samples .url-import {
+    grid-template-columns: 1fr;
+  }
+}

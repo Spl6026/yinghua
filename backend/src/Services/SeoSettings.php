@@ -15,18 +15,18 @@ use Yinghua\DTO\SeoSettingsResult;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Models\SeoResource;
-use Yinghua\Repositories\ContentSeoRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\EventRepository;
-use Yinghua\Repositories\SeoContentRepository;
-use Yinghua\Repositories\SiteSettingsRepository;
+use Yinghua\Repositories\SeoTargetRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
 
-/** [S：E32/G32/L32；E-28] 文件、覆寫、audit 同交易，提交後才產 HTML。 */
+/** SEO 設定管理：預設值、個別覆寫與稽核紀錄在同一交易寫入，提交後才重新產生 HTML。 */
 class SeoSettings
 {
     public function __construct(
-        private readonly SiteSettingsRepository $settings,
-        private readonly ContentSeoRepository $overrides,
-        private readonly SeoContentRepository $content,
+        private readonly SeoSettingsRepository $settings,
+        private readonly SeoOverrideRepository $overrides,
+        private readonly SeoTargetRepository $content,
         private readonly Authorization $authorization,
         private readonly Transactions $transactions,
         private readonly EventRepository $events,
@@ -76,9 +76,10 @@ class SeoSettings
                         throw ApplicationError::invalid('overrides.' . $index . '.target', '找不到可用或有權讀取的內容。');
                     }
                 }
-                // 未授權看見的草稿覆寫保持原狀，不能因完整文件更新而被盲刪。
+                // 使用者無權看到的覆寫要原樣保留，不能因為送出整份設定就被一併刪掉。
                 $existingTargets = $this->content->lookup($before->overrides);
-                $hidden = array_values(array_filter($before->overrides, static fn(SeoOverride $item): bool => !$visibility($item) && isset($existingTargets[$item->key()])));
+                $hidden = array_values(array_filter($before->overrides, static fn(SeoOverride $item): bool => !$visibility($item)
+                    && isset($existingTargets[$item->key()])));
                 $all = [...$input->overrides, ...$hidden];
                 if (count($all) > 100) {
                     throw ApplicationError::invalid('overrides', '目前最多保存 100 筆 SEO 覆寫。');
@@ -96,7 +97,10 @@ class SeoSettings
             });
             $ready = $this->publication->synchronize() && $this->published($document->version);
             $visible = array_values(array_filter($document->overrides, $this->visibility($actor, $document->overrides)));
-            return new SeoSettingsResult(new SeoSettingsDocument($document->version, $document->defaults, $visible, $document->updatedAt), $ready);
+            return new SeoSettingsResult(
+                new SeoSettingsDocument($document->version, $document->defaults, $visible, $document->updatedAt),
+                $ready,
+            );
         });
     }
 
@@ -158,7 +162,9 @@ class SeoSettings
             foreach (['items','films','news','offers'] as $key) {
                 $items = $snapshot[$key] ?? [];
                 foreach (is_array($items) ? $items : [] as $item) {
-                    if (is_array($item) && (($item['image'] ?? null) === $path || (is_array($item['bodyImages'] ?? null) && in_array($path, $item['bodyImages'], true)))) {
+                    if (is_array($item)
+                        && (($item['image'] ?? null) === $path
+                            || (is_array($item['bodyImages'] ?? null) && in_array($path, $item['bodyImages'], true)))) {
                         $found = true;
                     }
                 }

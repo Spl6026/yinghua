@@ -21,7 +21,7 @@
 | backend/src/Services/RecommendedRoutes.php | 管理權限、交易、版本、稽核與發布協調。 |
 | backend/src/Services/PublicRecommendedRoutes.php | 公開主題篩選與分頁。 |
 | backend/src/Policies/RecommendedRouteSelection.php | 純函式公開站點過濾，不查DB。 |
-| backend/src/Controllers/RecommendedRouteController.php、backend/config/recommended-route-routes.php | 七個HTTP操作、輸入／回應與路由；不處理SQL。 |
+| backend/src/Controllers/RecommendedRouteController.php、backend/config/routes.php | 七個HTTP操作、輸入／回應與路由；不處理SQL。 |
 | backend/src/Composition.php、Services/ContentPublication.php、Adapters/NodeContentRenderer.php | 依賴組裝、推薦路線進同版快照、渲染來源版本。 |
 | frontend/assets/js/api/recommended-routes-api.js | 共用 api-client 的路線管理介面。 |
 | frontend/assets/js/pages/route-list.js | 搜尋／狀態／分頁、刪除確認與權限按鈕。 |

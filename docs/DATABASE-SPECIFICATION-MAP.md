@@ -39,11 +39,11 @@
 | 資料表建議 9 | admin_role_permissions | admin_id、permission_id、allowed、updated_by、updated_at 與個人唯一鍵對應；實際授權使用個人矩陣，不只依範本 |
 | 資料表建議 10 | attractions | 內容、唯一 slug、分類、行政區、介紹、地址、座標、週表、Google 關聯、發布狀態、版本與時間欄位對應。006 補 created_by／updated_by，皆為 admin_users 外鍵；HTTP 不能傳入冒名。既有歷史記錄無回填，允許 NULL；新管理寫入由驗證身分填入 |
 | 資料表建議 11 | media_assets | storage_key 唯一；mime_type、尺寸及 created_at 同名。byte_size 對應 size_bytes、alt 對應 alt_text、source 對應 credit、uploaded_by 對應 created_by。public_url 不另存：由受控 storage_key 組成 /media 路徑，避免 URL 與儲存鍵不同步。source／license 可空白；圖片 alt 仍必填 |
-| 資料表建議 A12–D12 | films | id、slug、title、genre、synopsis、poster_media_id、status、操作者、version 及時間對應。publish_at 表示預定公開時間，不冒稱首次發布時間；SEO、網址海報、用途說明、電影預設票務、legacy_id／deleted_at 為 E-25。欄位清單不等於必填；片名依原型 required，有圖有效 alt 依 G7／G21 |
+| 資料表建議 A12–D12 | films | id、slug、title、genre、synopsis、poster_media_id、status、操作者、version 及時間對應。publish_at 表示預定公開時間，不冒稱首次發布時間；SEO、網址海報、用途說明、電影預設票務、prototype_id（原型編號，由 021 從 legacy_id 改名）／deleted_at 為 E-25。欄位清單不等於必填；片名依原型 required，有圖有效 alt 依 G7／G21 |
 | 資料表建議 A13–D13 | film_screenings | id、film_id、starts_at、ticket_url、時間欄對應；starts_at 存 UTC。U-16 只比開始日期與時間，所以本階段沒有 ends_at／venue；場次公開性依父電影狀態，不自創獨立取消狀態。零場次可保存／發布 |
-| 資料表建議 A14–D14 | news_posts | C14 的 slug、event／city、標題／摘要／正文、cover_media_id、可空活動起迄、狀態、publish_at、操作者、版本、時間及軟刪除均對應。D14 的 enum／排程查詢與優惠分表已採用；legacy_id、外連封面／用途說明、活動標籤／地點、SEO 為原型與 E-26。正文由 Service 淨化，不在 SQL 偽稱能檢查所有 HTML |
+| 資料表建議 A14–D14 | news_posts | C14 的 slug、event／city、標題／摘要／正文、cover_media_id、可空活動起迄、狀態、publish_at、操作者、版本、時間及軟刪除均對應。D14 的 enum／排程查詢與優惠分表已採用；prototype_id（原型編號）、外連封面／用途說明、活動標籤／地點、SEO 為原型與 E-26。正文由 Service 淨化，不在 SQL 偽稱能檢查所有 HTML |
 | 資料表建議 15 | merchants | 012 升級為獨立 profile，id PK、可空唯一 attraction_id FK、name／district／address／phone／website／status／version／timestamps／deleted_at。原連結／建立時間保留，一次回填後明確區分優惠聯絡資料與景點；完整管理介面仍在 P1 |
-| 資料表建議 A16–D16 | offers | C16 的 slug、merchant_id、title、discount_text／description／terms、cover_media_id、可空 valid_from／valid_to、狀態及軟刪除均對應；G23 條款／店家與 D16 有雙端日期時的順序檢查已落實。published_at 採共用排程欄 publish_at；legacy_id、外連封面／用途、SEO、操作者／版本為 E-26。D16 日期索引是建議；目前投影保留已發布歷史詳情，實際查詢採公開狀態／發布索引，沒有建立未使用的日期索引 |
+| 資料表建議 A16–D16 | offers | C16 的 slug、merchant_id、title、discount_text／description／terms、cover_media_id、可空 valid_from／valid_to、狀態及軟刪除均對應；G23 條款／店家與 D16 有雙端日期時的順序檢查已落實。published_at 採共用排程欄 publish_at；prototype_id（原型編號）、外連封面／用途、SEO、操作者／版本為 E-26。D16 日期索引是建議；目前投影保留已發布歷史詳情，實際查詢採公開狀態／發布索引，沒有建立未使用的日期索引 |
 | 資料表建議 17 | routes | 僅 id／title／status／version，為刪除引用保護所需的最小標頭；完整 slug、theme、summary、duration 等於 P1 路線階段擴充 |
 | 資料表建議 18 | route_attractions | route_id、attraction_id、sort_order 與順序／重複引用唯一性對應；suggested_time、note 尚未實作，不因此提前建立完整路線功能 |
 | 資料表建議 22 | sessions | member_id／admin_id 擇一、token_hash、期限、撤銷、建立時間與雜湊化來源對應。idle_expires_at、last_seen_at 為期限實作；preview_admin_id 來自 U-06 唯讀模擬 |
@@ -116,7 +116,7 @@ DDL 參照 [MariaDB ALTER TABLE 官方語法](https://mariadb.com/docs/server/re
 
 ## 2026-10-19 G6 電話與 E20 範例
 
-[009_attraction_phone.sql](../backend/database/migrations/009_attraction_phone.sql) 僅增加 attractions.phone VARCHAR(80) NOT NULL DEFAULT ''；電話選填，原有內容預設空字串，不猜電話。phoneUrl由程式衍生，不是重複儲存欄。001–008保持原內容。樣本查詢使用legacy_id唯一欄位、狀態／時間與soft delete條件，沒有新增索引或業務表。
+[009_attraction_phone.sql](../backend/database/migrations/009_attraction_phone.sql) 僅增加 attractions.phone VARCHAR(80) NOT NULL DEFAULT ''；電話選填，原有內容預設空字串，不猜電話。phoneUrl由程式衍生，不是重複儲存欄。001–008保持原內容。樣本查詢使用legacy_id（現名prototype_id）唯一欄位、狀態／時間與soft delete條件，沒有新增索引或業務表。
 
 兩庫已先備份至被忽略的before-owner-phone-*-20261019.sql再升級；還原主庫舊備份後逐筆比較六筆景點全部原有欄位，完全一致。空庫十份migration、重跑、seed、固定管理員初始化與六筆範例亦通過；臨時庫及專用授權已移除。MariaDB12.3.3實際EXPLAIN選用attraction_admin索引、估計六筆；小型固定範例的filesort不構成新增索引理由。performance_schema仍OFF，沒有為此重啟資料庫或宣稱效能壓測通過。
 
@@ -127,7 +127,7 @@ DDL 參照 [MariaDB ALTER TABLE 官方語法](https://mariadb.com/docs/server/re
 - films：title 必須非空由 DTO 驗證；synopsis／genre／poster_url／ticket_url／SEO 可為空字串，媒體 FK 與用途覆寫以 NULL 表示未選／繼承。NOT NULL 不自動等於業務必填。poster_media_id 與非空 poster_url 不能並用；媒體存在由 FK，所屬 films 模組與有效 alt 由服務政策驗證。
 - film_screenings：film_id FK，UNIQUE(film_id,starts_at) 防同片重複。跨電影比較依 U-16 在共享寫入鎖及交易內執行；草稿占用、下架釋放，故不把 starts_at 單獨做全域唯一鍵。這個狀態策略及分鐘精度是 E-25，不冒稱 Excel 明文。
 - 既有場次 ID 只能屬於同電影；集合更新保留 ID／created_at，updated_at 依本次寫入更新。父電影 version 防止不同人互相覆蓋整組場次，場次及稽核故障皆回滾。
-- film_aliases：path 主鍵、film_id FK；新舊 slug 都保留，只有目前已發布電影可解析為站內 canonical。legacy_id 使用原型 0-based 對照，不用陣列位置替代 UUID。
+- film_aliases：path 主鍵、film_id FK；新舊 slug 都保留，只有目前已發布電影可解析為站內 canonical。prototype_id（原型編號）使用原型 0-based 對照，不用陣列位置替代 UUID。
 - 仍沒有 ends_at、venue 或電影／場次另套權限表。每場票務空白沿用電影預設，只做外連；D13 的結束大於開始與白名單仍是草案，未擅自增加發布必填或營運網域白名單。
 
 MariaDB 12.3.3 實際 EXPLAIN：管理排序選 film_admin；公開查詢選 film_admin 並有 filesort；場次批次選 film_start 的 range；當次開始時間碰撞查詢以 film_admin＋film_start 查找。樣本小，不把估計 1–2 筆當成大資料效能證明，未另增索引或壓測宣稱；screening_start 保留開始時間索引用途。performance_schema 為 OFF，沒有為此重啟共用資料庫。

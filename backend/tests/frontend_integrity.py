@@ -1,8 +1,8 @@
-"""E: check built HTML/assets and optional read-only HTTP routes; no business writes.
+"""檢查建置後的 HTML 與資產，並可選擇檢查唯讀的 HTTP 路由；不寫入任何業務資料。
 
-Run frontend build first. Four legacy detail endpoints require an identifier;
-their identifier-less HTTP response must be 404 rather than a fabricated item.
-This checks file/route integrity, not visual rendering or future functionality.
+執行前請先建置前端。四個舊的詳情端點需要帶識別碼，
+沒有識別碼時必須回 404，而不是捏造一筆資料。
+這裡只檢查檔案與路由是否完整，不檢查畫面呈現。
 """
 import argparse
 import json
@@ -78,9 +78,10 @@ if args.base_url:
     if origin.scheme != 'http' or origin.hostname not in ('localhost', '127.0.0.1') or origin.path not in ('', '/'):
         parser.error('--base-url must be a local HTTP origin')
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-    legacy_details = {'/' + name + '-detail.html' for name in ('place', 'film', 'news', 'offer')}
+    # 站內的找不到頁面本身就以 404 回應，其他固定頁都應該是 200。
+    not_found_pages = {'/404.html'}
     for path in sorted(set(pages) | assets):
-        expected = 404 if path in legacy_details else 200
+        expected = 404 if path in not_found_pages else 200
         try:
             with opener.open(args.base_url.rstrip('/') + path, timeout=15) as response:
                 status = response.status

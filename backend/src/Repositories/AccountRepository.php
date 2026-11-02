@@ -40,11 +40,12 @@ class AccountRepository
 
     public function createAdmin(string $id, AdminWriteInput $input, string $hash, bool $root = false): void
     {
+        // 首次登入強制改密碼已取消；資料表仍保留該欄位與檢查條件，所以寫入固定為 0。
         $this->writeAccount(
-            'INSERT INTO admin_users (id,account,email,display_name,password_hash,role_id,status,is_root,must_change_password) VALUES (:id,:account,:email,:name,:hash,:role,:status,:root,:change)',
+            'INSERT INTO admin_users (id,account,email,display_name,password_hash,role_id,status,is_root,must_change_password) VALUES (:id,:account,:email,:name,:hash,:role,:status,:root,0)',
             ['id' => $id, 'account' => $input->account, 'email' => $input->email,
                 'name' => $input->displayName, 'hash' => $hash, 'role' => $input->roleId,
-                'status' => $input->status, 'root' => $root, 'change' => false],
+                'status' => $input->status, 'root' => $root],
         );
     }
 
@@ -52,19 +53,32 @@ class AccountRepository
     {
         $this->writeAccount(
             'UPDATE admin_users SET account=:account,display_name=:name,email=:email,role_id=:role,status=:status,version=version+1 WHERE id=:id',
-            ['id' => $id, 'account' => $input->account, 'name' => $input->displayName, 'email' => $input->email, 'role' => $input->roleId, 'status' => $input->status],
+            [
+                'id' => $id,
+                'account' => $input->account,
+                'name' => $input->displayName,
+                'email' => $input->email,
+                'role' => $input->roleId,
+                'status' => $input->status,
+            ],
         );
     }
 
     public function deleteAdmin(string $id): void
     {
-        $this->database->execute('UPDATE admin_users SET deleted_at=UTC_TIMESTAMP(),status=\'disabled\',version=version+1 WHERE id=:id', ['id' => $id]);
+        $this->database->execute(
+            'UPDATE admin_users SET deleted_at=UTC_TIMESTAMP(),status=\'disabled\',version=version+1 WHERE id=:id',
+            ['id' => $id],
+        );
     }
 
     public function savePassword(IdentityKind $kind, string $id, string $hash): void
     {
         $extra = $kind === IdentityKind::Admin ? ',must_change_password=0' : '';
-        $this->database->execute('UPDATE ' . $kind->table() . ' SET password_hash=:hash' . $extra . ' WHERE id=:id', ['hash' => $hash, 'id' => $id]);
+        $this->database->execute(
+            'UPDATE ' . $kind->table() . ' SET password_hash=:hash' . $extra . ' WHERE id=:id',
+            ['hash' => $hash, 'id' => $id],
+        );
     }
 
     public function loginSeen(IdentityKind $kind, string $id): void
@@ -74,7 +88,10 @@ class AccountRepository
 
     public function rehashPassword(IdentityKind $kind, string $id, string $hash): void
     {
-        $this->database->execute('UPDATE ' . $kind->table() . ' SET password_hash=:hash WHERE id=:id', ['hash' => $hash, 'id' => $id]);
+        $this->database->execute(
+            'UPDATE ' . $kind->table() . ' SET password_hash=:hash WHERE id=:id',
+            ['hash' => $hash, 'id' => $id],
+        );
     }
 
     /** @return array{items:list<Account>,total:int} */
@@ -104,26 +121,49 @@ class AccountRepository
     /** @return list<array{id:string,account:string,displayName:string,isRoot:bool}> */
     public function targets(): array
     {
-        return array_map(static function (array $record): array {
-            $row = new Row($record);
+        return array_map(
+            static function (array $record): array {
+                $row = new Row($record);
 
-            return ['id' => $row->string('id'), 'account' => $row->string('account'), 'displayName' => $row->string('display_name'), 'isRoot' => $row->integer('is_root') === 1];
-        }, $this->database->rows('SELECT id,account,display_name,is_root FROM admin_users WHERE deleted_at IS NULL ORDER BY display_name,id'));
+                return [
+                    'id' => $row->string('id'),
+                    'account' => $row->string('account'),
+                    'displayName' => $row->string('display_name'),
+                    'isRoot' => $row->integer('is_root') === 1,
+                ];
+            },
+            $this->database->rows(
+                'SELECT id,account,display_name,is_root FROM admin_users WHERE deleted_at IS NULL ORDER BY display_name,id',
+            ),
+        );
     }
 
-    /** [U-06] 只給 root 的選單，排除停用／刪除及固定 root；不回傳 Email 等不必要資料。
+    /**
+     * 給 root 管理員用的帳號選單：排除停用、已刪除與固定的 root 帳號，也不回傳 Email 等用不到的資料。
+     *
      * @return list<array{id:string,account:string,displayName:string}>
      */
     public function previewTargets(): array
     {
-        return array_map(static function (array $record): array {
-            $row = new Row($record);
+        return array_map(
+            static function (array $record): array {
+                $row = new Row($record);
 
-            return ['id' => $row->string('id'), 'account' => $row->string('account'), 'displayName' => $row->string('display_name')];
-        }, $this->database->rows("SELECT id,account,display_name FROM admin_users WHERE deleted_at IS NULL AND status='active' AND is_root=0 ORDER BY display_name,id"));
+                return [
+                    'id' => $row->string('id'),
+                    'account' => $row->string('account'),
+                    'displayName' => $row->string('display_name'),
+                ];
+            },
+            $this->database->rows(
+                "SELECT id,account,display_name FROM admin_users WHERE deleted_at IS NULL AND status='active' AND is_root=0 ORDER BY display_name,id",
+            ),
+        );
     }
 
-    /** [E-01] 只轉譯帳號寫入的 duplicate key；外鍵、CHECK、連線及稽核錯誤仍是非預期失敗。
+    /**
+     * 只把帳號重複（duplicate key）轉成可預期的錯誤；外鍵、CHECK、連線或稽核失敗仍視為非預期錯誤往外拋。
+     *
      * @param array<string, bool|int|string|null> $parameters
      */
     private function writeAccount(string $sql, array $parameters): void
@@ -162,7 +202,6 @@ class AccountRepository
             $row->string('status'),
             $admin && $row->integer('is_root') === 1,
             $admin ? $row->string('role_id') : null,
-            false, // [U-13] 舊回應欄位保留相容，已取消首登強制改密碼。
             $admin ? $row->integer('version') : 1,
             $admin ? $row->integer('permissions_version') : 1,
             $row->nullableString('deleted_at'),

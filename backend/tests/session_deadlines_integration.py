@@ -1,8 +1,8 @@
-"""[E-29] Real HTTP/MariaDB deadline checks; requires the named disposable UI fixture.
+"""以真實 HTTP 與 MariaDB 檢查登入期限；需要先建立指定的一次性介面測試資料。
 
-Create with phase8_browser_fixture.py, run this file, do UI checks, then --cleanup.
-Only the fixture's two accounts/sessions/one permission are changed. No global TTL
-or fixed admin credentials are changed; authentication events remain auditable.
+先用 phase8_browser_fixture.py 建立資料，執行本檔並完成介面檢查，再加上 --cleanup 清理。
+只會變更測試資料裡的兩個帳號、它們的 session 與一項權限；不改全域的有效期限，
+也不改固定的管理員帳密，登入事件仍可供稽核。
 """
 import argparse,hashlib,json,re
 from pathlib import Path

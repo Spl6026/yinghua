@@ -61,7 +61,7 @@ class PasswordReset
 
     public function deliver(PendingReset $pending, ClientContext $client): void
     {
-        // [S-SEC-09／E-03] HTTP 已送出統一回應，SMTP 時間與錯誤不洩漏帳號存在。
+        // HTTP 回應已先以統一訊息送出，寄信耗時或失敗都不會讓外部推測帳號是否存在。
         $path = $pending->account->kind === IdentityKind::Admin ? '/admin/reset-password.html' : '/reset-password.html';
         $url = $this->config->origin() . $path . '#token=' . rawurlencode($pending->token);
         try {
@@ -72,7 +72,15 @@ class PasswordReset
             );
         } catch (Throwable) {
             $this->tokens->revoke($pending->id);
-            $this->events->auth('reset-delivery', false, 'MAIL_UNAVAILABLE', $pending->account->kind, $pending->account, $pending->account->email, $client);
+            $this->events->auth(
+                'reset-delivery',
+                false,
+                'MAIL_UNAVAILABLE',
+                $pending->account->kind,
+                $pending->account,
+                $pending->account->email,
+                $client,
+            );
         }
     }
 

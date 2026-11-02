@@ -1,4 +1,4 @@
-"""[E-30] Export actual Orca speech and isolation metadata, never raw key-event logs."""
+"""匯出 Orca 實際朗讀的內容與測試環境的隔離資訊，不匯出原始的按鍵事件紀錄。"""
 import argparse
 import json
 import re

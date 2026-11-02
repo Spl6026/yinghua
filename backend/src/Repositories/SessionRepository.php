@@ -38,7 +38,11 @@ class SessionRepository
         $row = $this->database->row(
             'SELECT id,preview_admin_id,UNIX_TIMESTAMP(expires_at) AS absolute_expiry,' . $kind->foreignKey() . ' AS owner FROM sessions WHERE token_hash=:token AND '
             . $kind->foreignKey() . ' IS NOT NULL AND revoked_at IS NULL AND expires_at>:now AND idle_expires_at>:idle' . ($lock ? ' FOR UPDATE' : ''),
-            ['token' => hash('sha256', $token), 'now' => gmdate('Y-m-d H:i:s', $this->clock->now()), 'idle' => gmdate('Y-m-d H:i:s', $this->clock->now())],
+            [
+                'token' => hash('sha256', $token),
+                'now' => gmdate('Y-m-d H:i:s', $this->clock->now()),
+                'idle' => gmdate('Y-m-d H:i:s', $this->clock->now()),
+            ],
         );
         if ($row === null) {
             return null;
@@ -59,7 +63,7 @@ class SessionRepository
         );
     }
 
-    /** [U-06／E-16] 在鎖定交易內更新同一 session，輪替 token，不延長最長登入期限。 */
+    /** 在鎖定的交易內更新同一個 session 並輪替 token，但不延長登入的最長期限。 */
     public function preview(SessionIdentity $session, ?string $targetId, string $token): void
     {
         $this->database->execute(
@@ -78,6 +82,9 @@ class SessionRepository
 
     public function revokeAll(IdentityKind $kind, string $id): void
     {
-        $this->database->execute('UPDATE sessions SET revoked_at=UTC_TIMESTAMP() WHERE ' . $kind->foreignKey() . '=:id AND revoked_at IS NULL', ['id' => $id]);
+        $this->database->execute(
+            'UPDATE sessions SET revoked_at=UTC_TIMESTAMP() WHERE ' . $kind->foreignKey() . '=:id AND revoked_at IS NULL',
+            ['id' => $id],
+        );
     }
 }

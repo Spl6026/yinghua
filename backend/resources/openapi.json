@@ -6725,7 +6725,7 @@
     "/api/v1/attractions/resolve-url": {
       "get": {
         "operationId": "get_attractions_resolve_url",
-        "summary": "穩定景點舊網址轉向",
+        "summary": "景點詳情頁網址轉向",
         "tags": [
           "attractions"
         ],
@@ -6881,7 +6881,7 @@
             }
           }
         },
-        "description": "Nginx 以 X-Original-URI 傳原網址；舊 slug 與 numeric legacyId 指向目前公開網址；不存在 404。"
+        "description": "Nginx 以 X-Original-URI 傳原網址；先前的 slug 代稱與以原型編號（prototypeId）開啟的詳情頁皆指向目前公開網址；不存在 404。"
       }
     },
     "/api/v1/attractions": {
@@ -20454,12 +20454,6 @@
               "null"
             ]
           },
-          "mustChangePassword": {
-            "type": "boolean",
-            "deprecated": true,
-            "const": false,
-            "description": "U-13：舊欄位保留相容，固定為 false，不再有首登門檻。"
-          },
           "version": {
             "type": "integer",
             "minimum": 1
@@ -20478,7 +20472,6 @@
           "status",
           "isRoot",
           "roleId",
-          "mustChangePassword",
           "version",
           "permissionsVersion"
         ]
@@ -21491,7 +21484,7 @@
               "null"
             ]
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -21510,9 +21503,6 @@
             "type": "string"
           },
           "imageLicense": {
-            "type": "string"
-          },
-          "legacyImage": {
             "type": "string"
           },
           "recommendationLabel": {
@@ -21570,13 +21560,12 @@
           "version",
           "updatedAt",
           "deletedAt",
-          "legacyId",
+          "prototypeId",
           "url",
           "image",
           "imageAlt",
           "imageSource",
           "imageLicense",
-          "legacyImage",
           "recommendationLabel",
           "openingHours",
           "phone",
@@ -21696,7 +21685,7 @@
             "type": "string",
             "format": "date-time"
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -21811,7 +21800,7 @@
           "id",
           "version",
           "updatedAt",
-          "legacyId",
+          "prototypeId",
           "url",
           "image",
           "imageAlt",
@@ -22641,7 +22630,7 @@
             "type": "integer",
             "minimum": 1
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -22672,7 +22661,7 @@
           "updatedAt",
           "url",
           "version",
-          "legacyId",
+          "prototypeId",
           "screenings"
         ]
       },
@@ -22811,7 +22800,7 @@
             "type": "integer",
             "minimum": 1
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -22868,7 +22857,7 @@
           "updatedAt",
           "url",
           "version",
-          "legacyId",
+          "prototypeId",
           "screenings",
           "status",
           "deletedAt",
@@ -23246,7 +23235,7 @@
           "eventLocation": {
             "type": "string"
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -23293,7 +23282,7 @@
           "body",
           "eventLabel",
           "eventLocation",
-          "legacyId",
+          "prototypeId",
           "type",
           "eventStartAt",
           "eventEndAt",
@@ -23433,7 +23422,7 @@
           "seoDescription": {
             "type": "string"
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -23486,7 +23475,7 @@
           "url",
           "seoTitle",
           "seoDescription",
-          "legacyId",
+          "prototypeId",
           "merchant",
           "discount",
           "description",
@@ -24658,7 +24647,7 @@
             "type": "string",
             "maxLength": 255
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -24753,7 +24742,7 @@
           "body",
           "eventLabel",
           "eventLocation",
-          "legacyId",
+          "prototypeId",
           "type",
           "eventStartAt",
           "eventEndAt",
@@ -25086,7 +25075,7 @@
             "type": "string",
             "maxLength": 500
           },
-          "legacyId": {
+          "prototypeId": {
             "type": [
               "integer",
               "null"
@@ -25189,7 +25178,7 @@
           "url",
           "seoTitle",
           "seoDescription",
-          "legacyId",
+          "prototypeId",
           "merchant",
           "discount",
           "description",

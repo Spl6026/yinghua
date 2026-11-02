@@ -6,7 +6,7 @@ namespace Yinghua\Repositories;
 
 use UnexpectedValueException;
 
-/** PDO 回傳 mixed；在這個邊界確認型別再交給模型。 */
+/** PDO 回傳的是 mixed；在這裡先確認型別，再交給模型使用。 */
 readonly class Row
 {
     /** @param array<string, mixed> $values */

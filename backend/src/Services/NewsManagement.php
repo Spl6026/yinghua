@@ -22,7 +22,7 @@ use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\MediaRepository;
 use Yinghua\Repositories\NewsRepository;
 
-/** [S：功能規格 9／G22；E-17／26] 對 CLI 與未來管理 HTTP 共用的消息寫入流程。 */
+/** 消息的寫入流程，CLI 匯入與後台 HTTP 共用。 */
 class NewsManagement implements ContentImportService
 {
     public function __construct(
@@ -96,7 +96,18 @@ class NewsManagement implements ContentImportService
 
     public function save(Account $actor, PreparedImport $change, ClientContext $client): void
     {
-        $this->saveChange($actor, new PreparedContentChange($change->item->id, $change->input, $change->creating, $change->unchanged, $change->version, $change->warnings), $client);
+        $this->saveChange(
+            $actor,
+            new PreparedContentChange(
+                $change->item->id,
+                $change->input,
+                $change->creating,
+                $change->unchanged,
+                $change->version,
+                $change->warnings,
+            ),
+            $client,
+        );
     }
 
     public function saveChange(Account $actor, PreparedContentChange $change, ClientContext $client): void

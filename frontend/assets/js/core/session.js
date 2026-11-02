@@ -3,13 +3,21 @@ import { routes } from './routes.js';
 import { element, initializeMenus, toast } from './ui.js';
 import { recoverSession } from './session-expiry.js';
 
-// [E-04] 僅允許已建置的站內頁面；不把 query 直接當 redirect URL。
+// 只允許導向已建置的站內頁面，不把 query 直接當成 redirect URL，避免開放式重導向。
 export function returnTo(kind, fallback = kind === 'admin' ? '/admin/index.html' : '/index.html') {
   const value = new URLSearchParams(location.search).get('returnTo');
-  if (!value || !value.startsWith('/') || value.startsWith('//') || /[\\\x00-\x1f]/.test(value)) return fallback;
+  if (!value || !value.startsWith('/') || value.startsWith('//') || /[\\\x00-\x1f]/.test(value))
+    return fallback;
   const url = new URL(value, location.origin);
-  const publishedContentPath = kind === 'member' && /^\/(?:places|films)\/[a-z0-9]+(?:-[a-z0-9]+)*\.html$/.test(url.pathname);
-  if (url.origin !== location.origin || (!routes.has(url.pathname) && !publishedContentPath) || /\/(login|register|forgot-password|reset-password|change-password)\.html$/.test(url.pathname)) return fallback;
+  const publishedContentPath =
+    kind === 'member' &&
+    /^\/(?:places|films|news|offers)\/[a-z0-9]+(?:-[a-z0-9]+)*\.html$/.test(url.pathname);
+  if (
+    url.origin !== location.origin ||
+    (!routes.has(url.pathname) && !publishedContentPath) ||
+    /\/(login|register|forgot-password|reset-password|change-password)\.html$/.test(url.pathname)
+  )
+    return fallback;
   if ((kind === 'admin') !== url.pathname.startsWith('/admin/')) return fallback;
   return url.pathname + url.search;
 }
@@ -19,7 +27,7 @@ export function loginLocation(kind) {
   return base + '?returnTo=' + encodeURIComponent(location.pathname + location.search);
 }
 
-// [U-13／E-04] 已登入者離開登入／註冊頁，不增加首次登入改密碼門檻。
+// 已登入者離開登入／註冊頁時，不額外加上首次登入必須改密碼的門檻。
 export async function redirectAuthenticated(kind = 'member') {
   try {
     const identity = await authApi(kind).me();
@@ -32,10 +40,14 @@ export async function redirectAuthenticated(kind = 'member') {
 }
 
 export function hasPermission(identity, module, action) {
-  return identity.permissions?.some(right => right.module === module && right.action === action && right.allowed) ?? false;
+  return (
+    identity.permissions?.some(
+      right => right.module === module && right.action === action && right.allowed
+    ) ?? false
+  );
 }
 
-// [S E27／E-14] 檢視與新增互相獨立；共用登入、側欄與表單離開位置，不擴大 API 權限。
+// 檢視與新增權限各自獨立；共用登入、側欄與表單離開位置，但不擴大 API 權限。
 const adminPages = {
   dashboard: ['index'],
   attractions: ['places', 'place-add', 'place-edit', '⌖　新增景點'],
@@ -53,7 +65,8 @@ export function adminNavigation(identity, module) {
   const pages = adminPages[module];
   if (!pages) return null;
   if (hasPermission(identity, module, 'view')) return { href: `/admin/${pages[0]}.html` };
-  if (pages[1] && hasPermission(identity, module, 'create')) return { href: `/admin/${pages[1]}.html`, label: pages[3] };
+  if (pages[1] && hasPermission(identity, module, 'create'))
+    return { href: `/admin/${pages[1]}.html`, label: pages[3] };
   return null;
 }
 
@@ -71,9 +84,15 @@ export function adminReturnTo(identity) {
   const path = new URL(target, location.origin).pathname;
   for (const [module, pages] of Object.entries(adminPages)) {
     if (path === `/admin/${pages[0]}.html` && hasPermission(identity, module, 'view')) return target;
-    if (pages[1] && path === `/admin/${pages[1]}.html` && hasPermission(identity, module, 'create')) return target;
-    if (pages[2] && path === `/admin/${pages[2]}.html`
-      && (hasPermission(identity, module, 'view') || ['news','offers'].includes(module)) && hasPermission(identity, module, 'edit')) return target;
+    if (pages[1] && path === `/admin/${pages[1]}.html` && hasPermission(identity, module, 'create'))
+      return target;
+    if (
+      pages[2] &&
+      path === `/admin/${pages[2]}.html` &&
+      (hasPermission(identity, module, 'view') || ['news', 'offers'].includes(module)) &&
+      hasPermission(identity, module, 'edit')
+    )
+      return target;
   }
   return fallback;
 }
@@ -83,7 +102,10 @@ export async function requireSession(kind = 'member', allowChange = false) {
     const identity = await authApi(kind).me();
     return identity;
   } catch (error) {
-    if (error.status === 401) { handleSessionExpiry(kind); return null; }
+    if (error.status === 401) {
+      handleSessionExpiry(kind);
+      return null;
+    }
     throw error;
   }
 }
@@ -94,27 +116,41 @@ export async function memberNavigation() {
   initializeMenus();
   const node = document.querySelector('#member-navigation');
   if (!node) return;
-  node.setAttribute('aria-busy','true');node.replaceChildren(element('span',{className:'account-loading',role:'status'},'確認帳號中…'));
+  node.setAttribute('aria-busy', 'true');
+  node.replaceChildren(element('span', { className: 'account-loading', role: 'status' }, '確認帳號中…'));
   try {
     const { member } = await authApi().me();
     if (generation !== memberNavigationVersion) return;
-    node.replaceChildren(element('span', {}, member.displayName), element('a', { href: '/favorites.html' }, '我的收藏'), element('a', { href: '/change-password.html' }, '更改密碼'));
+    node.replaceChildren(
+      element('span', {}, member.displayName),
+      element('a', { href: '/favorites.html' }, '我的收藏'),
+      element('a', { href: '/change-password.html' }, '更改密碼')
+    );
     node.className = 'member-menu';
     const button = element('button', { type: 'button' }, '登出');
     button.addEventListener('click', async () => {
       button.disabled = true;
-      try { await authApi().logout(); location.assign('/index.html'); }
-      catch (error) { toast(error.message); button.disabled = false; }
+      try {
+        await authApi().logout();
+        location.assign('/index.html');
+      } catch (error) {
+        toast(error.message);
+        button.disabled = false;
+      }
     });
     node.append(button);
-    // [U-24] 手機寬度把會員連結放進漢堡選單，避免與品牌標誌擠在 65px 頁首而折行。
+    // 手機寬度時把會員連結放進漢堡選單，避免在 65px 高的頁首和品牌標誌擠在一起而折行。
     const navigation = document.querySelector('#primary-nav');
     if (navigation) {
       navigation.querySelector('.nav-account')?.remove();
       const account = element('div', { className: 'nav-account' });
       const signOut = element('button', { type: 'button' }, '登出');
       signOut.addEventListener('click', () => button.click());
-      account.append(element('a', { href: '/favorites.html' }, '我的收藏'), element('a', { href: '/change-password.html' }, '更改密碼'), signOut);
+      account.append(
+        element('a', { href: '/favorites.html' }, '我的收藏'),
+        element('a', { href: '/change-password.html' }, '更改密碼'),
+        signOut
+      );
       navigation.append(account);
     }
   } catch (error) {
@@ -124,17 +160,26 @@ export async function memberNavigation() {
       node.replaceChildren(element('a', { className: 'login-button', href: '/login.html' }, '會員登入 ↗'));
       node.className = '';
     } else {
-      const retry=element('button',{type:'button',className:'account-retry'},'重新確認帳號');
-      retry.addEventListener('click',()=>void memberNavigation());node.replaceChildren(retry);
+      const retry = element('button', { type: 'button', className: 'account-retry' }, '重新確認帳號');
+      retry.addEventListener('click', () => void memberNavigation());
+      node.replaceChildren(retry);
     }
-  } finally {if(generation===memberNavigationVersion)node.removeAttribute('aria-busy');}
+  } finally {
+    if (generation === memberNavigationVersion) node.removeAttribute('aria-busy');
+  }
 }
 
 export function handleAdminError(error, message) {
-  if (error.status === 401) { handleSessionExpiry('admin'); message.textContent='登入已到期，重新登入後請再儲存；未儲存內容仍保留。'; }
-  else { message.textContent = error.message; message.dataset.error = 'true'; message.focus(); }
+  if (error.status === 401) {
+    handleSessionExpiry('admin');
+    message.textContent = '登入已到期，重新登入後請再儲存；未儲存內容仍保留。';
+  } else {
+    message.textContent = error.message;
+    message.dataset.error = 'true';
+    message.focus();
+  }
 }
 
 export function handleSessionExpiry(kind) {
-  if(!recoverSession(kind))location.replace(loginLocation(kind));
+  if (!recoverSession(kind)) location.replace(loginLocation(kind));
 }

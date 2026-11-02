@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Exceptions;
 
-/** [S：B7/B13；E-29] 只保存固定分類與 hash，不將公開內容、路徑或設定值寫入診斷。 */
+/** 公開頁面尚未同步；診斷訊息只記固定的區段名稱與 hash，不寫入公開內容、路徑或設定值。 */
 class PublicationPending extends ApplicationError
 {
     private readonly string $diagnostic;
@@ -15,7 +15,9 @@ class PublicationPending extends ApplicationError
     public function __construct(?array $current, array $expected)
     {
         $sections = [];
-        foreach (['origin','rendererVersion','policyVersion','items','aliases','films','filmAliases','filmPeriod','news','newsAliases','offerDate','offers','offerAliases','home','seo','general'] as $key) {
+        foreach (['origin','rendererVersion','policyVersion','items','aliases',
+            'films','filmAliases','filmPeriod','news','newsAliases',
+            'offerDate','offers','offerAliases','home','seo','general'] as $key) {
             if ($current !== null && ($current[$key] ?? null) !== ($expected[$key] ?? null)) {
                 $sections[] = $key;
             }

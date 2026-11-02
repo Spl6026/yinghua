@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [E-31] 只對已授權管理頁輸出選定業務欄位；公開投影保持原白名單。 */
+use Yinghua\Support\UtcDateTime;
+
+/** 管理頁使用的內容輸出，只給已授權的管理員；公開頁仍走原本的欄位白名單。 */
 readonly class ContentRecordView
 {
     public function __construct(private NewsPost|Offer|Merchant $record) {}
@@ -16,7 +18,7 @@ readonly class ContentRecordView
         foreach ($this->record->fields as $key => $value) {
             $name = lcfirst(str_replace(' ', '', ucwords(str_replace('_', ' ', $key))));
             if (in_array($key, ['publish_at','event_starts_at','event_ends_at'], true)) {
-                $value = is_string($value) ? str_replace(' ', 'T', $value) . '+00:00' : null;
+                $value = is_string($value) ? UtcDateTime::iso($value) : null;
             }
             $data[$name] = $value;
         }

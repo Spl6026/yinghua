@@ -25,7 +25,7 @@ use Yinghua\Repositories\FilmScreeningRepository;
 use Yinghua\Repositories\MediaRepository;
 use Yinghua\Support\Secrets;
 
-/** [S：功能規格 21；U-02；E-25] 電影寫入的授權、版本與發布交易邊界。 */
+/** 電影寫入流程：權限檢查、版本比對，以及寫入與發布的交易範圍。 */
 class FilmManagement
 {
     public function __construct(
@@ -68,14 +68,22 @@ class FilmManagement
                         throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
                     }
                     $input = $input->withDefaultSlug($before === null ? 'film-' . str_replace('-', '', $targetId) : $before->slug);
-                    $posterId = array_key_exists('poster_media_id', $input->fields) ? $input->fields['poster_media_id'] : ($before?->values['posterMediaId'] ?? null);
+                    $posterId = array_key_exists('poster_media_id', $input->fields)
+                        ? $input->fields['poster_media_id']
+                        : ($before?->values['posterMediaId'] ?? null);
                     $poster = is_string($posterId) ? $this->media->find($posterId, MediaModule::Films) : null;
                     $this->posters->assertValid($before, $input, $poster);
-                    // [U-16／E-25] 草稿占用開始時間；下架釋放。恢復發布即使省略場次也須重新比較。
+                    // 草稿也會占用場次開始時間，下架後才釋放；
+                    // 重新發布時即使沒有送場次，也要用既有場次再檢查一次是否衝突。
                     $existingRows = $before === null ? [] : $before->screenings;
-                    $rows = $input->screenings ?? array_map(static fn(FilmScreening $row): ScreeningInput => ScreeningInput::fromArray(['id' => $row->id,'startsAt' => $row->startsAt,'ticketUrl' => $row->ticketUrl]), $existingRows);
+                    $rows = $input->screenings
+                        ?? array_map(static fn(FilmScreening $row): ScreeningInput => ScreeningInput::fromArray(['id' => $row->id,
+                            'startsAt' => $row->startsAt,
+                            'ticketUrl' => $row->ticketUrl]), $existingRows);
                     $this->starts->assertDistinct($rows);
-                    $status = $input->status === null ? ($before === null ? ContentStatus::Draft->value : $before->status) : $input->status->value;
+                    $status = $input->status === null
+                        ? ($before === null ? ContentStatus::Draft->value : $before->status)
+                        : $input->status->value;
                     if ($status !== ContentStatus::Archived->value) {
                         $this->screenings->assertAvailable($targetId, $rows);
                     }
@@ -84,7 +92,16 @@ class FilmManagement
                         $this->screenings->replace($targetId, $rows);
                     }
                     $updated = $this->target($targetId);
-                    $this->events->content($fresh->id, 'film-' . ($creating ? 'create' : 'update'), 'film', $targetId, $before?->version, $updated->version, $updated->status, $client);
+                    $this->events->content(
+                        $fresh->id,
+                        'film-' . ($creating ? 'create' : 'update'),
+                        'film',
+                        $targetId,
+                        $before?->version,
+                        $updated->version,
+                        $updated->status,
+                        $client,
+                    );
                     return $updated;
                 });
             } catch (ContentConflict) {

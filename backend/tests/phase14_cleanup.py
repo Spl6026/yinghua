@@ -1,4 +1,4 @@
-"""Restore only owned phase14 settings; then optionally clean named phase11/base fixtures."""
+"""只還原測試自己改過的設定，再視需要清理指定的會員行程與基礎測試資料。"""
 import json,sys
 from api_integration import ROOT,fixture
 from phase8_browser_fixture import literal,publish

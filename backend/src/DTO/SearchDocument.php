@@ -6,10 +6,20 @@ namespace Yinghua\DTO;
 
 use Yinghua\Models\SearchType;
 
-/** [S F18；E-35] 公開白名單投影；不複製整份DTO或帳號資料。 */
+/** 全站搜尋的索引文件，只取公開白名單欄位，不複製整份資料或帳號資訊。 */
 readonly class SearchDocument
 {
-    public function __construct(public SearchType $type, public string $id, public string $title, public string $summary, public string $text, public string $slug, public string $url, public string $thumbnail, public string $thumbnailAlt) {}
+    public function __construct(
+        public SearchType $type,
+        public string $id,
+        public string $title,
+        public string $summary,
+        public string $text,
+        public string $slug,
+        public string $url,
+        public string $thumbnail,
+        public string $thumbnailAlt,
+    ) {}
 
     /** @param array<string,mixed> $snapshot
      * @return list<self>
@@ -38,15 +48,30 @@ readonly class SearchDocument
                 $summary = self::plain($get('summary') ?: ($get('synopsis') ?: ($get('description') ?: $get('discount'))));
                 $merchant = $item['merchant'] ?? [];
                 $merchantName = is_array($merchant) && is_string($merchant['name'] ?? null) ? $merchant['name'] : '';
-                $text = implode(' ', [$title,$summary,self::plain($get('body')),$get('genre'),$get('category'),$get('district'),$get('address'),$merchantName,$get('discount'),$get('terms')]);
+                $text = implode(' ', [$title,$summary,self::plain($get('body')),$get('genre'),$get('category'),$get('district'),
+                    $get('address'),$merchantName,$get('discount'),$get('terms')]);
                 $prefix = match ($topic) {
                     'items' => 'places', 'films' => 'films', 'news' => 'news', default => 'offers',
                 };
-                $expectedUrl = $topic === 'items' && ($item['isMuseum'] ?? false) === true ? '/museum.html' : '/' . $prefix . '/' . $slug . '.html';
-                if ($url !== $expectedUrl || !preg_match('~^/(?:places|films|news|offers)/[a-z0-9-]+\.html$|^/museum\.html$~D', $url) || !preg_match('/^[a-f0-9-]{36}$/D', $get('id'))) {
+                $expectedUrl = $topic === 'items' && ($item['isMuseum'] ?? false) === true
+                    ? '/museum.html'
+                    : '/' . $prefix . '/' . $slug . '.html';
+                if ($url !== $expectedUrl
+                    || !preg_match('~^/(?:places|films|news|offers)/[a-z0-9-]+\.html$|^/museum\.html$~D', $url)
+                    || !preg_match('/^[a-f0-9-]{36}$/D', $get('id'))) {
                     throw new \UnexpectedValueException('Invalid public search document.');
                 }
-                $documents[] = new self($type, $get('id'), $title, mb_substr($summary, 0, 4000), $text, $slug, $url, $get('image'), $get('imageAlt') ?: $title);
+                $documents[] = new self(
+                    $type,
+                    $get('id'),
+                    $title,
+                    mb_substr($summary, 0, 4000),
+                    $text,
+                    $slug,
+                    $url,
+                    $get('image'),
+                    $get('imageAlt') ?: $title,
+                );
             }
         }
         return $documents;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-/** [E-25] 真實 MariaDB 的資料層測試；所有資料在 finally 回滾。 */
+/** 電影資料層在真實 MariaDB 上的測試；所有資料都在 finally 回滾。 */
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 use Yinghua\Config;

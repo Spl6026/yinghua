@@ -1,4 +1,4 @@
-"""[U-23/E-40] Owned yinghua_test HTTP/MariaDB/publication/contract validation."""
+"""以測試自有的 yinghua_test 資料，驗證內容備援的 HTTP、MariaDB、發布與回應契約。"""
 import copy
 import json
 import socket

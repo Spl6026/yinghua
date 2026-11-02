@@ -1,4 +1,4 @@
-// [E-27] 收藏狀態協調器：API／身分為明確依賴，可直接測試逾時、競態與換帳號。
+// 收藏狀態協調器：API 與目前身分都以參數注入，方便直接測試逾時、競態與切換帳號。
 export class MemberResourceState {
   constructor(api, readIdentity) {
     this.api = api;
@@ -41,9 +41,9 @@ export class MemberResourceState {
   }
 
   async favorite(id) {
-    if (this.busy.has(id)) return {busy:true};
-    if (this.member === null) return {login:true};
-    if (!this.member || !this.statuses.has(id)) return {retry:true};
+    if (this.busy.has(id)) return { busy: true };
+    if (this.member === null) return { login: true };
+    if (!this.member || !this.statuses.has(id)) return { retry: true };
     const memberId = this.member.id;
     const saved = !this.statuses.get(id);
     this.busy.add(id);
@@ -51,12 +51,20 @@ export class MemberResourceState {
     try {
       await this.api.saveFavorite(id, saved);
       const refreshed = await this.refresh();
-      return {changed:refreshed && this.member?.id === memberId, saved};
+      return { changed: refreshed && this.member?.id === memberId, saved };
     } catch (error) {
       try {
         const refreshed = await this.refresh();
-        if (refreshed && error.status === 0 && this.member?.id === memberId && this.statuses.get(id) === saved) return {changed:true, saved, reconciled:true};
-      } catch { /* 狀態維持未知；不能改成確定未收藏。 */ }
+        if (
+          refreshed &&
+          error.status === 0 &&
+          this.member?.id === memberId &&
+          this.statuses.get(id) === saved
+        )
+          return { changed: true, saved, reconciled: true };
+      } catch {
+        /* 狀態維持未知；不能改成確定未收藏。 */
+      }
       throw error;
     } finally {
       this.busy.delete(id);

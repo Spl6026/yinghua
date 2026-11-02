@@ -1,4 +1,4 @@
-"""Independent JSON schema checks for all actual phase10 HTTP responses and successful requests."""
+"""以獨立的 JSON schema 檢查推薦路線所有實際的 HTTP 回應與成功的請求。"""
 import sys,argparse,json,re
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--dependency-path');args=p.parse_args()

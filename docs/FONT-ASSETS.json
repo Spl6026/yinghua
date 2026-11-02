@@ -9,19 +9,9 @@
       "sha256": "85aa3a861f5244589321ad6145a0158ce914eb5dc755925175826c526acbdb09"
     },
     {
-      "path": "frontend/assets/fonts/NotoSansTC.woff2",
-      "bytes": 5423720,
-      "sha256": "26ac06fc569f84d9eae5aa0acceda8aa8a48374aa52bc05f21500bbc77005ed4"
-    },
-    {
       "path": "frontend/assets/fonts/NotoSerifTC-common.woff2",
       "bytes": 740088,
       "sha256": "37505dca25741638c78b83346c266ce48e867821acf937afebf370597d104bd2"
-    },
-    {
-      "path": "frontend/assets/fonts/NotoSerifTC.woff2",
-      "bytes": 7657004,
-      "sha256": "14a1ee11c1178b172c624351d677b42e5fe9f1383268dd3d8e59d2a54c606e15"
     },
     {
       "path": "frontend/assets/fonts/OFL-NotoSansTC.txt",

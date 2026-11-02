@@ -5,68 +5,149 @@ declare(strict_types=1);
 namespace Yinghua;
 
 use Closure;
+use Yinghua\Adapters\CurlGoogleHttp;
+use Yinghua\Adapters\GoogleOpeningHours;
+use Yinghua\Adapters\GooglePlaceMapper;
+use Yinghua\Adapters\GoogleSummaryProvider;
+use Yinghua\Adapters\HtmlPurifierSanitizer;
+use Yinghua\Adapters\LocalImageStorage;
+use Yinghua\Adapters\NodeContentRenderer;
+use Yinghua\Adapters\PdoDatabaseHealthProbe;
 use Yinghua\Adapters\PdoTransactions;
 use Yinghua\Adapters\PhpMailerAdapter;
+use Yinghua\Adapters\PublicContentCommands;
+use Yinghua\Adapters\PublicContentSeeder;
+use Yinghua\Adapters\SeoCatalog;
 use Yinghua\Adapters\SystemClock;
 use Yinghua\Controllers\AdminController;
+use Yinghua\Controllers\ApiControllers;
+use Yinghua\Controllers\AdminNewsController;
+use Yinghua\Controllers\AdminOfferController;
+use Yinghua\Controllers\AttractionContentController;
+use Yinghua\Controllers\AttractionController;
 use Yinghua\Controllers\AuthController;
+use Yinghua\Controllers\CurrentItineraryController;
+use Yinghua\Controllers\FavoriteController;
+use Yinghua\Controllers\FilmController;
+use Yinghua\Controllers\GeneralSettingsController;
+use Yinghua\Controllers\HealthController;
+use Yinghua\Controllers\MapController;
+use Yinghua\Controllers\MediaController;
+use Yinghua\Controllers\MemberDirectoryController;
+use Yinghua\Controllers\MemberItineraryController;
+use Yinghua\Controllers\OfferMerchantController;
+use Yinghua\Controllers\OperationsController;
 use Yinghua\Controllers\PermissionController;
+use Yinghua\Controllers\PublicAttractionController;
+use Yinghua\Controllers\PublicFilmController;
+use Yinghua\Controllers\PublicHomeController;
+use Yinghua\Controllers\PublicNeighborController;
+use Yinghua\Controllers\PublicNewsController;
+use Yinghua\Controllers\PublicOfferController;
+use Yinghua\Controllers\PublicSiteSettingsController;
+use Yinghua\Controllers\RecommendedRouteController;
+use Yinghua\Controllers\SearchController;
+use Yinghua\Controllers\SeoSettingsController;
 use Yinghua\Http\Csrf;
 use Yinghua\Http\Kernel;
 use Yinghua\Http\Router;
+use Yinghua\Policies\ContentCover;
+use Yinghua\Policies\FilmPosterPolicy;
+use Yinghua\Policies\GooglePlaceLinkPolicy;
+use Yinghua\Policies\GoogleUrlPolicy;
 use Yinghua\Policies\PermissionPolicy;
+use Yinghua\Policies\ScreeningStartPolicy;
 use Yinghua\Repositories\AccountRepository;
+use Yinghua\Repositories\AttractionRepository;
 use Yinghua\Repositories\ChallengeRepository;
 use Yinghua\Repositories\ConsentRepository;
 use Yinghua\Repositories\Database;
 use Yinghua\Repositories\EventRepository;
+use Yinghua\Repositories\ExternalRequestSlot;
+use Yinghua\Repositories\FavoriteRepository;
+use Yinghua\Repositories\FilmRepository;
+use Yinghua\Repositories\FilmScreeningRepository;
+use Yinghua\Repositories\GeneralSettingsRepository;
+use Yinghua\Repositories\ItineraryRepository;
+use Yinghua\Repositories\MediaRepository;
+use Yinghua\Repositories\MemberDirectoryRepository;
+use Yinghua\Repositories\MerchantRepository;
+use Yinghua\Repositories\NewsRepository;
+use Yinghua\Repositories\OfferRepository;
+use Yinghua\Repositories\OperationsRepository;
 use Yinghua\Repositories\PermissionRepository;
+use Yinghua\Repositories\PublicationRepository;
 use Yinghua\Repositories\RateLimitRepository;
+use Yinghua\Repositories\RecommendedRouteRepository;
 use Yinghua\Repositories\ResetRepository;
+use Yinghua\Repositories\SearchRepository;
+use Yinghua\Repositories\SeoOverrideRepository;
+use Yinghua\Repositories\SeoSettingsRepository;
+use Yinghua\Repositories\SeoTargetRepository;
 use Yinghua\Repositories\SessionRepository;
 use Yinghua\Services\AdminManagement;
-use Yinghua\Services\PermissionManagement;
-use Yinghua\Services\RoleTemplates;
+use Yinghua\Services\AdminNewsManagement;
+use Yinghua\Services\AdminOfferManagement;
 use Yinghua\Services\AdminPreview;
+use Yinghua\Services\ApplicationHealth;
+use Yinghua\Services\AttractionManagement;
+use Yinghua\Services\AttractionSummary;
 use Yinghua\Services\Authentication;
 use Yinghua\Services\Authorization;
 use Yinghua\Services\Captcha;
+use Yinghua\Services\ContentImporter;
+use Yinghua\Services\ContentPublication;
+use Yinghua\Services\CurrentItinerary;
+use Yinghua\Services\FilmManagement;
+use Yinghua\Services\GeneralSiteSettings;
+use Yinghua\Services\DetailUrlResolver;
+use Yinghua\Services\MapResolver;
+use Yinghua\Services\MediaAccess;
+use Yinghua\Services\MediaManagement;
+use Yinghua\Services\MemberAccess;
+use Yinghua\Services\MemberAttractions;
+use Yinghua\Services\MemberDirectory;
+use Yinghua\Services\MemberFavorites;
+use Yinghua\Services\MemberItineraries;
+use Yinghua\Services\MerchantManagement;
+use Yinghua\Services\NewsManagement;
+use Yinghua\Services\OfferManagement;
+use Yinghua\Services\OfferMerchants;
+use Yinghua\Services\OperationsOverview;
 use Yinghua\Services\PasswordHasher;
 use Yinghua\Services\PasswordReset;
-use Yinghua\Services\RateLimiter;
-use Yinghua\Support\Secrets;
-use Yinghua\Adapters\NodeContentRenderer;
-use Yinghua\Adapters\LocalImageStorage;
-use Yinghua\Controllers\AttractionController;
-use Yinghua\Controllers\PublicAttractionController;
-use Yinghua\Controllers\MediaController;
-use Yinghua\Repositories\AttractionRepository;
-use Yinghua\Repositories\PublicationRepository;
-use Yinghua\Repositories\MediaRepository;
-use Yinghua\Services\AttractionManagement;
-use Yinghua\Services\ContentPublication;
+use Yinghua\Services\PermissionManagement;
 use Yinghua\Services\PublicAttractions;
-use Yinghua\Services\MediaManagement;
-use Yinghua\Services\MediaAccess;
-use Yinghua\Adapters\CurlGoogleHttp;
-use Yinghua\Controllers\MapController;
-use Yinghua\Policies\GoogleUrlPolicy;
-use Yinghua\Services\MapResolver;
+use Yinghua\Services\PublicFilms;
+use Yinghua\Services\PublicHome;
+use Yinghua\Services\PublicNeighbors;
+use Yinghua\Services\PublicNews;
+use Yinghua\Services\PublicOffers;
+use Yinghua\Services\PublicRecommendedRoutes;
+use Yinghua\Services\PublicSearch;
+use Yinghua\Services\PublicSiteSettings;
+use Yinghua\Services\PublishedPolicies;
+use Yinghua\Services\RateLimiter;
+use Yinghua\Services\RecommendedRoutes;
+use Yinghua\Services\RoleTemplates;
+use Yinghua\Services\SeoPublication;
+use Yinghua\Services\SeoSettings;
+use Yinghua\Support\Secrets;
 
-/** [E-01] 唯一組裝位置；業務類別不查容器，也不自行 new 資料庫／SMTP。 */
+/** 整個應用程式唯一組裝物件的地方；業務類別只透過建構子取得依賴，不自行建立資料庫或 SMTP 連線。 */
 readonly class Composition
 {
-    /** [E-29] 入口與操作清單共用唯一的 eager-DB 前置路徑。 */
+    /** 入口檔用這個路徑判斷是否要在連線資料庫之前先處理健康檢查。 */
     public const string HEALTH_PATH = '/api/v1/health';
 
     public function __construct(private Config $config) {}
 
-    /** [E-29] health 在任何強制 DB 連線之前組裝，普通 API 的權限管線保持完整。 */
-    public function health(): \Yinghua\Controllers\HealthController
+    /** 健康檢查要在資料庫掛掉時仍能回應，所以在建立任何資料庫連線之前單獨組裝。 */
+    public function health(): HealthController
     {
-        return new \Yinghua\Controllers\HealthController(new \Yinghua\Services\ApplicationHealth(
+        return new HealthController(new ApplicationHealth(
             $this->config,
-            new \Yinghua\Adapters\PdoDatabaseHealthProbe($this->config, dirname(__DIR__) . '/database/migrations'),
+            new PdoDatabaseHealthProbe($this->config, dirname(__DIR__) . '/database/migrations'),
         ));
     }
 
@@ -76,122 +157,284 @@ readonly class Composition
         $clock = new SystemClock();
         $secrets = new Secrets($this->config);
         $transactions = new PdoTransactions($database);
+        // 以下 Repository 只包裝同一個資料庫連線、不保存請求狀態，因此整個請求共用同一個實例。
         $accounts = new AccountRepository($database);
         $sessions = new SessionRepository($database, $this->config, $clock);
         $permissions = new PermissionRepository($database);
         $events = new EventRepository($database, $secrets);
         $resets = new ResetRepository($database);
+        $mediaRecords = new MediaRepository($database);
+        $attractionRecords = new AttractionRepository($database);
+        $routeRecords = new RecommendedRouteRepository($database);
+        $itineraryRecords = new ItineraryRepository($database);
+        $seoSettingsRecords = new SeoSettingsRepository($database);
+        $generalRecords = new GeneralSettingsRepository($database);
         $limiter = new RateLimiter(new RateLimitRepository($database), $secrets, $clock);
         $passwords = new PasswordHasher();
         $policy = new PermissionPolicy();
         $authorization = new Authorization($accounts, $permissions, $policy);
         $mailer = new PhpMailerAdapter($this->config);
         $captcha = new Captcha(new ChallengeRepository($database), $transactions, $limiter, $secrets, $clock, $this->config, $mailer);
-        $policies = new \Yinghua\Services\PublishedPolicies(new \Yinghua\Repositories\GeneralSettingsRepository($database), new NodeContentRenderer($this->config), $this->config);
-        $authentication = new Authentication($accounts, $sessions, $passwords, $limiter, $events, $transactions, $captcha, $this->config, new ConsentRepository($database), $policies);
-        $passwordReset = new PasswordReset($accounts, $resets, $sessions, $passwords, $limiter, $events, $transactions, $clock, $this->config, $mailer);
-        $csrf = new Csrf($this->config, $clock, $secrets);
-        $authController = new AuthController($authentication, $authorization, $captcha, $passwordReset, $csrf, $this->config, new AdminPreview($accounts, $sessions, $events, $transactions), $policies);
-        $roles = new RoleTemplates($permissions, $authorization);
-        $permissionController = new PermissionController(new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events), $roles);
-        $adminController = new AdminController(new AdminManagement($accounts, $permissions, $roles, $authorization, $policy, $passwords, $transactions, $events, $sessions, $resets));
-        $publication = $this->publication($database);
-        $attractionController = new AttractionController(new AttractionManagement(new AttractionRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\GooglePlaceLinkPolicy()));
-        $publicAttractions = new PublicAttractionController(new PublicAttractions($publication), $publication);
-        $mediaController = new MediaController(new MediaManagement(new MediaRepository($database), new LocalImageStorage($this->config), $authorization, $transactions, $events), new MediaAccess($publication, $authentication, $authorization, new MediaRepository($database)));
-        $mapPolicy = new GoogleUrlPolicy();
-        $mapController = new MapController(new MapResolver(new CurlGoogleHttp($mapPolicy), $mapPolicy, $this->config, $authorization, $limiter, new \Yinghua\Adapters\GooglePlaceMapper(new \Yinghua\Adapters\GoogleOpeningHours())));
-        $filmController = new \Yinghua\Controllers\PublicFilmController(new \Yinghua\Services\PublicFilms($publication), $clock);
-        $filmScreens = new \Yinghua\Repositories\FilmScreeningRepository($database);
-        $filmAdmin = new \Yinghua\Controllers\FilmController(new \Yinghua\Services\FilmManagement(new \Yinghua\Repositories\FilmRepository($database, $filmScreens), new MediaRepository($database), $authorization, $transactions, $events, $publication, new \Yinghua\Policies\FilmPosterPolicy(), $filmScreens, new \Yinghua\Policies\ScreeningStartPolicy()));
-        $router = new Router();
-        // [U-23／E-40] 補位預覽與即時Google原文分開；不增加資料表。
-        $content = new \Yinghua\Controllers\AttractionContentController(new \Yinghua\Services\AttractionSummary(
-            new PublicAttractions($publication),
-            new AttractionRepository($database),
-            new \Yinghua\Adapters\GoogleSummaryProvider(new CurlGoogleHttp($mapPolicy), $this->config),
+        $policies = new PublishedPolicies($generalRecords, new NodeContentRenderer($this->config), $this->config);
+        $authentication = new Authentication(
+            $accounts,
+            $sessions,
+            $passwords,
             $limiter,
-            new \Yinghua\Repositories\ExternalRequestSlot($database),
+            $events,
+            $transactions,
+            $captcha,
+            new ConsentRepository($database),
+            $policies,
+        );
+        $passwordReset = new PasswordReset(
+            $accounts,
+            $resets,
+            $sessions,
+            $passwords,
+            $limiter,
+            $events,
+            $transactions,
+            $clock,
+            $this->config,
+            $mailer,
+        );
+        $csrf = new Csrf($this->config, $clock, $secrets);
+        $authController = new AuthController(
+            $authentication,
+            $authorization,
+            $captcha,
+            $passwordReset,
+            $csrf,
+            $this->config,
+            new AdminPreview($accounts, $sessions, $events, $transactions),
+            $policies,
+        );
+        $roles = new RoleTemplates($permissions, $authorization);
+        $permissionController = new PermissionController(
+            new PermissionManagement($accounts, $permissions, $authorization, $policy, $transactions, $events),
+            $roles,
+        );
+        $adminController = new AdminController(new AdminManagement(
+            $accounts,
+            $permissions,
+            $roles,
+            $authorization,
+            $policy,
+            $passwords,
+            $transactions,
+            $events,
+            $sessions,
+            $resets,
+        ));
+        $publication = $this->publication($database);
+        $attractionController = new AttractionController(new AttractionManagement(
+            $attractionRecords,
+            $authorization,
+            $transactions,
+            $events,
+            $publication,
+            new GooglePlaceLinkPolicy(),
+        ));
+        $publicAttractionService = new PublicAttractions($publication);
+        $detailUrls = new DetailUrlResolver($publication);
+        $mediaController = new MediaController(
+            new MediaManagement(
+                $mediaRecords,
+                new LocalImageStorage($this->config),
+                $authorization,
+                $transactions,
+                $events,
+            ),
+            new MediaAccess($publication, $authentication, $authorization, $mediaRecords),
+        );
+        $mapPolicy = new GoogleUrlPolicy();
+        $mapController = new MapController(new MapResolver(
+            new CurlGoogleHttp($mapPolicy),
+            $mapPolicy,
+            $this->config,
+            $authorization,
+            $limiter,
+            new GooglePlaceMapper(new GoogleOpeningHours()),
+        ));
+        $filmScreens = new FilmScreeningRepository($database);
+        $filmAdmin = new FilmController(new FilmManagement(
+            new FilmRepository($database, $filmScreens),
+            $mediaRecords,
+            $authorization,
+            $transactions,
+            $events,
+            $publication,
+            new FilmPosterPolicy(),
+            $filmScreens,
+            new ScreeningStartPolicy(),
+        ));
+        // 摘要補位預覽與即時取得的 Google 原文分開處理，不另存資料表。
+        $content = new AttractionContentController(new AttractionSummary(
+            $publicAttractionService,
+            $attractionRecords,
+            new GoogleSummaryProvider(new CurlGoogleHttp($mapPolicy), $this->config),
+            $limiter,
+            new ExternalRequestSlot($database),
         ), $authorization);
-        $router->add(new \Yinghua\Http\Route('POST', '/api/v1/admin/attractions/content-preview', \Yinghua\Models\IdentityKind::Admin, $content->preview(...), true));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/attractions/{slug}/google-summary', \Yinghua\Models\IdentityKind::Member, $content->summary(...)));
-        /** @var Closure(Router,AuthController,AdminController,PermissionController,AttractionController,PublicAttractionController,MediaController,MapController,\Yinghua\Controllers\PublicFilmController,\Yinghua\Controllers\FilmController,\Yinghua\Controllers\PublicNewsController,\Yinghua\Controllers\PublicOfferController,\Yinghua\Controllers\PublicHomeController):void $routes */
+
+        // 消息管理：HTTP 與 CLI 共用同一個 editor。
+        $contentCover = new ContentCover();
+        $newsRecords = new NewsRepository($database);
+        $newsEditor = new NewsManagement(
+            $newsRecords,
+            $mediaRecords,
+            $authorization,
+            $events,
+            new HtmlPurifierSanitizer(),
+            $contentCover,
+            $clock,
+        );
+        $newsAdmin = new AdminNewsController(new AdminNewsManagement(
+            $newsRecords,
+            $newsEditor,
+            $authorization,
+            $transactions,
+            $publication,
+            $events,
+            $clock,
+        ));
+
+        // 優惠與店家分開管理，各有自己的 Controller。
+        $offerRecords = new OfferRepository($database);
+        $merchantRecords = new MerchantRepository($database);
+        $offerEditor = new OfferManagement(
+            $offerRecords,
+            $merchantRecords,
+            $mediaRecords,
+            $authorization,
+            $events,
+            $contentCover,
+            $clock,
+        );
+        $merchantEditor = new MerchantManagement($merchantRecords, $authorization, $events);
+        $offerAdmin = new AdminOfferController(new AdminOfferManagement(
+            $offerRecords,
+            $offerEditor,
+            $authorization,
+            $transactions,
+            $publication,
+            $events,
+            $clock,
+        ));
+        $merchants = new OfferMerchantController(new OfferMerchants(
+            $merchantRecords,
+            $merchantEditor,
+            $authorization,
+            $transactions,
+            $publication,
+        ));
+
+        $recommendedRoutes = new RecommendedRouteController(
+            new RecommendedRoutes(
+                $routeRecords,
+                $authorization,
+                $transactions,
+                $publication,
+                $events,
+            ),
+            new PublicRecommendedRoutes($publication),
+        );
+
+        $memberAccess = new MemberAccess($accounts);
+        $memberAttractions = new MemberAttractions($publication, $attractionRecords, $clock);
+        $favoriteController = new FavoriteController(new MemberFavorites(
+            new FavoriteRepository($database),
+            $memberAccess,
+            $memberAttractions,
+            $transactions,
+        ));
+        $itineraryController = new CurrentItineraryController(new CurrentItinerary(
+            $itineraryRecords,
+            $memberAccess,
+            $memberAttractions,
+            $transactions,
+        ));
+        $trips = new MemberItineraryController(new MemberItineraries(
+            $itineraryRecords,
+            $memberAccess,
+            $memberAttractions,
+            $transactions,
+            $publication,
+            $routeRecords,
+        ));
+
+        $seoCatalog = new SeoCatalog($this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source'));
+        $seoController = new SeoSettingsController(
+            new SeoSettings(
+                $seoSettingsRecords,
+                new SeoOverrideRepository($database),
+                new SeoTargetRepository($database),
+                $authorization,
+                $transactions,
+                $events,
+                $publication,
+                $seoCatalog,
+                $this->config,
+            ),
+            $seoCatalog->policy(),
+        );
+
+        $search = new SearchController(new PublicSearch(
+            $publication,
+            new SearchRepository($database, $transactions),
+        ));
+        $directory = new MemberDirectoryController(new MemberDirectory(
+            new MemberDirectoryRepository($database),
+            $authorization,
+        ));
+        $general = new GeneralSettingsController(new GeneralSiteSettings(
+            $generalRecords,
+            $seoSettingsRecords,
+            $authorization,
+            $transactions,
+            $events,
+            $publication,
+        ));
+        $operations = new OperationsController(new OperationsOverview(
+            new OperationsRepository($database),
+            $authorization,
+        ));
+
+        // 這裡只組裝物件；所有路由（含順序）都在 config/routes.php 一個地方宣告。
+        $router = new Router();
+        /** @var Closure(Router,ApiControllers):void $routes */
         $routes = require dirname(__DIR__) . '/config/routes.php';
-        $routes(
-            $router,
-            $authController,
-            $adminController,
-            $permissionController,
-            $attractionController,
-            $publicAttractions,
-            $mediaController,
-            $mapController,
-            $filmController,
-            $filmAdmin,
-            new \Yinghua\Controllers\PublicNewsController(new \Yinghua\Services\PublicNews($publication)),
-            new \Yinghua\Controllers\PublicOfferController(new \Yinghua\Services\PublicOffers($publication)),
-            new \Yinghua\Controllers\PublicHomeController(new \Yinghua\Services\PublicHome($publication)),
-        );
+        $routes($router, new ApiControllers(
+            auth: $authController,
+            admins: $adminController,
+            permissions: $permissionController,
+            attractions: $attractionController,
+            attractionContent: $content,
+            publicAttractions: new PublicAttractionController($publicAttractionService, $publication, $detailUrls),
+            media: $mediaController,
+            maps: $mapController,
+            films: new PublicFilmController(new PublicFilms($publication), $clock, $detailUrls),
+            filmAdmin: $filmAdmin,
+            news: new PublicNewsController(new PublicNews($publication), $detailUrls),
+            offers: new PublicOfferController(new PublicOffers($publication), $detailUrls),
+            home: new PublicHomeController(new PublicHome($publication)),
+            newsAdmin: $newsAdmin,
+            offerAdmin: $offerAdmin,
+            merchants: $merchants,
+            recommendedRoutes: $recommendedRoutes,
+            neighbors: new PublicNeighborController(new PublicNeighbors($publication)),
+            favorites: $favoriteController,
+            currentItinerary: $itineraryController,
+            itineraries: $trips,
+            seo: $seoController,
+            siteSettings: new PublicSiteSettingsController(new PublicSiteSettings($publication)),
+            search: $search,
+            members: $directory,
+            settings: $general,
+            operations: $operations,
+        ));
 
-        // [S G22；E-31] HTTP與CLI共用明確editor，不組裝匯入封裝。
-        $contentMedia = new MediaRepository($database);
-        $contentCover = new \Yinghua\Policies\ContentCover();
-        $newsRecords = new \Yinghua\Repositories\NewsRepository($database);
-        $newsEditor = new \Yinghua\Services\NewsManagement($newsRecords, $contentMedia, $authorization, $events, new \Yinghua\Adapters\HtmlPurifierSanitizer(), $contentCover, $clock);
-        /** @var Closure(Router,\Yinghua\Controllers\AdminNewsController):void $newsRoutes */
-        $newsRoutes = require dirname(__DIR__) . '/config/news-admin-routes.php';
-        $newsRoutes($router, new \Yinghua\Controllers\AdminNewsController(new \Yinghua\Services\AdminNewsManagement($newsRecords, $newsEditor, $authorization, $transactions, $publication, $events, $clock)));
-
-        // [S G23；E-31] 優惠與共享店家分開動作；靜態merchants路由先註冊。
-        $offerRecords = new \Yinghua\Repositories\OfferRepository($database);
-        $merchantRecords = new \Yinghua\Repositories\MerchantRepository($database);
-        $offerEditor = new \Yinghua\Services\OfferManagement($offerRecords, $merchantRecords, $contentMedia, $authorization, $events, $contentCover, $clock);
-        $merchantEditor = new \Yinghua\Services\MerchantManagement($merchantRecords, $authorization, $events);
-        /** @var Closure(Router,\Yinghua\Controllers\AdminOfferController,\Yinghua\Controllers\OfferMerchantController):void $offerRoutes */
-        $offerRoutes = require dirname(__DIR__) . '/config/offer-admin-routes.php';
-        $offerRoutes(
-            $router,
-            new \Yinghua\Controllers\AdminOfferController(new \Yinghua\Services\AdminOfferManagement($offerRecords, $offerEditor, $authorization, $transactions, $publication, $events, $clock)),
-            new \Yinghua\Controllers\OfferMerchantController(new \Yinghua\Services\OfferMerchants($merchantRecords, $merchantEditor, $authorization, $transactions, $publication)),
-        );
-
-        /** @var Closure(Router,\Yinghua\Controllers\RecommendedRouteController):void $recommendedRoutes */
-        $recommendedRoutes = require dirname(__DIR__) . '/config/recommended-route-routes.php';
-        $recommendedRoutes($router, new \Yinghua\Controllers\RecommendedRouteController(new \Yinghua\Services\RecommendedRoutes(new \Yinghua\Repositories\RecommendedRouteRepository($database), $authorization, $transactions, $publication, $events), new \Yinghua\Services\PublicRecommendedRoutes($publication)));
-
-        $neighborController = new \Yinghua\Controllers\PublicNeighborController(new \Yinghua\Services\PublicNeighbors($publication));
-        foreach (['attractions','films','news','offers'] as $topic) {
-            $router->add(new \Yinghua\Http\Route('GET', '/api/v1/' . $topic . '/{slug}/neighbors', \Yinghua\Models\IdentityKind::Member, $neighborController->{$topic}(...)));
-        }
-
-        $memberAccess = new \Yinghua\Services\MemberAccess($accounts);
-        $memberAttractions = new \Yinghua\Services\MemberAttractions($publication, new AttractionRepository($database), $clock);
-        $favoriteController = new \Yinghua\Controllers\FavoriteController(new \Yinghua\Services\MemberFavorites(new \Yinghua\Repositories\FavoriteRepository($database), $memberAccess, $memberAttractions, $transactions));
-        $itineraryController = new \Yinghua\Controllers\CurrentItineraryController(new \Yinghua\Services\CurrentItinerary(new \Yinghua\Repositories\ItineraryRepository($database), $memberAccess, $memberAttractions, $transactions));
-        /** @var Closure(Router,\Yinghua\Controllers\FavoriteController,\Yinghua\Controllers\CurrentItineraryController):void $memberRoutes */
-        $memberRoutes = require dirname(__DIR__) . '/config/member-routes.php';
-        $memberRoutes($router, $favoriteController, $itineraryController);
-
-        /** @var Closure(Router,\Yinghua\Controllers\MemberItineraryController):void $itineraryRoutes */
-        $itineraryRoutes = require dirname(__DIR__) . '/config/itinerary-routes.php';
-        $itineraryRoutes($router, new \Yinghua\Controllers\MemberItineraryController(new \Yinghua\Services\MemberItineraries(new \Yinghua\Repositories\ItineraryRepository($database), $memberAccess, $memberAttractions, $transactions, $publication, new \Yinghua\Repositories\RecommendedRouteRepository($database))));
-
-        $seoCatalog = new \Yinghua\Adapters\SeoCatalog($this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source'));
-        $seoController = new \Yinghua\Controllers\SeoSettingsController(new \Yinghua\Services\SeoSettings(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database), new \Yinghua\Repositories\SeoContentRepository($database), $authorization, $transactions, $events, $publication, $seoCatalog, $this->config), $seoCatalog->policy());
-        /** @var Closure(Router,\Yinghua\Controllers\SeoSettingsController,\Yinghua\Controllers\PublicSiteSettingsController):void $seoRoutes */
-        $seoRoutes = require dirname(__DIR__) . '/config/seo-routes.php';
-        $seoRoutes($router, $seoController, new \Yinghua\Controllers\PublicSiteSettingsController(new \Yinghua\Services\PublicSiteSettings($publication)));
-
-        $search = new \Yinghua\Controllers\SearchController(new \Yinghua\Services\PublicSearch($publication, new \Yinghua\Repositories\SearchRepository($database, $transactions)));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/search', \Yinghua\Models\IdentityKind::Member, $search->listing(...)));
-        $directory = new \Yinghua\Controllers\MemberDirectoryController(new \Yinghua\Services\MemberDirectory(new \Yinghua\Repositories\MemberDirectoryRepository($database), $authorization));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/members', \Yinghua\Models\IdentityKind::Admin, $directory->listing(...), true, 'members', 'view'));
-        $general = new \Yinghua\Controllers\GeneralSettingsController(new \Yinghua\Services\GeneralSiteSettings(new \Yinghua\Repositories\GeneralSettingsRepository($database), new \Yinghua\Repositories\SiteSettingsRepository($database), $authorization, $transactions, $events, $publication));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->read(...), true, 'settings', 'view'));
-        $router->add(new \Yinghua\Http\Route('PUT', '/api/v1/admin/settings', \Yinghua\Models\IdentityKind::Admin, $general->save(...), true, 'settings', 'edit'));
-        $operations = new \Yinghua\Controllers\OperationsController(new \Yinghua\Services\OperationsOverview(new \Yinghua\Repositories\OperationsRepository($database), $authorization));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/dashboard', \Yinghua\Models\IdentityKind::Admin, $operations->read(...), true, 'dashboard', 'view'));
-        $router->add(new \Yinghua\Http\Route('GET', '/api/v1/admin/audit-logs', \Yinghua\Models\IdentityKind::Admin, $operations->audits(...), true, 'dashboard', 'view'));
         return new Kernel($router, $csrf, $authentication, $authorization, $secrets, $events);
     }
 
@@ -199,53 +442,75 @@ readonly class Composition
     {
         $database ??= Database::connect($this->config);
 
-        return new ContentPublication(new AttractionRepository($database), new PublicationRepository($database), new NodeContentRenderer($this->config), $this->config, new \Yinghua\Repositories\FilmRepository($database, new \Yinghua\Repositories\FilmScreeningRepository($database)), new SystemClock(), new \Yinghua\Repositories\NewsRepository($database), new \Yinghua\Repositories\OfferRepository($database), new \Yinghua\Services\SeoPublication(new \Yinghua\Repositories\SiteSettingsRepository($database), new \Yinghua\Repositories\ContentSeoRepository($database)), new \Yinghua\Repositories\RecommendedRouteRepository($database), new \Yinghua\Repositories\SearchRepository($database, new PdoTransactions($database)), new \Yinghua\Repositories\GeneralSettingsRepository($database));
+        return new ContentPublication(
+            new AttractionRepository($database),
+            new PublicationRepository($database),
+            new NodeContentRenderer($this->config),
+            $this->config,
+            new FilmRepository($database, new FilmScreeningRepository($database)),
+            new SystemClock(),
+            new NewsRepository($database),
+            new OfferRepository($database),
+            new SeoPublication(
+                new SeoSettingsRepository($database),
+                new SeoOverrideRepository($database),
+            ),
+            new RecommendedRouteRepository($database),
+            new SearchRepository($database, new PdoTransactions($database)),
+            new GeneralSettingsRepository($database),
+        );
     }
 
-    public function publicContentCommands(Database $database): \Yinghua\Adapters\PublicContentCommands
+    public function publicContentCommands(Database $database): PublicContentCommands
     {
         $secrets = new Secrets($this->config);
+        $clock = new SystemClock();
+        $transactions = new PdoTransactions($database);
+        $publication = $this->publication($database);
         $accounts = new AccountRepository($database);
         $events = new EventRepository($database, $secrets);
         $authorization = new Authorization($accounts, new PermissionRepository($database), new PermissionPolicy());
         $media = new MediaRepository($database);
-        $news = new \Yinghua\Services\NewsManagement(
-            new \Yinghua\Repositories\NewsRepository($database),
+        $contentCover = new ContentCover();
+        $newsRecords = new NewsRepository($database);
+        $offerRecords = new OfferRepository($database);
+        $news = new NewsManagement(
+            $newsRecords,
             $media,
             $authorization,
             $events,
-            new \Yinghua\Adapters\HtmlPurifierSanitizer(),
-            new \Yinghua\Policies\ContentCover(),
-            new SystemClock(),
+            new HtmlPurifierSanitizer(),
+            $contentCover,
+            $clock,
         );
-        $merchants = new \Yinghua\Repositories\MerchantRepository($database);
-        $offers = new \Yinghua\Services\OfferManagement(
-            new \Yinghua\Repositories\OfferRepository($database),
+        $merchants = new MerchantRepository($database);
+        $offers = new OfferManagement(
+            $offerRecords,
             $merchants,
             $media,
             $authorization,
             $events,
-            new \Yinghua\Policies\ContentCover(),
-            new SystemClock(),
+            $contentCover,
+            $clock,
         );
-        $merchantService = new \Yinghua\Services\MerchantManagement($merchants, $authorization, $events);
-        return new \Yinghua\Adapters\PublicContentCommands(
+        $merchantService = new MerchantManagement($merchants, $authorization, $events);
+        return new PublicContentCommands(
             $accounts,
-            new \Yinghua\Services\ContentImporter(new PdoTransactions($database), $this->publication($database)),
+            new ContentImporter($transactions, $publication),
             $news,
-            new MediaManagement($media, new LocalImageStorage($this->config), $authorization, new PdoTransactions($database), $events),
+            new MediaManagement($media, new LocalImageStorage($this->config), $authorization, $transactions, $events),
             $secrets,
             $offers,
             $merchantService,
-            new \Yinghua\Adapters\PublicContentSeeder(
+            new PublicContentSeeder(
                 $merchants,
-                new \Yinghua\Repositories\NewsRepository($database),
-                new \Yinghua\Repositories\OfferRepository($database),
+                $newsRecords,
+                $offerRecords,
                 $merchantService,
                 $news,
                 $offers,
-                new PdoTransactions($database),
-                $this->publication($database),
+                $transactions,
+                $publication,
             ),
         );
     }

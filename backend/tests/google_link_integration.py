@@ -1,4 +1,4 @@
-"""[U-10／E-21] 真實 MariaDB／HTTP 關聯確認，含略過前端、越權與版本衝突。"""
+"""以真實 MariaDB 與 HTTP 驗證 Google 地點關聯的確認流程，包含繞過前端、越權與版本衝突。"""
 import json
 import secrets
 import sys

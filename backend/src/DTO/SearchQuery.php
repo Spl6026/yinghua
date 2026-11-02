@@ -9,7 +9,7 @@ use Yinghua\Models\SearchType;
 
 readonly class SearchQuery
 {
-    /** [S G18；E-35] 容量沿現有公開清單，不限制中文最少字數。 */
+    /** 分頁上限與其他公開清單相同；不限制最少字數，單一中文字也可以搜尋。 */
     public function __construct(public string $q, public string $type = '', public int $page = 1, public int $pageSize = 20)
     {
         if (mb_strlen($q) > 255) {

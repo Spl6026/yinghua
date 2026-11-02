@@ -1,4 +1,4 @@
-"""[E-15] Isolated active member; SMTP failure revokes its reset, Mailpit always recovers."""
+"""使用隔離的有效會員：SMTP 寄信失敗時要撤銷該次重設密碼，Mailpit 最後一律恢復。"""
 import json, secrets, subprocess, time, uuid
 from api_integration import Client, fixture, ROOT
 

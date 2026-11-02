@@ -15,7 +15,7 @@ use Yinghua\Support\Secrets;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Models\IdentityKind;
 
-/** [E-01] 共用管線：錯誤 → 路由 → CSRF → 身分 → 權限 → Controller。 */
+/** 所有 API 請求共用的處理流程：錯誤處理 → 路由 → CSRF → 身分 → 權限 → Controller。 */
 class Kernel
 {
     public function __construct(
@@ -47,7 +47,7 @@ class Kernel
             if (!in_array($request->method, ['GET', 'HEAD'], true)) {
                 $this->csrf->verify($request, $anonymous, $route->kind);
             }
-            // [U-06] 唯讀限制由 API 統一強制；退出／登出不依賴被模擬者權限。
+            // 模擬檢視時一律唯讀，在這裡統一擋下；退出模擬與登出不受被模擬者的權限影響。
             if ($identity?->isPreview() && !$route->allowPreviewControl) {
                 if (!in_array($request->method, ['GET', 'HEAD'], true)) {
                     throw new ApplicationError('PREVIEW_READ_ONLY', '目前為唯讀模擬，請先退出模擬再修改資料。');
@@ -68,7 +68,15 @@ class Kernel
                 error_log('request=' . $request->requestId . ' ' . $error->diagnostic());
             }
             if ($context !== null && in_array($error->errorCode, ['FORBIDDEN', 'CSRF_INVALID', 'PREVIEW_READ_ONLY'], true)) {
-                $this->events->auth('access-denied', false, $error->errorCode, $context->kind, $context->identity?->owner, '', $context->client);
+                $this->events->auth(
+                    'access-denied',
+                    false,
+                    $error->errorCode,
+                    $context->kind,
+                    $context->identity?->owner,
+                    '',
+                    $context->client,
+                );
             }
 
             return $this->withSessionTiming(self::error($error), $context);
@@ -79,7 +87,7 @@ class Kernel
         }
     }
 
-    /** [S G34／B15；E-29] 依真正驗證的 session 回傳期限，不能由瀏覽器宣告延長。 */
+    /** 依實際驗證過的 session 回傳到期時間，瀏覽器無法自行宣告延長。 */
     private function withSessionTiming(Response $response, ?ApiContext $context): Response
     {
         if ($context?->identity === null || $response->status === 401) {
@@ -121,7 +129,8 @@ class Kernel
         }
 
         return new Response($status, ['code' => $error->errorCode,
-            'message' => $status === 405 ? '不支援的 HTTP 方法。' : $error->getMessage(), 'fieldErrors' => (object) $error->fieldErrors], [], $headers);
+            'message' => $status === 405 ? '不支援的 HTTP 方法。' : $error->getMessage(),
+            'fieldErrors' => (object) $error->fieldErrors], [], $headers);
     }
 
     private function identity(Route $route, string $token): ?AuthenticatedIdentity
@@ -129,7 +138,7 @@ class Kernel
         if ($route->authenticated) {
             return $this->authentication->current($route->kind, $token);
         }
-        // [U-06] 模擬中連匿名的管理員改密碼／登入端點也不能寫入；失效 Cookie 不阻擋正常登入。
+        // 模擬檢視中，連不需登入的管理員端點（登入、改密碼）也不能寫入；但失效的 Cookie 不能擋住正常登入。
         if ($route->kind !== IdentityKind::Admin || $token === '') {
             return null;
         }

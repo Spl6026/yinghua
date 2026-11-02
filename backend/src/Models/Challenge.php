@@ -8,7 +8,6 @@ readonly class Challenge
 {
     public function __construct(
         public string $id,
-        public string $mode,
         public string $answerHmac,
         public string $bindingHash,
         public ?string $recipientHash,

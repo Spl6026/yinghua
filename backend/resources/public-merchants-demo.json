@@ -3,7 +3,7 @@
   "items": [
     {
       "id": "05000000-0000-4000-8100-000000000003",
-      "originalAttractionLegacy": 3,
+      "attractionPrototypeId": 3,
       "name": "或者工藝櫥窗",
       "district": "北區",
       "address": "新竹市北區中央路",
@@ -11,7 +11,7 @@
     },
     {
       "id": "05000000-0000-4000-8100-000000000005",
-      "originalAttractionLegacy": 5,
+      "attractionPrototypeId": 5,
       "name": "或者咖啡",
       "district": "北區",
       "address": "新竹市北區大同路",
@@ -19,7 +19,7 @@
     },
     {
       "id": "05000000-0000-4000-8100-000000000006",
-      "originalAttractionLegacy": 6,
+      "attractionPrototypeId": 6,
       "name": "山房選物所",
       "district": "東區",
       "address": "新竹市東區民生路",

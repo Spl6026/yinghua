@@ -11,8 +11,9 @@ use Yinghua\Exceptions\{ApplicationError, ContentConflict};
 use Yinghua\Models\{Account, ContentStatus};
 use Yinghua\Repositories\{NewsRepository, EventRepository};
 use Yinghua\Support\Secrets;
+use Yinghua\Policies\OfferValidity;
 
-/** [S G22／G23；E-31] HTTP應用服務；與CLI共用Editor，不在Controller組裝匯入檔。 */
+/** 後台 HTTP 用的消息管理服務；與 CLI 匯入共用同一個 Editor，Controller 不必自行組裝匯入資料。 */
 class AdminNewsManagement
 {
     public function __construct(
@@ -31,7 +32,7 @@ class AdminNewsManagement
         if ($query->status !== '' && ContentStatus::tryFrom($query->status) === null) {
             throw ApplicationError::invalid('status', '發布狀態無效。');
         }
-        return $this->records->listing($query, gmdate('Y-m-d', $this->clock->now() + 28800));
+        return $this->records->listing($query, OfferValidity::day($this->clock->now()));
     }
 
     public function get(Account $actor, string $id): NewsPost
@@ -52,7 +53,7 @@ class AdminNewsManagement
             try {
                 $record = $this->transactions->run(function () use ($actor, $id, $target, $values, $client): NewsPost {
                     $change = $this->editor->prepareValues($actor, $target, $values, true, $id === null);
-                    // HTTP版本必須相符；CLI的冪等匯入仍保留原本語意。
+                    // 後台編輯必須帶著相符的版本號，避免覆蓋別人的修改；CLI 的重複匯入則維持原本的冪等行為。
                     if ($id !== null && $change->version !== $change->input->version) {
                         throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
                     }

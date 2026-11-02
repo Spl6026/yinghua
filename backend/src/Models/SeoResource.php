@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Models;
 
-/** [D：C25；E-28] 只管理已交付內容，不提前建立路線 SEO 寫入。 */
+/** 可以設定 SEO 的資源類型；推薦路線目前沒有個別 SEO 設定。 */
 enum SeoResource: string
 {
     case Page = 'page';

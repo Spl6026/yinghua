@@ -1,4 +1,4 @@
-"""[S E25:L25/E28:L28; E-36] Real isolated MariaDB and HTTP checks."""
+"""在隔離的 MariaDB 與 HTTP 上，真實檢查網站一般設定、SEO 設定與營運稽核紀錄。"""
 import copy,json,sys,uuid,urllib.request
 from urllib.parse import urlencode
 from api_integration import ROOT,Client,fixture
@@ -47,7 +47,7 @@ try:
     call(admin,'GET','/api/v1/admin/members?page=0',expected=422);call(admin,'GET','/api/v1/admin/members?q='+('x'*81),expected=422)
     overview=call(admin,'GET','/api/v1/admin/dashboard');check('real count',overview['counts']['members']==int(fixture('SELECT COUNT(*) AS n FROM members WHERE deleted_at IS NULL')[0]['n']))
     call(admin,'GET','/api/v1/admin/audit-logs',expected=403)
-    # Trusted read-only CLI uses existing root; no credentials minted or grants changed.
+    # 透過受信任的唯讀 CLI 使用既有的 root，不產生新憑證，也不變更權限。
     audit=json.loads(php(r"""require 'vendor/autoload.php';$c=new Yinghua\Config();$d=Yinghua\Repositories\Database::connect($c);if($c->string('DB_DATABASE')!=='yinghua_test')throw new RuntimeException('isolation');$a=new Yinghua\Repositories\AccountRepository($d);$row=$d->row('SELECT id FROM admin_users WHERE is_root=1');$root=$a->find(Yinghua\Models\IdentityKind::Admin,$row['id']);$service=new Yinghua\Services\OperationsOverview(new Yinghua\Repositories\OperationsRepository($d),new Yinghua\Services\Authorization($a,new Yinghua\Repositories\PermissionRepository($d),new Yinghua\Policies\PermissionPolicy()));echo json_encode($service->audits($root,1),JSON_THROW_ON_ERROR);"""))
     check('root minimal projection',len(audit['items'])>0 and all(set(r)=={'id','actorId','action','resourceType','resourceId','createdAt'} for r in audit['items']))
     fixture("UPDATE admin_role_permissions a JOIN permissions p ON a.permission_id=p.id SET a.allowed=(p.module_key='dashboard' AND p.action_key='view') WHERE a.admin_id="+literal(m['adminId']))

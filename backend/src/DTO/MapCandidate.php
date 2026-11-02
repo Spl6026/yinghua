@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
-/** [U-10／E-21] 已校驗的 Google 候選；不直接將提供者 JSON 當成本站輸入。 */
+/** 已經過檢查的 Google 地點候選；不直接把 Google 回傳的 JSON 當成本站資料。 */
 readonly class MapCandidate
 {
     /** @param list<array{provider:string,providerUri:string}> $attributions */
@@ -26,7 +26,9 @@ readonly class MapCandidate
     public function toArray(): array
     {
         return ['googlePlaceId' => $this->googlePlaceId,'name' => $this->name,'address' => $this->address,'district' => $this->district,
-            'latitude' => $this->latitude,'longitude' => $this->longitude,'hours' => $this->openingHours->summary(),'openingHours' => $this->openingHours->toArray(),
-            'websiteUrl' => $this->websiteUrl,'mapUrl' => $this->mapUrl,'editorialSummary' => $this->editorialSummary,'attributions' => $this->attributions];
+            'latitude' => $this->latitude,'longitude' => $this->longitude,'hours' => $this->openingHours->summary(),
+            'openingHours' => $this->openingHours->toArray(),
+            'websiteUrl' => $this->websiteUrl,'mapUrl' => $this->mapUrl,'editorialSummary' => $this->editorialSummary,
+            'attributions' => $this->attributions];
     }
 }

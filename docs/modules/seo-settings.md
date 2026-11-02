@@ -43,7 +43,7 @@ docker compose exec -T app php /var/www/tools/vendor/bin/phpunit --filter SeoInp
 
 ## 7B 管理設定與原型表單
 
-GET／PUT `/api/v1/admin/settings/seo` 已加入 [seo-routes.php](../../backend/config/seo-routes.php)，合計 70 個操作。GET 需 settings.view，PUT 需 settings.edit／CSRF；共用 Kernel 管理 session 與唯讀模擬保護。
+GET／PUT `/api/v1/admin/settings/seo` 已加入 [routes.php](../../backend/config/routes.php)，合計 70 個操作。GET 需 settings.view，PUT 需 settings.edit／CSRF；共用 Kernel 管理 session 與唯讀模擬保護。
 
 [SeoSettingsController](../../backend/src/Controllers/SeoSettingsController.php) 轉輸入／回應，[SeoSettings](../../backend/src/Services/SeoSettings.php) 取得既有發布鎖，在同一 transaction 重查權限、鎖文件版本、保存 defaults／overrides／audit。版本衝突回 409；audit 失敗整組回滾。稽核只存版本／狀態，不存 token 或正文。[SeoSettingsResult](../../backend/src/DTO/SeoSettingsResult.php) 明列文件及 publicationReady。此時公開產頁整合仍在 7C，因此保存不冒稱已完成網站 SEO 更新。
 

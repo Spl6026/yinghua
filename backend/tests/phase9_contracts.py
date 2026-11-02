@@ -1,4 +1,4 @@
-"""[E-31] Independent OpenAPI validation of real phase-nine requests/responses."""
+"""以獨立的 OpenAPI 驗證最新消息與優惠實際的請求與回應。"""
 from pathlib import Path
 import argparse,json,re,sys
 ROOT=Path(__file__).resolve().parents[2]
