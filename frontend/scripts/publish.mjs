@@ -1,36 +1,25 @@
-import { escapeHtml, jsonForHtml } from '../assets/js/core/content-view.js';
 // 由 PHP CLI／API 提供已驗證的資料，HTML 只在前端產生。
 // 每個 generation 都包含完整的公開資料與頁面，全部寫完後才以原子操作切換 current。
+// 這裡只負責流程：讀入快照、依序呼叫各類內容的發布器，最後寫出索引並啟用版本。
+// 發布順序決定 sitemap 的項目順序，調整時要一併確認索引輸出。
 import { readFile, writeFile, mkdir, rename, symlink, rm, realpath } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { openingHoursLines } from '../assets/js/core/opening-hours.js';
-import {
-  weeklyFilms,
-  filmRows,
-  filmCards,
-  filmDetail,
-  screeningPeriodLabel,
-} from '../assets/js/core/film-view.js';
+import { weeklyFilms, screeningPeriodLabel } from '../assets/js/core/film-view.js';
+import { snapshotContent } from '../assets/js/core/content-kinds.js';
+import { loadTemplates } from './page-pipeline.mjs';
+import { buildSitemaps, robotsText } from './crawler-index.mjs';
+import { assetVersion } from './asset-version.mjs';
+import { createPagePublisher } from './publish-page.mjs';
+import { publishAttractions } from './public-attractions.mjs';
+import { publishFilms } from './public-films.mjs';
 import { publishNews } from './public-news.mjs';
 import { publishOffers } from './public-offers.mjs';
-import { routeCards } from '../assets/js/core/route-view.js';
-import { contentNeighbors } from '../assets/js/core/content-neighbors.js';
-import { homeNewsRows } from '../assets/js/core/home-view.js';
-import { renderSeoHead } from './seo-head.mjs';
-import { DEFAULT_POLICY_VERSION, renderPolicyVersion } from './policy-pages.mjs';
-import { annotateEnglishPassages } from './language-passages.mjs';
-import { finalizePage, loadTemplates, markActiveNavigation } from './page-pipeline.mjs';
-import { renderPublicContentIndex } from './public-content-index.mjs';
-import { resolveSeo } from '../assets/js/core/seo-resolver.js';
-import { crawlerEntry, buildSitemaps, robotsText } from './crawler-index.mjs';
-import { assetVersion } from './asset-version.mjs';
-import { mustReplace } from './html-edit.mjs';
-import { contentDetailUrl, contentKind, snapshotContent } from '../assets/js/core/content-kinds.js';
+import { publishRoutes } from './public-routes.mjs';
+import { publishStaticPages } from './public-static.mjs';
+import { buildHomePage } from './home-page.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const modulePreloadCache = new Map();
-const version = assetVersion(source);
 const output = resolve(process.argv[2] || '/var/www/publication');
 let input = '';
 for await (const chunk of process.stdin) {
@@ -48,25 +37,6 @@ if (
   !/^https?:\/\//.test(snapshot.origin)
 )
   throw new Error('Invalid publication');
-const url = item => contentDetailUrl(contentKind('attraction'), item);
-// 資料庫保存 UTC 時間，網站上的日期依台北時區顯示。
-const localDate = value =>
-  new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Taipei',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date(value));
-// 含收藏控制的圖片區，要讓互動子元素保留在無障礙樹中。
-const image = (item, className) =>
-  `<div class="${className}" data-image-url="${escapeHtml(item.image)}" role="${className === 'place-image' ? 'group' : 'img'}" aria-label="${escapeHtml(item.imageAlt || item.name)}" style="background-image:url(&quot;${escapeHtml(item.image || '/assets/image-placeholder.svg')}&quot;)"></div>`;
-// 選填文字不補預設內容；與瀏覽器端卡片一致，省略空段落與多餘的分隔符號。
-const card = item =>
-  `<article class="place-card reveal in-view">${image(item, 'place-image').replace('</div>', () => `<span class="place-type">${escapeHtml(item.typeLabel || item.category)}</span><button type="button" class="favorite-button" aria-label="收藏${escapeHtml(item.name)}" aria-pressed="false" data-favorite="${escapeHtml(item.id)}">♡</button></div>`)}<div class="place-body"><span class="place-area">${[item.district, item.recommendationLabel || '在地推薦'].filter(Boolean).map(escapeHtml).join('　/　')}</span><h3>${escapeHtml(item.name)}</h3>${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ''}<div class="place-details"><span>◷ ${escapeHtml(item.hours || '依店家公告')}</span><span class="place-actions"><a href="${escapeHtml(url(item))}">看介紹 ↗</a><button type="button" data-add-stop="${escapeHtml(item.id)}">＋ 行程</button></span></div></div></article>`;
-const templates = await loadTemplates(source);
-const filmEnabled = Array.isArray(snapshot.films);
-const newsEnabled = Array.isArray(snapshot.news);
-const offersEnabled = Array.isArray(snapshot.offers);
 const filmItems = weeklyFilms(snapshot.films || [], snapshot.filmPeriod);
 const weekLabel = snapshot.filmPeriod ? screeningPeriodLabel(snapshot.filmPeriod) : '';
 const root = join(output, 'generations', snapshot.generation);
@@ -77,384 +47,39 @@ try {
   existing =
     JSON.parse(await readFile(join(root, '.snapshot.json'), 'utf8')).generation === snapshot.generation;
 } catch {}
-const indexEntries = [];
-
-// 發布頁共用同一組內容樣式；ui-consistency 必須最後載入，才能統一前面各檔的字級與高度。
-const publishedStylesheets = ['member-actions', 'places', 'films', 'public-content', 'ui-consistency'];
-function withPublishedStylesheets(html) {
-  const links = publishedStylesheets.map(name => `<link rel="stylesheet" href="/assets/css/${name}.css">`);
-  return html
-    .replace(/<link rel="stylesheet" href="\/assets\/css\/(?:member-actions|ui-consistency)\.css">\n?/g, '')
-    .replace('</head>', `${links.join('')}</head>`);
-}
-
-async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
-  if (snapshot.detailNeighbors?.[path])
-    html = mustReplace(html, '</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
-  // 分兩步套用條款：版本號要在展開共用模板前填入，否則 {{TERMS_VERSION}} 會被當成未知模板；
-  // 後台填寫的條款內文則要在展開模板之後才放進頁面，內文裡若寫了 {{SITE_HEADER}} 之類的字樣才會保持原文。
-  html = renderPolicyVersion(html, snapshot.policyVersion || DEFAULT_POLICY_VERSION);
-  html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
-  const context = {
-    path: canonicalPath,
-    title,
-    description,
-    item,
-    seo: snapshot.seo,
-    catalog: seoCatalog,
-    origin: snapshot.origin,
-    publicImages,
-    published: true,
-    unavailable: canonicalPath === '/museum.html' && !item,
-    modifiedAt: snapshot.indexModifiedAt?.[canonicalPath],
-  };
-  const meta = resolveSeo(context);
-  html = mustReplace(
-    html,
-    '</head>',
-    '<noscript><style>.reveal,.image-reveal{opacity:1!important;transform:none!important}</style></noscript></head>'
-  );
-  if (managed)
-    html = mustReplace(
-      html,
-      /<body\b([^>]*)>/,
-      (_, attributes) =>
-        `<body${attributes} data-managed-attractions="true"${filmEnabled ? ' data-managed-films="true"' : ''}${newsEnabled ? ' data-managed-news="true"' : ''}${offersEnabled ? ' data-managed-offers="true"' : ''}>`
-    );
-  html = withPublishedStylesheets(html);
-  html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
-    const template = templates[name];
-    if (template === undefined) throw new Error('Unknown template');
-    // 消息與優惠的分頁檔放在內部路徑，選中項目依對外網址判斷。
-    return name === 'SITE_HEADER' ? markActiveNavigation(template, canonicalPath) : template;
-  });
-  html = renderSeoHead(html, context, meta);
-  html = renderPolicyVersion(
-    html,
-    snapshot.policyVersion || DEFAULT_POLICY_VERSION,
-    snapshot.general?.values
-  );
-  html = mustReplace(
-    html,
-    /(<span class="brand-copy"><strong>)[\s\S]*?(<\/strong>)/g,
-    (_, a, b) => a + escapeHtml(meta.siteName) + b
-  );
-  html = mustReplace(
-    html,
-    /(<span data-site-copyright>)[\s\S]*?(<\/span>)/,
-    (_, a, b) => a + '© 2026 ' + escapeHtml(meta.siteName) + '・新竹城市生活指南' + b
-  );
-  if (snapshot.general?.values.contactEmail)
-    html = mustReplace(
-      html,
-      '<a href="/site-map.html">',
-      () =>
-        '<a data-site-contact href="mailto:' +
-        escapeHtml(snapshot.general.values.contactEmail) +
-        '">聯絡我們</a><a href="/site-map.html">'
-    );
-  if (managed)
-    html = mustReplace(
-      html,
-      '</body>',
-      () => `<script type="module" src="/assets/js/pages/attractions.js"></script></body>`
-    );
-  if (managed && filmEnabled)
-    html = mustReplace(
-      html,
-      '</body>',
-      () =>
-        `<script type="application/json" id="film-publication">${jsonForHtml({ total: filmItems.length })}</script><script type="module" src="/assets/js/pages/films.js"></script></body>`
-    );
-  const target = join(root, path.slice(1));
-  await mkdir(dirname(target), { recursive: true });
-  html = finalizePage(html, {
-    assetsRoot: join(source, 'assets'),
-    version,
-    preloadCache: modulePreloadCache,
-  });
-  await writeFile(target, annotateEnglishPassages(html));
-  const entry = crawlerEntry(context, meta);
-  if (entry) indexEntries.push(entry);
-}
 
 if (!existing) {
-  for (const kind of ['explore', 'food']) {
-    let html = await readFile(join(source, 'pages', kind + '.html'), 'utf8');
-    const items = snapshot.items.filter(item => kind === 'explore' || item.category === '美食');
-    html = mustReplace(
-      html,
-      /(<div class="place-grid" id="place-grid">)[\s\S]*?(<\/div>)/,
-      (_, open, close) =>
-        open +
-        (items.slice(0, 12).map(card).join('') || '<p class="empty-results">目前沒有地點資訊。</p>') +
-        close
-    );
-    // 只有城市散策頁的分類分頁帶有筆數，美食頁的分類沒有，所以這裡允許找不到。
-    html = html.replace(
-      /data-category="([^"]+)"([\s\S]*?)<span>\d+<\/span>/g,
-      (_, category, rest) =>
-        `data-category="${category}"${rest}<span>${String(snapshot.items.filter(item => category === 'all' || item.category === category).length).padStart(2, '0')}</span>`
-    );
-    await page(
-      `/${kind}.html`,
-      html,
-      kind === 'explore' ? '城市散策｜映畫竹塹' : '新竹美食｜映畫竹塹',
-      kind === 'explore' ? '探索新竹景點、文化場館與在地店家。' : '探索新竹美食與巷弄店家。'
-    );
-  }
-  const detailTemplate = await readFile(join(source, 'pages', 'museum.html'), 'utf8');
-  for (const item of snapshot.items) {
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid content slug');
-    const metadata =
-      [item.address, item.transport && `交通：${item.transport}`]
-        .filter(Boolean)
-        .map(text => `<p>${escapeHtml(text).replaceAll('\n', '<br>')}</p>`)
-        .join('') +
-      `<div class="opening-hours-detail"><h2>營業時間</h2>${openingHoursLines(item.openingHours, item.hours)
-        .map(line => `<p>${escapeHtml(line).replaceAll('\n', '<br>')}</p>`)
-        .join(
-          ''
-        )}${item.openingHours ? '<small>跨日時段歸開始日；實際營業以店家公告為準。</small>' : ''}</div>`;
-    const telephone =
-      item.phone && /^tel:[+0-9]+(?:;ext=[0-9]+)?$/.test(item.phoneUrl || '')
-        ? `<p>電話：<a href="${escapeHtml(item.phoneUrl)}">${escapeHtml(item.phone)}</a></p>`
-        : '';
-    const links = [
-      [item.mapUrl, '在 Google 地圖開啟'],
-      [item.websiteUrl, '官方網站'],
-    ]
-      .filter(([href]) => href)
-      .map(
-        ([href, label]) =>
-          `<a class="text-link" href="${escapeHtml(href)}" target="_blank" rel="noopener noreferrer">${label} ↗</a>`
-      )
-      .join('　');
-    const body = `<section class="section-pad detail-page">${image(item, 'detail-cover')}<div class="detail-body"><p class="eyebrow">CITY STORY / DETAIL</p><h1>${escapeHtml(item.name)}</h1>${item.summary ? `<p class="detail-lead">${escapeHtml(item.summary)}</p>` : ''}${item.description
-      .split(/\n\s*\n/)
-      .filter(text => text.trim())
-      .map(text => `<p>${escapeHtml(text).replaceAll('\n', '<br>')}</p>`)
-      .join(
-        ''
-      )}${!item.description ? `<div class="attraction-description-empty"><p>尚未提供景點介紹。</p></div>` : ''}${metadata}${telephone}<div class="detail-meta">${[item.typeLabel || item.category, item.district].filter(Boolean).map(escapeHtml).join('・')}</div>${links}<div class="detail-actions"><a class="button button-dark" href="/explore.html">回到城市散策 ↗</a><button type="button" class="text-link" data-add-stop="${escapeHtml(item.id)}">安排進旅行 <span>→</span></button><button type="button" class="text-link" data-favorite="${escapeHtml(item.id)}" aria-pressed="false">收藏此景點 ♡</button></div><small>更新日期：${escapeHtml(localDate(item.updatedAt))}</small></div></section>`;
-    const html = mustReplace(
-      detailTemplate,
-      /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
-      () => body
-    );
-    await page(
-      url(item),
-      html,
-      item.seoTitle || `${item.name}｜映畫竹塹`,
-      item.seoDescription || item.summary,
-      item
-    );
-  }
-  if (!snapshot.items.some(item => item.isMuseum)) {
-    await page(
-      '/museum.html',
-      mustReplace(
-        detailTemplate,
-        /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
-        '<section class="section-pad detail-page"><h1>博物館資訊更新中</h1><p>博物館介紹即將更新。</p><a href="/explore.html">回到城市散策</a></section>'
-      ),
-      '博物館資訊更新中｜映畫竹塹',
-      '博物館介紹目前更新中。'
-    );
-  }
-  let home = await readFile(join(source, 'pages', 'index.html'), 'utf8');
+  const { page, indexEntries } = createPagePublisher({
+    source,
+    snapshot,
+    root,
+    templates: await loadTemplates(source),
+    seoCatalog,
+    publicImages,
+    version: assetVersion(source),
+    filmItems,
+  });
   const museum = snapshot.home ? snapshot.home.museum : snapshot.items.find(item => item.isMuseum);
   const featured = snapshot.home
     ? snapshot.home.featured
     : snapshot.items.find(item => item.featured) || museum;
-  if (museum)
-    home = mustReplace(
-      home,
-      /(<div class="intro-copy reveal">)[\s\S]*?(<div class="museum-facts">)/,
-      (_, open, close) =>
-        open +
-        `<p>${escapeHtml(museum.summary)}</p>${museum.description ? `<p>${escapeHtml(museum.description)}</p>` : `<div><p>尚未提供景點介紹。</p></div>`}` +
-        close
-    );
-  if (featured) {
-    home = mustReplace(
-      home,
-      /<a class="museum-feature image-reveal"[^>]*>/,
-      () =>
-        `<a class="museum-feature image-reveal" href="${escapeHtml(url(featured))}" aria-label="${escapeHtml(featured.name)}">`
-    );
-    home = mustReplace(
-      home,
-      /<div class="museum-photo"[^>]*>/,
-      () =>
-        `<div class="museum-photo" data-image-url="${escapeHtml(featured.image)}" role="img" aria-label="${escapeHtml(featured.imageAlt || featured.name)}" style="background-image:url(&quot;${escapeHtml(featured.image)}&quot;)">`
-    );
-    home = mustReplace(
-      home,
-      /(<div class="museum-feature-label">)[\s\S]*?(<\/div>)/,
-      (_, open, close) =>
-        open +
-        `<span>${escapeHtml(featured.category)}</span><strong>${escapeHtml(featured.name)}</strong>` +
-        close
-    );
-  } else {
-    home = mustReplace(
-      home,
-      /<a class="museum-feature image-reveal"[\s\S]*?<\/a>/,
-      '<div class="museum-feature"><p>精選景點即將更新。</p></div>'
-    );
-  }
-  if (!museum)
-    home = mustReplace(
-      home,
-      /<div class="intro-copy reveal">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/,
-      '<div class="intro-copy reveal"><p>博物館參觀資訊更新中，請稍後再訪。</p></div>'
-    );
-  if (filmEnabled) {
-    home = mustReplace(
-      home,
-      /(<div class="screening-grid">)[\s\S]*?(<\/div>\s*<p class="demo-note">)/,
-      (_, open, close) =>
-        open +
-        filmCards(snapshot.home?.films || filmItems, snapshot.home?.filmTotal ?? filmItems.length) +
-        close
-    );
-    home = mustReplace(home, '10.10 — 10.16', weekLabel);
-    home = mustReplace(
-      home,
-      '映演內容為示意資料，實際場次請以影像博物館公告為準。',
-      '實際放映資訊請以影像博物館最新公告為準。'
-    );
-    let cinema = await readFile(join(source, 'pages/cinema.html'), 'utf8');
-    cinema = mustReplace(
-      cinema,
-      /(<div class="cinema-list" id="cinema-list">)[\s\S]*?(<\/div>)/,
-      (_, open, close) => open + filmRows(filmItems.slice(0, 20)) + close
-    );
-    // 以穩定的 id 定位並更新放映週期，保留英文的語言標示，不依賴原型的純文字內容。
-    cinema = mustReplace(
-      cinema,
-      /(<p\b[^>]*\bid="film-period"[^>]*>)[\s\S]*?(<\/p>)/,
-      (_, open, close) => `${open}<bdi lang="en">THIS WEEK</bdi> · ${escapeHtml(weekLabel)}${close}`
-    );
-    cinema = mustReplace(cinema, '※ 場次為示意資料', '實際放映資訊請以最新公告為準。');
-    // 與館舍詳情共用同一份快照與週表，不另外保存開放時間。
-    const visit = museum
-      ? `<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>${escapeHtml(museum.name)}</h2><p>${[
-          museum.address,
-          ...openingHoursLines(museum.openingHours, museum.hours),
-        ]
-          .filter(Boolean)
-          .map(text => escapeHtml(text).replaceAll('\n', '<br>'))
-          .join(
-            '<br>'
-          )}</p></div><a class="text-link" href="/museum.html">查看館舍與交通資訊 <span>↗</span></a></div>`
-      : '<div class="museum-info"><div><p class="eyebrow">VISIT THE MUSEUM</p><h2>博物館參觀資訊</h2><p>博物館介紹即將更新。</p></div><a class="text-link" href="/museum.html">查看館舍介紹 <span>↗</span></a></div>';
-    cinema = mustReplace(cinema, /<!-- MUSEUM_VISIT_START -->[\s\S]*?<!-- MUSEUM_VISIT_END -->/, () => visit);
-    await page(
-      '/cinema.html',
-      cinema,
-      '本週映演｜映畫竹塹',
-      '查看影像博物館本週放映日期、時間、電影介紹與海報。'
-    );
-    // 電影頁採用原型的電影專用頁殼，保留「本週映演」導覽，不沿用城市散策頁。
-    const filmTemplate = await readFile(join(source, 'templates/film-detail.html'), 'utf8');
-    for (const film of snapshot.films) {
-      if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(film.slug)) throw new Error('Invalid film slug');
-      const html = mustReplace(
-        filmTemplate,
-        /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
-        () => filmDetail(film)
-      );
-      const description =
-        film.seoDescription ||
-        Array.from(film.synopsis || `${film.title}的電影介紹與放映場次。`)
-          .slice(0, 500)
-          .join('');
-      await page(film.url, html, film.seoTitle || `${film.title}｜映畫竹塹`, description, {
-        ...film,
-        category: '電影',
-      });
-    }
-  }
-  if (newsEnabled) {
-    home = mustReplace(
-      home,
-      /(<div class="event-list">)[\s\S]*?<\/div>/,
-      (_, open) => open + homeNewsRows(snapshot.home?.news || snapshot.news.slice(0, 3)) + '</div>'
-    );
-    await publishNews(source, snapshot, page);
-  }
-  if (offersEnabled) await publishOffers(source, snapshot, page);
-  if (Array.isArray(snapshot.recommendedRoutes)) {
-    let html = await readFile(join(source, 'pages/routes.html'), 'utf8');
-    html = mustReplace(
-      html,
-      /<div class="route-cards" id="route-cards">\s*<\/div>/,
-      () => '<div class="route-cards" id="route-cards">' + routeCards(snapshot.recommendedRoutes) + '</div>'
-    );
-    await page(
-      '/routes.html',
-      html,
-      '推薦行程｜映畫竹塹',
-      '參考新竹主題散步推薦行程，查看有序景點與預估時間。'
-    );
-  }
-  if (snapshot.home)
-    home = mustReplace(
-      home,
-      '</body>',
-      () =>
-        `<script type="application/json" id="home-publication">${jsonForHtml({ ...snapshot.home, generation: snapshot.generation })}</script></body>`
-    );
+
+  await publishAttractions(source, snapshot, page);
+  if (Array.isArray(snapshot.films))
+    await publishFilms(source, snapshot, page, { filmItems, weekLabel, museum });
+  if (Array.isArray(snapshot.news)) await publishNews(source, snapshot, page);
+  if (Array.isArray(snapshot.offers)) await publishOffers(source, snapshot, page);
+  await publishRoutes(source, snapshot, page);
   // 與原型及後台 SEO 目錄使用同一個標題；舊字串以品牌開頭又被加上後綴，會讓「映畫竹塹」重複出現。
   await page(
     '/index.html',
-    home,
+    await buildHomePage(source, snapshot, { museum, featured, filmItems, weekLabel }),
     '在城市裡，遇見一場好電影｜映畫竹塹',
     '從新竹市影像博物館出發，探索本週電影、城市散策、在地美食、店家優惠、活動消息與新竹旅行提案。',
     featured
   );
-  const indexTemplate = await readFile(join(source, 'pages/site-map.html'), 'utf8');
-  await page(
-    '/site-map.html',
-    mustReplace(
-      indexTemplate,
-      '<div id="public-content-index"></div>',
-      () => `<div id="public-content-index">${renderPublicContentIndex(snapshot)}</div>`
-    ),
-    '網站導覽｜映畫竹塹',
-    '依分類瀏覽或按名稱尋找映畫竹塹的景點、電影、活動消息與店家優惠。',
-    undefined,
-    '/site-map.html',
-    false
-  );
-  // 非內容型的固定公開頁也放進同一個 generation；保護頁使用安全的靜態 shell。
-  const managedPaths = new Set([
-    '/index.html',
-    '/explore.html',
-    '/food.html',
-    '/museum.html',
-    '/cinema.html',
-    '/events.html',
-    '/activities.html',
-    '/city-news.html',
-    '/offers.html',
-    '/routes.html',
-    '/site-map.html',
-  ]);
-  for (const entry of seoCatalog.filter(
-    entry => !entry.protected && !entry.template && !managedPaths.has(entry.path)
-  )) {
-    let html;
-    try {
-      html = await readFile(join(source, 'pages', entry.path.slice(1)), 'utf8');
-    } catch (error) {
-      if (error.code === 'ENOENT') continue;
-      throw error;
-    }
-    await page(entry.path, html, entry.title, entry.description, undefined, entry.path, false);
-  }
+  await publishStaticPages(source, snapshot, page, seoCatalog);
+
   // 索引與 HTML 全部成功才啟用此版本；不掃描 dist 或舊的 generation。
   const canonicalOrigin = snapshot.seo?.defaults?.canonicalOrigin || snapshot.origin;
   for (const [name, xml] of buildSitemaps(indexEntries, canonicalOrigin))

@@ -1162,7 +1162,13 @@ python backend/tests/film_schema_upgrade.py
 
 | 檔案（frontend/ 下） | 功能 |
 | --- | --- |
-| [scripts/publish.mjs](../frontend/scripts/publish.mjs) | 公開投影 → 原型模板、正文及 SEO；不可變 generation 與原子啟用。 |
+| [scripts/publish.mjs](../frontend/scripts/publish.mjs) | 發布流程：讀入公開快照、依序呼叫各類內容的發布器、寫出 sitemap／robots，最後以不可變 generation 原子啟用。發布順序決定 sitemap 項目順序。 |
+| [scripts/publish-page.mjs](../frontend/scripts/publish-page.mjs) | `createPagePublisher()`：每頁共同步驟（上一篇／下一篇、SEO 標頭、共用模板、品牌／聯絡資訊、受管理腳本、資產版本）與 sitemap 項目收集。 |
+| [scripts/public-attractions.mjs](../frontend/scripts/public-attractions.mjs) | 城市散策／美食列表、景點詳情與博物館更新中頁。 |
+| [scripts/public-films.mjs](../frontend/scripts/public-films.mjs) | 本週映演頁與電影詳情頁。 |
+| [scripts/public-routes.mjs](../frontend/scripts/public-routes.mjs) | 推薦行程列表頁。 |
+| [scripts/public-static.mjs](../frontend/scripts/public-static.mjs) | 網站導覽與其他固定公開頁。 |
+| [scripts/home-page.mjs](../frontend/scripts/home-page.mjs) | 組出首頁各區塊（博物館介紹、精選景點、本週電影、最新消息）。 |
 | [assets/js/api/attractions-api.js](../frontend/assets/js/api/attractions-api.js) | 景點、媒體、地圖與重試共用 API 呼叫。 |
 | [assets/js/pages/attraction-list.js](../frontend/assets/js/pages/attraction-list.js) | 後台列表、搜尋、狀態、分頁、刪除、重試及權限控制。 |
 | [assets/js/pages/attraction-form.js](../frontend/assets/js/pages/attraction-form.js) | 新增／編輯共用、載入／保存、圖片、候選確認與未存提醒。 |
