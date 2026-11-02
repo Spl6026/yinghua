@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import { apiModules } from './support/api-modules.mjs';
 const source = (
   await readFile(new URL('../assets/js/components/attraction-picker.js', import.meta.url), 'utf8')
 )
@@ -56,6 +57,10 @@ async function fixture() {
       node.textContent = text;
     },
   };
+  Object.assign(
+    sandbox,
+    apiModules((...args) => sandbox.api(...args))
+  );
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox);
   const picker = sandbox.attractionPicker(host, {

@@ -1,10 +1,10 @@
 import { authApi } from '../api/auth-api.js';
 import { memberResourcesApi } from '../api/member-resources-api.js';
-import { api } from './api-client.js';
 import { element, onPageReturn, status, toast, unsavedChanges } from './ui.js';
 import { MemberResourceState } from './member-resource-state.js';
 import { recoverSession } from './session-expiry.js';
 import { PendingWrites } from './pending-writes.js';
+import { publicApi } from '../api/public-api.js';
 
 // 只處理受管景點的 UUID；原型陣列的索引不能當成正式資料的識別碼。
 const isAttractionId = id => /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
@@ -85,7 +85,7 @@ function loginForMemberAction(kind, id) {
 export async function resolvePublicAttraction(id) {
   if (!isAttractionId(id)) return null;
   for (let page = 1; ; page++) {
-    const data = await api('/api/v1/attractions?' + new URLSearchParams({ page, pageSize: 100 }));
+    const data = await publicApi.attractions({ page, pageSize: 100 });
     const item = data.items.find(item => item.id === id);
     if (item) return item;
     if (page * 100 >= data.total) return null;

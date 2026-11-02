@@ -1,5 +1,4 @@
 import { authApi } from '../api/auth-api.js';
-import { api } from './api-client.js';
 import { sessionSnapshot, subscribeSession } from './session-events.js';
 import { SessionDeadline } from './session-deadline.js';
 import { sessionPrompt } from '../components/session-prompt.js';
@@ -22,7 +21,7 @@ export function startSessionMonitoring() {
         return;
       }
       if (previewControl) {
-        await api('/api/v1/admin/auth/preview', { method: 'DELETE', body: {}, kind: 'admin' });
+        await authApi('admin').preview('');
         location.reload();
         return;
       }

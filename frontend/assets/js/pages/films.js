@@ -1,7 +1,7 @@
-import { api } from '../core/api-client.js';
 import { filmRows, screeningPeriodLabel } from '../core/film-view.js';
 import { element, status } from '../core/ui.js';
 import { fallbackContentImages } from '../core/content-view.js';
+import { publicApi } from '../api/public-api.js';
 
 // 初始內容由同一發布版本的 HTML 提供；換頁失敗時不回填原型資料。
 const list = document.querySelector('#cinema-list');
@@ -31,7 +31,7 @@ if (list && snapshot) {
     controls();
     status(notice, '正在讀取片單…');
     try {
-      const data = await api(`/api/v1/films?week=current&page=${target}&pageSize=20`);
+      const data = await publicApi.films({ week: 'current', page: target, pageSize: 20 });
       const period = document.querySelector('#film-period');
       // 和發布頁一樣，英文字樣以 lang="en" 標示，讀屏才會用英文念出。
       if (period)

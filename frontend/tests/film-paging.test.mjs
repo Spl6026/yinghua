@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import * as taipeiTime from '../assets/js/core/taipei-time.js';
+import { apiModules } from './support/api-modules.mjs';
 
 const code = (
   await Promise.all(
@@ -73,6 +74,10 @@ function fixture(total = 21) {
     Image: class {},
     passwordError: () => '',
   };
+  Object.assign(
+    sandbox,
+    apiModules((...args) => sandbox.api(...args))
+  );
   vm.createContext(sandbox);
   code.forEach(s => vm.runInContext(s, sandbox));
   const notice = list.afterNodes[0],

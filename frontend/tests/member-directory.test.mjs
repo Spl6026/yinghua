@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { formatUtcDateTime } from '../assets/js/core/utc-display.js';
+import { apiModules } from './support/api-modules.mjs';
 const source = (await readFile(new URL('../assets/js/pages/member-directory.js', import.meta.url), 'utf8'))
   .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
   .replace('export async function', 'async function');
@@ -85,6 +86,10 @@ async function fixture() {
       node.textContent = error.message;
     },
   };
+  Object.assign(
+    sandbox,
+    apiModules((...args) => sandbox.api(...args))
+  );
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox);
   await sandbox.initializeMemberDirectory();

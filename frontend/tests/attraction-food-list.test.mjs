@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
+import { apiModules } from './support/api-modules.mjs';
 
 const source = (await readFile(new URL('../assets/js/pages/attractions.js', import.meta.url), 'utf8'))
   .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
@@ -69,6 +70,10 @@ test('美食原型沒有分類數字仍載入完成，切換在地店家可使�
       return { items: [], total: 0, counts: { all: 0, 美食: 0, 在地店家: 0 } };
     },
   };
+  Object.assign(
+    sandbox,
+    apiModules((...args) => sandbox.api(...args))
+  );
   vm.createContext(sandbox);
   await vm.runInContext(`(async()=>{${source}\n})()`, sandbox);
   assert.equal(requests[0].get('category'), '美食');

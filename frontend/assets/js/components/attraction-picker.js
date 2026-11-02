@@ -1,5 +1,5 @@
-import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
+import { publicApi } from '../api/public-api.js';
 
 // 在原頁面選擇地點，不導航離開，也不丟棄尚未儲存的行程編排。
 export function attractionPicker(host, { onChoose, isSelected, isDisabled }) {
@@ -47,9 +47,7 @@ export function attractionPicker(host, { onChoose, isSelected, isDisabled }) {
     status(message, '載入可加入的地點中…');
     list.setAttribute('aria-busy', 'true');
     try {
-      const data = await api(
-        '/api/v1/attractions?' + new URLSearchParams({ q: query.value, page: String(page), pageSize: '10' })
-      );
+      const data = await publicApi.attractions({ q: query.value, page: String(page), pageSize: '10' });
       if (request !== generation) return;
       total = data.total;
       list.replaceChildren();

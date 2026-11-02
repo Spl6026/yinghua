@@ -1,7 +1,7 @@
-import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
 import { formatUtcDateTime } from '../core/utc-display.js';
+import { operationsApi } from '../api/operations-api.js';
 const labels = {
   attractions: '景點與店家',
   films: '本週映演',
@@ -20,7 +20,7 @@ export async function initializeOperations(identity) {
     status(message, '載入中…');
     host.setAttribute('aria-busy', 'true');
     try {
-      const result = await api('/api/v1/admin/dashboard', { kind: 'admin' });
+      const result = await operationsApi.dashboard();
       host.replaceChildren();
       const cards = element('div', { className: 'stat-grid' });
       for (const [module, count] of Object.entries(result.counts)) {
@@ -133,7 +133,7 @@ async function auditPanel(host, message) {
     busy = true;
     controls();
     try {
-      const result = await api('/api/v1/admin/audit-logs?page=' + page, { kind: 'admin' });
+      const result = await operationsApi.auditLogs(page);
       total = result.total;
       rows.replaceChildren();
       for (const item of result.items) {

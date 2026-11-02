@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 import { PendingWrites } from '../assets/js/core/pending-writes.js';
+import { apiModules } from './support/api-modules.mjs';
 
 const source = (await readFile(new URL('../assets/js/core/member-actions.js', import.meta.url), 'utf8'))
   .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
@@ -60,6 +61,10 @@ function fixture() {
       },
     }),
   };
+  Object.assign(
+    sandbox,
+    apiModules((...args) => sandbox.api(...args))
+  );
   vm.createContext(sandbox);
   vm.runInContext(source, sandbox);
   vm.runInContext('clearMemberIntent=()=>{}', sandbox);

@@ -1,9 +1,9 @@
 // 初次內容由靜態 HTML 提供，篩選與換頁才呼叫公開 API。
-import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 import { placeCard, attractionCardData as cardData } from '../components/content-cards.js';
 import { mountMemberActions } from '../core/member-actions.js';
 import { fallbackContentImages } from '../core/content-view.js';
+import { publicApi } from '../api/public-api.js';
 
 if (typeof document !== 'undefined' && document.body.dataset.managedAttractions) {
   fallbackContentImages();
@@ -78,16 +78,13 @@ if (typeof document !== 'undefined' && document.body.dataset.managedAttractions)
       status(message, '讀取景點中…');
       markTabs();
       try {
-        const data = await api(
-          '/api/v1/attractions?' +
-            new URLSearchParams({
-              q: query?.value.trim() || '',
-              category,
-              district: district?.value === 'all' ? '' : district?.value || '',
-              page,
-              pageSize: 12,
-            })
-        );
+        const data = await publicApi.attractions({
+          q: query?.value.trim() || '',
+          category,
+          district: district?.value === 'all' ? '' : district?.value || '',
+          page,
+          pageSize: 12,
+        });
         if (request !== generation) return;
         if (page > 1 && (page - 1) * 12 >= data.total) {
           page = Math.max(1, Math.ceil(data.total / 12));
