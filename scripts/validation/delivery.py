@@ -89,6 +89,9 @@ def main():
             state = json.loads((ROOT / 'artifacts/phase8-browser-fixture.json').read_text(encoding='utf8'))
             if state.get('cleaned') or not state.get('prefix', '').startswith('p8ui'):
                 raise ValueError('Prepare an active owned yinghua_test fixture first')
+            # 各套件把結果與暫存的 fixture 寫進 artifacts 底下的子資料夾；artifacts 是可清理的本機目錄，先確保資料夾存在。
+            for folder in ('phase10', 'phase11', 'phase12', 'phase13', 'phase14', 'phase15'):
+                (ROOT / 'artifacts' / folder).mkdir(parents=True, exist_ok=True)
             for name, command in suites(options.dependency_path, options.schema_vocabulary):
                 started = time.monotonic()
                 with (target / (name + '.log')).open('w', encoding='utf8') as log:
