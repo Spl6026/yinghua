@@ -11,9 +11,6 @@
 [aria-invalid='true'] {
   border-color: #a44943 !important;
 }
-.form-status {
-  overflow-wrap: anywhere;
-}
 .form-status:empty:not(.form-error) {
   display: none;
 }
@@ -61,12 +58,16 @@
   min-width: 0;
   flex: 1;
 }
+/* 驗證碼原圖為 230×64，與輸入框同高並保持比例，數字才看得清楚。 */
 .captcha-row img {
-  width: 115px;
-  height: 32px;
+  width: 184px;
+  height: 51px;
+  max-width: 45%;
   object-fit: contain;
   align-self: center;
   flex: none;
+  border: 1px solid #d5d1c5;
+  background: #fff;
 }
 .captcha-row .captcha-refresh {
   flex: none;
@@ -169,6 +170,15 @@
   justify-content: center;
   padding: 20px 0 0;
   font-variant-numeric: tabular-nums;
+}
+/* 前台列表（城市散策、我的收藏）的分頁列；之前只寫在後台景點樣式裡，收藏頁沒有載入而失去排版。 */
+.list-pagination {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 28px 0;
 }
 .pagination button {
   font: inherit;
@@ -280,14 +290,9 @@ select {
   }
 }
 
-/* 保留原型色系，但提高已串接表單提示文字的對比。 */
-:root {
-  --muted: #5b5f55;
-}
+/* 保留原型色系，但提高已串接表單提示文字的對比（--muted 已在 style.css 調深）。 */
 .admin-page-heading p,
-.helper-text,
-.field-hint,
-.form-privacy {
+.helper-text {
   color: #62665c;
 }
 /* 原型的小字放在紙色背景上，仍須達到一般文字的對比要求。 */
@@ -423,10 +428,6 @@ select {
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.footer-bottom {
-  flex-wrap: wrap;
-}
-
 /* 沿用原型的面板與快捷格線；較長的政策標題在窄螢幕上整行換行。 */
 .general-settings-panel .admin-panel-heading {
   display: block;
@@ -529,6 +530,9 @@ select {
   flex-wrap: wrap;
 }
 @media (max-width: 760px) {
+  .admin-toolbar .button {
+    width: 100%;
+  }
   .admin-page-heading > div {
     flex-basis: 100%;
   }
@@ -538,5 +542,44 @@ select {
   .admin-panel-heading span {
     display: block;
     margin-top: 6px;
+  }
+}
+
+/* 會員選單：桌面版維持頁首連結；手機版頁首只留名稱，收藏、更改密碼與登出移到漢堡選單。 */
+.nav-account {
+  display: none;
+}
+@media (max-width: 760px) {
+  .member-menu > :not(:first-child) {
+    display: none;
+  }
+  .member-menu > span:first-child {
+    max-width: 7em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .primary-nav.open {
+    max-height: 520px;
+  }
+  .nav-account {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgba(60, 60, 50, 0.15);
+    margin-top: 6px;
+    padding-top: 6px;
+  }
+  .nav-account a,
+  .nav-account button {
+    display: block;
+    text-align: left;
+    padding: 12px 0;
+    font: inherit;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    color: #55574f;
+    background: none;
+    border: 0;
+    cursor: pointer;
   }
 }

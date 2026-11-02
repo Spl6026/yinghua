@@ -1127,11 +1127,7 @@ select:focus-visible {
   color: var(--muted);
   margin: 0;
 }
-.news-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 30px;
-}
+
 .news-feature {
   background: #eae5da;
 }
@@ -1521,17 +1517,7 @@ select:focus-visible {
   gap: 17px;
   align-items: center;
 }
-.admin-status {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.admin-status i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #82a878;
-}
+
 .admin-preview {
   border: 1px solid #c9c8bc;
   background: transparent;
@@ -1552,10 +1538,7 @@ select:focus-visible {
 .admin-page-heading .eyebrow {
   margin-bottom: 3px;
 }
-.admin-page-heading h2 {
-  font: 500 27px var(--serif);
-  margin: 0;
-}
+
 .admin-page-heading p {
   font-size: 10px;
   color: var(--muted);
@@ -1718,86 +1701,12 @@ select:focus-visible {
   padding: 10px 15px;
   font-size: 10px;
 }
-.upload-preview {
-  border: 1px dashed #c5c2b5;
-  padding: 15px;
-  color: #818176;
-  font-size: 10px;
-  text-align: center;
-}
+
 .admin-mobile-menu {
   display: none;
 }
 /* 對話框、表單、動態效果 */
-.modal-backdrop {
-  position: fixed;
-  z-index: 100;
-  inset: 0;
-  background: rgba(23, 27, 22, 0.67);
-  display: grid;
-  place-items: center;
-  padding: 18px;
-  backdrop-filter: blur(4px);
-  animation: fadeIn 0.2s;
-}
-.modal-backdrop[hidden] {
-  display: none;
-}
-.modal {
-  width: min(100%, 470px);
-  background: var(--paper);
-  padding: 39px 42px;
-  position: relative;
-  max-height: 90vh;
-  overflow: auto;
-  box-shadow: 0 25px 90px rgba(0, 0, 0, 0.25);
-}
-.modal-close {
-  position: absolute;
-  right: 17px;
-  top: 10px;
-  border: 0;
-  background: none;
-  font-size: 28px;
-  cursor: pointer;
-  color: #6c6f63;
-}
-.modal h2 {
-  font: 500 28px/1.5 var(--serif);
-  margin: 0 0 6px;
-}
-.modal > p:not(.eyebrow):not(.form-privacy) {
-  font-size: 11px;
-  color: var(--muted);
-  margin: 0 0 20px;
-}
-.auth-tabs {
-  display: flex;
-  border-bottom: 1px solid var(--line);
-  margin-bottom: 18px;
-}
-.auth-tab {
-  background: none;
-  border: 0;
-  padding: 10px 15px;
-  font-size: 11px;
-  color: #818176;
-  cursor: pointer;
-  position: relative;
-}
-.auth-tab.active {
-  color: var(--green);
-  font-weight: 600;
-}
-.auth-tab.active:after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--green);
-}
+
 .form-field {
   margin-bottom: 13px;
 }
@@ -1814,26 +1723,12 @@ select:focus-visible {
   background: #fbfaf5;
   font-size: 12px;
 }
-.field-hint {
-  font-size: 9px;
-  color: #929085;
-  margin-left: 8px;
-}
+
 .captcha-row {
   display: flex;
   gap: 8px;
 }
-.captcha-code {
-  display: grid;
-  place-items: center;
-  min-width: 98px;
-  background: #dcd9ca;
-  color: #46513e;
-  letter-spacing: 0.2em;
-  font: bold italic 18px var(--serif);
-  transform: rotate(-1deg);
-  user-select: none;
-}
+
 .captcha-refresh {
   border: 1px solid var(--line);
   background: transparent;
@@ -1847,24 +1742,7 @@ select:focus-visible {
   font-size: 10px;
   margin: 0 0 4px;
 }
-.form-privacy {
-  font-size: 9px;
-  color: #8a897d;
-  text-align: center;
-  margin: 14px 0 0;
-}
-.detail-modal {
-  padding: 0;
-  width: min(100%, 560px);
-}
-.detail-modal .modal-close {
-  z-index: 2;
-  background: rgba(255, 253, 248, 0.85);
-  border-radius: 50%;
-  width: 35px;
-  height: 35px;
-  line-height: 1;
-}
+
 .detail-cover {
   height: 250px;
   background-size: cover;
@@ -2440,9 +2318,7 @@ select:focus-visible {
   .museum-info h2 {
     font-size: 20px;
   }
-  .news-layout {
-    grid-template-columns: 1fr;
-  }
+
   .news-feature-photo {
     height: 220px;
   }
@@ -2507,15 +2383,11 @@ select:focus-visible {
   .admin-topbar > div:first-of-type {
     margin-right: auto;
   }
-  .admin-status {
-    display: none;
-  }
+
   .admin-content {
     padding: 21px 14px;
   }
-  .admin-page-heading h2 {
-    font-size: 22px;
-  }
+
   .stat-grid {
     grid-template-columns: 1fr 1fr;
     gap: 9px;
@@ -2545,9 +2417,7 @@ select:focus-visible {
   .url-import {
     grid-template-columns: 1fr;
   }
-  .modal {
-    padding: 34px 24px;
-  }
+
   .detail-body {
     padding: 24px;
   }
@@ -2690,8 +2560,7 @@ body {
 }
 .admin-table,
 .admin-field label,
-.admin-nav,
-.admin-status {
+.admin-nav {
   font-size: 13px;
 }
 .admin-page-heading p,
@@ -2715,10 +2584,7 @@ body {
 .form-error {
   font-size: 14px;
 }
-.form-privacy,
-.field-hint {
-  font-size: 11px;
-}
+
 .topic-directory h2 {
   font: 500 clamp(30px, 4vw, 43px)/1.45 var(--serif);
   margin: 0 0 25px;
@@ -2855,14 +2721,7 @@ body {
   text-decoration: none;
 }
 /* 後台清單只呈現列表；新增與編輯改至各自的獨立 HTML 表單頁。 */
-#place-editor {
-  display: none !important;
-}
-#admin-content[data-admin-page='films'] .admin-panel:last-child,
-#admin-content[data-admin-page='news'] .admin-panel:last-child,
-#admin-content[data-admin-page='routes'] .admin-panel:last-child {
-  display: none !important;
-}
+
 .admin-content .admin-page-heading h1 {
   font: 500 29px/1.45 var(--serif);
   margin: 0;
@@ -2963,8 +2822,7 @@ body {
 .stat-card small,
 .status-pill,
 .table-actions,
-.helper-text,
-.upload-preview {
+.helper-text {
   font-size: 14px;
 }
 .admin-nav,
@@ -2977,9 +2835,7 @@ body {
 .url-import input {
   font-size: 15px;
 }
-.admin-page-heading h2 {
-  font-size: 30px;
-}
+
 .admin-panel-heading h3 {
   font-size: 19px;
 }
@@ -2987,8 +2843,6 @@ body {
 .admin-form-actions .button {
   font-size: 14px;
 }
-.modal > p:not(.eyebrow):not(.form-privacy),
-.auth-tab,
 .form-field label,
 .form-field input,
 .form-error,
@@ -2997,10 +2851,7 @@ body {
 .search-modal-row input {
   font-size: 15px;
 }
-.field-hint,
-.form-privacy {
-  font-size: 13px;
-}
+
 .stat-card strong {
   font-size: 30px;
 }
@@ -3088,9 +2939,7 @@ body {
   .admin-user small {
     font-size: 13px;
   }
-  .admin-page-heading h2 {
-    font-size: 24px;
-  }
+
   .admin-panel-heading h3 {
     font-size: 18px;
   }
@@ -3100,9 +2949,7 @@ body {
   .topic-link-grid a span {
     font-size: 14px;
   }
-  .account-switch,
-  .field-hint,
-  .form-privacy {
+  .account-switch {
     font-size: 13px;
   }
   .footer-bottom {
@@ -3598,13 +3445,7 @@ body {
   color: #50534b;
   margin: 0;
 }
-.permission-denied {
-  padding: 17px 20px;
-  background: #f2e8dd;
-  border-left: 4px solid #96653c;
-  color: #493b2d;
-  font-size: 16px;
-}
+
 .permission-toolbar {
   display: grid;
   grid-template-columns: minmax(230px, 0.75fr) 1.25fr;

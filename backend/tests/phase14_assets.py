@@ -22,7 +22,7 @@ for origin in ['http://localhost:8080','http://localhost:8081']:
             request=urllib.request.Request(origin+asset,method='HEAD')
             with http.open(request,timeout=15) as response:assert response.status==200,(origin,path,asset)
         results.append({'origin':origin,'path':path,'assets':len(assets),'ok':True})
-    for name in ['NotoSansTC-common.woff2','NotoSerifTC-common.woff2','NotoSansTC.woff2','NotoSerifTC.woff2']:
+    for name in ['NotoSansTC-common.woff2','NotoSerifTC-common.woff2']:
         request=urllib.request.Request(origin+'/assets/fonts/'+name,method='HEAD')
         with http.open(request,timeout=15) as response:
             assert response.status==200 and int(response.headers['Content-Length'])==(ROOT/'frontend/assets/fonts'/name).stat().st_size

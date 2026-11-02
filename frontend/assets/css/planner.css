@@ -293,8 +293,12 @@
   }
 }
 
-#itinerary-list {
+/* 有站點時保留編排區的高度；還沒有站點時不留空白，空狀態直接接在儲存列下方。 */
+#itinerary-list:has(*) {
   min-height: 180px;
+}
+#itinerary-list:not(:has(*)) {
+  padding-top: 0;
 }
 
 /* 沒有簡介時仍要維持資訊層級，類別與介紹連結各佔一列。 */
