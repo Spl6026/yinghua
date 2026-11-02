@@ -165,6 +165,19 @@ async function fixture(page, search = '') {
       return false;
     },
     unsavedChanges() {},
+    toast: message => {
+      data.toast = message;
+    },
+    // 一秒內合併重複事件的行為由 ui-page-return 測試驗證；這裡逐一觸發，模擬分開的回到頁面。
+    onPageReturn: callback => {
+      sandbox.window.addEventListener('pageshow', event => {
+        if (event?.persisted) callback();
+      });
+      sandbox.window.addEventListener('focus', callback);
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) callback();
+      });
+    },
     confirmAction: async () => true,
     tripStopEditor: item => Object.assign(new Node('article'), { item }),
     memberItineraryStop: item => Object.assign(new Node(), { item }),

@@ -1,7 +1,7 @@
 import { authApi } from '../api/auth-api.js';
 import { memberResourcesApi } from '../api/member-resources-api.js';
 import { api } from './api-client.js';
-import { element, status, toast } from './ui.js';
+import { element, onPageReturn, status, toast } from './ui.js';
 import { MemberResourceState } from './member-resource-state.js';
 import { recoverSession } from './session-expiry.js';
 import { PendingWrites } from './pending-writes.js';
@@ -261,13 +261,7 @@ export async function mountMemberActions() {
       paint();
       void refreshFavorites();
     };
-    window.addEventListener('pageshow', event => {
-      if (event.persisted) resume();
-    });
-    window.addEventListener('focus', resume);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) resume();
-    });
+    onPageReturn(resume);
   }
   await refreshFavorites();
   await showFavoriteIntent();

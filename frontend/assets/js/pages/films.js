@@ -32,7 +32,12 @@ if (list && snapshot) {
     try {
       const data = await api(`/api/v1/films?week=current&page=${target}&pageSize=20`);
       const period = document.querySelector('#film-period');
-      if (period) period.textContent = `THIS WEEK · ${screeningPeriodLabel(data.period)}`;
+      // 和發布頁一樣，英文字樣以 lang="en" 標示，讀屏才會用英文念出。
+      if (period)
+        period.replaceChildren(
+          element('bdi', { lang: 'en' }, 'THIS WEEK'),
+          ` · ${screeningPeriodLabel(data.period)}`
+        );
       list.innerHTML = filmRows(data.items);
       page = target;
       total = data.total;

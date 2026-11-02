@@ -21,9 +21,15 @@ class Node {
     this.textContent = '';
     this.innerHTML = 'SSR 原有片單';
   }
-  setAttribute() {}
+  setAttribute(key, value) {
+    (this.attributes ||= {})[key] = value;
+  }
   append(...nodes) {
     this.children.push(...nodes);
+  }
+  replaceChildren(...nodes) {
+    this.children = nodes;
+    this.textContent = nodes.map(node => (typeof node === 'string' ? node : node.textContent)).join('');
   }
   after(...nodes) {
     this.afterNodes = nodes;
@@ -81,6 +87,7 @@ test('真實頁面模組換頁、回上一頁，並以 API 回傳期間更新跨
   await settle();
   assert.match(f.state.calls[0], /page=2/);
   assert.equal(f.label.textContent, 'THIS WEEK · 12.28 — 01.03');
+  assert.equal(f.label.children[0].attributes.lang, 'en');
   assert.equal(f.previous.disabled, false);
   assert.equal(f.next.disabled, true);
   await f.previous.emit('click');

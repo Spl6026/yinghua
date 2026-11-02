@@ -11,6 +11,7 @@
 - 前端 API 錯誤（[core/api-client.js](../frontend/assets/js/core/api-client.js)）：回應不是 JSON 時（閘道錯誤頁等）依狀態碼顯示「上傳內容過大」「服務暫時無法使用」等訊息並保留狀態碼，成功但不是 JSON 也視為錯誤；逾時與斷線分開說明。原本一律顯示「請檢查連線」。上傳（FormData）預設逾時改為 120 秒，其他維持 15 秒，可由 `api(path, { timeout })` 指定。新增 `tests/api-client.test.mjs` 直接載入模組測試。
 - 發布腳本防呆：新增 [scripts/html-edit.mjs](../frontend/scripts/html-edit.mjs) 的 `mustReplace()`，`publish.mjs`／`public-news.mjs`／`public-offers.mjs` 把資料寫進原型頁面時，找不到預期標記就中止發布，不再靜靜產生缺內容的頁面（唯一允許找不到的是美食頁沒有的分類筆數）。`<body>` 屬性改為保留原有屬性再加上，推薦行程頁原本因 `<body data-managed-routes>` 對不上而少了屬性。`NodeContentRenderer` 發布失敗時記錄 Node 錯誤類型，「缺少標記」另附標記內容（不含頁面資料）。
 - 開發提醒：改了 `frontend/` 原始檔後要先 `node scripts/build.mjs` 再發布；發布頁與建置輸出的資產版本號都由原始檔算出，只做其中一邊會讓同一模組以兩個版本號各載入一次。正式環境兩者來自同一映像，不會不一致。
+- 前端小修正：`toast()` 每次重設計時器（連續提示不再提早消失）；新增 `ui.js` 的 `onPageReturn()`，收藏與行程頁切回分頁時 focus／visibilitychange／pageshow 一秒內只重新確認一次（原本會重複送出請求）；`planner.js` 初始化失敗改顯示提示；本週映演換頁後保留 `<bdi lang="en">THIS WEEK</bdi>`；`public-list-controller` 缺少分頁區塊時不再出錯。
 
 2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
 - 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。

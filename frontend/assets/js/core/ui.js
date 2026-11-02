@@ -15,12 +15,34 @@ export function status(container, message = '', error = false) {
   container.dataset.error = String(error);
 }
 
+// 連續出現的提示要各自顯示滿 3 秒；沿用前一則的計時器會讓新提示提早消失。
+let toastTimer = 0;
 export function toast(message) {
   const node = document.querySelector('#toast');
   if (!node) return;
   node.textContent = message;
   node.classList.add('show');
-  window.setTimeout(() => node.classList.remove('show'), 3000);
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => node.classList.remove('show'), 3000);
+}
+
+// 使用者回到分頁時（切回分頁、從上一頁快取還原、視窗重新取得焦點）重新確認資料。
+// 這幾個事件常常同時發生，一秒內只執行一次，避免重複送出相同的請求。
+export function onPageReturn(callback) {
+  let last = 0;
+  const run = () => {
+    const now = Date.now();
+    if (now - last < 1000) return;
+    last = now;
+    callback();
+  };
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) run();
+  });
+  window.addEventListener('focus', run);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) run();
+  });
 }
 
 export function formErrors(form, error) {

@@ -4,7 +4,7 @@ import { TripEditorState } from '../core/trip-editor-state.js';
 import { tripStopEditor } from '../components/trip-stop-editor.js';
 import { readMember, resolvePublicAttraction, clearMemberIntent } from '../core/member-actions.js';
 import { handleSessionExpiry } from '../core/session.js';
-import { element, status, formErrors, unsavedChanges } from '../core/ui.js';
+import { element, status, formErrors, onPageReturn, toast, unsavedChanges } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 
 // 完整的行程編輯器：伺服器版本與未保存草稿分開，不把 localStorage 當正式資料。
@@ -352,19 +352,14 @@ export async function initializePlanner() {
       fail(error, { focusResult: false });
     }
   };
-  window.addEventListener('pageshow', event => {
-    if (event.persisted) void resume();
-  });
-  window.addEventListener('focus', () => {
-    void resume();
-  });
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) void resume();
-  });
+  onPageReturn(() => void resume());
   render();
   await act(() => state.load(), '已載入你的行程。', { focusResult: false });
   await routePreview();
   await placeIntent();
 }
 
-await initializePlanner();
+// 初始化途中出錯（例如模組載入後 API 異常）時給使用者看得到的提示，而不是留下沒有反應的頁面。
+initializePlanner().catch(error => {
+  toast(error?.message || '行程頁載入失敗，請重新整理頁面。');
+});
