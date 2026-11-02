@@ -31,7 +31,7 @@ class RecommendedRouteRepository
             [...$params,'size' => $query->pageSize,'offset' => ($query->page - 1) * $query->pageSize],
         );
         return [
-            'items' => array_map(fn(array $row): array => $this->map($row)->toArray(), $rows),
+            'items' => array_map(static fn(RecommendedRoute $route): array => $route->toArray(), $this->mapAll($rows)),
             'total' => $count->integer('total'),
             'page' => $query->page,
             'pageSize' => $query->pageSize,
@@ -41,7 +41,7 @@ class RecommendedRouteRepository
     public function find(string $id, bool $lock = false): ?RecommendedRoute
     {
         $row = $this->database->row('SELECT * FROM routes WHERE id=:id' . ($lock ? ' FOR UPDATE' : ''), ['id' => $id]);
-        return $row === null ? null : $this->map($row);
+        return $row === null ? null : $this->mapAll([$row])[0];
     }
 
     /** 鎖定路線引用的景點，避免儲存時剛好有人下架或刪除；依 ID 固定順序上鎖以免死鎖。 */
@@ -101,7 +101,7 @@ class RecommendedRouteRepository
     /** @return list<RecommendedRoute> */
     public function published(): array
     {
-        return array_map($this->map(...), $this->database->rows(
+        return $this->mapAll($this->database->rows(
             "SELECT * FROM routes WHERE deleted_at IS NULL AND status='published' AND published_at<=UTC_TIMESTAMP() ORDER BY sort_order,id",
         ));
     }
@@ -119,26 +119,45 @@ class RecommendedRouteRepository
         );
     }
 
-    /** @param array<string,mixed> $values */
-    private function map(array $values): RecommendedRoute
+    /**
+     * 多條路線的站點一次查完再分組，不再每條路線各查一次（列表最多 100 條）。
+     *
+     * @param list<array<string,mixed>> $rows
+     * @return list<RecommendedRoute>
+     */
+    private function mapAll(array $rows): array
+    {
+        $ids = array_map(static fn(array $row): string => (new Row($row))->string('id'), $rows);
+        $stops = array_fill_keys($ids, []);
+        if ($ids !== []) {
+            [$placeholders, $parameters] = Database::inList('route', $ids);
+            foreach ($this->database->rows(
+                "SELECT ra.*,a.name,(a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP()) AS available FROM route_attractions ra JOIN attractions a ON a.id=ra.attraction_id WHERE ra.route_id IN (" . $placeholders . ') ORDER BY ra.route_id,ra.sort_order',
+                $parameters,
+            ) as $stopValues) {
+                $s = new Row($stopValues);
+                $time = $s->nullableString('suggested_time');
+                $stops[$s->string('route_id')][] = [
+                    'attractionId' => $s->string('attraction_id'),
+                    'sortOrder' => $s->integer('sort_order'),
+                    'suggestedTime' => $time === null ? null : substr($time, 0, 5),
+                    'note' => $s->string('note'),
+                    'name' => $s->string('name'),
+                    'available' => $s->integer('available') === 1,
+                ];
+            }
+        }
+
+        return array_map(fn(array $row): RecommendedRoute => $this->map($row, $stops[(new Row($row))->string('id')]), $rows);
+    }
+
+    /**
+     * @param array<string,mixed> $values
+     * @param list<array{attractionId:string,sortOrder:int,suggestedTime:?string,note:string,name:string,available:bool}> $stops
+     */
+    private function map(array $values, array $stops): RecommendedRoute
     {
         $r = new Row($values);
-        $stops = [];
-        foreach ($this->database->rows(
-            "SELECT ra.*,a.name,(a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=UTC_TIMESTAMP()) AS available FROM route_attractions ra JOIN attractions a ON a.id=ra.attraction_id WHERE ra.route_id=:id ORDER BY ra.sort_order",
-            ['id' => $r->string('id')],
-        ) as $stopValues) {
-            $s = new Row($stopValues);
-            $time = $s->nullableString('suggested_time');
-            $stops[] = [
-                'attractionId' => $s->string('attraction_id'),
-                'sortOrder' => $s->integer('sort_order'),
-                'suggestedTime' => $time === null ? null : substr($time, 0, 5),
-                'note' => $s->string('note'),
-                'name' => $s->string('name'),
-                'available' => $s->integer('available') === 1,
-            ];
-        }
         return new RecommendedRoute(
             $r->string('id'),
             $r->string('slug'),

@@ -20,15 +20,35 @@ class Authorization
         private readonly PermissionPolicy $policy,
     ) {}
 
+    /**
+     * 同一請求中已讀取的管理員與有效權限。一次儲存會在路由、服務與交易內各檢查一次權限，
+     * 不必每次都重查；需要鎖定（交易內的寫入前檢查）時一律重新讀取並更新這份紀錄。
+     *
+     * @var array<string, array{0:Account,1:list<array{module:string,action:string,allowed:bool}>}>
+     */
+    private array $known = [];
+
     public function require(Account $actor, string $module, string $action, bool $lock = false): Account
     {
-        $fresh = $this->accounts->find(IdentityKind::Admin, $actor->id, $lock);
-        if ($fresh === null) {
-            throw ApplicationError::forbidden();
-        }
-        $this->policy->require($fresh, $this->permissions->effective($fresh), $module, $action);
+        [$fresh, $effective] = $this->load($actor->id, $lock);
+        $this->policy->require($fresh, $effective, $module, $action);
 
         return $fresh;
+    }
+
+    /** @return array{0:Account,1:list<array{module:string,action:string,allowed:bool}>} */
+    private function load(string $id, bool $lock): array
+    {
+        if (!$lock && isset($this->known[$id])) {
+            return $this->known[$id];
+        }
+        $fresh = $this->accounts->find(IdentityKind::Admin, $id, $lock);
+        if ($fresh === null) {
+            unset($this->known[$id]);
+            throw ApplicationError::forbidden();
+        }
+
+        return $this->known[$id] = [$fresh, $this->permissions->effective($fresh)];
     }
 
     /** @return list<array{module:string,action:string,allowed:bool}> */
