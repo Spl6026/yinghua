@@ -5,7 +5,6 @@ import { placeCard, attractionCardData as cardData } from '../components/content
 import { mountMemberActions } from '../core/member-actions.js';
 import { fallbackContentImages } from '../core/content-view.js';
 
-export { cardData };
 if (typeof document !== 'undefined' && document.body.dataset.managedAttractions) {
   fallbackContentImages();
   const grid = document.querySelector('#place-grid');

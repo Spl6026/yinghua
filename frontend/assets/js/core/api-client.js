@@ -1,6 +1,6 @@
 // Cookie、CSRF、錯誤與逾時處理都集中在這裡；狀態不存在 localStorage。
 import { recordSessionResponse, sessionSnapshot, sessionEpoch } from './session-events.js';
-export class ApiError extends Error {
+class ApiError extends Error {
   constructor(status, payload, retryAfter) {
     super(payload.message || '操作失敗，請稍後再試。');
     this.status = status;
@@ -77,7 +77,7 @@ export async function csrf(kind = 'member', refresh = false) {
   return csrfLoads.get(kind);
 }
 
-export function clearCsrf(kind = 'member') {
+function clearCsrf(kind = 'member') {
   tokens.delete(kind);
 }
 export async function authConfiguration(kind = 'member') {
