@@ -80,3 +80,25 @@ PHPat 五條規則：Controller 不依賴 Repository／PDO；Repository 不依�
 實際結果見 [階段二驗收](../PHASE-2-ACCEPTANCE.md)。本次整理沒有修改 frontend/、website/、schema 或後續階段的業務功能。
 
 E-01／E-13：Request.json() 不得丟棄 PHP 將 JSON 數字屬性名轉成的整數鍵；這類頂層鍵直接回 422，普通字串鍵繼續由 DTO 白名單驗證，巢狀 JSON 陣列不受影響。requestId 的契約固定為 32 位十六進位，JSON 與 X-Request-Id 一致。
+
+## 共用的基礎工具（2026-11-03 整併）
+
+同一件事只在一個地方實作，新程式請直接使用：
+
+| 需要做的事 | 使用 | 說明 |
+| --- | --- | --- |
+| 回傳 API 錯誤 | `Exceptions\ErrorCode` enum + `ApplicationError` | 錯誤代碼與 HTTP 狀態集中在 enum，拼錯會在 PHPStan 被抓到 |
+| 新增／修改資料列 | `Database::insert()`、`updateVersioned()` | 欄位名稱來自 DTO 白名單；修改時版本號自動加一 |
+| 保留舊網址 | `Database::reserveAlias()` | 已屬於其他內容的網址丟出 `ContentConflict` |
+| 下架軟刪除 | `Database::softDelete()` | 一併更新 `updated_at` 與版本號 |
+| 「包含」搜尋、IN 清單 | `Database::contains()`、`inList()` | SQL 端寫 `LIKE :參數 ESCAPE '!'` |
+| 判斷唯一鍵重複 | `Database::isDuplicateKey()` | MariaDB 錯誤 1062 |
+| UTC 時間寫入 DATETIME | `Support\UtcDateTime::sql()` | |
+| UUID 格式、JSON 編碼 | `Support\Uuid::isValid()`、`Support\Json::encode()` | |
+| 未預期例外寫紀錄 | `Support\ErrorLog::exception()` | 只記類別、代碼、位置，不記訊息與參數 |
+| 分頁參數、只帶版本號的請求、寫入回應 | `Request::page()`／`pageSize()`／`versionOnly()`、`Response::written()` | |
+| 從公開快照找單筆 | `DTO\PublicCollection::find()` | |
+| 常用設定 | `Config::csrfSeconds()`、`sessionSeconds()`、`idleSeconds()`、`mediaPath()`、`frontendSourcePath()` | |
+
+消息與優惠的後台管理共用 `AdminContentManagement`／`AdminContentController`，在 `Composition` 依模組設定；兩者的資料存取與編輯分別實作 `Contracts\AdminContentRecords` 與 `Contracts\ContentEditor`。消息、優惠與店家的編輯服務由 `Composition::contentEditors()` 建立，後台 API 與 CLI 匯入共用。
+
