@@ -1,15 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import { resolveSeo } from '../assets/js/core/seo-resolver.js';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const strip = text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, '');
-const source = await Promise.all(
-  ['components/seo-fields.js', 'pages/seo-settings.js'].map(async path =>
-    strip(await readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8'))
-  )
-);
 class Node {
   constructor(tag = 'div') {
     this.tag = tag;
@@ -154,8 +147,7 @@ async function fixture(edit = true, preview = false) {
       },
     },
   };
-  vm.createContext(sandbox);
-  vm.runInContext(source.join('\n'), sandbox);
+  Object.assign(sandbox, await loadWithSandbox('pages/seo-settings.js', sandbox));
   await sandbox.initializeSeoSettings({ preview: { active: preview } });
   return {
     state,

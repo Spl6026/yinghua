@@ -1,17 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import * as taipeiTime from '../assets/js/core/taipei-time.js';
 import { apiModules } from './support/api-modules.mjs';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const code = (
-  await Promise.all(
-    ['core/ui.js', 'core/content-view.js', 'core/film-view.js', 'core/paged-list.js', 'pages/films.js'].map(
-      path => readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
-    )
-  )
-).map(text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));
 const settle = async () => {
   for (let i = 0; i < 6; i++) await new Promise(resolve => setImmediate(resolve));
 };
@@ -46,7 +38,7 @@ class Node {
     this.focused = true;
   }
 }
-function fixture(total = 21) {
+async function fixture(total = 21) {
   const list = new Node(),
     snapshot = new Node(),
     label = new Node();
@@ -78,14 +70,13 @@ function fixture(total = 21) {
     sandbox,
     apiModules((...args) => sandbox.api(...args))
   );
-  vm.createContext(sandbox);
-  code.forEach(s => vm.runInContext(s, sandbox));
+  Object.assign(sandbox, await loadWithSandbox('pages/films.js', sandbox));
   const notice = list.afterNodes[0],
     pager = list.afterNodes[1];
   return { state, list, label, notice, pager, previous: pager.children[0], next: pager.children[1] };
 }
 test('真實頁面模組換頁、回上一頁，並以 API 回傳期間更新跨年週標示', async () => {
-  const f = fixture();
+  const f = await fixture();
   assert.equal(f.previous.disabled, true);
   assert.equal(f.next.disabled, false);
   const pending = f.next.emit('click');
@@ -103,7 +94,7 @@ test('真實頁面模組換頁、回上一頁，並以 API 回傳期間更新跨
   assert.equal(f.previous.disabled, true);
 });
 test('換頁失敗保留 SSR 片單、恢復按鈕且聚焦錯誤，不回填原型電影', async () => {
-  const f = fixture();
+  const f = await fixture();
   f.state.error = true;
   await f.next.emit('click');
   await settle();
@@ -113,7 +104,7 @@ test('換頁失敗保留 SSR 片單、恢復按鈕且聚焦錯誤，不回填原
   assert.equal(f.next.disabled, false);
 });
 
-test('單頁與空清單不顯示分頁按鈕，多頁仍可換頁', () => {
-  for (const total of [0, 1, 20]) assert.equal(fixture(total).pager.hidden, true);
-  assert.equal(fixture(21).pager.hidden, false);
+test('單頁與空清單不顯示分頁按鈕，多頁仍可換頁', async () => {
+  for (const total of [0, 1, 20]) assert.equal((await fixture(total)).pager.hidden, true);
+  assert.equal((await fixture(21)).pager.hidden, false);
 });

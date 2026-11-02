@@ -1,11 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const source = (await readFile(new URL('../assets/js/core/ui.js', import.meta.url), 'utf8'))
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace(/\bexport /g, '');
 class Node {
   constructor(attrs = {}) {
     this.attrs = attrs;
@@ -38,7 +34,7 @@ class Node {
   }
 }
 
-test('刷新會員導覽後手機選單只切換一次，Escape與回頂端仍正常', () => {
+test('刷新會員導覽後手機選單只切換一次，Escape與回頂端仍正常', async () => {
   const button = new Node({ 'aria-label': '開啟導覽選單', 'aria-expanded': 'false' });
   const menu = new Node();
   const back = new Node();
@@ -57,8 +53,7 @@ test('刷新會員導覽後手機選單只切換一次，Escape與回頂端仍�
     },
     matchMedia: () => ({ matches: true, addEventListener() {} }),
   };
-  vm.createContext(sandbox);
-  vm.runInContext(source, sandbox);
+  Object.assign(sandbox, await loadWithSandbox('core/ui.js', sandbox));
   sandbox.initializeMenus();
   sandbox.initializeMenus();
   button.emit('click');
@@ -75,7 +70,7 @@ for (const [toggle, target] of [
   ['.menu-toggle', '.primary-nav'],
   ['.admin-mobile-menu', '.admin-sidebar'],
 ]) {
-  test(`手機選單關閉時不接收焦點，Escape返回按鈕且桌面恢復可操作：${toggle}`, () => {
+  test(`手機選單關閉時不接收焦點，Escape返回按鈕且桌面恢復可操作：${toggle}`, async () => {
     const button = new Node({ 'aria-label': '開啟導覽選單', 'aria-expanded': 'false' });
     const menu = new Node();
     const link = new Node();
@@ -99,8 +94,7 @@ for (const [toggle, target] of [
       document.activeElement = button;
     };
     const sandbox = { document, matchMedia: () => mobile };
-    vm.createContext(sandbox);
-    vm.runInContext(source, sandbox);
+    Object.assign(sandbox, await loadWithSandbox('core/ui.js', sandbox));
     sandbox.initializeMenus();
     assert.equal(menu.inert, true);
     button.emit('click');

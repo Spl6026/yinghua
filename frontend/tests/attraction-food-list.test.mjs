@@ -1,19 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import { apiModules } from './support/api-modules.mjs';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const source = (
-  await Promise.all(
-    ['core/paged-list.js', 'pages/attractions.js'].map(path =>
-      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
-    )
-  )
-)
-  .join('\n')
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace(/\bexport /g, '');
 const template = await readFile(new URL('../pages/food.html', import.meta.url), 'utf8');
 const settle = () => new Promise(resolve => setImmediate(resolve));
 
@@ -81,8 +71,7 @@ test('美食原型沒有分類數字仍載入完成，切換在地店家可使�
     sandbox,
     apiModules((...args) => sandbox.api(...args))
   );
-  vm.createContext(sandbox);
-  await vm.runInContext(`(async()=>{${source}\n})()`, sandbox);
+  await loadWithSandbox('pages/attractions.js', sandbox);
   assert.equal(requests[0].get('category'), '美食');
   assert.equal(mounted, 1);
   assert.equal(messages.at(-1).text, '找到 0 筆景點。');

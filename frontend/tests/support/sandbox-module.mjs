@@ -21,6 +21,9 @@ const browserGlobals = [
   'IntersectionObserver',
   'requestAnimationFrame',
   'fetch',
+  'addEventListener',
+  'removeEventListener',
+  'scrollTo',
 ];
 let instance = 0;
 const active = [];

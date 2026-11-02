@@ -1,13 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import vm from 'node:vm';
-import { readFile } from 'node:fs/promises';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const sources = await Promise.all(
-  ['core/ui.js', 'components/google-place-link.js', 'components/place-reference.js'].map(path =>
-    readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
-  )
-);
 class Node {
   constructor(tag = 'div') {
     this.tag = tag;
@@ -56,7 +50,7 @@ class Node {
     this.parent.children = this.parent.children.filter(node => node !== this);
   }
 }
-function fixture() {
+async function fixture() {
   const group = new Node(),
     reference = new Node(),
     parent = new Node(),
@@ -91,9 +85,11 @@ function fixture() {
     },
     confirmAction: async () => (state.wait ? state.wait() : state.confirm),
   };
-  vm.createContext(sandbox);
-  sources.forEach(source =>
-    vm.runInContext(source.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''), sandbox)
+  Object.assign(
+    sandbox,
+    await loadWithSandbox('core/ui.js', sandbox),
+    await loadWithSandbox('components/google-place-link.js', sandbox),
+    await loadWithSandbox('components/place-reference.js', sandbox)
   );
   const link = sandbox.googlePlaceLink(form, group, () => state.detached++);
   link.setDisabled(false);
@@ -112,7 +108,7 @@ function fixture() {
   };
 }
 test('改地址後必須確認；取消保留待確認狀態，確認後命令為 true', async () => {
-  const f = fixture();
+  const f = await fixture();
   assert.equal(f.link.canSave(), true);
   f.form.elements.address.value = '新地址';
   f.form.elements.address.emit('input');
@@ -126,8 +122,8 @@ test('改地址後必須確認；取消保留待確認狀態，確認後命令�
   assert.equal(f.link.confirmed(), true);
   assert.equal(f.state.events, 1);
 });
-test('修改再還原以及座標相同表示法，不會誤判為另個地點', () => {
-  const f = fixture();
+test('修改再還原以及座標相同表示法，不會誤判為另個地點', async () => {
+  const f = await fixture();
   f.form.elements.latitude.value = '24.8000000';
   f.form.elements.latitude.emit('input');
   assert.equal(f.link.canSave(), true);
@@ -138,8 +134,8 @@ test('修改再還原以及座標相同表示法，不會誤判為另個地點',
   f.form.elements.name.emit('input');
   assert.equal(f.link.canSave(), true);
 });
-test('唯讀不能解除，解除後不送舊 ID 並清除參考區', () => {
-  const f = fixture();
+test('唯讀不能解除，解除後不送舊 ID 並清除參考區', async () => {
+  const f = await fixture();
   f.link.setDisabled(true);
   f.detach.emit('click');
   assert.equal(f.form.elements.googlePlaceId.value, 'ChIJ_original');
@@ -153,7 +149,7 @@ test('唯讀不能解除，解除後不送舊 ID 並清除參考區', () => {
   assert.equal(f.form.elements.name.focused, true);
 });
 test('確認對話框等待時資料改動，不能把未看過的變更算成已確認', async () => {
-  const f = fixture();
+  const f = await fixture();
   f.form.elements.address.value = '地址一';
   f.form.elements.address.emit('input');
   let resolve;
@@ -169,8 +165,8 @@ test('確認對話框等待時資料改動，不能把未看過的變更算成�
   assert.equal(f.link.canSave(), false);
   assert.equal(f.link.confirmed(), false);
 });
-test('簡介以文字原文呈現，清除後不留內容，也不寫入網站介紹', () => {
-  const f = fixture();
+test('簡介以文字原文呈現，清除後不留內容，也不寫入網站介紹', async () => {
+  const f = await fixture();
   const text = ' 原文 <script>測試</script>\n保留換行 ';
   f.sandbox.renderPlaceReference(f.reference, {
     name: '地點',
@@ -185,8 +181,8 @@ test('簡介以文字原文呈現，清除後不留內容，也不寫入網站�
   assert.equal(f.reference.hidden, true);
   assert.equal(f.reference.children.length, 0);
 });
-test('關聯驗證錯誤優先聚焦可見群組，避免落在隱藏 Place ID', () => {
-  const f = fixture();
+test('關聯驗證錯誤優先聚焦可見群組，避免落在隱藏 Place ID', async () => {
+  const f = await fixture();
   const ok = f.sandbox.formErrors(f.form, { fieldErrors: { googlePlaceId: '請重新確認' } });
   assert.equal(ok, true);
   assert.equal(f.group.focused, true);
@@ -194,8 +190,8 @@ test('關聯驗證錯誤優先聚焦可見群組，避免落在隱藏 Place ID',
   assert.equal(f.form.elements.googlePlaceId.focused, undefined);
 });
 
-test('人工景點隱藏關聯區；選用候選才出現，識別碼預設收合', () => {
-  const f = fixture();
+test('人工景點隱藏關聯區；選用候選才出現，識別碼預設收合', async () => {
+  const f = await fixture();
   assert.equal(f.group.hidden, false);
   assert.equal(Boolean(f.details.open), false);
   f.form.elements.googlePlaceId.value = '';
