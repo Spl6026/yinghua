@@ -2,13 +2,19 @@ import { fromTaipeiInput, toTaipeiInput } from '../core/taipei-time.js';
 import { attractionSamplePicker } from '../components/attraction-samples.js';
 import { attractionsApi } from '../api/attractions-api.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
-import { element, status, submitForm, unsavedChanges, formErrors, flash } from '../core/ui.js';
+import { element, status, submitForm, formErrors, flash } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { openingHoursEditor } from '../components/opening-hours-editor.js';
 import { applyPlaceCandidate } from '../core/place-candidate.js';
 import { googlePlaceLink } from '../components/google-place-link.js';
 import { renderPlaceReference } from '../components/place-reference.js';
-import { adminFormErrors, confirmDiscard, redirectBackLinks, uploadFormImage } from '../core/admin-form.js';
+import {
+  adminFormErrors,
+  confirmDiscard,
+  createFormState,
+  redirectBackLinks,
+  uploadFormImage,
+} from '../core/admin-form.js';
 
 const fields = [
   'slug',
@@ -46,12 +52,14 @@ export async function initializeAttractionForm(identity, page) {
     '/admin/place-add.html'
   );
   let id = creating ? null : new URLSearchParams(location.search).get('id');
-  let version,
-    loaded = creating,
-    busy = false,
-    dirty = false,
-    generation = 0,
-    completed = false;
+  let version;
+  const state = createFormState({
+    writable: () =>
+      !identity.preview?.active && hasPermission(identity, 'attractions', id ? 'edit' : 'create'),
+    loaded: creating,
+    render: () => controls(),
+  });
+  const { available, writable: writeAllowed } = state;
   const preview = document.querySelector('#place-photo-preview');
   const mediaMessage = document.querySelector('#media-status');
   const mapMessage = document.querySelector('#map-status');
@@ -65,16 +73,13 @@ export async function initializeAttractionForm(identity, page) {
   const reference = document.querySelector('#google-place-reference');
   const linkContainer = document.querySelector('#google-place-link');
   const placeLink = googlePlaceLink(form, linkContainer, () => renderPlaceReference(reference, null));
-  const writeAllowed = () =>
-    !identity.preview?.active && hasPermission(identity, 'attractions', id ? 'edit' : 'create');
-  const available = () => writeAllowed() && loaded && !busy && !completed;
   const samples = attractionSamplePicker(
     creating ? document.querySelector('#place-samples') : null,
     form,
     openingEditor,
     available,
     () => {
-      dirty = true;
+      state.markDirty({ refresh: false });
       placeLink.load();
       renderPlaceReference(reference, null);
       document.querySelector('#map-candidates').replaceChildren();
@@ -85,9 +90,9 @@ export async function initializeAttractionForm(identity, page) {
       node.disabled = !available();
     });
     form.querySelector('[type="submit"]').disabled = !available();
-    document.querySelector('#reload-place').disabled = busy;
+    document.querySelector('#reload-place').disabled = state.busy;
     document.querySelector('#retry-place-publication').disabled =
-      busy || !writeAllowed() || !hasPermission(identity, 'attractions', 'edit');
+      state.busy || !writeAllowed() || !hasPermission(identity, 'attractions', 'edit');
     openingEditor.setDisabled(!available());
     samples.setDisabled(!available());
     placeLink.setDisabled(!available());
@@ -99,55 +104,39 @@ export async function initializeAttractionForm(identity, page) {
   preview.addEventListener('error', () => {
     if (!preview.src.endsWith('/assets/image-placeholder.svg')) preview.src = '/assets/image-placeholder.svg';
   });
-  form.addEventListener('input', () => {
-    dirty = true;
-  });
-  unsavedChanges(() => dirty);
+  form.addEventListener('input', () => state.markDirty({ refresh: false }));
   async function load() {
     if (!id) {
-      loaded = false;
-      controls();
+      state.unavailable();
       status(message, '找不到要編輯的景點，請返回清單重新開啟。', true);
       return;
     }
-    const request = ++generation;
-    busy = true;
-    loaded = false;
-    controls();
-    try {
-      const { attraction } = await attractionsApi.get(id);
-      if (request !== generation) return;
-      for (const name of fields) form.elements[name].value = attraction[name] ?? '';
-      openingEditor.load(attraction.openingHours, attraction.hours);
-      for (const name of ['latitude', 'longitude']) form.elements[name].value = attraction[name] ?? '';
-      placeLink.load();
-      renderPlaceReference(reference, null);
-      for (const name of ['featured', 'isMuseum']) form.elements[name].checked = attraction[name];
-      form.elements.publishAt.value = toTaipeiInput(attraction.publishAt);
-      form.elements.imageAlt.value = attraction.imageAlt;
-      form.elements.imageSource.value = attraction.imageSource;
-      form.elements.imageLicense.value = attraction.imageLicense;
-      // 確認放棄修改後，待上傳的檔案也要和伺服器資料一起重置。
-      form.elements.image.value = '';
-      photo(attraction.image);
-      version = attraction.version;
-      loaded = true;
-      dirty = false;
-      formErrors(form, { fieldErrors: {} });
-      status(message, '資料已載入。');
-    } catch (error) {
-      if (request === generation) handleAdminError(error, message);
-    } finally {
-      if (request === generation) {
-        busy = false;
-        controls();
-      }
-    }
+    await state.load(() => attractionsApi.get(id), {
+      apply: ({ attraction }) => {
+        for (const name of fields) form.elements[name].value = attraction[name] ?? '';
+        openingEditor.load(attraction.openingHours, attraction.hours);
+        for (const name of ['latitude', 'longitude']) form.elements[name].value = attraction[name] ?? '';
+        placeLink.load();
+        renderPlaceReference(reference, null);
+        for (const name of ['featured', 'isMuseum']) form.elements[name].checked = attraction[name];
+        form.elements.publishAt.value = toTaipeiInput(attraction.publishAt);
+        form.elements.imageAlt.value = attraction.imageAlt;
+        form.elements.imageSource.value = attraction.imageSource;
+        form.elements.imageLicense.value = attraction.imageLicense;
+        // 確認放棄修改後，待上傳的檔案也要和伺服器資料一起重置。
+        form.elements.image.value = '';
+        photo(attraction.image);
+        version = attraction.version;
+        formErrors(form, { fieldErrors: {} });
+        status(message, '資料已載入。');
+      },
+      onError: error => handleAdminError(error, message),
+    });
   }
   document.querySelector('#reload-place').hidden = creating;
   document.querySelector('#reload-place').addEventListener('click', async event => {
-    if (busy || completed) return;
-    if (await confirmDiscard(dirty, event.currentTarget, '重新載入景點')) await load();
+    if (state.busy || state.completed) return;
+    if (await confirmDiscard(state.dirty, event.currentTarget, '重新載入景點')) await load();
   });
   document.querySelector('#upload-place-image').addEventListener('click', async () => {
     if (!available()) return;
@@ -157,10 +146,7 @@ export async function initializeAttractionForm(identity, page) {
       module: 'attractions',
       creating: !id,
       message: mediaMessage,
-      setBusy: value => {
-        busy = value;
-        controls();
-      },
+      setBusy: state.setBusy,
       upload: attractionsApi.upload,
       label: '圖片',
       savedAs: '景點',
@@ -171,7 +157,7 @@ export async function initializeAttractionForm(identity, page) {
         form.elements.imageSource.value = media.source;
         form.elements.imageLicense.value = media.license;
         photo(media.url);
-        dirty = true;
+        state.markDirty({ refresh: false });
       },
     });
   });
@@ -186,8 +172,7 @@ export async function initializeAttractionForm(identity, page) {
       return;
     }
     let failure;
-    busy = true;
-    controls();
+    state.setBusy(true);
     status(mapMessage, '解析地圖資料中…');
     const candidates = document.querySelector('#map-candidates');
     candidates.replaceChildren();
@@ -216,7 +201,7 @@ export async function initializeAttractionForm(identity, page) {
           const notes = applyPlaceCandidate(form, item, openingEditor);
           placeLink.acceptCandidate();
           renderPlaceReference(reference, null);
-          dirty = true;
+          state.markDirty({ refresh: false });
           status(mapMessage, ['候選資料已帶入，請核實後儲存。', ...notes].join(' '));
           candidates.replaceChildren();
           form.elements[form.elements.district.value ? 'name' : 'district'].focus();
@@ -228,24 +213,20 @@ export async function initializeAttractionForm(identity, page) {
       failure = error;
       handleAdminError(error, mapMessage);
     } finally {
-      busy = false;
-      controls();
+      state.setBusy(false);
       // 先把控制項恢復為可操作再聚焦；API 回傳的原因以純文字關聯到解析欄位。
       if (failure) mapErrors(failure);
     }
   });
   document.querySelector('#retry-place-publication').addEventListener('click', async () => {
-    if (busy || !writeAllowed()) return;
-    busy = true;
-    controls();
-    try {
-      status(message, (await attractionsApi.retry()).message);
-    } catch (error) {
-      handleAdminError(error, message);
-    } finally {
-      busy = false;
-      controls();
-    }
+    if (state.busy || !writeAllowed()) return;
+    await state.run(async () => {
+      try {
+        status(message, (await attractionsApi.retry()).message);
+      } catch (error) {
+        handleAdminError(error, message);
+      }
+    });
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
@@ -271,15 +252,13 @@ export async function initializeAttractionForm(identity, page) {
     void submitForm(
       form,
       async () => {
-        busy = true;
-        controls();
-        try {
+        await state.run(async () => {
           const result = await attractionsApi.save(id, body);
           id = result.attraction.id;
           version = result.attraction.version;
-          dirty = false;
+          state.markSaved();
           if (result.publication.status === 'succeeded') {
-            completed = true;
+            state.complete();
             if (hasPermission(identity, 'attractions', 'view')) {
               flash('景點已儲存，公開頁面已同步。');
               location.assign('/admin/places.html');
@@ -308,10 +287,7 @@ export async function initializeAttractionForm(identity, page) {
             );
             document.querySelector('#retry-place-publication').hidden = false;
           }
-        } finally {
-          busy = false;
-          controls();
-        }
+        });
       },
       { canSubmit: available, statusNode: message, onError: adminFormErrors(message) }
     );

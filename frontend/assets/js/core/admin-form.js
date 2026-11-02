@@ -1,7 +1,7 @@
 // 後台新增／編輯表單共用的小規則，各表單頁面不再各寫一份、各自略有差異。
 import { adminDestination, handleAdminError, hasPermission } from './session.js';
 import { confirmAction } from '../components/dialog.js';
-import { formErrors, status } from './ui.js';
+import { formErrors, status, unsavedChanges } from './ui.js';
 
 /**
  * 沒有列表檢視權限的人（例如只能新增）不能回到列表：「取消」與頁首返回連結改指向他能用的頁面；
@@ -34,6 +34,101 @@ export const adminFormErrors = message => error => handleAdminError(error, messa
 export function latestRequest() {
   let current = 0;
   return { next: () => ++current, isCurrent: request => request === current };
+}
+
+/**
+ * 後台新增／編輯表單的共同狀態：是否已載入、處理中、已完成，以及有沒有未儲存的修改。
+ * 狀態每次改變都會呼叫 render（各頁面的 controls()），頁面只寫自己要停用哪些按鈕，
+ * 不必在每個流程裡成對設定 busy 再記得呼叫 controls()；離開頁面前的未儲存提醒也在這裡註冊。
+ *
+ * @param {object} options
+ * @param {() => boolean} options.writable 目前身分能否寫入（預覽模式或沒有權限時為 false）
+ * @param {boolean} options.loaded 新增表單一開始就可編輯；編輯表單要等資料載入
+ * @param {() => void} options.render 依目前狀態更新畫面
+ */
+export function createFormState({ writable, loaded = false, render }) {
+  const requests = latestRequest();
+  let busy = false,
+    dirty = false,
+    completed = false;
+  const state = {
+    get loaded() {
+      return loaded;
+    },
+    get busy() {
+      return busy;
+    },
+    get dirty() {
+      return dirty;
+    },
+    get completed() {
+      return completed;
+    },
+    writable,
+    /** 可以編輯與送出：有權限、資料已載入、沒有其他動作進行中、也還沒儲存完成。 */
+    available: () => writable() && loaded && !busy && !completed,
+    setBusy(value) {
+      busy = value;
+      render();
+    },
+    /** 記下有未儲存的修改；refresh 為 false 時只記標記，不重畫（輸入時重畫會打斷正在編輯的元件）。 */
+    markDirty({ refresh = true } = {}) {
+      dirty = true;
+      if (refresh) render();
+    },
+    /** 執行期間鎖住表單，結束（含失敗）後一定解除。 */
+    async run(task) {
+      state.setBusy(true);
+      try {
+        return await task();
+      } finally {
+        state.setBusy(false);
+      }
+    },
+    /**
+     * 載入要編輯的資料；連續重新載入時只採用最後一次的結果。
+     * apply 寫回表單後才視為已載入，並清除未儲存標記。
+     */
+    async load(fetch, { apply, onError }) {
+      const request = requests.next();
+      loaded = false;
+      state.setBusy(true);
+      try {
+        const data = await fetch();
+        if (!requests.isCurrent(request)) return;
+        await apply(data);
+        loaded = true;
+        dirty = false;
+        completed = false;
+      } catch (error) {
+        if (requests.isCurrent(request)) onError(error);
+      } finally {
+        if (requests.isCurrent(request)) state.setBusy(false);
+      }
+    },
+    /** 找不到要編輯的資料時停在不可編輯的狀態。 */
+    unavailable() {
+      loaded = false;
+      render();
+    },
+    /** 資料已寫入（公開頁可能尚未同步），離開頁面不必再提醒。 */
+    markSaved() {
+      dirty = false;
+    },
+    /** 儲存且發布完成：表單停在完成狀態直到使用者離開或重新開始。 */
+    complete() {
+      dirty = false;
+      completed = true;
+    },
+    /** 放棄修改並回到可編輯狀態（例如還原成已儲存的內容）。 */
+    reset() {
+      dirty = false;
+      completed = false;
+      render();
+    },
+  };
+  unsavedChanges(() => dirty);
+  return state;
 }
 
 /**
