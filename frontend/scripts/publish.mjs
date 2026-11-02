@@ -21,11 +21,13 @@ import { homeNewsRows } from '../assets/js/core/home-view.js';
 import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
+import { addModulePreloads } from './module-preload.mjs';
 import { renderPublicContentIndex } from './public-content-index.mjs';
 import { resolveSeo } from '../assets/js/core/seo-resolver.js';
 import { crawlerEntry, buildSitemaps, robotsText } from './crawler-index.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const modulePreloadCache = new Map();
 const output = resolve(process.argv[2] || '/var/www/publication');
 let input = '';
 for await (const chunk of process.stdin) {
@@ -194,6 +196,8 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     '</body>',
     '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
   );
+  // 讓瀏覽器一開始就平行下載整棵模組依賴，而不是逐層等待 import。
+  html = addModulePreloads(html, join(source, 'assets'), modulePreloadCache);
   await writeFile(target, annotateEnglishPassages(html));
   const entry = crawlerEntry(context, meta);
   if (entry) indexEntries.push(entry);

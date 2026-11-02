@@ -7,9 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { renderSeoHead } from './seo-head.mjs';
 import { renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
+import { addModulePreloads } from './module-preload.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
+const modulePreloadCache = new Map();
 const seoCatalog = JSON.parse(await readFile(join(root, 'resources/seo-pages.json'), 'utf8'));
 if (dirname(output) !== root || output === root) throw new Error('Invalid build output');
 await mkdir(output, { recursive: true });
@@ -119,6 +121,8 @@ for (const source of await pages(join(root, 'pages'))) {
     '</body>',
     '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
   );
+  // 讓瀏覽器一開始就平行下載整棵模組依賴，而不是逐層等待 import。
+  html = addModulePreloads(html, join(root, 'assets'), modulePreloadCache);
   await writeFile(target, annotateEnglishPassages(html));
   // 內部使用的 503 回應頁資產，不列入固定公開頁、sitemap 或正常發布資料。
   if (route === 'index.html')
