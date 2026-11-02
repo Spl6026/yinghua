@@ -95,8 +95,9 @@ function withPublishedStylesheets(html) {
 async function page(path, html, title, description, item, canonicalPath = path, managed = true) {
   if (snapshot.detailNeighbors?.[path])
     html = html.replace('</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
-  // 條款版本與後台填寫的條款內容要在展開共用模板前套用，頁面裡的 {{TERMS_VERSION}} 才不會被當成未知模板。
-  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02', snapshot.general?.values);
+  // 分兩步套用條款：版本號要在展開共用模板前填入，否則 {{TERMS_VERSION}} 會被當成未知模板；
+  // 後台填寫的條款內文則要在展開模板之後才放進頁面，內文裡若寫了 {{SITE_HEADER}} 之類的字樣才會保持原文。
+  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02');
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
   const context = {
     path: canonicalPath,
@@ -157,6 +158,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
       : template;
   });
   html = renderSeoHead(html, context, meta);
+  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02', snapshot.general?.values);
   html = html.replace(
     /(<span class="brand-copy"><strong>)[\s\S]*?(<\/strong>)/g,
     (_, a, b) => a + escapeHtml(meta.siteName) + b
