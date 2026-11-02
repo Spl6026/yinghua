@@ -1,4 +1,3 @@
-import { renderFontHead } from './font-head.mjs';
 import { escapeHtml, jsonForHtml } from '../assets/js/core/content-view.js';
 // 由 PHP CLI／API 提供已驗證的資料，HTML 只在前端產生。
 // 每個 generation 都包含完整的公開資料與頁面，全部寫完後才以原子操作切換 current。
@@ -19,13 +18,13 @@ import { routeCards } from '../assets/js/core/route-view.js';
 import { contentNeighbors } from '../assets/js/core/content-neighbors.js';
 import { homeNewsRows } from '../assets/js/core/home-view.js';
 import { renderSeoHead } from './seo-head.mjs';
-import { renderPolicyVersion } from './policy-pages.mjs';
+import { DEFAULT_POLICY_VERSION, renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
-import { addModulePreloads } from './module-preload.mjs';
+import { finalizePage, loadTemplates, markActiveNavigation } from './page-pipeline.mjs';
 import { renderPublicContentIndex } from './public-content-index.mjs';
 import { resolveSeo } from '../assets/js/core/seo-resolver.js';
 import { crawlerEntry, buildSitemaps, robotsText } from './crawler-index.mjs';
-import { assetVersion, versionHtmlAssets } from './asset-version.mjs';
+import { assetVersion } from './asset-version.mjs';
 import { mustReplace } from './html-edit.mjs';
 
 const source = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -63,14 +62,7 @@ const image = (item, className) =>
 // 選填文字不補預設內容；與瀏覽器端卡片一致，省略空段落與多餘的分隔符號。
 const card = item =>
   `<article class="place-card reveal in-view">${image(item, 'place-image').replace('</div>', () => `<span class="place-type">${escapeHtml(item.typeLabel || item.category)}</span><button type="button" class="favorite-button" aria-label="收藏${escapeHtml(item.name)}" aria-pressed="false" data-favorite="${escapeHtml(item.id)}">♡</button></div>`)}<div class="place-body"><span class="place-area">${[item.district, item.recommendationLabel || '在地推薦'].filter(Boolean).map(escapeHtml).join('　/　')}</span><h3>${escapeHtml(item.name)}</h3>${item.summary ? `<p>${escapeHtml(item.summary)}</p>` : ''}<div class="place-details"><span>◷ ${escapeHtml(item.hours || '依店家公告')}</span><span class="place-actions"><a href="${escapeHtml(url(item))}">看介紹 ↗</a><button type="button" data-add-stop="${escapeHtml(item.id)}">＋ 行程</button></span></div></div></article>`;
-const templates = Object.fromEntries(
-  await Promise.all(
-    ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [
-      name.replaceAll('-', '_').toUpperCase(),
-      await readFile(join(source, 'templates', name + '.html'), 'utf8'),
-    ])
-  )
-);
+const templates = await loadTemplates(source);
 const filmEnabled = Array.isArray(snapshot.films);
 const newsEnabled = Array.isArray(snapshot.news);
 const offersEnabled = Array.isArray(snapshot.offers);
@@ -100,7 +92,7 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     html = mustReplace(html, '</main>', () => contentNeighbors(snapshot.detailNeighbors[path]) + '</main>');
   // 分兩步套用條款：版本號要在展開共用模板前填入，否則 {{TERMS_VERSION}} 會被當成未知模板；
   // 後台填寫的條款內文則要在展開模板之後才放進頁面，內文裡若寫了 {{SITE_HEADER}} 之類的字樣才會保持原文。
-  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02');
+  html = renderPolicyVersion(html, snapshot.policyVersion || DEFAULT_POLICY_VERSION);
   html = html.replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/g, '');
   const context = {
     path: canonicalPath,
@@ -132,47 +124,15 @@ async function page(path, html, title, description, item, canonicalPath = path, 
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
     const template = templates[name];
     if (template === undefined) throw new Error('Unknown template');
-    if (name === 'SITE_HEADER' && canonicalPath === '/routes.html')
-      return mustReplace(
-        template,
-        'href="/planner.html"',
-        'class="active" aria-current="page" href="/planner.html"'
-      );
-    if (
-      name === 'SITE_HEADER' &&
-      (canonicalPath.startsWith('/offers.html') || canonicalPath.startsWith('/offers/'))
-    )
-      return mustReplace(
-        template,
-        'href="/offers.html"',
-        'class="active" aria-current="page" href="/offers.html"'
-      );
-    if (
-      name === 'SITE_HEADER' &&
-      (/^\/(?:events|activities|city-news)\.html/.test(canonicalPath) || canonicalPath.startsWith('/news/'))
-    )
-      return mustReplace(
-        template,
-        'href="/events.html"',
-        'class="active" aria-current="page" href="/events.html"'
-      );
-    if (name === 'SITE_HEADER' && (path === '/cinema.html' || path.startsWith('/films/')))
-      return mustReplace(
-        template,
-        'href="/cinema.html"',
-        'class="active" aria-current="page" href="/cinema.html"'
-      );
-    return name === 'SITE_HEADER' &&
-      (path === '/explore.html' || path === '/museum.html' || path.startsWith('/places/'))
-      ? mustReplace(
-          template,
-          'href="/explore.html"',
-          'class="active" aria-current="page" href="/explore.html"'
-        )
-      : template;
+    // 消息與優惠的分頁檔放在內部路徑，選中項目依對外網址判斷。
+    return name === 'SITE_HEADER' ? markActiveNavigation(template, canonicalPath) : template;
   });
   html = renderSeoHead(html, context, meta);
-  html = renderPolicyVersion(html, snapshot.policyVersion || '2026-11-02', snapshot.general?.values);
+  html = renderPolicyVersion(
+    html,
+    snapshot.policyVersion || DEFAULT_POLICY_VERSION,
+    snapshot.general?.values
+  );
   html = mustReplace(
     html,
     /(<span class="brand-copy"><strong>)[\s\S]*?(<\/strong>)/g,
@@ -207,15 +167,11 @@ async function page(path, html, title, description, item, canonicalPath = path, 
     );
   const target = join(root, path.slice(1));
   await mkdir(dirname(target), { recursive: true });
-  html = renderFontHead(html);
-  html = mustReplace(
-    html,
-    '</body>',
-    '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
-  );
-  // 讓瀏覽器一開始就平行下載整棵模組依賴，而不是逐層等待 import。
-  html = addModulePreloads(html, join(source, 'assets'), modulePreloadCache);
-  html = versionHtmlAssets(html, version);
+  html = finalizePage(html, {
+    assetsRoot: join(source, 'assets'),
+    version,
+    preloadCache: modulePreloadCache,
+  });
   await writeFile(target, annotateEnglishPassages(html));
   const entry = crawlerEntry(context, meta);
   if (entry) indexEntries.push(entry);
