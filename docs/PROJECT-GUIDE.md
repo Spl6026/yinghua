@@ -1,5 +1,13 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 分階段開發遺留整理（使用者指定）：
+- 前端：移除原型示範資料層（`data/prototype.js`、`pages/public-details.js` 及未使用的卡片產生器）；`public.js` 只保留導覽、淡入、視差與收藏／加入行程。刪除無人引用的 `member-itinerary.js`、`current-trip-state.js`、`google-summary.js`、`attraction-content-preview.js` 及其測試與樣式。
+- 頁面：刪除從未對外提供的 4 個舊 `*-detail.html` 與 14 個範例詳情頁（舊網址仍由 Nginx／後端轉址）；電影、消息、優惠詳情的發布模板移到 `frontend/templates/{film,news,offer}-detail.html`。固定頁 69→48。
+- 建置：表單 method、帳號欄位 spellcheck／autocomplete、密碼長度屬性與共用樣式表改寫在頁面原始檔，不再由 build 修補；發布頁樣式表改為一份明確清單；移除每頁內嵌的整份景點 JSON；JSON 跳脫與 escapeHtml 各只保留一份實作。
+- 後端：移除 `mustChangePassword`（API；DB 欄位保留）、`legacyImage`、`Route::$allowPasswordChange`、`Challenge::$mode`；發布與認證的相依改為必填；`UtcDateTime`、`Config::termsVersion()`、`Database::open()` 取代重複程式；Repository 改名為 `SeoSettingsRepository`／`SeoOverrideRepository`／`SeoTargetRepository`，路由檔改名為 `favorite-routes.php`、`recommended-routes.php`。發布版本雜湊改為掃描整個 scripts／pages／templates／resources／assets/js/core。
+- 樣式：移除未使用的 Noto TC Extended 字型（約 13 MB）與約 30 條原型死規則；功能專屬修正移回各自樣式表；`.admin-toolbar` 統一一份定義；修正收藏頁分頁列沒有樣式。
+- 284 JS、124 PHP、PHPStan 通過；API 仍為 115 個操作；全站截圖除刻意統一的後台工具列外一致。
+
 2026-11-03 程式可讀性與效能整理（使用者指定）：
 - 註解：前後端、測試、Docker／Nginx 與維運腳本的註解改為一般繁體中文說明原因，不再夾帶 `[S：…]`／`E-xx`／`U-xx` 等代碼；411 則原始帶代碼註解保留在 [CODE-COMMENT-TRACEABILITY.md](CODE-COMMENT-TRACEABILITY.md)，AGENTS.md 與架構文件的註解規則同步更新。migration SQL 因有 checksum 保護未改。
 - 格式：前端 JS／CSS／測試以 Prettier 3.9.10（dev only，`frontend/.prettierrc.json`，`npm run format`／`format:check`）格式化；PHP 維持 PER-CS，長參數與陣列改為一行一項。每個檔案都以「去除註解後的語法樹／token 相同」驗證未改動程式行為。
