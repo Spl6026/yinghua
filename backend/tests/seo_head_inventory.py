@@ -19,14 +19,14 @@ def main():
         filtered='?type='+kind if route=='/events.html' and kind else ''
         paths.add(route+filtered)
         for page in range(2,total+1):paths.add(route+filtered+('&' if filtered else '?')+'page='+str(page))
-    legacy={'/'+name+'-detail.html' for name in ['place','film','news','offer']}
+    id_detail_pages={'/'+name+'-detail.html' for name in ['place','film','news','offer']}
     public={item['path'] for item in catalog if not item['protected'] and not item['template']};titles={};descriptions={}
     for path in sorted(paths):
         request=urllib.request.Request('http://127.0.0.1:8081'+path,headers={'Host':'localhost:8081'})
         try:response=http.open(request,timeout=15)
         except urllib.error.HTTPError as error:response=error
         code=response.status;text=response.read().decode('utf8')
-        if path in legacy:
+        if path in id_detail_pages:
             assert code==404,(path,code);results.append({'path':path,'status':code});continue
         assert code==200,(path,code);head=Head(text)
         assert len(head.titles)==len(head.links)==1 and head.titles[0],path

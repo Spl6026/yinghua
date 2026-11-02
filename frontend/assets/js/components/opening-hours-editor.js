@@ -125,8 +125,8 @@ export function openingHoursEditor(container) {
     container.append(group);
   }
   container.append(noteLabel, note);
-  function load(value, legacy = '') {
-    const model = value || emptyOpeningHours(legacy);
+  function load(value, hoursText = '') {
+    const model = value || emptyOpeningHours(hoursText);
     note.value = model.note;
     for (const [day, row] of rows) {
       const entry = model.days.find(item => item.day === day);

@@ -85,8 +85,8 @@ def main():
             assert root.call('PUT',demo_path,restore)[0] == 200
         # 只比較受控 seed，測試環境可能另有其他已發布測試資料。
         public = guest.call('GET','/api/v1/attractions?pageSize=100')[1]['items']
-        demos = [row for row in public if row.get('legacyId') is not None]
-        check('original demo order retained', [row['legacyId'] for row in demos] == [1,2,3,4,5,6])
+        demos = [row for row in public if row.get('prototypeId') is not None]
+        check('original demo order retained', [row['prototypeId'] for row in demos] == [1,2,3,4,5,6])
         check('original text labels retained', [row['recommendationLabel'] for row in demos] == ['城市記憶','巷弄探索','在地好店','散步提案','風城咖啡','本月優惠'])
         check('demo labels reach static HTML', all(label.encode() in raw(guest,'/explore.html')[1] for label in ['城市記憶','在地好店']))
     finally:

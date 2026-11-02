@@ -124,8 +124,8 @@ def main():
     # urllib 會跟著永久 301 轉址，最終位置必須指向新的 slug。
     check('old slug resolves to renamed content',raw(guest,'/places/'+prefix+'.html')[0]==200)
     check('unknown slug true 404',raw(guest,'/places/'+prefix+'-missing.html')[0]==404)
-    check('legacy numeric URL resolves',raw(guest,'/place-detail.html?id=2')[0]==200)
-    check('bad legacy ID is 404',raw(guest,'/place-detail.html?id=999999')[0]==404)
+    check('id-based detail page resolves',raw(guest,'/place-detail.html?id=2')[0]==200)
+    check('unknown prototype id is 404',raw(guest,'/place-detail.html?id=999999')[0]==404)
     page=root.call('GET','/api/v1/admin/attractions?q='+urllib.parse.quote('已改名景點 '+prefix))[1]
     check('admin query hits persisted record',page['total']==1 and page['items'][0]['id']==identifier)
     check('public category filter',all(row['category']=='美食' for row in guest.call('GET','/api/v1/attractions?category='+urllib.parse.quote('美食'))[1]['items']))

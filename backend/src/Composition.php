@@ -100,7 +100,7 @@ use Yinghua\Services\ContentPublication;
 use Yinghua\Services\CurrentItinerary;
 use Yinghua\Services\FilmManagement;
 use Yinghua\Services\GeneralSiteSettings;
-use Yinghua\Services\LegacyUrlResolver;
+use Yinghua\Services\DetailUrlResolver;
 use Yinghua\Services\MapResolver;
 use Yinghua\Services\MediaAccess;
 use Yinghua\Services\MediaManagement;
@@ -237,7 +237,7 @@ readonly class Composition
             new GooglePlaceLinkPolicy(),
         ));
         $publicAttractionService = new PublicAttractions($publication);
-        $legacyUrls = new LegacyUrlResolver($publication);
+        $detailUrls = new DetailUrlResolver($publication);
         $mediaController = new MediaController(
             new MediaManagement(
                 $mediaRecords,
@@ -411,13 +411,13 @@ readonly class Composition
             permissions: $permissionController,
             attractions: $attractionController,
             attractionContent: $content,
-            publicAttractions: new PublicAttractionController($publicAttractionService, $publication, $legacyUrls),
+            publicAttractions: new PublicAttractionController($publicAttractionService, $publication, $detailUrls),
             media: $mediaController,
             maps: $mapController,
-            films: new PublicFilmController(new PublicFilms($publication), $clock, $legacyUrls),
+            films: new PublicFilmController(new PublicFilms($publication), $clock, $detailUrls),
             filmAdmin: $filmAdmin,
-            news: new PublicNewsController(new PublicNews($publication), $legacyUrls),
-            offers: new PublicOfferController(new PublicOffers($publication), $legacyUrls),
+            news: new PublicNewsController(new PublicNews($publication), $detailUrls),
+            offers: new PublicOfferController(new PublicOffers($publication), $detailUrls),
             home: new PublicHomeController(new PublicHome($publication)),
             newsAdmin: $newsAdmin,
             offerAdmin: $offerAdmin,

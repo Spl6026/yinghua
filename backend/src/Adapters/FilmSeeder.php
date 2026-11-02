@@ -43,7 +43,7 @@ class FilmSeeder
                     || !is_string($item['posterUrl'] ?? null) || parse_url($item['posterUrl'], PHP_URL_HOST) !== 'images.unsplash.com') {
                     throw new RuntimeException('Unexpected controlled film.');
                 }
-                if ($this->database->row('SELECT id FROM films WHERE legacy_id=:legacy', ['legacy' => $index]) !== null) {
+                if ($this->database->row('SELECT id FROM films WHERE prototype_id=:prototypeId', ['prototypeId' => $index]) !== null) {
                     continue;
                 }
                 $input = FilmInput::fromArray([
@@ -59,7 +59,7 @@ class FilmSeeder
                 ], true);
                 $id = Secrets::uuid();
                 $this->films->save($id, $input, true, $actorId);
-                $this->database->execute('UPDATE films SET legacy_id=:legacy WHERE id=:id', ['legacy' => $index,'id' => $id]);
+                $this->database->execute('UPDATE films SET prototype_id=:prototypeId WHERE id=:id', ['prototypeId' => $index,'id' => $id]);
                 $this->events->content($actorId, 'film-seed', 'film', $id, null, 1, 'published', $client);
             }
         });

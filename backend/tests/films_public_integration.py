@@ -25,7 +25,7 @@ def main():
     stamp = start.strftime('%Y-%m-%d %H:%M:%S')
     next_stamp = (start+datetime.timedelta(minutes=30)).strftime('%Y-%m-%d %H:%M:%S')
     try:
-        fixture(f"INSERT INTO films(id,slug,title,synopsis,status,legacy_id) VALUES('{film_id}','{slug}','公開電影 {suffix}','純文字 <script> unsafe $1','published',991234);")
+        fixture(f"INSERT INTO films(id,slug,title,synopsis,status,prototype_id) VALUES('{film_id}','{slug}','公開電影 {suffix}','純文字 <script> unsafe $1','published',991234);")
         for when in [stamp,next_stamp]:
             fixture(f"INSERT INTO film_screenings(id,film_id,starts_at) VALUES('{uuid.uuid4()}','{film_id}','{when}')")
         fixture(f"INSERT INTO film_aliases(path,film_id) VALUES('/films/old-{suffix}.html','{film_id}')")

@@ -41,7 +41,7 @@ final class ContentMapping
         $alt = $row->string('cover_alt');
         $image = is_string($storage) ? '/media/' . $storage : $row->string('cover_url');
         return ['id' => $row->string('id'),'slug' => $row->string('slug'),
-            'legacyId' => ($values['legacy_id'] ?? null) === null ? null : $row->integer('legacy_id'),
+            'prototypeId' => ($values['prototype_id'] ?? null) === null ? null : $row->integer('prototype_id'),
             'title' => $row->string('title'),'publishAt' => UtcDateTime::iso($row->string('publish_at')),
             'image' => $image,'imageAlt' => $alt !== '' ? $alt : (is_string($values['media_alt'] ?? null) ? $values['media_alt'] : ''),
             'url' => '/' . $topic . '/' . $row->string('slug') . '.html',

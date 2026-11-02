@@ -6,18 +6,18 @@ namespace Yinghua\Services;
 
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
-use Yinghua\Models\LegacyUrlType;
+use Yinghua\Models\DetailUrlType;
 
 /**
- * 景點、電影、消息與優惠共用的舊網址轉向。
- * 只讀成功發布的快照，確保轉到的網址在同一個版本裡一定存在；各類型的差異由 LegacyUrlType 提供。
+ * 景點、電影、消息與優惠共用的詳情頁網址轉向：把先前的網址代稱或以編號開啟的詳情頁（*-detail.html?id=）轉到目前的正式詳情頁。
+ * 只讀成功發布的快照，確保轉到的網址在同一個版本裡一定存在；各類型的差異由 DetailUrlType 提供。
  */
-readonly class LegacyUrlResolver
+readonly class DetailUrlResolver
 {
     public function __construct(private ContentPublication $publication) {}
 
     /** 回傳目前的公開網址；找不到或目標不合法時一律回 NOT_FOUND，不透露原因。 */
-    public function resolve(LegacyUrlType $type, string $original): string
+    public function resolve(DetailUrlType $type, string $original): string
     {
         return self::fromSnapshot($this->publication->read(), $type, $original);
     }
@@ -27,7 +27,7 @@ readonly class LegacyUrlResolver
      *
      * @param array<string,mixed> $snapshot
      */
-    public static function fromSnapshot(array $snapshot, LegacyUrlType $type, string $original): string
+    public static function fromSnapshot(array $snapshot, DetailUrlType $type, string $original): string
     {
         $path = parse_url($original, PHP_URL_PATH);
         $other = is_string($path) ? $type->movedTo($path) : null;
@@ -38,15 +38,15 @@ readonly class LegacyUrlResolver
             }
         }
         $target = is_string($path) ? self::alias($snapshot, $type, $path) : null;
-        if ($path === $type->legacyPage()) {
+        if ($path === $type->idDetailPage()) {
             $queryString = parse_url($original, PHP_URL_QUERY);
             parse_str(is_string($queryString) ? $queryString : '', $query);
             $id = $query['id'] ?? null;
             if (is_string($id)) {
-                $legacy = $type->legacyId($id);
+                $wanted = $type->prototypeId($id);
                 foreach (PublicCollection::items($snapshot, $type->collectionKey()) as $item) {
-                    $legacyId = $item['legacyId'] ?? null;
-                    if (($item['id'] ?? null) === $id || (is_int($legacyId) && (string) $legacyId === $legacy)) {
+                    $prototypeId = $item['prototypeId'] ?? null;
+                    if (($item['id'] ?? null) === $id || (is_int($prototypeId) && (string) $prototypeId === $wanted)) {
                         $target = $item['url'] ?? null;
                         break;
                     }
@@ -62,7 +62,7 @@ readonly class LegacyUrlResolver
     }
 
     /** @param array<string,mixed> $snapshot */
-    private static function alias(array $snapshot, LegacyUrlType $type, string $path): mixed
+    private static function alias(array $snapshot, DetailUrlType $type, string $path): mixed
     {
         $aliases = $snapshot[$type->aliasKey()] ?? [];
 

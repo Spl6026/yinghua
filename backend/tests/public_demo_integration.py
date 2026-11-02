@@ -26,7 +26,7 @@ def main():
             after=db(f'SELECT {column},version FROM {table} WHERE id=:id',{'id':record_id})[0]
             check('operator edit retained '+table,after[column]=='本機驗收修改，demo 不得覆寫' and after['version']==row['version']+1)
         for path,target in [('/news-detail.html?id=0','/news/slow-market.html'),('/offer-detail.html?id=101','/offers/or-crafts.html'),('/offer-detail.html?id=0','/offers/or-crafts.html'),('/news/coffee-walk.html','/offers/autumn-coffee.html')]:
-            code,_,headers=get(path);check('legacy route '+path,code==301 and headers.get('Location')==target)
+            code,_,headers=get(path);check('detail redirect '+path,code==301 and headers.get('Location')==target)
         check('offers excluded from city classification','秋日咖啡散步優惠' not in get('/city-news.html')[1])
         print(json.dumps({'checks':len(checks),'restored':True}))
         (ROOT/'artifacts/phase5-demo-results.json').write_text(json.dumps({'checks':len(checks),'cases':checks,'restored':True},ensure_ascii=False,indent=2),encoding='utf8')

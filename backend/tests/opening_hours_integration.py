@@ -52,8 +52,8 @@ def main():
             check('invalid schedule rejected ' + str(number), response[0] == 422 and 'openingHours' in response[1].get('fieldErrors', {}))
         after = root.call('GET', path)[1]['attraction']
         check('invalid writes preserve version and original schedule', after['version'] == item['version'] and after['openingHours'] == week)
-        legacy = dict(value, version=item['version'], hours='不應覆蓋的新摘要');legacy.pop('openingHours')
-        code, result, _ = root.call('PUT', path, legacy);assert code == 200
+        text_only = dict(value, version=item['version'], hours='不應覆蓋的新摘要');text_only.pop('openingHours')
+        code, result, _ = root.call('PUT', path, text_only);assert code == 200
         item = result['attraction']
         check('older client preserves structured schedule and summary', item['openingHours'] == week and item['hours'] == '每週時段不同，詳見介紹')
         check('stale structured write rejected', root.call('PUT', path, dict(value, version=1))[0] == 409)

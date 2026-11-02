@@ -58,7 +58,7 @@ class AttractionRepository
     public function samples(): array
     {
         $rows = $this->database->rows(
-            self::SELECT . " WHERE a.legacy_id BETWEEN 1 AND 6 AND a.status='published' AND a.deleted_at IS NULL AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.legacy_id",
+            self::SELECT . " WHERE a.prototype_id BETWEEN 1 AND 6 AND a.status='published' AND a.deleted_at IS NULL AND a.publish_at<=UTC_TIMESTAMP() ORDER BY a.prototype_id",
         );
 
         return array_map($this->map(...), $rows);
@@ -242,7 +242,7 @@ class AttractionRepository
         $data['publishAt'] = UtcDateTime::iso($r->string('publish_at'));
         $data['updatedAt'] = UtcDateTime::iso($r->string('updated_at'));
         $data['deletedAt'] = $r->nullableString('deleted_at');
-        $data['legacyId'] = ($values['legacy_id'] ?? null) === null ? null : $r->integer('legacy_id');
+        $data['prototypeId'] = ($values['prototype_id'] ?? null) === null ? null : $r->integer('prototype_id');
 
         return new Attraction(
             $r->string('id'),

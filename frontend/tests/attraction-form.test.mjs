@@ -184,9 +184,9 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
     FormData: class extends Map {},
     confirmAction: async () => state.confirm,
     openingHoursEditor: () => ({
-      load(value, legacy) {
+      load(value, hoursText) {
         state.openingHours = value;
-        state.hoursLegacy = legacy;
+        state.hoursText = hoursText;
       },
       read: () => state.openingHours,
       setDisabled: value => {

@@ -15,7 +15,7 @@ try {
     foreach ([[null,null,true],[24.8,120.97,true],[null,120.97,false],[24.8,null,false],[91,120,false],[24,181,false],[-90,-180,true],[90,180,true]] as [$latitude,$longitude,$allowed]) {
         $accepted = true;
         try {
-            $database->execute("UPDATE attractions SET latitude=:latitude,longitude=:longitude WHERE legacy_id=2", ['latitude' => $latitude,'longitude' => $longitude]);
+            $database->execute("UPDATE attractions SET latitude=:latitude,longitude=:longitude WHERE prototype_id=2", ['latitude' => $latitude,'longitude' => $longitude]);
         } catch (PDOException $error) {
             if (($error->errorInfo[1] ?? null) !== 4025) {
                 throw $error;

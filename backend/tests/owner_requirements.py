@@ -75,7 +75,7 @@ def main():
         check('G6 public phone matches saved data', public[0] == 200 and public[1]['attraction']['phone'] == item['phone'])
         html = raw(guest, '/places/' + item['slug'] + '.html')[1].decode('utf8')
         check('G6 server-produced HTML contains safe dial link', 'href="tel:+88631234567;ext=25"' in html and item['phone'] in html)
-        check('E20 unrelated newly published content is not a legacy sample', item_id not in [x['id'] for x in root.call('GET', route)[1]['items']])
+        check('E20 unrelated newly published content is not a prototype sample', item_id not in [x['id'] for x in root.call('GET', route)[1]['items']])
         for invalid in ['not-a-phone', 'javascript:123', '<script>123</script>', ')(03)123(', '1' * 81, 123, None]:
             code, result, _ = root.call('PUT', '/api/v1/admin/attractions/' + item_id, command(item, phone=invalid))
             check('G6 invalid phone rejected: ' + str(len(checks)), code == 422 and 'phone' in result.get('fieldErrors', {}))
@@ -109,7 +109,7 @@ def main():
         if($config->string('APP_ENV')!=='test'||$config->string('DB_DATABASE')!=='yinghua_test')throw new RuntimeException('Isolated DB required');
         $db=Yinghua\Repositories\Database::connect($config);$repo=new Yinghua\Repositories\AttractionRepository($db);
         $db->pdo->beginTransaction();try {
-          $id=$db->row('SELECT id FROM attractions WHERE legacy_id=2')['id'];
+          $id=$db->row('SELECT id FROM attractions WHERE prototype_id=2')['id'];
           foreach(["status='draft'","status='published',publish_at=DATE_ADD(UTC_TIMESTAMP(),INTERVAL 1 DAY)","status='published',publish_at=UTC_TIMESTAMP(),deleted_at=UTC_TIMESTAMP()"] as $change){
             $db->execute('UPDATE attractions SET '.$change.' WHERE id=:id',['id'=>$id]);
             foreach($repo->samples() as $sample)if($sample->id===$id)throw new RuntimeException('Unavailable sample exposed');

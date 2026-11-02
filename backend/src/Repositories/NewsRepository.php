@@ -114,11 +114,11 @@ class NewsRepository
         }
     }
 
-    public function demoIdentity(string $id, int $legacy): void
+    public function demoIdentity(string $id, int $prototypeId): void
     {
         $this->database->execute(
-            'UPDATE news_posts SET legacy_id=:legacy WHERE id=:id AND legacy_id IS NULL',
-            ['legacy' => $legacy,'id' => $id],
+            'UPDATE news_posts SET prototype_id=:prototypeId WHERE id=:id AND prototype_id IS NULL',
+            ['prototypeId' => $prototypeId,'id' => $id],
         );
     }
 
@@ -133,7 +133,7 @@ class NewsRepository
             $row = new Row($values);
             $result[$row->string('path')] = '/news/' . $row->string('slug') . '.html';
         }
-        // 舊網址只是對照表；排序後輸出，避免 SQL 掃描順序不同就產生不同的發布版本。
+        // 先前的網址代稱只是對照表；排序後輸出，避免 SQL 掃描順序不同就產生不同的發布版本。
         ksort($result);
         return $result;
     }

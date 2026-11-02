@@ -16,8 +16,8 @@ export function openingDayText(day) {
     .map(period => `${period.opens}–${period.nextDay ? '次日 ' : ''}${period.closes}`)
     .join('、');
 }
-export function openingHoursLines(value, legacy = '') {
-  if (!value) return [legacy || '依店家公告'];
+export function openingHoursLines(value, hoursText = '') {
+  if (!value) return [hoursText || '依店家公告'];
   return [
     ...openingWeek.map(
       number => `${openingDayNames[number]}：${openingDayText(value.days.find(day => day.day === number))}`

@@ -63,11 +63,11 @@ class MerchantRepository
         return $this->database->row('SELECT id FROM attractions WHERE id=:id AND deleted_at IS NULL', ['id' => $id]) !== null;
     }
 
-    public function forAttractionLegacyId(int $legacyId): ?\Yinghua\DTO\Merchant
+    public function forAttractionPrototypeId(int $prototypeId): ?\Yinghua\DTO\Merchant
     {
         $value = $this->database->row(
-            'SELECT m.id FROM merchants m JOIN attractions a ON a.id=m.attraction_id WHERE a.legacy_id=:legacy',
-            ['legacy' => $legacyId],
+            'SELECT m.id FROM merchants m JOIN attractions a ON a.id=m.attraction_id WHERE a.prototype_id=:prototypeId',
+            ['prototypeId' => $prototypeId],
         );
         return $value === null ? null : $this->find((new Row($value))->string('id'), true);
     }

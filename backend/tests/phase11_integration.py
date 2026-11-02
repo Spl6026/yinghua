@@ -64,7 +64,7 @@ def main():
         check('select uses member monotonic version',original['version']>previous_version)
         call('PUT',base+'/current/items/'+extra,{'version':previous_version},expected=409)
         original=call('PUT',base+'/'+original['id'],body(original,title='P0仍保留',items=[{'attractionId':m['placeId'],'startTime':'09:00','note':'原P0站'}]))['itinerary']
-        legacy=call('GET',base+'/current')['itinerary'];check('full save visible to P0',legacy['id']==original['id'] and legacy['items'][0]['plannedTime'].startswith('09:00'))
+        p0_view=call('GET',base+'/current')['itinerary'];check('full save visible to P0',p0_view['id']==original['id'] and p0_view['items'][0]['plannedTime'].startswith('09:00'))
         # 已下架但仍留在行程裡的站點保留原本的私人快照；不能再新加入下架的站點。
         fixture("UPDATE attractions SET status='archived',name='private draft' WHERE id='"+extra+"'");publish()
         t=call('GET',base+'/'+t['id'])['itinerary'];check('unavailable snapshot safe',t['items'][0]['attraction'] is None and t['items'][0]['snapshotName']=='階段十一第二站')

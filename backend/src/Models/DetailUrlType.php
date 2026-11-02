@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Yinghua\Models;
 
 /**
- * 四種公開內容在舊網址轉向時各自不同的設定。
- * 轉向流程本身只有一份（LegacyUrlResolver），差異集中寫在這裡，新增內容類型時不必再複製整段比對邏輯。
+ * 四種公開內容在詳情頁網址轉向時各自不同的設定。
+ * 轉向流程本身只有一份（DetailUrlResolver），差異集中寫在這裡，新增內容類型時不必再複製整段比對邏輯。
  */
-enum LegacyUrlType: string
+enum DetailUrlType: string
 {
     case Attraction = 'attraction';
     case Film = 'film';
@@ -26,7 +26,7 @@ enum LegacyUrlType: string
         };
     }
 
-    /** 發布快照中「舊路徑 → 目前網址」對照表的鍵。 */
+    /** 發布快照中「先前的網址代稱 → 目前網址」對照表的鍵。 */
     public function aliasKey(): string
     {
         return match ($this) {
@@ -37,8 +37,8 @@ enum LegacyUrlType: string
         };
     }
 
-    /** 原型時期以 ?id= 參數顯示詳情的共用頁面。 */
-    public function legacyPage(): string
+    /** 原型以 ?id= 參數開啟詳情的共用頁面；規格列出這些頁面，所以仍要能轉到正式詳情頁。 */
+    public function idDetailPage(): string
     {
         return match ($this) {
             self::Attraction => '/place-detail.html',
@@ -70,10 +70,10 @@ enum LegacyUrlType: string
     }
 
     /**
-     * 把舊頁面 ?id= 的值換成要和 legacyId 比對的編號。
-     * 原型的優惠頁用 0、1、2 當索引，對應到匯入時保留的 101–103，舊連結才能轉到正確的優惠。
+     * 把以編號開啟的詳情頁 ?id= 值換成要和 prototypeId 比對的原型編號。
+     * 原型的優惠頁用 0、1、2 當索引，對應到匯入時保留的 101–103，原型的連結才能轉到正確的優惠。
      */
-    public function legacyId(string $id): string
+    public function prototypeId(string $id): string
     {
         if ($this === self::Offer) {
             return ['0' => '101','1' => '102','2' => '103'][$id] ?? $id;
@@ -83,7 +83,7 @@ enum LegacyUrlType: string
     }
 
     /**
-     * 少數舊網址放在別的內容類型底下，要先查那一類的對照表。
+     * 少數原型網址放在別的內容類型底下，要先查那一類的對照表。
      * /news/coffee-walk.html 在原型裡其實是優惠頁，所以轉到對應的優惠，而不是硬當成城市消息文章。
      */
     public function movedTo(string $path): ?self

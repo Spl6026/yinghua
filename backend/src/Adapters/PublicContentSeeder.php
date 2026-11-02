@@ -43,18 +43,18 @@ class PublicContentSeeder
                 $results = [];
                 $merchantIds = [];
                 foreach ($merchantRows as $item) {
-                    $key = $item->values['attractionLegacyId'] ?? null;
+                    $key = $item->values['attractionPrototypeId'] ?? null;
                     if (!is_int($key) || !in_array($key, [3,5,6], true)) {
                         throw new \RuntimeException('Unexpected merchant demonstration source.');
                     }
-                    $existing = $this->merchantRepository->forAttractionLegacyId($key) ?? $this->merchantRepository->find($item->id, true);
+                    $existing = $this->merchantRepository->forAttractionPrototypeId($key) ?? $this->merchantRepository->find($item->id, true);
                     if ($existing !== null) {
                         $merchantIds[$key] = $existing->id;
                         $results[] = ['id' => $existing->id,'action' => 'preserved','module' => 'merchants'];
                         continue;
                     }
                     $fields = $item->values;
-                    unset($fields['attractionLegacyId']);
+                    unset($fields['attractionPrototypeId']);
                     $change = $this->merchants->prepare($actor, new ImportItem($item->id, $fields), true);
                     $this->merchants->save($actor, $change, $client);
                     $merchantIds[$key] = $item->id;
@@ -65,15 +65,15 @@ class PublicContentSeeder
                         $results[] = ['id' => $item->id,'action' => 'preserved','module' => 'news'];
                         continue;
                     }
-                    $legacy = $item->values['legacyId'] ?? null;
-                    if (!is_int($legacy) || $legacy < 0 || $legacy > 3) {
+                    $prototypeId = $item->values['prototypeId'] ?? null;
+                    if (!is_int($prototypeId) || $prototypeId < 0 || $prototypeId > 3) {
                         throw new \RuntimeException('Unexpected news demonstration source.');
                     }
                     $fields = $item->values;
-                    unset($fields['legacyId']);
+                    unset($fields['prototypeId']);
                     $change = $this->news->prepare($actor, new ImportItem($item->id, $fields), true);
                     $this->news->save($actor, $change, $client);
-                    $this->newsRepository->demoIdentity($item->id, $legacy);
+                    $this->newsRepository->demoIdentity($item->id, $prototypeId);
                     $results[] = [...$change->summary(),'module' => 'news'];
                 }
                 foreach ($offerRows as $item) {
@@ -81,17 +81,17 @@ class PublicContentSeeder
                         $results[] = ['id' => $item->id,'action' => 'preserved','module' => 'offers'];
                         continue;
                     }
-                    $key = $item->values['attractionLegacyId'] ?? null;
-                    $legacy = $item->values['legacyId'] ?? null;
-                    if (!is_int($key) || !isset($merchantIds[$key]) || !is_int($legacy) || $legacy < 101 || $legacy > 103) {
+                    $key = $item->values['attractionPrototypeId'] ?? null;
+                    $prototypeId = $item->values['prototypeId'] ?? null;
+                    if (!is_int($key) || !isset($merchantIds[$key]) || !is_int($prototypeId) || $prototypeId < 101 || $prototypeId > 103) {
                         throw new \RuntimeException('Unexpected offer demonstration source.');
                     }
                     $fields = [...$item->values,'merchantId' => $merchantIds[$key]];
-                    unset($fields['legacyId'], $fields['attractionLegacyId']);
+                    unset($fields['prototypeId'], $fields['attractionPrototypeId']);
                     $change = $this->offers->prepare($actor, new ImportItem($item->id, $fields), true);
                     $this->offers->save($actor, $change, $client);
-                    $this->offerRepository->demoIdentity($item->id, $legacy);
-                    if ($legacy === 103) {
+                    $this->offerRepository->demoIdentity($item->id, $prototypeId);
+                    if ($prototypeId === 103) {
                         $this->offerRepository->alias('/news/coffee-walk.html', $item->id);
                     }
                     $results[] = [...$change->summary(),'module' => 'offers'];

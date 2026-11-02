@@ -70,7 +70,7 @@ return static function (Router $router, ApiControllers $c): void {
     $router->add(new Route('GET', '/api/v1/admin/media/access', $admin, $c->media->access(...)));
     $router->add(new Route('POST', '/api/v1/admin/places/resolve-map-url', $admin, $c->maps->resolve(...), true));
 
-    // 公開內容；每一類的 resolve-url 都要排在 {slug} 之前，否則舊網址轉向會被當成找不到的 slug。
+    // 公開內容；每一類的 resolve-url 都要排在 {slug} 之前，否則詳情頁網址轉向會被當成找不到的 slug。
     $router->add(new Route('GET', '/api/v1/publication/access', $member, $c->publicAttractions->access(...)));
     $router->add(new Route('GET', '/api/v1/films/resolve-url', $member, $c->films->resolve(...)));
     $router->add(new Route('GET', '/api/v1/films', $member, $c->films->listing(...)));

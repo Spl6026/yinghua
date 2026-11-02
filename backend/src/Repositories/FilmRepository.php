@@ -150,7 +150,7 @@ class FilmRepository
             $data['posterSource'] = $row->nullableString('poster_source') ?? $row->nullableString('media_source') ?? '';
             $data['posterLicense'] = $row->nullableString('poster_license') ?? $row->nullableString('media_license') ?? '';
             $data['version'] = $row->integer('version');
-            $data['legacyId'] = ($values['legacy_id'] ?? null) === null ? null : $row->integer('legacy_id');
+            $data['prototypeId'] = ($values['prototype_id'] ?? null) === null ? null : $row->integer('prototype_id');
             $data['publishAt'] = UtcDateTime::iso($row->string('publish_at'));
             $data['updatedAt'] = UtcDateTime::iso($row->string('updated_at'));
             $data['deletedAt'] = $row->nullableString('deleted_at');
