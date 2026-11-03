@@ -51,3 +51,25 @@ python backend/tests/phase14_cleanup.py
 檢查內容（目前 70 項）：14 個公開頁桌面無主控台錯誤、無重複載入的模組、手機 390px 無橫向捲動；所有後台頁無錯誤；景點、電影、消息編輯表單載入後可編輯、有修改時重新載入要先確認；會員頁無錯誤，以及行程總覽→新增→加入兩個地點→儲存（畫面不捲動、焦點不移到狀態訊息）→行程內容→手機寬度→刪除。結果逐項寫入 `artifacts/browser-smoke/results.json`。
 
 需要 Node、`frontend` 的 devDependencies（含與瀏覽器版本一致的 `playwright` 1.63.0）及 Playwright 的 Chromium。無頭瀏覽器對程式聚焦不一定捲動畫面，所以「不捲動」另以焦點位置直接檢查；已實際把舊行為放回確認此檢查會失敗。
+
+## 完整回歸 `--full`（2026-11-03）
+
+原本 `backend/tests/` 有約 70 支測試腳本不在任何自動執行清單裡，只能手動執行，其中 16 支已悄悄失效。整理後每支腳本都有固定位置：
+
+- **固定套件（19 組）**：日常與合併前執行，約 5 分鐘。
+- **`--browser`**：瀏覽器冒煙測試。
+- **`--full`**：其餘全部，共 32 組。包含以 OpenAPI 驗證回應的契約測試（`phase6_regression` 內含 `openapi_contracts` 的 21 組與公開消息／優惠／首頁五組）、會員三組、各階段整合、容器重建後的資料保存、migration 升級、資料庫約束與查詢計畫等。其中數組會重建 app-test／web-test 或資料庫，耗時較長。
+- 不在清單內的只有：fixture／探針等輔助程式、需要正式環境或會停掉服務的演練（`production_rehearsal`、`rollback_rehearsal`、`recovery_rehearsal`、`stability_observation`、`public_database_outage`、`connection_boundary`），以及只在全部 fixture 清理後才有意義的 `phase13_verify_cleanup`。
+
+本輪修正的失效原因（都是測試過時，網站行為沒有退步）：
+
+| 測試 | 原因 | 處理 |
+| --- | --- | --- |
+| `specification_alignment`（也影響 `openapi_contracts`、`phase6_regression`） | 2026-11-02 起禁止刪除目前登入中的自己 | 改為驗證回 403 且登入不受影響 |
+| `films_public_integration` | 2026-11-02 起 Nginx 清空直接打 API 時的 `X-Original-URI`，避免偽造 | 改從實際舊網址 `/film-detail.html?id=` 驗證轉向，並驗證直接偽造無效 |
+| 三支 schema 升級測試 | 寫死階段七時的 33 張表 | 改由 migration 推算應有表數 |
+| `response_contract` | CSRF 回應新增 `termsLabel` | 補上欄位 |
+| `seo_head_inventory` | 新增的 `404.html` 只作內部錯誤頁；條款內文可能含後台填寫的 `{{` | 視為不可直接開啟的頁面；條款頁不檢查 `{{` |
+| 會員三支、`publication_diagnostics` | 方案 D 與每份行程各自計算版本 | 改為「上一版持續提供、私人草稿不外露」與帶 `itineraryId` |
+
+已刪除 `phase8_validation.py`（舊的小型執行器，內容已全部涵蓋）。OpenAPI 契約檔維持手寫：`content_contract` 檢查每條路由都恰有一個 OpenAPI 操作，`openapi_contracts` 以真實回應驗證格式，已足以防止契約與程式脫節，不另改為自動產生。

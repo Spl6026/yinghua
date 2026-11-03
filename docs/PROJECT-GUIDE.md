@@ -119,6 +119,7 @@ docker compose restart app app-test publisher
 | PHP 靜態分析、格式、單元測試 | `docker compose exec -T app sh -c 'cd /var/www/app && /var/www/tools/vendor/bin/phpstan analyse && /var/www/tools/vendor/bin/phpunit'` |
 | 前端格式與測試 | `docker compose run --rm --no-deps frontend sh -c 'npm run format:check && npm test'` |
 | 整合測試（19 組，真 HTTP／MariaDB） | `python3 scripts/validation/delivery.py integration --dependency-path .cache/validation/python --schema-vocabulary .cache/validation/schemaorg-current-https.jsonld` |
+| 完整回歸（另加 32 組，耗時較長） | 上一行加 `--full` |
 | 加上瀏覽器冒煙測試 | 上一行加 `--browser` |
 
 PR 會由 GitHub Actions（`.github/workflows/checks.yml`）自動執行不需要資料庫的檢查；整合測試仍在本機 Docker 執行。

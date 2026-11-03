@@ -39,8 +39,8 @@ def main():
             result=json.loads(php(name,r"""
             $tables=(int)$db->row('SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_schema=DATABASE()')['n'];
             $migrations=(int)$db->row('SELECT COUNT(*) AS n FROM schema_migrations')['n'];
-            // [E-28] 以階段七完整 migration 集合複驗既有會員資料保留。
-            if($tables!==33||$migrations!==count(glob('/var/www/app/database/migrations/*.sql')))throw new RuntimeException('Schema counts');
+            // 以完整 migration 集合複驗既有資料保留；表數由 migration 推算（另加 schema_migrations 紀錄表），新增 migration 時不必改測試。
+            $files=glob('/var/www/app/database/migrations/*.sql');$expected=1+array_sum(array_map(static fn($f)=>preg_match_all('/CREATE TABLE/i',file_get_contents($f)),$files));if($tables!==$expected||$migrations!==count($files))throw new RuntimeException('Schema counts');
             echo json_encode(['tables'=>$tables,'migrations'=>$migrations,'members'=>(int)$db->row('SELECT COUNT(*) AS n FROM members')['n'],'attractions'=>(int)$db->row('SELECT COUNT(*) AS n FROM attractions')['n']]);
             """))
             assert result['members']==result['attractions']==(1 if mode=='upgrade' else 0)

@@ -8,6 +8,7 @@
 
 - 文件：`PROJECT-GUIDE.md` 改寫為現況導讀；逐輪紀錄移到本檔；階段計畫、驗收、審查與複驗文件移到 `docs/archive/`（69 份），連結已一併更新。`AGENTS.md` 的階段狀態移到本檔，只保留規則。
 - 會員行程版本號改為每份行程各自計算（U-28），見 [會員行程指南](modules/member-itineraries.md)。
+- 測試整理：約 70 支未納入自動執行的測試腳本全部跑過一次，修好 16 支已失效的（皆為測試過時），並以 `delivery.py integration --full` 納入 32 組完整回歸；刪除舊的 `phase8_validation.py`。見 [交付驗證指南](modules/delivery-validation.md#完整回歸---full2026-11-03)。
 
 2026-11-03 品質改進：
 - 修正：只有編輯權限（沒有檢視）的管理員，電影／景點「已儲存但公開頁未同步」時網址也換成編輯頁（`film-form.js`、`attraction-form.js`，補兩個回歸測試）。

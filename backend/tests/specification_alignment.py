@@ -123,9 +123,9 @@ def main():
                 check('authorized ordinary admin can disable self', own.call('PUT', '/api/v1/admin/admins/' + own_id, dict(values, status='disabled'))[0] == 200)
                 check('self-disable revokes existing session', own.call('GET', own.auth + 'me')[0] == 401)
             elif action == 'delete':
-                check('authorized ordinary admin can soft-delete self', own.call('DELETE', '/api/v1/admin/admins/' + own_id, {'version': current['version']})[0] == 204)
-                admins.remove(own_id)
-                check('self-delete revokes existing session', own.call('GET', own.auth + 'me')[0] == 401)
+                # 2026-11-02 起不能刪除目前登入中的自己（避免誤刪後無法登入）；帳號留給測試結束時清理。
+                check('ordinary admin cannot delete self', own.call('DELETE', '/api/v1/admin/admins/' + own_id, {'version': current['version']})[0] == 403)
+                check('refused self-delete keeps session', own.call('GET', own.auth + 'me')[0] == 200)
             else:
                 matrix = own.call('GET', '/api/v1/admin/admins/' + own_id + '/permissions')[1]
                 for permission in matrix['permissions']:

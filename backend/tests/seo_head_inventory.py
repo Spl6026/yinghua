@@ -19,7 +19,8 @@ def main():
         filtered='?type='+kind if route=='/events.html' and kind else ''
         paths.add(route+filtered)
         for page in range(2,total+1):paths.add(route+filtered+('&' if filtered else '?')+'page='+str(page))
-    id_detail_pages={'/'+name+'-detail.html' for name in ['place','film','news','offer']}
+    # 以 ?id= 開啟的詳情頁沒有實體檔案；404.html 只作為 Nginx 的內部錯誤頁，直接請求都應回 404。
+    id_detail_pages={'/'+name+'-detail.html' for name in ['place','film','news','offer']}|{'/404.html'}
     public={item['path'] for item in catalog if not item['protected'] and not item['template']};titles={};descriptions={}
     for path in sorted(paths):
         request=urllib.request.Request('http://127.0.0.1:8081'+path,headers={'Host':'localhost:8081'})
@@ -35,7 +36,8 @@ def main():
         assert all(len(value)==1 for value in head.metas.values()),path
         # 測試站與主站共用 build shell，保護頁使用既有 APP_URL:8080；公開頁取測試 publication:8081。
         assert head.links==head.metas['og:url'] and head.links[0].startswith(('http://localhost:8080/','http://localhost:8081/','https://')),path
-        assert '{{' not in text and 'rel="icon"' in text,path
+        # 條款與隱私權頁的內文由後台填寫並原樣顯示（可能含 {{ 字樣，由政策測試另外驗證），其他頁不得殘留未展開的模板。
+        assert ('{{' not in text or path in ('/terms.html','/privacy.html')) and 'rel="icon"' in text,path
         if path in public:
             assert head.titles[0] not in titles,(path,'duplicate public title',titles.get(head.titles[0]))
             assert head.metas['description'][0] not in descriptions,(path,'duplicate public description',descriptions.get(head.metas['description'][0]))

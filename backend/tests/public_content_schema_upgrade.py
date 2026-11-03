@@ -42,8 +42,9 @@ def main():
             for _ in range(2):php(name,"(new Yinghua\\Adapters\\SchemaMigrator($db))->migrate('/var/www/app/database/migrations');")
             body=r"""
             $check=static function(bool $value):void {if(!$value)throw new RuntimeException('Schema assertion failed.');};
-            // [E-28] 以階段七完整 migration 集合複驗原有電影／店家約束。
-            $tables=$db->rows('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');$check(count($tables)===33);
+            // 以完整 migration 集合複驗原有電影／店家約束；表數由 migration 推算（另加 schema_migrations 紀錄表）。
+            $files=glob('/var/www/app/database/migrations/*.sql');$expected=1+array_sum(array_map(static fn($f)=>preg_match_all('/CREATE TABLE/i',file_get_contents($f)),$files));
+            $tables=$db->rows('SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA=DATABASE()');$check(count($tables)===$expected);
             $migrations=$db->rows('SELECT version FROM schema_migrations WHERE applied_at IS NOT NULL');$check(count($migrations)===count(glob('/var/www/app/database/migrations/*.sql')));
             $columns=$db->rows("SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND TABLE_NAME='film_screenings'");
             $check(!array_intersect(['ends_at','venue','status'],array_column($columns,'COLUMN_NAME')));
