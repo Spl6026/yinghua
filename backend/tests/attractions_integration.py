@@ -79,6 +79,8 @@ def write(root, value, target=None, expect=200):
 
 def main():
     fixture(password,'root');fixture('DELETE FROM auth_rate_limits')
+    # 博物館與原型編號的檢查需要示範景點；匯入不覆寫既有資料，所以每次執行先確保存在，不依賴其他測試先跑過。
+    cli('content:seed-demo')
     root=Client('admin');guest=Client()
     check('root authenticates',root.login('admin')[0]==200)
     check('anonymous admin list rejected',guest.call('GET','/api/v1/admin/attractions')[0]==401)

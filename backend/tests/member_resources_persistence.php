@@ -70,7 +70,13 @@ try {
     $trip = $trips->createCurrent($member, $itineraryId);
     $check($trip->version === 1 && $trip->tripDate === null && $trip->title === '我的旅行計畫');
     $check($trips->findOwned($other, $itineraryId) === null);
-    $reject(static fn() => $trips->createCurrent($member, Secrets::uuid()));
+    // 會員可以有多份行程：新增時把「目前行程」移到新的一份，資料庫仍保證同時只有一份是目前行程。
+    $secondTrip = Secrets::uuid();
+    $trips->createCurrent($member, $secondTrip);
+    $check($trips->current($member)?->id === $secondTrip);
+    $reject(static fn() => $db->execute('UPDATE itineraries SET current_slot=1 WHERE id=:id', ['id' => $itineraryId]));
+    $trips->selectCurrent($member, $itineraryId);
+    $check($trips->current($member)?->id === $itineraryId);
     $trips->append($member, $itineraryId, Secrets::uuid(), $place, '加入當時名稱');
     $check($trips->item($member, $itineraryId, $place)?->snapshotName === '加入當時名稱');
     $check($trips->item($other, $itineraryId, $place) === null && $trips->items($other, $itineraryId, 10) === []);
@@ -79,7 +85,9 @@ try {
     $check(array_map(static fn($item) => $item->sortOrder, $trips->items($member, $itineraryId, 10)) === [1, 2]);
     $trips->remove($other, $itineraryId, $place);
     $check($trips->item($member, $itineraryId, $place) !== null);
-    $check($trips->advance($member, $itineraryId)->version === 2);
+    // 版本號以會員為單位遞增，只要求比修改前大。
+    $before = $trips->findOwned($member, $itineraryId)?->version ?? 0;
+    $check($trips->advance($member, $itineraryId)->version > $before);
     $db->execute("UPDATE attractions SET name='未公開的新名稱',status='archived',deleted_at=UTC_TIMESTAMP() WHERE id=:id", ['id' => $place]);
     $check($trips->item($member, $itineraryId, $place)?->snapshotName === '加入當時名稱');
     $trips->remove($member, $itineraryId, $place);

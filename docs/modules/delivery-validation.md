@@ -22,3 +22,12 @@ python backend/tests/phase14_cleanup.py
 復原工具延用`backend/tests/recovery_rehearsal.py --extended-delivery`；只操作明確自有spl-p0-* project的新資料卷。除原有媒體／收藏／權限外，加入真一般政策、排序路線及第二份行程。搜尋generation預期重建，逐欄比較公開投影而非舊generation；其餘業務表仍逐列hash核對。命令與結果見階段十五驗收及[P0維運手冊](../P0-OPERATIONS.md)。
 
 2026-11-01補充：固定14套件新增content_fallback_validation.py，串接真DB並行／限速與HTTP契約；測試Google替身與真外部驗證分開。補位功能為U-23新增應用API，與本工具本身不新增API的責任分開。詳見[補位指南](attraction-content-fallback.md)。
+
+2026-11-03補充：固定套件由14組增為19組，納入原本只能手動執行、已長期失敗而沒被發現的五支測試：`policy-pages`（條款頁真實連結與版本）、`attractions`（景點與媒體整合）、`member-persistence`（會員收藏／行程的資料庫約束）、`publication-alias-order`（舊網址查詢順序不影響 generation）、`publication-clock`（換日／換週重新發布）。失敗原因與處理：
+
+- `publication_alias_order.php`、`public_content_clock.php`：`ContentPublication` 加入「同一請求內沿用已驗證快照」後，測試仍用同一個實例模擬多個請求，內容改變後讀到快取而失敗（反向排序的比對也因此變成必然成立）。改為每個請求建立新實例，與正式環境一致。
+- `member_resources_persistence.php`：階段十一起會員可有多份行程，仍斷言「第二份行程會被資料庫拒絕」；改為驗證資料庫保證同時只有一份目前行程。版本號改為「只增不減」的判斷。
+- `policy_pages_integration.py`：仍要求條款頁出現「待業主提供」等開發說明；U-25 已改為大眾文案，改為檢查不得出現開發／測試字樣。另外後台自訂條款版本名稱時，頁面顯示該名稱、同意紀錄存內部代碼（policy-雜湊），測試改從公開設定 API 取得應顯示的名稱。此套件須在 `restore-settings` 之後執行，因 `policy-consent` 會暫時改動條款版本。
+- `attractions_integration.py`：假設隔離庫已有示範景點（博物館、原型編號）；改為開始時執行不覆寫的 `content:seed-demo`。
+
+另：在殼層設有 `TERMS_VERSION` 時以 `docker compose run frontend` 建置，會把該值寫進固定頁；執行前請用 `env -u TERMS_VERSION`，與其他 compose 指令相同。

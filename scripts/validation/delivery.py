@@ -51,6 +51,8 @@ def suites(dependency_path, vocabulary):
     py = [sys.executable, '-X', 'utf8']
     def test(name, *args):
         return py + ['backend/tests/' + name + '.py', *args]
+    def php_test(name):
+        return ['docker', 'compose', 'exec', '-T', 'app-test', 'php', 'tests/' + name + '.php']
     return [
         ('php-unit', ['docker', 'compose', 'exec', '-T', 'app-test', 'php', '/var/www/tools/vendor/bin/phpunit', '-c', 'phpunit.xml']),
         ('php-static-architecture', ['docker', 'compose', 'exec', '-T', 'app-test', 'php', '/var/www/tools/vendor/bin/phpstan', 'analyse', '--no-progress']),
@@ -63,6 +65,12 @@ def suites(dependency_path, vocabulary):
         ('operations-settings', test('phase14_integration', '--keep-browser')),
         ('policy-consent', test('phase14_policy_integration')),
         ('restore-settings', test('phase14_cleanup', '--settings-only')),
+        # 以下需要一般設定已還原（policy-consent 會暫時改動條款版本）。
+        ('policy-pages', test('policy_pages_integration')),
+        ('attractions', test('attractions_integration')),
+        ('member-persistence', php_test('member_resources_persistence')),
+        ('publication-alias-order', php_test('publication_alias_order')),
+        ('publication-clock', php_test('public_content_clock')),
         ('seo-index', test('phase12_integration', '--schema-vocabulary', vocabulary)),
         ('http-assets', test('phase14_assets')),
         ('html-integrity', test('frontend_integrity', '--base-url', 'http://localhost:8081')),
