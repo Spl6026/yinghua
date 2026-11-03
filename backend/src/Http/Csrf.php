@@ -9,6 +9,7 @@ use Yinghua\Contracts\Clock;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Support\Secrets;
+use Yinghua\Exceptions\ErrorCode;
 
 /** CSRF 防護：匿名階段用簽章 Cookie，和登入 token 分開，會員與管理員各自綁定。 */
 class Csrf
@@ -34,14 +35,14 @@ class Csrf
     public function rotate(IdentityKind $kind): CsrfContext
     {
         $id = Secrets::token();
-        $value = $id . '.' . ($this->clock->now() + $this->config->integer('CSRF_SECONDS', 3600));
+        $value = $id . '.' . ($this->clock->now() + $this->config->csrfSeconds());
 
         return new CsrfContext($id, $value . '.' . $this->secrets->keyed('anonymous-' . $kind->value, $value), true);
     }
 
     public function token(CsrfContext $context, IdentityKind $kind): string
     {
-        $expires = $this->clock->now() + $this->config->integer('CSRF_SECONDS', 3600);
+        $expires = $this->clock->now() + $this->config->csrfSeconds();
 
         return $expires . '.' . $this->secrets->keyed('csrf-' . $kind->value, $context->id . ':' . $expires);
     }
@@ -59,7 +60,7 @@ class Csrf
             $context->newCookie => 'anonymous-cookie',
             count($parts) !== 2 || !ctype_digit($parts[0]) => 'format',
             (int) $parts[0] <= $now => 'expired',
-            (int) $parts[0] > $now + $this->config->integer('CSRF_SECONDS', 3600) + self::CLOCK_SKEW_SECONDS => 'future',
+            (int) $parts[0] > $now + $this->config->csrfSeconds() + self::CLOCK_SKEW_SECONDS => 'future',
             !hash_equals($this->secrets->keyed('csrf-' . $kind->value, $context->id . ':' . $parts[0]), $parts[1]) => 'signature',
             default => null,
         };
@@ -72,7 +73,7 @@ class Csrf
     {
         // 日誌只記 requestId 與固定的原因代碼，不可寫入 Cookie、token、個資或 request body。
         error_log('request=' . $request->requestId . ' csrf_reason=' . $reason);
-        throw new ApplicationError('CSRF_INVALID', $message);
+        throw new ApplicationError(ErrorCode::CsrfInvalid, $message);
     }
 
     public function cookie(CsrfContext $context, IdentityKind $kind): Cookie
@@ -80,7 +81,7 @@ class Csrf
         return new Cookie(
             $this->anonymousCookie($kind),
             $context->cookieValue,
-            $this->clock->now() + $this->config->integer('CSRF_SECONDS', 3600),
+            $this->clock->now() + $this->config->csrfSeconds(),
             $this->config->secureCookies(),
         );
     }
@@ -90,7 +91,7 @@ class Csrf
         return new Cookie(
             'spl_' . $kind->value . '_session',
             $token,
-            $clear ? 1 : $this->clock->now() + $this->config->integer('AUTH_SESSION_SECONDS', 43200),
+            $clear ? 1 : $this->clock->now() + $this->config->sessionSeconds(),
             $this->config->secureCookies(),
         );
     }

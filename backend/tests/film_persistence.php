@@ -44,7 +44,7 @@ try {
         $screenings->assertAvailable($second, [$a]);
         $check(false);
     } catch (ApplicationError $error) {
-        $check($error->errorCode === 'CONFLICT');
+        $check($error->errorCode === Yinghua\Exceptions\ErrorCode::Conflict);
     }
     $screenings->assertAvailable($second, [ScreeningInput::fromArray(['startsAt' => '2090-10-20T14:00:00+08:00'])]);
     $check(true);
@@ -52,7 +52,7 @@ try {
         $screenings->replace($second, [new ScreeningInput($film?->screenings[0]->id, $a->startsAt, '')]);
         $check(false);
     } catch (ApplicationError $error) {
-        $check($error->errorCode === 'VALIDATION_FAILED');
+        $check($error->errorCode === Yinghua\Exceptions\ErrorCode::ValidationFailed);
     }
     $check(count($films->find($first)?->screenings ?? []) === 2);
     $db->execute("UPDATE films SET status='archived' WHERE id=:id", ['id' => $first]);

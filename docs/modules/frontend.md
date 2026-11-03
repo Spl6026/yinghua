@@ -54,3 +54,20 @@ docker compose run --rm frontend
 本次對照尺寸、原始檔保留與功能觀察記錄在 PHASE-2-ACCEPTANCE.md。圖片仍使用原交付的外部來源；素材品質、正式內容、SEO 與全站最終驗收屬後續階段。
 
 全 57 個原始網址的再次複查與差異分類見 [WEBSITE-COMPARISON-REVIEW.md](../WEBSITE-COMPARISON-REVIEW.md)。本次還恢復 24 頁原有 head 文案、30 頁 aria-current、註冊／footer 文字、首頁真實 href 與詳情箭頭。美食 tab 沒有計數 span 時不能假定節點存在；原「在地店家」的分類值錯誤只修新 frontend，website 仍保留交付原貌。
+
+## 共用模組（2026-11-03 整併）
+
+| 需要做的事 | 使用 | 說明 |
+| --- | --- | --- |
+| 後台內容列表 | `core/admin-table.js` 的 `adminTable()`、`createPagedList()`、`publicationLabel()` | 各列表只描述取資料、欄位與操作；換頁、最新回應優先、刪除後退回有效頁與焦點、唯讀模擬規則統一 |
+| 頁內事件 | `core/page-events.js` | 同一頁不同模組間的通知名稱與 `emitPageEvent()`／`onPageEvent()`：收藏變更、一般設定與 SEO 設定互相通知重新讀取 |
+| SEO 覆寫列 | `components/seo-override-row.js` | SEO 設定頁「各頁覆寫」的一列（欄位、清空關鍵字、清除按鈕、預覽區）；頁面 `pages/seo-settings.js` 只管列表、預覽計算與儲存，`render()` 分為全站預設、覆寫列表、單筆內容搜尋、說明與按鈕四段 |
+| 公開內容類型對照 | `core/content-kinds.js` | 景點、電影、消息、優惠的快照鍵、網址目錄與 SEO 類型（對應後端 `PublicContentType`）；SEO 解析、結構化資料、搜尋卡片、sitemap 與發布腳本都由此判斷網址類型與組詳情頁網址。結構化資料以 `entityBuilders` 依類型產生 Schema.org 實體 |
+| 後台表單共同規則 | `core/admin-form.js` | `createFormState()`（景點、電影、消息／優惠、推薦行程表單共用的狀態：載入中→可編輯⇄處理中→已完成，並負責未儲存提醒與只採用最後一次載入；頁面只寫自己的 `controls()`）、`redirectBackLinks()`（沒有列表權限時的返回連結）、`confirmDiscard()`、`adminFormErrors()`、`latestRequest()`、`uploadFormImage()` |
+| 台北時間 | `core/taipei-time.js` | 格式化器會重複使用；顯示、英文月份星期與 datetime-local 欄位互轉都在這裡 |
+| 後台 API | `api/admin-resource.js` | `adminResource(base)` 提供 list／get／save／delete；`publishRetry()`、`uploadMedia()` |
+| 背景圖載入失敗 | `core/content-view.js` 的 `fallbackContentImages()` | |
+| 欄位錯誤、離頁提醒、狀態訊息 | `core/ui.js` 的 `clearFieldErrors()`、`unsavedChanges()`、`status()` | |
+
+測試：`tests/support/fake-dom.mjs` 提供最小 DOM，`tests/support/load-module.mjs` 以 node:test 的模組替身載入真正的頁面模組（`npm test` 已加 `--experimental-test-module-mocks`）。新測試請用這種方式，不要再複製原始碼到 `node:vm` 執行。`core/routes.js` 原始碼是空清單，建置時以實際頁面清單覆寫。
+

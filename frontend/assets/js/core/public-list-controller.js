@@ -15,8 +15,8 @@ export function initializePublicList({
 }) {
   const initial = document.querySelector(stateSelector),
     list = document.querySelector(listSelector);
-  if (!initial || !list) return;
   const controls = document.querySelector('.public-content-controls');
+  if (!initial || !list || !controls) return;
   const notice = controls.querySelector('.public-content-status');
   const form = filterSelector ? document.querySelector(filterSelector) : null;
   const select = form?.querySelector('select');

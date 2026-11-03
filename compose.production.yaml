@@ -1,4 +1,4 @@
-# [E-29] 獨立正式檔，禁止與 compose.yaml 疊加；不含測試服務或開發來源掛載。
+# 獨立的正式環境設定，禁止與 compose.yaml 疊加；不含測試服務或開發來源掛載。
 name: ${PRODUCTION_PROJECT:?Set a distinct production project}
 
 x-runtime: &runtime
@@ -57,7 +57,9 @@ services:
       MARIADB_USER: ${DB_USERNAME:-spl}
       MARIADB_PASSWORD: ${DB_PASSWORD:?Set password}
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set root password}
-    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    # InnoDB 緩衝區要小於容器記憶體上限，主機規格不同時以 DB_BUFFER_POOL／DB_MEMORY_LIMIT 調整。
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci", "--innodb-buffer-pool-size=${DB_BUFFER_POOL:-512M}"]
+    mem_limit: ${DB_MEMORY_LIMIT:-1g}
     volumes:
       - database:/var/lib/mysql
     healthcheck:
@@ -70,6 +72,8 @@ services:
 
   app:
     <<: *runtime
+    # 16 個 PHP-FPM worker 一般各用 20–40 MB；上限防止單一失控請求拖垮整台主機。
+    mem_limit: ${APP_MEMORY_LIMIT:-1g}
     healthcheck:
       # FPM 存活與核心 readiness 分開，空庫 migration 前仍可運行受控 CLI。
       test: ["CMD", "php", "-r", "exit(is_resource(@fsockopen('127.0.0.1',9000)) ? 0 : 1);"]
@@ -81,6 +85,15 @@ services:
     <<: *runtime
     user: www-data
     command: ["php", "bin/console.php", "content:watch"]
+    mem_limit: ${PUBLISHER_MEMORY_LIMIT:-512m}
+    # 發布程序每 10 秒一輪並更新心跳檔；超過 2 分鐘沒更新代表卡住，容器會標成 unhealthy。
+    # Compose 不會自動重啟 unhealthy 的容器，需由外部監控告警或重啟（見 docs/P0-OPERATIONS.md）。
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(time() - (int) @filemtime(sys_get_temp_dir() . '/yinghua-publisher-heartbeat') < 120 ? 0 : 1);"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     depends_on:
       db:
         condition: service_healthy
@@ -89,6 +102,7 @@ services:
 
   web:
     image: ${RELEASE_WEB_IMAGE:?Use a matching immutable web image}
+    mem_limit: ${WEB_MEMORY_LIMIT:-256m}
     build:
       <<: *release-build
       target: release-web

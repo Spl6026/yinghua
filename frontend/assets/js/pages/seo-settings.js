@@ -3,7 +3,9 @@ import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, formErrors, unsavedChanges } from '../core/ui.js';
 import { confirmAction } from '../components/dialog.js';
 import { seoField, seoPanel, robotsChoices } from '../components/seo-fields.js';
+import { seoOverrideRow } from '../components/seo-override-row.js';
 import { resolveSeo } from '../core/seo-resolver.js';
+import { SETTINGS_SECTION_SAVED, emitPageEvent, onPageEvent } from '../core/page-events.js';
 
 const defaultFields = [
   ['siteName', '網站名稱', 160],
@@ -18,15 +20,6 @@ const defaultFields = [
   ['googleVerification', 'Google Search Console 驗證碼', 255],
   ['bingVerification', 'Bing Webmaster 驗證碼', 255],
 ];
-const overrideFields = [
-  ['title', 'SEO 標題（建議約 30 中文字）', 160],
-  ['description', '搜尋摘要（建議 70–100 中文字）', 500, 'textarea'],
-  ['keywords', '頁面關鍵字', 1000],
-  ['ogImageUrl', '分享圖 HTTPS 網址', 2000, 'url'],
-  ['robots', '搜尋索引設定', 40],
-  ['canonicalPath', '標準網址路徑（Canonical）', 180],
-];
-
 export async function initializeSeoSettings(identity) {
   const form = document.querySelector('#seo-settings-form'),
     message = document.querySelector('#seo-status'),
@@ -54,22 +47,42 @@ export async function initializeSeoSettings(identity) {
   function targetKey(target) {
     return target.type + ':' + (target.path || target.id);
   }
+  const defaultValues = () =>
+    Object.fromEntries(Object.entries(defaultInputs).map(([key, input]) => [key, input.value.trim()]));
+  // 一列覆寫的欄位值：空白視為繼承（null），保護頁的鎖定欄位一律不送出。
+  const rowFields = row =>
+    Object.fromEntries(
+      Object.entries(row.inputs).map(([key, input]) => [
+        key,
+        input.dataset.seoProtected === 'true' ? null : input.value.trim() || null,
+      ])
+    );
   function draft() {
     return {
-      defaults: Object.fromEntries(
-        Object.entries(defaultInputs).map(([key, input]) => [key, input.value.trim()])
-      ),
+      defaults: defaultValues(),
       overrides: rows.map(row => ({
         target: row.target,
-        ...Object.fromEntries(
-          Object.entries(row.inputs).map(([key, input]) => [
-            key,
-            input.dataset.seoProtected === 'true' ? null : input.value.trim() || null,
-          ])
-        ),
+        ...rowFields(row),
         ...(row.clearKeywords.checked ? { keywords: '' } : {}),
       })),
     };
+  }
+  function addOverride(container, target, existing = {}, label = '', page = {}) {
+    if (rows.some(row => targetKey(row.target) === targetKey(target))) return;
+    const row = seoOverrideRow({
+      target,
+      existing,
+      label,
+      page,
+      index: rows.length,
+      onClear: () => {
+        dirty = true;
+        previews();
+        status(message, '已清除此頁的編輯值，儲存後生效。');
+      },
+    });
+    rows.push(row);
+    container.append(row.detail);
   }
   function previews() {
     const seo = draft();
@@ -102,88 +115,19 @@ export async function initializeSeoSettings(identity) {
         ? '部分頁面的標題或摘要相同，請展開檢查是否符合各頁內容；此提示不會阻擋儲存。'
         : '';
   }
-  function addOverride(container, target, existing = {}, label = '', page = {}) {
-    const key = targetKey(target);
-    if (rows.some(row => targetKey(row.target) === key)) return;
-    const index = rows.length;
-    const detail = element('details', { className: 'seo-page-config' });
-    const summary = element('summary', {}, label || target.path || target.id);
-    detail.append(summary);
-    const grid = element('div', { className: 'admin-form-grid seo-page-fields' });
-    detail.append(grid);
-    const inputs = {};
-    for (const [field, title, max, type] of overrideFields) {
-      // 保護頁是固定的靜態 shell，發布時不會套用覆寫值；因此鎖定全部欄位，避免預覽顯示實際上不會生效的標題。
-      const locked =
-        Boolean(page.protected) ||
-        (field === 'canonicalPath' && (target.type !== 'page' || target.path.includes('*')));
-      const fallback =
-        field === 'title'
-          ? page.seoTitle || page.title
-          : field === 'description'
-            ? page.seoDescription || page.description
-            : field === 'canonicalPath'
-              ? target.path
-              : '';
-      const value = page.protected ? (field === 'robots' ? 'noindex,follow' : '') : (existing[field] ?? '');
-      const control = seoField(title, `overrides.${index}.${field}`, value, {
-        type,
-        max,
-        disabled: locked,
-        choices: field === 'robots' ? [['', '繼承設定'], ...robotsChoices] : undefined,
-        placeholder: fallback || '留空繼承',
-        hint: page.protected
-          ? field === 'title'
-            ? '登入、會員、搜尋等保護頁使用固定標題與摘要且不索引，不提供頁面覆寫。'
-            : ''
-          : field === 'title'
-            ? '留空時沿用內容或全站預設；建議字數僅供參考。'
-            : '',
-      });
-      inputs[field] = control.input;
-      grid.append(control.wrapper);
-    }
-    const clearKeywords = element('input', {
-      type: 'checkbox',
-      id: `seo-clear-keywords-${index}`,
-      name: `clear-keywords-${index}`,
-    });
-    clearKeywords.checked = !page.protected && existing.keywords === '';
-    clearKeywords.disabled = Boolean(page.protected);
-    if (page.protected) clearKeywords.dataset.seoProtected = 'true';
-    const clearLabel = element('label', { for: clearKeywords.id }, '清空此頁關鍵字（不繼承）');
-    const clearWrap = element('div', { className: 'admin-field full' });
-    clearWrap.append(clearKeywords, clearLabel);
-    grid.append(clearWrap);
-    const note = element(
-      'p',
-      { className: 'helper-text' },
-      target.type === 'page'
-        ? '逐欄留空可回到全站或模板預設。'
-        : '單筆覆寫優先於內容編輯頁的 SEO；清除後才會沿用內容值。'
-    );
-    grid.append(note);
-    const remove = element('button', { type: 'button', className: 'button button-outline' }, '清除本頁覆寫');
-    remove.addEventListener('click', () => {
-      for (const input of Object.values(inputs)) if (!input.disabled) input.value = '';
-      clearKeywords.checked = false;
-      dirty = true;
-      previews();
-      status(message, '已清除此頁的編輯值，儲存後生效。');
-    });
-    grid.append(remove);
-    const preview = element('pre', { className: 'seo-preview-box', 'aria-label': '有效 SEO 預覽' });
-    grid.append(preview);
-    const prefix = { attraction: 'places', film: 'films', news: 'news', offer: 'offers' }[target.type];
-    const previewPath =
-      target.type === 'page' ? target.path.replace('*', 'example') : `/${prefix}/${page.slug}.html`;
-    rows.push({ target, inputs, clearKeywords, detail, summary, preview, previewPath, page });
-    container.append(detail);
-  }
+  // 頁面由四段組成：全站預設、各頁覆寫列表、單筆內容搜尋與加入、說明與儲存按鈕。
   function render() {
     form.replaceChildren();
     rows = [];
     defaultInputs = {};
+    renderDefaults();
+    const { panel, list } = renderOverrides();
+    renderTargetSearch(panel, list);
+    renderActions();
+    previews();
+    controls();
+  }
+  function renderDefaults() {
     const basic = seoPanel('基本網站資訊', '共用於全站 SEO'),
       social = seoPanel('搜尋引擎與社群分享設定', '儲存後套用到網站各頁');
     for (const [key, label, max, type] of defaultFields) {
@@ -209,8 +153,11 @@ export async function initializeSeoSettings(identity) {
       if (['keywords', 'canonicalOrigin', 'ogImageUrl'].includes(key)) field.wrapper.className += ' full';
       (['siteName', 'description'].includes(key) ? basic : social).grid.append(field.wrapper);
     }
+    // 與一般設定同頁時，網站名稱與摘要由一般設定區編輯，這裡只保留欄位供預覽使用。
     basic.panel.hidden = Boolean(document.querySelector('#general-settings-form'));
     form.append(basic.panel, social.panel);
+  }
+  function renderOverrides() {
     const catalog = seoPanel('各頁 SEO 覆寫', '展開頁面設定；空欄位繼承，保護頁不可改為允許索引。');
     const list = element('div', { className: 'seo-pages-list' });
     catalog.panel.append(list);
@@ -232,6 +179,9 @@ export async function initializeSeoSettings(identity) {
       );
       addOverride(list, item.target, item, target?.title || item.target.id, target);
     }
+    return { panel: catalog, list };
+  }
+  function renderTargetSearch(catalog, list) {
     const search = seoField('搜尋單筆內容', 'seo-target-query', '', { max: 80 });
     search.input.setAttribute('data-seo-read', '');
     const searchButton = element(
@@ -293,6 +243,8 @@ export async function initializeSeoSettings(identity) {
     });
     catalog.grid.append(search.wrapper, searchButton, select, add);
     form.append(catalog.panel);
+  }
+  function renderActions() {
     const notice = element(
       'p',
       { className: 'helper-text' },
@@ -301,8 +253,6 @@ export async function initializeSeoSettings(identity) {
     const actions = element('div', { className: 'admin-form-actions' });
     actions.append(element('button', { type: 'submit', className: 'button button-dark' }, '儲存網站設定 ↗'));
     form.append(notice, actions);
-    previews();
-    controls();
   }
   async function load() {
     if (busy) return;
@@ -331,7 +281,7 @@ export async function initializeSeoSettings(identity) {
     }
   }
   // 一般設定儲存後版本號會前進；SEO 區若沒有未存修改就自動重讀，有修改則提示重新讀取，以免覆蓋共用欄位。
-  document.addEventListener('settings-section-saved', event => {
+  onPageEvent(SETTINGS_SECTION_SAVED, event => {
     if (event.detail?.section === 'seo') return;
     if (!dirty && !busy) void load();
     else if (dirty)
@@ -356,18 +306,8 @@ export async function initializeSeoSettings(identity) {
     controls();
     formErrors(form, { fieldErrors: {} });
     status(message, '儲存並更新網站標籤中…');
-    const defaults = Object.fromEntries(
-      Object.entries(defaultInputs).map(([key, input]) => [key, input.value.trim()])
-    );
-    const activeRows = rows.map(row => ({
-      row,
-      fields: Object.fromEntries(
-        Object.entries(row.inputs).map(([key, input]) => [
-          key,
-          input.dataset.seoProtected === 'true' ? null : input.value.trim() || null,
-        ])
-      ),
-    }));
+    const defaults = defaultValues();
+    const activeRows = rows.map(row => ({ row, fields: rowFields(row) }));
     const selected = activeRows.filter(
       ({ row, fields }) => row.clearKeywords.checked || Object.values(fields).some(value => value !== null)
     );
@@ -387,7 +327,7 @@ export async function initializeSeoSettings(identity) {
         result.publicationReady ? '已儲存，網站標籤已更新。' : '已儲存，網站更新待重試；請稍後重新讀取狀態。'
       );
       message.focus();
-      document.dispatchEvent(new CustomEvent('settings-section-saved', { detail: { section: 'seo' } }));
+      emitPageEvent(SETTINGS_SECTION_SAVED, { section: 'seo' });
     } catch (error) {
       const fields = {};
       for (const [name, value] of Object.entries(error.fieldErrors || {})) {

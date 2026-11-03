@@ -1,14 +1,13 @@
-import { renderFontHead } from './font-head.mjs';
 import { homeErrorView } from './home-error-view.mjs';
 // 固定 HTML 頁面在前端建置時組合，PHP 不輸出任何畫面。
 import { readFile, writeFile, mkdir, readdir, cp, rm } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { renderSeoHead } from './seo-head.mjs';
-import { renderPolicyVersion } from './policy-pages.mjs';
+import { DEFAULT_POLICY_VERSION, renderPolicyVersion } from './policy-pages.mjs';
 import { annotateEnglishPassages } from './language-passages.mjs';
-import { addModulePreloads } from './module-preload.mjs';
-import { assetVersion, versionHtmlAssets, versionModuleFiles } from './asset-version.mjs';
+import { finalizePage, loadTemplates, markActiveNavigation } from './page-pipeline.mjs';
+import { assetVersion, versionModuleFiles } from './asset-version.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const output = join(root, 'dist');
@@ -19,14 +18,7 @@ if (dirname(output) !== root || output === root) throw new Error('Invalid build 
 await mkdir(output, { recursive: true });
 // 每次從空的輸出目錄開始，已刪除的頁面或資產不會殘留成舊版本；只清內容不刪目錄本身，Nginx 的掛載點才不會失效。
 for (const entry of await readdir(output)) await rm(join(output, entry), { recursive: true, force: true });
-const templates = Object.fromEntries(
-  await Promise.all(
-    ['site-header', 'site-footer', 'admin-sidebar', 'admin-topbar', 'dialog'].map(async name => [
-      name.replaceAll('-', '_').toUpperCase(),
-      await readFile(join(root, 'templates', `${name}.html`), 'utf8'),
-    ])
-  )
-);
+const templates = await loadTemplates(root);
 async function pages(directory) {
   const result = [];
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -50,21 +42,13 @@ const adminBackLinks = {
   'admin/film-add.html': ['/admin/films.html', '← 返回本週映演'],
   'admin/film-edit.html': ['/admin/films.html', '← 返回本週映演'],
 };
-// 保留原型各頁導覽的 active 樣式；food、search、auth 原版本來就沒有選中項目。
-const navigationSections = {
-  '/explore.html': ['explore.html', 'museum.html'],
-  '/cinema.html': ['cinema.html'],
-  '/events.html': ['events.html', 'activities.html', 'city-news.html'],
-  '/offers.html': ['offers.html'],
-  '/planner.html': ['planner.html', 'routes.html'],
-};
 for (const source of await pages(join(root, 'pages'))) {
   const route = relative(join(root, 'pages'), source).split(sep).join('/');
-  let html = renderPolicyVersion(await readFile(source, 'utf8'), process.env.TERMS_VERSION || '2026-11-02');
+  let html = renderPolicyVersion(
+    await readFile(source, 'utf8'),
+    process.env.TERMS_VERSION || DEFAULT_POLICY_VERSION
+  );
   const title = html.match(/<title>([^<]*)<\/title>/)?.[1]?.split('｜')[0] ?? '映畫竹塹';
-  const selectedNavigation = Object.entries(navigationSections).find(([, paths]) =>
-    paths.some(path => (path.endsWith('/') ? route.startsWith(path) : route === path))
-  )?.[0];
   html = html.replace(/\{\{([A-Z_]+)\}\}/g, (_, name) => {
     if (name === 'ADMIN_TOPBAR' && adminBackLinks[route]) {
       const [href, label] = adminBackLinks[route];
@@ -73,12 +57,7 @@ for (const source of await pages(join(root, 'pages'))) {
         `<a class="admin-preview" href="${href}">${label}</a>`
       );
     }
-    if (name === 'SITE_HEADER' && selectedNavigation) {
-      return templates[name].replace(
-        `href="${selectedNavigation}"`,
-        `class="active" aria-current="page" href="${selectedNavigation}"`
-      );
-    }
+    if (name === 'SITE_HEADER') return markActiveNavigation(templates[name], '/' + route);
     if (name === 'PAGE_TITLE') return title;
     if (!(name in templates)) throw new Error(`Unknown template: ${name}`);
     return templates[name];
@@ -95,15 +74,7 @@ for (const source of await pages(join(root, 'pages'))) {
   if (html.includes('{{')) throw new Error(`Unresolved template: ${route}`);
   const target = join(output, route);
   await mkdir(dirname(target), { recursive: true });
-  // 各頁共用登入期限監看；API 事件可以在入口程式載入前先暫存在記憶體。
-  html = renderFontHead(html);
-  html = html.replace(
-    '</body>',
-    '<script type="module" src="/assets/js/session-monitor.js"></script></body>'
-  );
-  // 讓瀏覽器一開始就平行下載整棵模組依賴，而不是逐層等待 import。
-  html = addModulePreloads(html, join(root, 'assets'), modulePreloadCache);
-  html = versionHtmlAssets(html, version);
+  html = finalizePage(html, { assetsRoot: join(root, 'assets'), version, preloadCache: modulePreloadCache });
   await writeFile(target, annotateEnglishPassages(html));
   // 內部使用的 503 回應頁資產，不列入固定公開頁、sitemap 或正常發布資料。
   if (route === 'index.html')

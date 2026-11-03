@@ -11,7 +11,7 @@ use Yinghua\Exceptions\ContentConflict;
 use Yinghua\Support\UtcDateTime;
 
 /** 優惠的查詢、型別映射與歷史網址集中在這裡。 */
-class OfferRepository
+class OfferRepository implements \Yinghua\Contracts\AdminContentRecords
 {
     private const string SELECT = "SELECT o.*,ma.storage_key,ma.alt AS media_alt,mr.status AS merchant_status,mr.deleted_at AS merchant_deleted_at,mr.updated_at AS merchant_updated_at,mr.name AS merchant_name,mr.district AS merchant_district,mr.address AS merchant_address,mr.phone AS merchant_phone,mr.website AS merchant_website FROM offers o LEFT JOIN media_assets ma ON ma.id=o.cover_media_id JOIN merchants mr ON mr.id=o.merchant_id";
 
@@ -24,7 +24,7 @@ class OfferRepository
         $params = [];
         if ($query->q !== '') {
             $where .= " AND CONCAT(o.title,' ',o.discount_text,' ',mr.name) LIKE :q ESCAPE '!'";
-            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+            $params['q'] = Database::contains($query->q);
         }
         if ($query->status !== '') {
             $where .= ' AND o.status=:status';
@@ -53,10 +53,7 @@ class OfferRepository
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE offers SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('offers', $id);
     }
 
     public function find(string $id, bool $lock = false): ?Offer
@@ -70,7 +67,7 @@ class OfferRepository
     {
         return array_map($this->map(...), $this->database->rows(
             self::SELECT . " WHERE o.deleted_at IS NULL AND o.status='published' AND o.publish_at<=:now AND mr.deleted_at IS NULL AND mr.status='active' ORDER BY o.publish_at DESC,o.id",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
@@ -82,22 +79,13 @@ class OfferRepository
         }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $parameters = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO offers (id,' . $columns . ') VALUES (:id,' . $parameters . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('offers', $id, $fields);
             } else {
-                $set = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE offers SET ' . $set . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('offers', $id, $fields);
             }
             $this->alias('/offers/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Content identity already reserved.', previous: $error);
             }
             throw $error;
@@ -106,11 +94,7 @@ class OfferRepository
 
     public function alias(string $path, string $id): void
     {
-        $existing = $this->database->row('SELECT offer_id FROM offer_aliases WHERE path=:path', ['path' => $path]);
-        if ($existing !== null && (new Row($existing))->string('offer_id') !== $id) {
-            throw new ContentConflict('Historical URL already reserved.');
-        }
-        $this->database->execute('INSERT IGNORE INTO offer_aliases (path,offer_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
+        $this->database->reserveAlias('offer_aliases', 'offer_id', $path, $id);
     }
 
     public function assertSlugAvailable(string $slug, string $id): void
@@ -118,7 +102,7 @@ class OfferRepository
         $alias = $this->database->row('SELECT offer_id FROM offer_aliases WHERE path=:path', ['path' => '/offers/' . $slug . '.html']);
         $other = $this->database->row('SELECT id FROM offers WHERE slug=:slug AND id<>:id', ['slug' => $slug,'id' => $id]);
         if (($alias !== null && (new Row($alias))->string('offer_id') !== $id) || $other !== null) {
-            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此優惠網址已被使用或保留。');
+            throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::Conflict, '此優惠網址已被使用或保留。');
         }
     }
 
@@ -136,7 +120,7 @@ class OfferRepository
         $result = [];
         foreach ($this->database->rows(
             "SELECT a.path,o.slug FROM offer_aliases a JOIN offers o ON o.id=a.offer_id JOIN merchants mr ON mr.id=o.merchant_id WHERE o.deleted_at IS NULL AND o.status='published' AND o.publish_at<=:now AND mr.deleted_at IS NULL AND mr.status='active'",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = '/offers/' . $row->string('slug') . '.html';

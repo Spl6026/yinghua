@@ -1,5 +1,6 @@
-import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
+import { publicApi } from '../api/public-api.js';
+import { createPagedList } from '../core/paged-list.js';
 
 // 在原頁面選擇地點，不導航離開，也不丟棄尚未儲存的行程編排。
 export function attractionPicker(host, { onChoose, isSelected, isDisabled }) {
@@ -30,28 +31,20 @@ export function attractionPicker(host, { onChoose, isSelected, isDisabled }) {
   pager.append(previous, pageText, next);
   panel.append(heading, field, message, list, pager);
   host.append(panel);
-  let page = 1,
-    total = 0,
-    generation = 0,
-    busy = false,
-    trigger;
-  function controls() {
-    previous.disabled = busy || page <= 1;
-    next.disabled = busy || page * 10 >= total;
-    search.disabled = busy;
-  }
-  async function load() {
-    const request = ++generation;
-    busy = true;
-    controls();
-    status(message, '載入可加入的地點中…');
-    list.setAttribute('aria-busy', 'true');
-    try {
-      const data = await api(
-        '/api/v1/attractions?' + new URLSearchParams({ q: query.value, page: String(page), pageSize: '10' })
-      );
-      if (request !== generation) return;
-      total = data.total;
+  let trigger;
+  const places = createPagedList({
+    pageSize: 10,
+    fetchPage: ({ page, pageSize }) => publicApi.attractions({ q: query.value, page, pageSize }),
+    onBusy(state) {
+      previous.disabled = state.busy || !places.hasPrevious();
+      next.disabled = state.busy || !places.hasNext();
+      search.disabled = state.busy;
+      if (state.busy) {
+        status(message, '載入可加入的地點中…');
+        list.setAttribute('aria-busy', 'true');
+      } else list.removeAttribute('aria-busy');
+    },
+    render(data, state) {
       list.replaceChildren();
       for (const place of data.items) {
         const row = element('article', { className: 'trip-picker-place' }),
@@ -85,21 +78,14 @@ export function attractionPicker(host, { onChoose, isSelected, isDisabled }) {
           ? '選取地點會加入草稿；編排完成後按「儲存行程」。'
           : '找不到符合條件的地點，請更換關鍵字。'
       );
-      pageText.textContent = `第 ${page} 頁，共 ${total} 個地點`;
-    } catch (error) {
-      if (request === generation) {
-        list.replaceChildren();
-        total = 0;
-        status(message, error.message + ' 可按搜尋地點重試。', true);
-      }
-    } finally {
-      if (request === generation) {
-        busy = false;
-        controls();
-        list.removeAttribute('aria-busy');
-      }
-    }
-  }
+      pageText.textContent = `第 ${state.page} 頁，共 ${state.total} 個地點`;
+    },
+    onError(error, state) {
+      list.replaceChildren();
+      state.total = 0;
+      status(message, error.message + ' 可按搜尋地點重試。', true);
+    },
+  });
   function hide() {
     panel.hidden = true;
     trigger?.setAttribute('aria-expanded', 'false');
@@ -112,36 +98,22 @@ export function attractionPicker(host, { onChoose, isSelected, isDisabled }) {
       hide();
     }
   });
-  search.addEventListener('click', () => {
-    page = 1;
-    void load();
-  });
+  search.addEventListener('click', () => void places.reset());
   query.addEventListener('keydown', event => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      page = 1;
-      void load();
+      void places.reset();
     }
   });
-  previous.addEventListener('click', () => {
-    if (!busy && page > 1) {
-      page--;
-      void load();
-    }
-  });
-  next.addEventListener('click', () => {
-    if (!busy && page * 10 < total) {
-      page++;
-      void load();
-    }
-  });
+  previous.addEventListener('click', () => void places.goTo(places.state.page - 1));
+  next.addEventListener('click', () => void places.goTo(places.state.page + 1));
   return {
     open: async button => {
       trigger = button;
       panel.hidden = false;
       button.setAttribute('aria-expanded', 'true');
       query.focus();
-      await load();
+      await places.load();
     },
   };
 }

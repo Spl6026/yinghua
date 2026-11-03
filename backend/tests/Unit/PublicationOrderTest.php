@@ -21,6 +21,7 @@ use Yinghua\Repositories\SearchRepository;
 use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Services\ContentPublication;
+use Yinghua\Services\PublicationSnapshotBuilder;
 use Yinghua\Services\SeoPublication;
 
 final class PublicationOrderTest extends TestCase
@@ -63,22 +64,26 @@ final class PublicationOrderTest extends TestCase
             $current = $snapshot;
         });
         $publication = new ContentPublication(
-            $attractions,
             $journal,
             $renderer,
-            new Config(),
-            new FilmRepository($database, new FilmScreeningRepository($database)),
-            $clock,
-            new NewsRepository($database),
-            new OfferRepository($database),
-            new SeoPublication(new SeoSettingsRepository($database), new SeoOverrideRepository($database)),
-            new RecommendedRouteRepository($database),
             // 搜尋索引寫入與別名排序無關，用替身避免碰到資料庫。
             $this->createStub(SearchRepository::class),
-            new GeneralSettingsRepository($database),
+            new PublicationSnapshotBuilder(
+                new Config(),
+                $clock,
+                $attractions,
+                new FilmRepository($database, new FilmScreeningRepository($database)),
+                new NewsRepository($database),
+                new OfferRepository($database),
+                new RecommendedRouteRepository($database),
+                new SeoPublication(new SeoSettingsRepository($database), new SeoOverrideRepository($database)),
+                new GeneralSettingsRepository($database),
+            ),
         );
         self::assertTrue($publication->synchronize());
         $generation = $publication->read()['generation'];
+        // 發布延遲的診斷依 SECTIONS 比對區段，快照新增區段時清單也要跟著更新。
+        self::assertSame([...PublicationSnapshotBuilder::SECTIONS, 'generation'], array_keys($publication->read()));
         $reverse = true;
         self::assertSame($generation, $publication->read()['generation']);
         self::assertTrue($publication->ready());

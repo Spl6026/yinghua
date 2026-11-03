@@ -7,7 +7,7 @@ namespace Yinghua\Controllers;
 use Yinghua\DTO\NewsQuery;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
-use Yinghua\Models\DetailUrlType;
+use Yinghua\Models\PublicContentType;
 use Yinghua\Services\DetailUrlResolver;
 use Yinghua\Services\PublicNews;
 
@@ -21,8 +21,8 @@ class PublicNewsController
         return new Response(200, $this->service->listing(new NewsQuery(
             $r->queryText('type'),
             $r->queryText('q', '', 255),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
         )));
     }
 
@@ -37,6 +37,6 @@ class PublicNewsController
         if ($original === '' && $context->request->queryText('id') !== '') {
             $original = '/news-detail.html?id=' . rawurlencode($context->request->queryText('id'));
         }
-        return new Response(301, [], [], ['Location' => $this->detailUrls->resolve(DetailUrlType::News, $original)]);
+        return new Response(301, [], [], ['Location' => $this->detailUrls->resolve(PublicContentType::News, $original)]);
     }
 }

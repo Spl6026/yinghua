@@ -7,6 +7,7 @@ namespace Yinghua\Http;
 use JsonException;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\DTO\UploadedImage;
+use Yinghua\Exceptions\ErrorCode;
 
 readonly class Request
 {
@@ -42,11 +43,11 @@ readonly class Request
         $uri = self::server('REQUEST_URI', '/');
         $path = parse_url($uri, PHP_URL_PATH);
         if (!is_string($path) || preg_match('~[\\\\\x00-\x1f]|%(?:00|2f|5c)~i', $path)) {
-            throw new ApplicationError('BAD_REQUEST', '無效網址。');
+            throw new ApplicationError(ErrorCode::BadRequest, '無效網址。');
         }
         $path = rawurldecode($path);
         if (preg_match('~(?:^|/)\.{1,2}(?:/|$)~', $path)) {
-            throw new ApplicationError('BAD_REQUEST', '無效網址。');
+            throw new ApplicationError(ErrorCode::BadRequest, '無效網址。');
         }
         $cookies = [];
         foreach ($_COOKIE as $name => $value) {
@@ -62,7 +63,7 @@ readonly class Request
         }
         $multipart = str_starts_with(strtolower($headers['content-type']), 'multipart/form-data;');
         if ($multipart && (int) self::server('CONTENT_LENGTH', '0') > 10 * 1024 * 1024) {
-            throw new ApplicationError('PAYLOAD_TOO_LARGE', '上傳內容過大。');
+            throw new ApplicationError(ErrorCode::PayloadTooLarge, '上傳內容過大。');
         }
         $form = [];
         $files = [];
@@ -83,7 +84,7 @@ readonly class Request
         }
         $body = $multipart ? '' : file_get_contents('php://input', false, null, 0, 65537);
         if ($body === false || strlen($body) > 65536) {
-            throw new ApplicationError('PAYLOAD_TOO_LARGE', '請求內容過大。');
+            throw new ApplicationError(ErrorCode::PayloadTooLarge, '請求內容過大。');
         }
 
         return new self(
@@ -108,20 +109,16 @@ readonly class Request
             return [];
         }
         if (strtolower(trim(explode(';', $this->headers['content-type'] ?? '')[0])) !== 'application/json') {
-            throw new ApplicationError('UNSUPPORTED_MEDIA_TYPE', '請使用 application/json。');
+            throw new ApplicationError(ErrorCode::UnsupportedMediaType, '請使用 application/json。');
         }
         try {
-            $value = json_decode($this->body, false, 32, JSON_THROW_ON_ERROR);
+            $values = json_decode($this->body, true, 32, JSON_THROW_ON_ERROR);
         } catch (JsonException) {
-            throw new ApplicationError('BAD_REQUEST', 'JSON 格式不正確。');
+            throw new ApplicationError(ErrorCode::BadRequest, 'JSON 格式不正確。');
         }
-        if (!$value instanceof \stdClass) {
-            throw new ApplicationError('BAD_REQUEST', 'JSON 最外層須為物件。');
-        }
-        // 確認最外層是物件後，再以陣列模式讀取；巢狀內容交給 DTO 驗證。
-        $values = json_decode($this->body, true, 32, JSON_THROW_ON_ERROR);
-        if (!is_array($values)) {
-            throw new ApplicationError('BAD_REQUEST', 'JSON 格式不正確。');
+        // 陣列模式下 {} 與 [] 都會變成 PHP 陣列，所以另外確認最外層是以 { 開頭的物件；巢狀內容交給 DTO 驗證。
+        if (!is_array($values) || ltrim($this->body, " \t\n\r")[0] !== '{') {
+            throw new ApplicationError(ErrorCode::BadRequest, 'JSON 最外層須為物件。');
         }
         $result = [];
         foreach ($values as $key => $entry) {
@@ -153,6 +150,29 @@ readonly class Request
         }
 
         return (int) $value;
+    }
+
+    /** 列表的頁碼參數；所有分頁 API 共用同一個範圍與錯誤訊息。 */
+    public function page(): int
+    {
+        return $this->queryInteger('page', 1, 100000);
+    }
+
+    /** 每頁筆數，上限 100；預設值依列表而定（公開景點卡片為 12）。 */
+    public function pageSize(int $default = 20): int
+    {
+        return $this->queryInteger('pageSize', $default, 100);
+    }
+
+    /**
+     * 只帶版本號的請求本文（刪除等操作）：拒絕其他欄位，回傳樂觀鎖用的版本號。
+     */
+    public function versionOnly(): int
+    {
+        $input = new \Yinghua\DTO\Input($this->json());
+        $input->only(['version']);
+
+        return $input->positiveInt('version');
     }
 
     private static function server(string $name, string $default = ''): string

@@ -1,16 +1,12 @@
 import { adminApi } from '../api/admin-api.js';
 import { element, formErrors, submitForm, status, unsavedChanges, flash } from '../core/ui.js';
-import { handleAdminError, hasPermission, adminDestination } from '../core/session.js';
-import { confirmAction } from '../components/dialog.js';
+import { handleAdminError, hasPermission } from '../core/session.js';
+import { confirmDiscard, redirectBackLinks } from '../core/admin-form.js';
 
 export async function initializeAdminForm(identity, page) {
   const form = document.querySelector('#admin-form');
   const creating = page === 'admin-add';
-  if (!hasPermission(identity, 'admins', 'view')) {
-    const cancel = document.querySelector('#admin-cancel');
-    cancel.href = adminDestination(identity);
-    cancel.textContent = '返回可用功能';
-  }
+  redirectBackLinks(identity, 'admins', document.querySelector('#admin-cancel'), '/admin/admin-add.html');
   const id = new URLSearchParams(location.search).get('id');
   const roles = (await adminApi.roles()).roles;
   roles.forEach(role => form.elements.roleId.append(element('option', { value: role.id }, role.name)));
@@ -77,11 +73,7 @@ export async function initializeAdminForm(identity, page) {
   }
   reload.hidden = creating;
   reload.addEventListener('click', async event => {
-    if (
-      !dirty ||
-      (await confirmAction('重新載入管理員資料', '重新載入將放棄尚未儲存的修改。', event.currentTarget))
-    )
-      await load();
+    if (await confirmDiscard(dirty, event.currentTarget, '重新載入管理員資料')) await load();
   });
   form.addEventListener('submit', event => {
     event.preventDefault();
@@ -103,10 +95,10 @@ export async function initializeAdminForm(identity, page) {
         updateControls();
         let completed = false;
         try {
-          if (creating) await adminApi.create(body);
+          if (creating) await adminApi.save(null, body);
           else {
             body.version = version;
-            await adminApi.update(id, body);
+            await adminApi.save(id, body);
           }
           dirty = false;
           completed = true;

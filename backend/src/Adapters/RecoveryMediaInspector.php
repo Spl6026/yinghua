@@ -18,7 +18,7 @@ readonly class RecoveryMediaInspector
      */
     public function inspect(array $required): array
     {
-        $directory = $this->config->string('MEDIA_PATH', '/var/www/media');
+        $directory = $this->config->mediaPath();
         $files = [];
         foreach (new DirectoryIterator($directory) as $file) {
             if ($file->isDot()) {

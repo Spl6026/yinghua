@@ -1,16 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
 // 真正執行表單與共用控制模組；只替換瀏覽器 DOM／API 邊界。
-const source = (
-  await Promise.all(
-    ['core/ui.js', 'core/session.js', 'core/place-candidate.js', 'pages/attraction-form.js'].map(path =>
-      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
-    )
-  )
-).map(text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));
 const html = await readFile(new URL('../pages/admin/place-add.html', import.meta.url), 'utf8');
 const fieldNames = [...html.matchAll(/\bname="([^"]+)"/g)]
   .map(match => match[1])
@@ -83,7 +77,7 @@ class Node {
     this.parent.children = this.parent.children.filter(x => x !== this);
   }
 }
-function fixture({ creating = false, preview = false, edit = true, view = true } = {}) {
+async function fixture({ creating = false, preview = false, edit = true, view = true } = {}) {
   const nodes = new Map();
   const node = (id, tag = 'div') => {
     if (!nodes.has(id)) nodes.set(id, new Node(tag));
@@ -167,6 +161,7 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
     confirm: true,
   };
   const sandbox = {
+    ...taipeiTime,
     URLSearchParams,
     HTMLElement: Node,
     routes: new Set(),
@@ -240,8 +235,7 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
       retry: async () => ({ message: '公開頁面已同步' }),
     },
   };
-  vm.createContext(sandbox);
-  source.forEach(code => vm.runInContext(code, sandbox));
+  Object.assign(sandbox, await loadWithSandbox('pages/attraction-form.js', sandbox));
   const identity = {
     preview: { active: preview },
     permissions: [...(view ? ['view'] : []), 'create', ...(edit ? ['edit'] : [])].map(action => ({
@@ -262,11 +256,12 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
 }
 
 test('只有新增權限保存後留在成功畫面，再次送出不重複新增', async () => {
-  const f = fixture({ creating: true, view: false, edit: false });
+  const f = await fixture({ creating: true, view: false, edit: false });
   await f.initialize();
-  assert.equal(f.node('#place-cancel').href, '/admin/place-add.html');
-  assert.equal(f.node('.admin-preview').href, '/admin/place-add.html');
-  assert.equal(f.node('.admin-preview').textContent, '返回可用功能');
+  // 唯一可用的頁面就是這張新增表單時，「取消」不指回自己，改回網站首頁。
+  assert.equal(f.node('#place-cancel').href, '/index.html');
+  assert.equal(f.node('.admin-preview').href, '/index.html');
+  assert.equal(f.node('.admin-preview').textContent, '返回網站');
   f.form.emit('submit');
   await settle();
   assert.equal(f.state.assignments.length, 0);
@@ -278,7 +273,7 @@ test('只有新增權限保存後留在成功畫面，再次送出不重複新�
   assert.equal(f.state.saves.length, 1);
 });
 test('只有新增權限遇到同步失敗，保留已保存結果並禁止第二筆 POST', async () => {
-  const f = fixture({ creating: true, view: false, edit: false });
+  const f = await fixture({ creating: true, view: false, edit: false });
   await f.initialize();
   f.state.write = async () => ({
     attraction: { id: 'saved', version: 1 },
@@ -294,7 +289,7 @@ test('只有新增權限遇到同步失敗，保留已保存結果並禁止第�
   assert.equal(f.state.assignments.length, 0);
 });
 test('只改圖片說明也送出完整保存資料及版本', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   Object.assign(f.form.elements.imageAlt, { value: '修改說明' });
   f.form.elements.imageSource.value = '修改來源';
@@ -312,7 +307,7 @@ test('只改圖片說明也送出完整保存資料及版本', async () => {
   assert.equal(f.state.saves.length, 1);
 });
 test('景點載入失敗不能送出；重試載入後恢復', async () => {
-  const f = fixture();
+  const f = await fixture();
   f.state.get = async () => {
     throw new Error('讀取失敗');
   };
@@ -327,7 +322,7 @@ test('景點載入失敗不能送出；重試載入後恢復', async () => {
   assert.equal(f.form.elements.imageAlt.value, '原圖說明');
 });
 test('取消重載保留尚未儲存的說明', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.imageAlt.value = '尚未保存';
   f.form.emit('input');
@@ -337,7 +332,7 @@ test('取消重載保留尚未儲存的說明', async () => {
   assert.equal(f.state.gets, 1);
 });
 test('取消重載保留待上傳圖片；確認重載丟棄圖片並恢復可保存狀態', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.image.value = 'C:\\fakepath\\poster.png';
   f.form.elements.image.files = [{ name: 'poster.png' }];
@@ -358,7 +353,7 @@ test('取消重載保留待上傳圖片；確認重載丟棄圖片並恢復可�
   assert.equal(f.state.saves[0].body.mediaId, 'media-a');
 });
 test('景點重載失敗時保留待上傳檔案，成功重試後才清除', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.image.value = 'C:\\fakepath\\poster.png';
   f.form.elements.image.files = [{ name: 'poster.png' }];
@@ -375,7 +370,7 @@ test('景點重載失敗時保留待上傳檔案，成功重試後才清除', as
   assert.equal(f.save.disabled, false);
 });
 test('409 衝突保留輸入；重新載入恢復伺服器版本', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.imageAlt.value = '保留輸入';
   f.state.write = async () => {
@@ -390,7 +385,7 @@ test('409 衝突保留輸入；重新載入恢復伺服器版本', async () => {
   assert.equal(f.form.elements.imageAlt.value, '原圖說明');
 });
 test('唯讀模擬重載後不能修改、上傳或送出', async () => {
-  const f = fixture({ preview: true });
+  const f = await fixture({ preview: true });
   await f.initialize();
   await f.node('#reload-place').emit('click');
   assert.equal(f.save.disabled, true);
@@ -402,7 +397,7 @@ test('唯讀模擬重載後不能修改、上傳或送出', async () => {
   assert.equal(f.state.uploads.length, 0);
 });
 test('儲存期間重新載入與連續送出不建立第二筆請求', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   const wait = deferred();
   f.state.write = () => wait.promise;
@@ -417,7 +412,7 @@ test('儲存期間重新載入與連續送出不建立第二筆請求', async ()
   await settle();
 });
 test('202 已保存但同步失敗沿用新 id；重試不重複新增', async () => {
-  const f = fixture({ creating: true });
+  const f = await fixture({ creating: true });
   await f.initialize();
   f.state.write = async () => ({
     attraction: { id: 'saved', version: 1 },
@@ -434,7 +429,7 @@ test('202 已保存但同步失敗沿用新 id；重試不重複新增', async (
   assert.equal(f.state.saves[1].body.version, 1);
 });
 test('僅 create 權限遇到202不能重送，明確提示聯絡編輯者', async () => {
-  const f = fixture({ creating: true, edit: false });
+  const f = await fixture({ creating: true, edit: false });
   await f.initialize();
   f.state.write = async () => ({
     attraction: { id: 'saved', version: 1 },
@@ -449,7 +444,7 @@ test('僅 create 權限遇到202不能重送，明確提示聯絡編輯者', asy
   assert.equal(f.state.saves.length, 1);
 });
 test('上傳期間鎖定保存；完成後帶入新媒體與伺服器說明', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.image.files = [{}];
   const wait = deferred();
@@ -477,7 +472,7 @@ test('上傳期間鎖定保存；完成後帶入新媒體與伺服器說明', as
 });
 
 test('確認候選帶入行政區與官網，保留既有摘要與介紹，不額外顯示參考框', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.node('#google-short-url').value = 'https://www.google.com/maps?q=test';
   const candidate = {
@@ -513,7 +508,7 @@ for (const [summary, description] of [
   ['', '人工介紹'],
 ]) {
   test(`確認匯入後正常儲存補入文字 ${JSON.stringify([summary, description])}`, async () => {
-    const f = fixture();
+    const f = await fixture();
     await f.initialize();
     f.form.elements.summary.value = summary;
     f.form.elements.description.value = description;
@@ -544,7 +539,7 @@ for (const [summary, description] of [
   });
 }
 test('取消候選確認不改動內容；未確認的新地點關聯不能送出', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.state.confirm = false;
   f.node('#google-short-url').value = 'https://www.google.com/maps?q=test';
@@ -567,7 +562,7 @@ test('取消候選確認不改動內容；未確認的新地點關聯不能送�
 });
 
 test('圖片來源及授權說明留空仍可上傳，替代文字仍必填', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.image.files = [{}];
   f.form.elements.imageSource.value = '';
@@ -581,7 +576,7 @@ test('圖片來源及授權說明留空仍可上傳，替代文字仍必填', as
 });
 
 test('解析錯誤對應網址欄、還原控制項後聚焦；重試只清除解析區錯誤', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   const input = f.node('#google-short-url');
   input.value = 'https://example.com/not-google';
@@ -610,7 +605,7 @@ test('解析錯誤對應網址欄、還原控制項後聚焦；重試只清除�
 });
 
 test('空解析網址聚焦欄位；查詢欄不混入景點 mapUrl 保存', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   await f.node('#parse-place-url').emit('click');
   assert.equal(f.node('#google-short-url').focused, true);
@@ -620,7 +615,7 @@ test('空解析網址聚焦欄位；查詢欄不混入景點 mapUrl 保存', asy
   await settle();
   assert.equal(f.state.saves[0].body.mapUrl, 'https://www.google.com/maps?q=stored');
   assert.equal(Object.hasOwn(f.state.saves[0].body, 'mapLookupUrl'), false);
-  const invalid = fixture();
+  const invalid = await fixture();
   await invalid.initialize();
   invalid.state.write = async () => {
     throw Object.assign(new Error('請檢查網址'), {

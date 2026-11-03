@@ -1,6 +1,6 @@
 import { authApi } from '../api/auth-api.js';
 import { routes } from './routes.js';
-import { element, initializeMenus, toast } from './ui.js';
+import { element, initializeMenus, status, toast } from './ui.js';
 import { recoverSession } from './session-expiry.js';
 
 // 只允許導向已建置的站內頁面，不把 query 直接當成 redirect URL，避免開放式重導向。
@@ -89,7 +89,9 @@ export function adminReturnTo(identity) {
     if (
       pages[2] &&
       path === `/admin/${pages[2]}.html` &&
-      (hasPermission(identity, module, 'view') || ['news', 'offers'].includes(module)) &&
+      // 內容的編輯頁依規格給「具 create／edit 權限者」使用，有編輯權限即可回到原本的編輯連結；
+      // 管理員帳號的單筆資料仍需檢視權限。
+      (hasPermission(identity, module, 'view') || module !== 'admins') &&
       hasPermission(identity, module, 'edit')
     )
       return target;
@@ -154,8 +156,20 @@ function mobileAccountLinks(signOut) {
   navigation.append(account);
 }
 
+// 公開頁允許瀏覽器的「上一頁快取」，還原時頁面不會重新執行；這時重新確認一次帳號，
+// 才不會在別處登出後，按上一頁仍看到舊的會員名稱。
+let restoreListener = false;
+function refreshOnRestore() {
+  if (restoreListener || typeof window === 'undefined' || !window.addEventListener) return;
+  restoreListener = true;
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) void memberNavigation();
+  });
+}
+
 export async function memberNavigation() {
   const generation = ++memberNavigationVersion;
+  refreshOnRestore();
   initializeMenus();
   const node = document.querySelector('#member-navigation');
   if (!node) return;
@@ -187,10 +201,9 @@ export async function memberNavigation() {
 export function handleAdminError(error, message) {
   if (error.status === 401) {
     handleSessionExpiry('admin');
-    message.textContent = '登入已到期，重新登入後請再儲存；未儲存內容仍保留。';
+    status(message, '登入已到期，重新登入後請再儲存；未儲存內容仍保留。');
   } else {
-    message.textContent = error.message;
-    message.dataset.error = 'true';
+    status(message, error.message, true);
     message.focus();
   }
 }

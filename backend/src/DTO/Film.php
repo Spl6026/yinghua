@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\DTO;
 
 /** 電影資料；管理與公開輸出各自使用明確的欄位白名單。 */
-readonly class Film
+readonly class Film implements \Yinghua\Contracts\VersionedContent
 {
     /** @param array<string,mixed> $values
      * @param list<FilmScreening> $screenings

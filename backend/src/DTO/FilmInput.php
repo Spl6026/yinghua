@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
+use Yinghua\Support\Uuid;
 
 /** 電影表單輸入，包含場次清單。 */
 readonly class FilmInput
@@ -41,7 +42,7 @@ readonly class FilmInput
         }
         if ($creating || array_key_exists('posterMediaId', $values)) {
             $id = ($values['posterMediaId'] ?? null) === null ? '' : $input->optionalText('posterMediaId', 36);
-            if ($id !== '' && !preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/D', $id)) {
+            if ($id !== '' && !Uuid::isValid($id)) {
                 throw ApplicationError::invalid('posterMediaId', '請選擇有效海報。');
             }
             $fields['poster_media_id'] = $id === '' ? null : $id;

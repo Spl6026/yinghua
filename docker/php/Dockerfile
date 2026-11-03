@@ -73,9 +73,18 @@ COPY scripts/operations/release-manifest.mjs /release/release-manifest.mjs
 RUN test -n "$APP_URL" && test -n "$TERMS_VERSION" && node scripts/build.mjs \
     && node /release/release-manifest.mjs "$APP_VERSION" "$VCS_REF"
 
+# 正式版的 autoloader 只用預先產生的類別對照表，不在執行時掃描檔案系統找類別。
+FROM php-base AS release-autoload
+WORKDIR /var/www/app
+COPY backend/composer.json backend/composer.lock ./
+COPY --from=app-dependencies /var/www/app/vendor ./vendor
+COPY backend/src ./src
+RUN composer dump-autoload --no-dev --classmap-authoritative --no-interaction --no-scripts
+
 FROM php-base AS release-base
 COPY --from=node-bin /usr/local/bin/node /usr/local/bin/node
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/yinghua.ini
+COPY docker/php/production.ini /usr/local/etc/php/conf.d/zz-production.ini
 COPY docker/php/www.conf /usr/local/etc/php-fpm.d/zz-yinghua.conf
 RUN mkdir -p /var/www/media /var/www/publication \
     && chown www-data:www-data /var/www/media /var/www/publication \
@@ -93,7 +102,7 @@ RUN apt-get update && apt-get upgrade -y --no-install-recommends \
 FROM release-base AS release
 WORKDIR /var/www/app
 COPY backend/composer.json backend/composer.lock ./
-COPY --from=app-dependencies /var/www/app/vendor ./vendor
+COPY --from=release-autoload /var/www/app/vendor ./vendor
 COPY backend/src ./src
 COPY backend/config ./config
 COPY backend/public ./public
@@ -102,6 +111,8 @@ COPY backend/database ./database
 COPY backend/resources/openapi.json backend/resources/role-templates.json ./resources/
 COPY --from=release-frontend /release/frontend /var/www/frontend-source
 COPY --from=release-frontend /release/release.json /var/www/release.json
+# 映像內的前端原始檔不會再變，發布版本雜湊在建置時算一次，執行期直接讀取。
+RUN php bin/renderer-version.php /var/www/frontend-source
 CMD ["php-fpm"]
 
 FROM nginx:1.30.6-alpine-slim@sha256:d9322bba63c6cfc63dc9e86522fd4f95fd4d9020a02b5bced282bbf38b8c3960 AS release-web

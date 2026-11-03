@@ -1,5 +1,6 @@
 // 純資料的 SEO 解析邏輯，由建置、發布與後台預覽共用。
-export const seoDefaults = {
+import { contentKindOfPath } from './content-kinds.js';
+const seoDefaults = {
   siteName: '映畫竹塹',
   titleSuffix: '｜映畫竹塹',
   description: '從新竹市影像博物館出發，探索電影、美食、活動與城市旅行。',
@@ -30,7 +31,7 @@ export function canonicalPath(value) {
 }
 
 // 發布與爬蟲索引共用同一道保護頁邊界；私人頁面的保護不依賴 robots。
-export function isProtectedSeoPage(path, catalog = []) {
+function isProtectedSeoPage(path, catalog = []) {
   const pathname = new URL(path, 'https://seo.invalid').pathname;
   return (
     pathname.startsWith('/admin/') ||
@@ -65,21 +66,9 @@ export function resolveSeo({
   const pathname = new URL(path, 'https://seo.invalid').pathname;
   const preset = catalog.find(page => page.path === pathname);
   const protectedPage = isProtectedSeoPage(path, catalog);
-  const type =
-    pathname === '/museum.html'
-      ? 'attraction'
-      : pathname.startsWith('/places/')
-        ? 'attraction'
-        : pathname.startsWith('/films/')
-          ? 'film'
-          : pathname.startsWith('/news/')
-            ? 'news'
-            : pathname.startsWith('/offers/')
-              ? 'offer'
-              : null;
-  const pattern = type
-    ? '/' + { attraction: 'places', film: 'films', news: 'news', offer: 'offers' }[type] + '/*.html'
-    : null;
+  const kind = contentKindOfPath(pathname);
+  const type = kind?.type ?? null;
+  const pattern = kind ? `/${kind.segment}/*.html` : null;
   const overrides = Array.isArray(seo.overrides) ? seo.overrides : [];
   const specific =
     type && item?.id ? overrides.find(row => row.target?.type === type && row.target.id === item.id) : null;

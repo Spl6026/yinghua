@@ -1,15 +1,15 @@
 import { isIndexablePublication } from './seo-resolver.js';
+import { MUSEUM_PATH, contentKindOfPath } from './content-kinds.js';
 
 const text = value => (typeof value === 'string' ? value.trim() : '');
 
-// 只從白名單取用頁面上可見的內容；不把整份資料庫內容或 SEO 覆寫值當成正文。
-function contentEntity(path, item, canonical, context) {
-  if (!item) return null;
-  let entity;
-  if (path === '/museum.html' || path.startsWith('/places/')) {
-    entity = {
+// 各類內容的 Schema.org 實體（Strategy）：只從白名單取用頁面上可見的內容，
+// 不把整份資料庫內容或 SEO 覆寫值當成正文。新增內容類型時在這裡補一個建構函式。
+const entityBuilders = {
+  attraction(item, path) {
+    const entity = {
       '@type':
-        path === '/museum.html'
+        path === MUSEUM_PATH
           ? 'Museum'
           : ['美食', '在地店家'].includes(item.category)
             ? 'LocalBusiness'
@@ -20,13 +20,17 @@ function contentEntity(path, item, canonical, context) {
       entity.description = text(item.description) || text(item.summary);
     if (text(item.address)) entity.address = text(item.address);
     if (text(item.phone)) entity.telephone = text(item.phone);
-  } else if (path.startsWith('/films/')) {
-    entity = { '@type': 'Movie', name: text(item.title) };
+    return entity;
+  },
+  film(item) {
+    const entity = { '@type': 'Movie', name: text(item.title) };
     if (text(item.synopsis)) entity.description = text(item.synopsis);
     if (text(item.genre)) entity.genre = text(item.genre);
-  } else if (path.startsWith('/news/')) {
+    return entity;
+  },
+  news(item) {
     const event = item.type === 'event' && validTimestamp(item.eventStartAt) && text(item.eventLocation);
-    entity = { '@type': event ? 'Event' : 'Article', name: text(item.title) };
+    const entity = { '@type': event ? 'Event' : 'Article', name: text(item.title) };
     if (text(item.summary)) entity.description = text(item.summary);
     if (event) {
       entity.startDate = validTimestamp(item.eventStartAt);
@@ -36,8 +40,10 @@ function contentEntity(path, item, canonical, context) {
       entity.headline = text(item.title);
       if (validTimestamp(item.publishAt)) entity.datePublished = validTimestamp(item.publishAt);
     }
-  } else if (path.startsWith('/offers/')) {
-    entity = { '@type': 'Offer', name: text(item.title) };
+    return entity;
+  },
+  offer(item) {
+    const entity = { '@type': 'Offer', name: text(item.title) };
     if (text(item.description) || text(item.discount))
       entity.description = text(item.description) || text(item.discount);
     if (text(item.merchant?.name))
@@ -45,7 +51,15 @@ function contentEntity(path, item, canonical, context) {
     // 日期欄位是台北的日曆日，validTo 包含當天；不自行產生價格或庫存資訊。
     if (validDay(item.validFrom)) entity.validFrom = item.validFrom + 'T00:00:00+08:00';
     if (validDay(item.validTo)) entity.validThrough = item.validTo + 'T23:59:59+08:00';
-  } else return null;
+    return entity;
+  },
+};
+
+function contentEntity(path, item, canonical, context) {
+  if (!item) return null;
+  const build = entityBuilders[contentKindOfPath(path)?.type];
+  if (!build) return null;
+  const entity = build(item, path);
   if (!entity.name) return null;
   entity['@id'] = canonical + '#content';
   entity.url = canonical;

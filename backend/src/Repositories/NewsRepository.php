@@ -11,7 +11,7 @@ use Yinghua\Exceptions\ContentConflict;
 use Yinghua\Support\UtcDateTime;
 
 /** 最新消息的查詢、型別映射與歷史網址集中在這裡。 */
-class NewsRepository
+class NewsRepository implements \Yinghua\Contracts\AdminContentRecords
 {
     private const string SELECT = "SELECT n.*,m.storage_key,m.alt AS media_alt FROM news_posts n LEFT JOIN media_assets m ON m.id=n.cover_media_id";
 
@@ -24,7 +24,7 @@ class NewsRepository
         $params = [];
         if ($query->q !== '') {
             $where .= " AND n.title LIKE :q ESCAPE '!'";
-            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+            $params['q'] = Database::contains($query->q);
         }
         if ($query->status !== '') {
             $where .= ' AND n.status=:status';
@@ -44,10 +44,7 @@ class NewsRepository
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE news_posts SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('news_posts', $id);
     }
 
     public function find(string $id, bool $lock = false): ?NewsPost
@@ -61,7 +58,7 @@ class NewsRepository
     {
         return array_map($this->map(...), $this->database->rows(
             self::SELECT . " WHERE n.deleted_at IS NULL AND n.status='published' AND n.publish_at<=:now ORDER BY n.publish_at DESC,n.id",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
@@ -73,22 +70,13 @@ class NewsRepository
         }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $parameters = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO news_posts (id,' . $columns . ') VALUES (:id,' . $parameters . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('news_posts', $id, $fields);
             } else {
-                $set = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE news_posts SET ' . $set . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('news_posts', $id, $fields);
             }
             $this->alias('/news/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Content identity already reserved.', previous: $error);
             }
             throw $error;
@@ -97,11 +85,7 @@ class NewsRepository
 
     public function alias(string $path, string $id): void
     {
-        $existing = $this->database->row('SELECT news_post_id FROM news_aliases WHERE path=:path', ['path' => $path]);
-        if ($existing !== null && (new Row($existing))->string('news_post_id') !== $id) {
-            throw new ContentConflict('Historical URL already reserved.');
-        }
-        $this->database->execute('INSERT IGNORE INTO news_aliases (path,news_post_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
+        $this->database->reserveAlias('news_aliases', 'news_post_id', $path, $id);
     }
 
     public function assertSlugAvailable(string $slug, string $id): void
@@ -110,7 +94,7 @@ class NewsRepository
         $alias = $this->database->row('SELECT news_post_id FROM news_aliases WHERE path=:path', ['path' => $path]);
         $other = $this->database->row('SELECT id FROM news_posts WHERE slug=:slug AND id<>:id', ['slug' => $slug,'id' => $id]);
         if ($slug === 'coffee-walk' || ($alias !== null && (new Row($alias))->string('news_post_id') !== $id) || $other !== null) {
-            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此消息網址已被使用或保留。');
+            throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::Conflict, '此消息網址已被使用或保留。');
         }
     }
 
@@ -128,7 +112,7 @@ class NewsRepository
         $result = [];
         foreach ($this->database->rows(
             "SELECT a.path,n.slug FROM news_aliases a JOIN news_posts n ON n.id=a.news_post_id WHERE n.deleted_at IS NULL AND n.status='published' AND n.publish_at<=:now",
-            ['now' => gmdate('Y-m-d H:i:s', $now)],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = '/news/' . $row->string('slug') . '.html';

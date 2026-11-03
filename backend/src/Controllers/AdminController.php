@@ -26,8 +26,8 @@ class AdminController
             $context->actor(),
             $context->request->queryText('q'),
             $status,
-            $context->request->queryInteger('page', 1, 100000),
-            $context->request->queryInteger('pageSize', 20, 100),
+            $context->request->page(),
+            $context->request->pageSize(),
         )->toArray());
     }
 

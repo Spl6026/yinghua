@@ -15,20 +15,47 @@ export function status(container, message = '', error = false) {
   container.dataset.error = String(error);
 }
 
+// 連續出現的提示要各自顯示滿 3 秒；沿用前一則的計時器會讓新提示提早消失。
+let toastTimer = 0;
 export function toast(message) {
   const node = document.querySelector('#toast');
   if (!node) return;
   node.textContent = message;
   node.classList.add('show');
-  window.setTimeout(() => node.classList.remove('show'), 3000);
+  window.clearTimeout(toastTimer);
+  toastTimer = window.setTimeout(() => node.classList.remove('show'), 3000);
 }
 
-export function formErrors(form, error) {
+// 使用者回到分頁時（切回分頁、從上一頁快取還原、視窗重新取得焦點）重新確認資料。
+// 這幾個事件常常同時發生，一秒內只執行一次，避免重複送出相同的請求。
+export function onPageReturn(callback) {
+  let last = 0;
+  const run = () => {
+    const now = Date.now();
+    if (now - last < 1000) return;
+    last = now;
+    callback();
+  };
+  window.addEventListener('pageshow', event => {
+    if (event.persisted) run();
+  });
+  window.addEventListener('focus', run);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) run();
+  });
+}
+
+/** 移除表單上一輪的欄位錯誤提示與無效標記。 */
+export function clearFieldErrors(form) {
   form.querySelectorAll('.field-error').forEach(node => node.remove());
   form.querySelectorAll('[aria-invalid]').forEach(node => {
     node.removeAttribute('aria-invalid');
     node.removeAttribute('aria-describedby');
   });
+}
+
+export function formErrors(form, error) {
+  clearFieldErrors(form);
   let first;
   for (const [name, message] of Object.entries(error.fieldErrors || {})) {
     // 複合表單（例如整週營業時間）也要顯示具體錯誤並能取得焦點；

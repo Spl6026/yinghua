@@ -8,6 +8,7 @@ use Throwable;
 use Yinghua\Config;
 use Yinghua\Contracts\DatabaseHealthProbe;
 use Yinghua\DTO\HealthReport;
+use Yinghua\Support\ErrorLog;
 
 /** 核心服務的 readiness 檢查；通過不代表郵件、Google 或公開發布都正常。 */
 readonly class ApplicationHealth
@@ -24,7 +25,7 @@ readonly class ApplicationHealth
 
             return new HealthReport($this->database->ready(), $version);
         } catch (Throwable $error) {
-            error_log('health_exception=' . $error::class);
+            ErrorLog::exception('health', $error);
 
             return new HealthReport(false, $version);
         }

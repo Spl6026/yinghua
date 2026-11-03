@@ -9,6 +9,7 @@ use Yinghua\DTO\ScreeningInput;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Support\Secrets;
 use Yinghua\Support\UtcDateTime;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 電影場次的存取；與電影主檔共用同一個 PDO，一起參與同一筆交易。 */
 class FilmScreeningRepository
@@ -23,11 +24,7 @@ class FilmScreeningRepository
         if ($ids === []) {
             return [];
         }
-        $parameters = [];
-        foreach ($ids as $index => $id) {
-            $parameters['id' . $index] = $id;
-        }
-        $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($parameters)));
+        [$placeholders, $parameters] = Database::inList('id', $ids);
         $result = [];
         foreach ($this->database->rows(
             'SELECT s.id,s.film_id,s.starts_at,s.ticket_url,f.ticket_url AS default_ticket FROM film_screenings s JOIN films f ON f.id=s.film_id WHERE s.film_id IN (' . $placeholders . ') ORDER BY s.starts_at,s.id',
@@ -60,7 +57,7 @@ class FilmScreeningRepository
             );
             if ($exists !== null) {
                 throw new ApplicationError(
-                    'CONFLICT',
+                    ErrorCode::Conflict,
                     '所選日期與開始時間已有場次。',
                     ['screenings.' . $index . '.startsAt' => '此開始時間已有其他場次。'],
                 );

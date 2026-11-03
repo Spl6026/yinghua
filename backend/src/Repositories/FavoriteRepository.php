@@ -27,17 +27,13 @@ class FavoriteRepository
         if ($ids === []) {
             return [];
         }
-        $parameters = ['member' => $memberId];
-        $names = [];
-        foreach ($ids as $index => $id) {
-            $names[] = ':id' . $index;
-            $parameters['id' . $index] = $id;
-        }
+        [$placeholders, $parameters] = Database::inList('id', $ids);
+        $parameters['member'] = $memberId;
 
         return array_map(
             static fn(array $row): string => (new Row($row))->string('attraction_id'),
             $this->database->rows(
-                'SELECT attraction_id FROM favorites WHERE member_id=:member AND attraction_id IN (' . implode(',', $names) . ')',
+                'SELECT attraction_id FROM favorites WHERE member_id=:member AND attraction_id IN (' . $placeholders . ')',
                 $parameters,
             ),
         );

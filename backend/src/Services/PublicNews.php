@@ -7,6 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\NewsQuery;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 class PublicNews
 {
@@ -28,11 +29,11 @@ class PublicNews
     public function get(string $slug): array
     {
         $snapshot = $this->publication->read();
-        foreach (PublicCollection::items($snapshot, 'news') as $item) {
-            if (($item['slug'] ?? null) === $slug) {
-                return ['article' => $item,'generation' => $snapshot['generation']];
-            }
+        $found = PublicCollection::find($snapshot, 'news', 'slug', $slug);
+        if ($found === null) {
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此公開消息。');
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開消息。');
+
+        return ['article' => $found,'generation' => $snapshot['generation']];
     }
 }

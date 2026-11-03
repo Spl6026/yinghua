@@ -1,24 +1,16 @@
 import { escapeHtml } from './content-view.js';
+import { taipeiEnglish, taipeiFormatter, taipeiParts } from './taipei-time.js';
 // Node 發布流程與瀏覽器共用原型的電影版面渲染。
-const local = (stamp, options) =>
-  new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Taipei', ...options }).format(new Date(stamp));
 export function screeningDate(stamp) {
-  const parts = Object.fromEntries(
-    new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'Asia/Taipei',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    })
-      .formatToParts(new Date(stamp))
-      .map(p => [p.type, p.value])
-  );
+  const parts = taipeiParts(stamp, { time: false });
   return {
     date: `${parts.month}.${parts.day}`,
     full: `${parts.year}-${parts.month}-${parts.day}`,
-    day: local(stamp, { weekday: 'short' }).toUpperCase(),
-    month: local(stamp, { month: 'short' }).toUpperCase(),
-    time: local(stamp, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }),
+    day: taipeiEnglish(stamp, { weekday: 'short' }),
+    month: taipeiEnglish(stamp, { month: 'short' }),
+    time: taipeiFormatter('en-US', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(
+      new Date(stamp)
+    ),
   };
 }
 export function screeningPeriodLabel(period) {

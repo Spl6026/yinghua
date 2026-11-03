@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Repositories;
 
 use PDOException;
+use Yinghua\Models\PublicContentType;
 use Yinghua\DTO\Attraction;
 use Yinghua\DTO\AttractionInput;
 use Yinghua\DTO\AttractionPage;
@@ -32,10 +33,8 @@ class AttractionRepository
         $where = 'a.deleted_at IS NULL';
         $parameters = [];
         if ($query !== '') {
-            $where .= ' AND (a.name LIKE :name OR a.address LIKE :address)';
-            $parameters['name'] = $parameters['address'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query) . '%';
-            $where = str_replace('LIKE :name', "LIKE :name ESCAPE '!'", $where);
-            $where = str_replace('LIKE :address', "LIKE :address ESCAPE '!'", $where);
+            $where .= " AND (a.name LIKE :name ESCAPE '!' OR a.address LIKE :address ESCAPE '!')";
+            $parameters['name'] = $parameters['address'] = Database::contains($query);
         }
         if ($status !== '') {
             $where .= ' AND a.status=:status';
@@ -76,21 +75,13 @@ class AttractionRepository
         }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO attractions (id,' . $columns . ') VALUES (:id,' . $placeholders . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('attractions', $id, $fields);
             } else {
                 // 舊版客戶端沒有送週表時，不能用舊格式的摘要蓋掉已存在的結構化營業時間。
                 $structured = array_key_exists('opening_hours', $input->fields);
-                $columns = implode(',', array_map(static fn(string $key): string => $key === 'hours' && !$structured
-                    ? 'hours=CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END' : $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE attractions SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('attractions', $id, $fields, $structured ? [] : [
+                    'hours' => 'CASE WHEN opening_hours IS NULL THEN :hours ELSE hours END',
+                ]);
             }
             if ($input->fields['category'] === '景點') {
                 // 分類可以修改，但已被優惠引用的店家資料要保留，不能硬刪而破壞歷史紀錄。
@@ -113,7 +104,7 @@ class AttractionRepository
             }
             $this->alias('/places/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Content identity already reserved.', previous: $error);
             }
             throw $error;
@@ -122,22 +113,12 @@ class AttractionRepository
 
     public function alias(string $path, string $id): void
     {
-        $existing = $this->database->row('SELECT attraction_id FROM attraction_aliases WHERE path=:path', ['path' => $path]);
-        if ($existing !== null && (new Row($existing))->string('attraction_id') !== $id) {
-            throw new ContentConflict('Historical URL already reserved.');
-        }
-        $this->database->execute(
-            'INSERT IGNORE INTO attraction_aliases (path,attraction_id) VALUES (:path,:id)',
-            ['path' => $path,'id' => $id],
-        );
+        $this->database->reserveAlias('attraction_aliases', 'attraction_id', $path, $id);
     }
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE attractions SET status='archived',deleted_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('attractions', $id);
     }
 
     public function referenced(string $id): bool
@@ -164,27 +145,28 @@ class AttractionRepository
     }
 
     /** @return list<Attraction> */
-    public function published(?int $now = null): array
+    public function published(int $now): array
     {
         // 先依發布時間排序；同時發布的示範資料依原型順序排列，其他資料也有穩定的次要排序。
         return array_map($this->map(...), $this->database->rows(
             self::SELECT . " WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now ORDER BY a.publish_at DESC,a.id ASC",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
     /** @return array<string,string> */
-    public function aliases(?int $now = null): array
+    public function aliases(int $now): array
     {
         $result = [];
         foreach ($this->database->rows(
             "SELECT l.path,a.slug,a.is_museum FROM attraction_aliases l JOIN attractions a ON a.id=l.attraction_id WHERE a.deleted_at IS NULL AND a.status='published' AND a.publish_at<=:now",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
-            $result[$row->string('path')] = $row->integer('is_museum') === 1
-                ? '/museum.html'
-                : '/places/' . $row->string('slug') . '.html';
+            $result[$row->string('path')] = PublicContentType::Attraction->canonicalUrl([
+                'isMuseum' => $row->integer('is_museum') === 1,
+                'slug' => $row->string('slug'),
+            ]);
         }
         ksort($result);
 
@@ -238,7 +220,7 @@ class AttractionRepository
         $data['version'] = $r->integer('version');
         $data['featured'] = $r->integer('featured') === 1;
         $data['isMuseum'] = $r->integer('is_museum') === 1;
-        $data['url'] = $data['isMuseum'] ? '/museum.html' : '/places/' . $r->string('slug') . '.html';
+        $data['url'] = PublicContentType::Attraction->canonicalUrl(['isMuseum' => $data['isMuseum'], 'slug' => $r->string('slug')]);
         $data['publishAt'] = UtcDateTime::iso($r->string('publish_at'));
         $data['updatedAt'] = UtcDateTime::iso($r->string('updated_at'));
         $data['deletedAt'] = $r->nullableString('deleted_at');

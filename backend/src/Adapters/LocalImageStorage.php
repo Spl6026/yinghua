@@ -11,6 +11,7 @@ use Yinghua\DTO\UploadedImage;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Support\Secrets;
 use Yinghua\Models\ImageOrigin;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 把圖片存到本機 volume；會先確認是真的圖片，再重新編碼後儲存。 */
 class LocalImageStorage implements ImageStorage
@@ -20,7 +21,7 @@ class LocalImageStorage implements ImageStorage
     public function store(UploadedImage $upload, string $alt, string $source, string $license): MediaAsset
     {
         if (in_array($upload->error, [UPLOAD_ERR_INI_SIZE,UPLOAD_ERR_FORM_SIZE], true) || $upload->size > 8 * 1024 * 1024) {
-            throw new ApplicationError('PAYLOAD_TOO_LARGE', '圖片不可超過 8 MiB。');
+            throw new ApplicationError(ErrorCode::PayloadTooLarge, '圖片不可超過 8 MiB。');
         }
         $local = $upload->origin === ImageOrigin::LocalCli && PHP_SAPI === 'cli'
             && is_file($upload->temporaryPath) && str_starts_with(realpath($upload->temporaryPath) ?: '', '/tmp/');
@@ -47,7 +48,7 @@ class LocalImageStorage implements ImageStorage
             'image/jpeg' => 'jpg','image/png' => 'png',default => 'webp',
         };
         $key = $id . '.' . $extension;
-        $path = $this->config->string('MEDIA_PATH', '/var/www/media') . '/' . $key;
+        $path = $this->config->mediaPath() . '/' . $key;
         $temporary = $path . '.part';
         try {
             imagesavealpha($image, true);
@@ -79,7 +80,7 @@ class LocalImageStorage implements ImageStorage
 
     public function discard(MediaAsset $asset): void
     {
-        $path = $this->config->string('MEDIA_PATH', '/var/www/media') . '/' . $asset->storageKey;
+        $path = $this->config->mediaPath() . '/' . $asset->storageKey;
         if (is_file($path)) {
             unlink($path);
         }

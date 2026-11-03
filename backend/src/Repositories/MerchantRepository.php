@@ -19,7 +19,7 @@ class MerchantRepository
         $params = [];
         if ($query->q !== '') {
             $where .= " AND name LIKE :q ESCAPE '!'";
-            $params['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $query->q) . '%';
+            $params['q'] = Database::contains($query->q);
         }
         if ($query->status !== '') {
             $where .= ' AND status=:status';
@@ -78,7 +78,7 @@ class MerchantRepository
             'SELECT id FROM merchants WHERE attraction_id=:attraction AND id<>:id',
             ['attraction' => $attraction,'id' => $merchant],
         ) !== null) {
-            throw new \Yinghua\Exceptions\ApplicationError('CONFLICT', '此景點已連結其他店家 profile。');
+            throw new \Yinghua\Exceptions\ApplicationError(\Yinghua\Exceptions\ErrorCode::Conflict, '此景點已連結其他店家 profile。');
         }
     }
 
@@ -87,21 +87,12 @@ class MerchantRepository
         $fields = $input->fields;
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $parameters = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO merchants (id,' . $columns . ') VALUES (:id,' . $parameters . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('merchants', $id, $fields);
             } else {
-                $set = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE merchants SET ' . $set . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('merchants', $id, $fields);
             }
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Merchant identity already reserved.', previous: $error);
             }
             throw $error;

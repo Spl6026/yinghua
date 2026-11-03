@@ -7,6 +7,7 @@ namespace Yinghua\Repositories;
 use UnexpectedValueException;
 use Yinghua\DTO\SeoDefaults;
 use Yinghua\DTO\SeoSettingsDocument;
+use Yinghua\Support\Json;
 
 /** 目前只開放 seo 這個設定 key，不接受外部傳入任意 key。 */
 class SeoSettingsRepository
@@ -41,7 +42,7 @@ class SeoSettingsRepository
     public function save(SeoDefaults $defaults, int $version, string $actor, bool $creating): void
     {
         $fields = [
-            'json' => json_encode($defaults->toArray(), JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
+            'json' => Json::encode($defaults->toArray()),
             'version' => $version,
             'actor' => $actor,
         ];

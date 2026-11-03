@@ -33,6 +33,23 @@ final class PublicCollection
         return $result;
     }
 
+    /**
+     * 依欄位值找出快照中的單筆公開內容（例如 slug、id），找不到回 null，由呼叫端決定錯誤訊息。
+     *
+     * @param array<string,mixed> $snapshot
+     * @return array<string,mixed>|null
+     */
+    public static function find(array $snapshot, string $topic, string $field, mixed $value): ?array
+    {
+        foreach (self::items($snapshot, $topic) as $item) {
+            if (($item[$field] ?? null) === $value) {
+                return $item;
+            }
+        }
+
+        return null;
+    }
+
     /** @param list<array<string,mixed>> $items
      * @param array<string,mixed> $snapshot
      * @return array<string,mixed>

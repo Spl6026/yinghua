@@ -1,13 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const source = (await readFile(new URL('../assets/js/components/session-prompt.js', import.meta.url), 'utf8'))
-  .replace(/^import\b[\s\S]*?;\s*/, '')
-  .replace('export function', 'function');
-
-function setup(submit = async () => {}) {
+async function setup(submit = async () => {}) {
   const nodes = new Map();
   const document = { activeElement: null, body: { append() {} } };
   function element(tag, attrs = {}, text = '') {
@@ -65,8 +60,7 @@ function setup(submit = async () => {}) {
     return node;
   }
   const context = { document, element };
-  vm.createContext(context);
-  vm.runInContext(source, context);
+  Object.assign(context, await loadWithSandbox('components/session-prompt.js', context));
   const trigger = element('textarea');
   trigger.focus();
   const prompt = context.sessionPrompt(
@@ -91,8 +85,8 @@ function setup(submit = async () => {}) {
   return { prompt, document, nodes, trigger, dialog, title, controls, tab };
 }
 
-test('到期預警先聚焦完整訊息，首次正反向 Tab 進入框內操作', () => {
-  const s = setup();
+test('到期預警先聚焦完整訊息，首次正反向 Tab 進入框內操作', async () => {
+  const s = await setup();
   s.prompt.show('warn', { identifier: 'test-account' });
   assert.equal(s.document.activeElement, s.title);
   assert.equal(s.title.attrs['aria-describedby'], 'session-prompt-message session-prompt-owner');
@@ -104,8 +98,8 @@ test('到期預警先聚焦完整訊息，首次正反向 Tab 進入框內操作
   assert.equal(s.document.activeElement, s.controls().at(-1));
 });
 
-test('警示轉為到期時重新聚焦訊息，密碼成為第一個操作且兩端循環', () => {
-  const s = setup();
+test('警示轉為到期時重新聚焦訊息，密碼成為第一個操作且兩端循環', async () => {
+  const s = await setup();
   s.prompt.show('warn', {});
   s.tab(false);
   s.prompt.show('expired', {});
@@ -120,7 +114,7 @@ test('警示轉為到期時重新聚焦訊息，密碼成為第一個操作且�
 });
 
 test('驗證失敗保留錯誤關聯並清除密碼，關閉返回原輸入點', async () => {
-  const s = setup(async () => {
+  const s = await setup(async () => {
     throw new Error('帳號或密碼不正確。');
   });
   s.prompt.show('expired', {});

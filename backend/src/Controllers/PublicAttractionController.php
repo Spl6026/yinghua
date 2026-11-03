@@ -8,7 +8,7 @@ use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
-use Yinghua\Models\DetailUrlType;
+use Yinghua\Models\PublicContentType;
 use Yinghua\Services\ContentPublication;
 use Yinghua\Services\DetailUrlResolver;
 use Yinghua\Services\PublicAttractions;
@@ -29,8 +29,8 @@ class PublicAttractionController
             $r->queryText('q'),
             $r->queryText('category'),
             $r->queryText('district'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 12, 100),
+            $r->page(),
+            $r->pageSize(12),
         ));
     }
 
@@ -61,7 +61,7 @@ class PublicAttractionController
 
     public function resolve(ApiContext $context): Response
     {
-        $target = $this->detailUrls->resolve(DetailUrlType::Attraction, $context->request->headers['x-original-uri'] ?? '');
+        $target = $this->detailUrls->resolve(PublicContentType::Attraction, $context->request->headers['x-original-uri'] ?? '');
 
         return new Response(301, [], [], ['Location' => $target]);
     }

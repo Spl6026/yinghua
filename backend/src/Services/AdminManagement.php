@@ -20,6 +20,7 @@ use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\PermissionRepository;
 use Yinghua\Repositories\ResetRepository;
 use Yinghua\Repositories\SessionRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 管理員帳號的建立、修改與刪除；個人權限矩陣的編輯交給 PermissionManagement。 */
 class AdminManagement
@@ -92,7 +93,7 @@ class AdminManagement
                     throw ApplicationError::invalid('account', '此帳號為系統保留帳號，請改用其他帳號。');
                 }
                 if ($input->version !== $target->version) {
-                    throw new ApplicationError('CONFLICT', '資料已被其他人修改，請重新載入。');
+                    throw new ApplicationError(ErrorCode::Conflict, '資料已被其他人修改，請重新載入。');
                 }
                 if ($input->roleId !== $target->roleId) {
                     $this->policy->grantable($fresh, $this->permissions->effective($fresh), $template);
@@ -127,7 +128,7 @@ class AdminManagement
             $target = $this->target($id, true);
             $this->policy->deletableTarget($fresh, $target);
             if ($version !== null && $version !== $target->version) {
-                throw new ApplicationError('CONFLICT', '資料已變更，請重新載入。');
+                throw new ApplicationError(ErrorCode::Conflict, '資料已變更，請重新載入。');
             }
             $this->accounts->deleteAdmin($id);
             $this->sessions->revokeAll(IdentityKind::Admin, $id);
@@ -147,7 +148,7 @@ class AdminManagement
     {
         $account = $this->accounts->find(IdentityKind::Admin, $id, $lock);
         if ($account === null || $account->deletedAt !== null) {
-            throw new ApplicationError('NOT_FOUND', '找不到此管理員。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此管理員。');
         }
 
         return $account;
@@ -158,7 +159,7 @@ class AdminManagement
         $existing = $this->accounts->byLogin(IdentityKind::Admin, $input->account);
         $field = $existing !== null && $existing->id !== $targetId ? 'account' : 'email';
         if ($field === 'account' || $this->accounts->byEmail(IdentityKind::Admin, $input->email) !== null) {
-            throw new ApplicationError('CONFLICT', '帳號或電子郵件已使用。', [$field => '此資料已使用。']);
+            throw new ApplicationError(ErrorCode::Conflict, '帳號或電子郵件已使用。', [$field => '此資料已使用。']);
         }
         throw $error;
     }

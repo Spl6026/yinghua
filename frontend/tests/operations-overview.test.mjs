@@ -1,11 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import { formatUtcDateTime } from '../assets/js/core/utc-display.js';
-const source = (await readFile(new URL('../assets/js/pages/operations-overview.js', import.meta.url), 'utf8'))
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace('export async function', 'async function');
+import { apiModules } from './support/api-modules.mjs';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 class Node {
   constructor() {
     this.children = [];
@@ -69,8 +66,11 @@ async function fixture(root = false, preview = false) {
     handleAdminError() {},
     hasPermission: (_identity, module, action) => module === 'news' && action === 'create',
   };
-  vm.createContext(sandbox);
-  vm.runInContext(source, sandbox);
+  Object.assign(
+    sandbox,
+    apiModules((...args) => sandbox.api(...args))
+  );
+  Object.assign(sandbox, await loadWithSandbox('pages/operations-overview.js', sandbox));
   await sandbox.initializeOperations({ preview: { active: preview } });
   return { host, calls };
 }

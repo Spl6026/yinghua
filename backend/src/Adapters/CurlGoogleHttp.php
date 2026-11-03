@@ -8,6 +8,7 @@ use Yinghua\Contracts\GoogleHttp;
 use Yinghua\DTO\RemoteResponse;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Policies\GoogleUrlPolicy;
+use Yinghua\Exceptions\ErrorCode;
 
 /**
  * 呼叫 Google API 的 HTTP 客戶端。不自動跟隨 redirect，並且每次都先解析 DNS 再釘選 IP，
@@ -23,7 +24,7 @@ class CurlGoogleHttp implements GoogleHttp
         $host = $this->policy->validate($url, $api);
         $ips = gethostbynamel($host);
         if ($ips === false || $ips === []) {
-            throw new ApplicationError('MAP_UNAVAILABLE', '地圖服務暫時無法連線，可改為人工輸入。');
+            throw new ApplicationError(ErrorCode::MapUnavailable, '地圖服務暫時無法連線，可改為人工輸入。');
         }
         foreach ($ips as $ip) {
             if (!$this->policy->publicIp($ip)) {
@@ -67,7 +68,7 @@ class CurlGoogleHttp implements GoogleHttp
         $success = curl_exec($curl);
         $status = curl_getinfo($curl, CURLINFO_RESPONSE_CODE);
         if ($success === false) {
-            throw new ApplicationError('MAP_UNAVAILABLE', '地圖服務逾時或回應過大，可改為人工輸入。');
+            throw new ApplicationError(ErrorCode::MapUnavailable, '地圖服務逾時或回應過大，可改為人工輸入。');
         }
 
         return new RemoteResponse($status, $received, $responseHeaders);

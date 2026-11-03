@@ -1,7 +1,7 @@
 // 景點卡片：沿用原始網站的卡片結構，供城市散策列表與我的收藏共用；資料一律以 textContent 輸出，避免插入 HTML。
 import { element } from '../core/ui.js';
 
-export function imageBlock(className, image, label, gradient) {
+function imageBlock(className, image, label, gradient) {
   const node = element('div', { className, role: 'img', 'aria-label': label });
   node.style.backgroundImage = (gradient ? gradient + ',' : '') + `url(${JSON.stringify(image)})`;
   return node;

@@ -1,6 +1,6 @@
-import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 import { handleAdminError } from '../core/session.js';
+import { authApi } from '../api/auth-api.js';
 
 // 沿用原版左下角的身分預覽選單；資料與切換都由 API 提供，前端不保存假身分。
 export async function initializeAdminPreview(identity) {
@@ -40,11 +40,7 @@ export async function initializeAdminPreview(identity) {
     if (exit) exit.disabled = true;
     status(message, '切換中…');
     try {
-      await api('/api/v1/admin/auth/preview', {
-        method: id ? 'POST' : 'DELETE',
-        body: id ? { adminId: id } : {},
-        kind: 'admin',
-      });
+      await authApi('admin').preview(id);
       // 保留目前頁面以便比較權限；即使被拒絕也保留退出入口。
       location.reload();
     } catch (error) {
@@ -57,7 +53,7 @@ export async function initializeAdminPreview(identity) {
   exit?.addEventListener('click', () => switchTo(''));
   select.addEventListener('change', () => switchTo(select.value));
   try {
-    const { targets } = await api('/api/v1/admin/auth/preview', { kind: 'admin' });
+    const { targets } = await authApi('admin').previewTargets();
     targets.forEach(account =>
       select.append(element('option', { value: account.id }, `${account.displayName}（${account.account}）`))
     );

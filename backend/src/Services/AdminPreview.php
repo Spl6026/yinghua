@@ -14,6 +14,7 @@ use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\SessionRepository;
 use Yinghua\Support\Secrets;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 只有 root 管理員能以其他帳號身分進入唯讀預覽；實際身分仍以資料庫與 session 為準，不信任前端傳來的值。 */
 class AdminPreview
@@ -43,7 +44,7 @@ class AdminPreview
             }
             $session = $this->sessions->find(IdentityKind::Admin, $previousToken, true);
             if ($session === null || $session->ownerId !== $root->id) {
-                throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
+                throw new ApplicationError(ErrorCode::Unauthenticated, '請先登入。');
             }
             $token = Secrets::token();
             $this->sessions->preview($session, $targetId, $token);

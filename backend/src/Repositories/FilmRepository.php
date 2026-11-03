@@ -31,7 +31,7 @@ class FilmRepository
         $parameters = [];
         if ($q !== '') {
             $where .= " AND f.title LIKE :q ESCAPE '!'";
-            $parameters['q'] = '%' . str_replace(['!','%','_'], ['!!','!%','!_'], $q) . '%';
+            $parameters['q'] = Database::contains($q);
         }
         if ($status !== '') {
             $where .= ' AND f.status=:status';
@@ -47,11 +47,11 @@ class FilmRepository
     }
 
     /** @return list<Film> */
-    public function published(?int $now = null): array
+    public function published(int $now): array
     {
         return $this->map($this->database->rows(
             self::SELECT . " WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=:now ORDER BY f.publish_at DESC,f.id",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ));
     }
 
@@ -63,22 +63,13 @@ class FilmRepository
         }
         try {
             if ($creating) {
-                $columns = implode(',', array_keys($fields));
-                $placeholders = implode(',', array_map(static fn(string $key): string => ':' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'INSERT INTO films (id,' . $columns . ') VALUES (:id,' . $placeholders . ')',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->insert('films', $id, $fields);
             } else {
-                $columns = implode(',', array_map(static fn(string $key): string => $key . '=:' . $key, array_keys($fields)));
-                $this->database->execute(
-                    'UPDATE films SET ' . $columns . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
-                    ['id' => $id,...$fields],
-                );
+                $this->database->updateVersioned('films', $id, $fields);
             }
             $this->alias('/films/' . (string) $input->fields['slug'] . '.html', $id);
         } catch (PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new ContentConflict('Film identity already reserved.', previous: $error);
             }
             throw $error;
@@ -87,28 +78,21 @@ class FilmRepository
 
     public function alias(string $path, string $id): void
     {
-        $existing = $this->database->row('SELECT film_id FROM film_aliases WHERE path=:path', ['path' => $path]);
-        if ($existing !== null && (new Row($existing))->string('film_id') !== $id) {
-            throw new ContentConflict('Film URL already reserved.');
-        }
-        $this->database->execute('INSERT IGNORE INTO film_aliases (path,film_id) VALUES (:path,:id)', ['path' => $path,'id' => $id]);
+        $this->database->reserveAlias('film_aliases', 'film_id', $path, $id);
     }
 
     public function delete(string $id): void
     {
-        $this->database->execute(
-            "UPDATE films SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
-            ['id' => $id],
-        );
+        $this->database->softDelete('films', $id);
     }
 
     /** @return array<string,string> */
-    public function aliases(?int $now = null): array
+    public function aliases(int $now): array
     {
         $result = [];
         foreach ($this->database->rows(
             "SELECT a.path,f.slug FROM film_aliases a JOIN films f ON f.id=a.film_id WHERE f.deleted_at IS NULL AND f.status='published' AND f.publish_at<=:now",
-            ['now' => gmdate('Y-m-d H:i:s', $now ?? time())],
+            ['now' => UtcDateTime::sql($now)],
         ) as $values) {
             $row = new Row($values);
             $result[$row->string('path')] = '/films/' . $row->string('slug') . '.html';

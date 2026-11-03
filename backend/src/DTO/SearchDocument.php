@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Yinghua\DTO;
 
+use Yinghua\Models\PublicContentType;
 use Yinghua\Models\SearchType;
+use Yinghua\Support\Uuid;
 
 /** 全站搜尋的索引文件，只取公開白名單欄位，不複製整份資料或帳號資訊。 */
 readonly class SearchDocument
@@ -27,42 +29,28 @@ readonly class SearchDocument
     public static function project(array $snapshot): array
     {
         $documents = [];
-        foreach (['items','films','news','offers'] as $topic) {
-            foreach (PublicCollection::items($snapshot, $topic) as $item) {
-                if ($topic === 'offers' && ($item['active'] ?? false) !== true) {
+        foreach (PublicContentType::cases() as $contentType) {
+            foreach (PublicCollection::items($snapshot, $contentType->collectionKey()) as $item) {
+                // 過期或尚未開始的優惠不進搜尋，避免搜到無法使用的優惠。
+                if ($contentType === PublicContentType::Offer && ($item['active'] ?? false) !== true) {
                     continue;
                 }
-                $type = match ($topic) {
-                    'items' => ($item['category'] ?? '') === '美食' ? SearchType::Food : SearchType::Place,
-                    'films' => SearchType::Film,
-                    'news' => SearchType::News,
-                    default => SearchType::Offer,
-                };
                 $get = static fn(string $key): string => is_string($item[$key] ?? null) ? $item[$key] : '';
                 $slug = $get('slug');
-                $url = $get('url');
-                if ($url === '') {
-                    $url = ($item['isMuseum'] ?? false) === true ? '/museum.html' : '/places/' . $slug . '.html';
-                }
-                $title = $topic === 'items' ? $get('name') : $get('title');
+                $url = $get('url') ?: $contentType->canonicalUrl($item);
+                $title = $get($contentType->titleKey());
                 $summary = self::plain($get('summary') ?: ($get('synopsis') ?: ($get('description') ?: $get('discount'))));
                 $merchant = $item['merchant'] ?? [];
                 $merchantName = is_array($merchant) && is_string($merchant['name'] ?? null) ? $merchant['name'] : '';
                 $text = implode(' ', [$title,$summary,self::plain($get('body')),$get('genre'),$get('category'),$get('district'),
                     $get('address'),$merchantName,$get('discount'),$get('terms')]);
-                $prefix = match ($topic) {
-                    'items' => 'places', 'films' => 'films', 'news' => 'news', default => 'offers',
-                };
-                $expectedUrl = $topic === 'items' && ($item['isMuseum'] ?? false) === true
-                    ? '/museum.html'
-                    : '/' . $prefix . '/' . $slug . '.html';
-                if ($url !== $expectedUrl
+                if ($url !== $contentType->canonicalUrl($item)
                     || !preg_match('~^/(?:places|films|news|offers)/[a-z0-9-]+\.html$|^/museum\.html$~D', $url)
-                    || !preg_match('/^[a-f0-9-]{36}$/D', $get('id'))) {
+                    || !Uuid::isValid($get('id'))) {
                     throw new \UnexpectedValueException('Invalid public search document.');
                 }
                 $documents[] = new self(
-                    $type,
+                    $contentType->searchType($item),
                     $get('id'),
                     $title,
                     mb_substr($summary, 0, 4000),

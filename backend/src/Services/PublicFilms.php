@@ -7,6 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\DTO\FilmQuery;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 公開電影查詢；API 與靜態 HTML 讀的是同一份成功發布的快照。 */
 class PublicFilms
@@ -28,11 +29,11 @@ class PublicFilms
     public function get(string $slug): array
     {
         $snapshot = $this->publication->read();
-        foreach (PublicCollection::items($snapshot, 'films') as $item) {
-            if (($item['slug'] ?? null) === $slug) {
-                return ['film' => $item,'generation' => $snapshot['generation']];
-            }
+        $found = PublicCollection::find($snapshot, 'films', 'slug', $slug);
+        if ($found === null) {
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此公開電影。');
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開電影。');
+
+        return ['film' => $found,'generation' => $snapshot['generation']];
     }
 }

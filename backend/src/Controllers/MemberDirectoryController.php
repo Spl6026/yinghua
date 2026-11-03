@@ -19,7 +19,7 @@ class MemberDirectoryController
             $this->service->listing(
                 $context->actor(),
                 $context->request->queryText('q', '', 80),
-                $context->request->queryInteger('page', 1, 100000),
+                $context->request->page(),
             ),
         );
     }

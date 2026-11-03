@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\DTO;
 
 /** 推薦路線的管理端資料；公開頁上的站點清單另外由發布快照產生。 */
-readonly class RecommendedRoute
+readonly class RecommendedRoute implements \Yinghua\Contracts\VersionedContent
 {
     /** @param list<array{attractionId:string,sortOrder:int,suggestedTime:?string,note:string,name:string,available:bool}> $stops */
     public function __construct(

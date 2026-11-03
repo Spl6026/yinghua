@@ -6,6 +6,7 @@ namespace Yinghua\Services;
 
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 公開景點查詢；API 與靜態 HTML 讀的是同一份成功發布的快照。 */
 class PublicAttractions
@@ -51,22 +52,22 @@ class PublicAttractions
     /** @return array<string,mixed> */
     public function get(string $slug): array
     {
-        foreach (PublicCollection::items($this->publication->read(), 'items') as $item) {
-            if (($item['slug'] ?? null) === $slug) {
-                return ['attraction' => $item];
-            }
+        $found = PublicCollection::find($this->publication->read(), 'items', 'slug', $slug);
+        if ($found === null) {
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此公開景點。');
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開景點。');
+
+        return ['attraction' => $found];
     }
 
     /** @return array<string,mixed> */
     public function museum(): array
     {
-        foreach (PublicCollection::items($this->publication->read(), 'items') as $item) {
-            if (($item['isMuseum'] ?? false) === true) {
-                return ['attraction' => $item];
-            }
+        $found = PublicCollection::find($this->publication->read(), 'items', 'isMuseum', true);
+        if ($found === null) {
+            throw new ApplicationError(ErrorCode::NotFound, '目前沒有已發布的博物館介紹。');
         }
-        throw new ApplicationError('NOT_FOUND', '目前沒有已發布的博物館介紹。');
+
+        return ['attraction' => $found];
     }
 }

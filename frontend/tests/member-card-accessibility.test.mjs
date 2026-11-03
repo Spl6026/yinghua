@@ -1,12 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const source = (await readFile(new URL('../assets/js/components/content-cards.js', import.meta.url), 'utf8'))
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace(/\bexport /g, '');
-test('景點收藏控制不被上層 img 語意隱藏，且保留完整可讀名稱', () => {
+test('景點收藏控制不被上層 img 語意隱藏，且保留完整可讀名稱', async () => {
   const sandbox = {
     element: (tag, attributes = {}, text) => ({
       tag,
@@ -25,9 +21,8 @@ test('景點收藏控制不被上層 img 語意隱藏，且保留完整可讀名
       },
     }),
   };
-  vm.createContext(sandbox);
-  vm.runInContext(source, sandbox);
-  const card = sandbox.placeCard({
+  const { placeCard } = await loadWithSandbox('components/content-cards.js', sandbox);
+  const card = placeCard({
     id: 'a',
     name: '景點甲',
     image: '/example.png',

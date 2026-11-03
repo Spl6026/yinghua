@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
 import { screeningStart, screeningFields } from '../assets/js/core/screening-time.js';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-test('使用台北日期、跨年及分鐘，拒絕日期溢位與只有單邊資料', () => {
+test('使用台北日期、跨年及分鐘，拒絕日期溢位與只有單邊資料', async () => {
   assert.equal(screeningStart('2026-12-31', '23:30'), '2026-12-31T23:30:00+08:00');
   assert.deepEqual(screeningFields('2026-12-31T16:30:00+00:00'), { date: '2027-01-01', time: '00:30' });
   assert.equal(screeningStart('', ''), null);
@@ -21,13 +21,6 @@ test('使用台北日期、跨年及分鐘，拒絕日期溢位與只有單邊�
     );
 });
 
-const code = (
-  await Promise.all(
-    ['core/ui.js', 'core/screening-time.js', 'components/screening-editor.js'].map(path =>
-      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
-    )
-  )
-).map(text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));
 class Node {
   constructor() {
     this.children = [];
@@ -62,23 +55,23 @@ class Node {
     this.focused = true;
   }
 }
-function fixture() {
+async function fixture() {
   const container = new Node(),
     state = { changes: 0, confirm: true };
   const sandbox = {
+    ...taipeiTime,
     document: { createElement: () => new Node() },
     passwordError: () => '',
     confirmAction: async () => state.confirm,
   };
-  vm.createContext(sandbox);
-  code.forEach(s => vm.runInContext(s, sandbox));
+  Object.assign(sandbox, await loadWithSandbox('components/screening-editor.js', sandbox));
   const editor = sandbox.screeningEditor(container, () => state.changes++);
   const rows = () => container.children[0].children;
   const fields = row => row.children[1].children.map(field => field.children[1]);
   return { editor, state, rows, fields, add: () => container.children[2].emit('click') };
 }
 test('多場次載入／新增／刪除後保留 ID 與資料，錯誤可對到重編號的列', async () => {
-  const f = fixture();
+  const f = await fixture();
   f.editor.load([{ id: 'a', startsAt: '2026-10-19T06:00:00+00:00', ticketUrl: 'https://example.test/a' }]);
   f.add();
   const controls = f.fields(f.rows()[1]);
@@ -98,7 +91,7 @@ test('多場次載入／新增／刪除後保留 ID 與資料，錯誤可對到�
   assert.equal(f.editor.read()[0].startsAt, '2026-10-19T14:30:00+08:00');
 });
 test('零場次可儲存；新增的未完成列提示補齊或移除；唯讀不能新增刪除', async () => {
-  const f = fixture();
+  const f = await fixture();
   f.editor.load([]);
   assert.equal(f.editor.read().length, 0);
   f.add();

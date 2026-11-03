@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Services;
 
 use Yinghua\Contracts\Clock;
-use Yinghua\Contracts\ContentImportService;
+use Yinghua\Contracts\ContentEditor;
 use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\ImportItem;
 use Yinghua\DTO\OfferInput;
@@ -20,9 +20,10 @@ use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\MediaRepository;
 use Yinghua\Repositories\MerchantRepository;
 use Yinghua\Repositories\OfferRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 優惠的寫入流程，統一處理店家、條款與活動期間的規則。 */
-class OfferManagement implements ContentImportService
+class OfferManagement implements ContentEditor
 {
     public function __construct(
         private readonly OfferRepository $offers,
@@ -45,14 +46,14 @@ class OfferManagement implements ContentImportService
     {
         $before = $this->offers->find($id, $lock);
         if ($creating === false && ($before === null || ($before->fields['deleted_at'] ?? null) !== null)) {
-            throw new ApplicationError('NOT_FOUND', '找不到此內容。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此內容。');
         }
         if ($creating === true && $before !== null) {
-            throw new ApplicationError('CONFLICT', '此識別已存在。');
+            throw new ApplicationError(ErrorCode::Conflict, '此識別已存在。');
         }
         $this->authorization->require($actor, 'offers', $before === null ? 'create' : 'edit', $lock);
         if (($before?->fields['deleted_at'] ?? null) !== null) {
-            throw new ApplicationError('CONFLICT', '此識別已刪除，不能以匯入重新使用。');
+            throw new ApplicationError(ErrorCode::Conflict, '此識別已刪除，不能以匯入重新使用。');
         }
         $input = OfferInput::fromArray($values, $before === null, $this->clock->now());
         $fields = $input->fields;

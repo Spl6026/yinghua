@@ -143,7 +143,7 @@ class ItineraryRepository
                 ['id' => $id,'member' => $memberId,'title' => $title,'date' => $date,'version' => $version],
             );
         } catch (\PDOException $error) {
-            if ($error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062) {
+            if (Database::isDuplicateKey($error)) {
                 throw new \Yinghua\Exceptions\ContentConflict('Itinerary identity unavailable.', previous: $error);
             }
             throw $error;

@@ -23,5 +23,13 @@ export function authApi(kind = 'member') {
     register: body => api('/api/v1/auth/register', { method: 'POST', body }),
     captcha: () => api('/api/v1/auth/captcha'),
     emailCaptcha: email => api('/api/v1/auth/captcha/email', { method: 'POST', body: { email } }),
+    // 管理員的唯讀模擬：列出可模擬的帳號、切換到某個帳號（adminId 為空則結束模擬）。
+    previewTargets: () => api('/api/v1/admin/auth/preview', { kind: 'admin' }),
+    preview: adminId =>
+      api('/api/v1/admin/auth/preview', {
+        method: adminId ? 'POST' : 'DELETE',
+        body: adminId ? { adminId } : {},
+        kind: 'admin',
+      }),
   };
 }

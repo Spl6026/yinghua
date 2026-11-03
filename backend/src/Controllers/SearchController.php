@@ -25,8 +25,8 @@ class SearchController
             $this->service->listing(new SearchQuery(
                 $q,
                 $r->queryText('type'),
-                $r->queryInteger('page', 1, 100000),
-                $r->queryInteger('pageSize', 20, 100),
+                $r->page(),
+                $r->pageSize(),
             )),
         );
     }

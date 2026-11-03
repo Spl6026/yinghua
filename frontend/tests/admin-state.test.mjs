@@ -1,16 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
 // 執行實際頁面模組；只替換 DOM、導航及 API 邊界，驗證非同步控制狀態。
-const sources = await Promise.all(
-  ['core/ui.js', 'core/session.js', 'pages/admin-form.js', 'pages/permissions.js'].map(async path =>
-    (await readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8'))
-      .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-      .replace(/\bexport /g, '')
-  )
-);
 const settle = async () => {
   for (let i = 0; i < 5; i++) await new Promise(resolve => setImmediate(resolve));
 };
@@ -91,7 +83,7 @@ class DomNode {
     this.parent.children = this.parent.children.filter(child => child !== this);
   }
 }
-function fixture(module, identity = {}, creating = false) {
+async function fixture(module, identity = {}, creating = false) {
   const nodes = new Map();
   const node = (selector, tag = 'div') => {
     if (!nodes.has(selector)) nodes.set(selector, new DomNode(tag));
@@ -223,18 +215,17 @@ function fixture(module, identity = {}, creating = false) {
         state.saves.push({ id, body });
         if (state.write) await state.write();
       },
-      async update(id, body) {
-        state.saves.push({ id, body });
-        if (state.write) await state.write();
-      },
-      async create(body) {
-        state.saves.push({ body });
+      async save(id, body) {
+        state.saves.push(id ? { id, body } : { body });
         if (state.write) await state.write();
       },
     },
   };
-  vm.createContext(sandbox);
-  sources.forEach(source => vm.runInContext(source, sandbox));
+  Object.assign(
+    sandbox,
+    await loadWithSandbox('pages/admin-form.js', sandbox),
+    await loadWithSandbox('pages/permissions.js', sandbox)
+  );
   const who = {
     admin: { id: 'operator' },
     permissions: rights.flatMap(right => [
@@ -279,7 +270,7 @@ function fixture(module, identity = {}, creating = false) {
 }
 
 test('管理員讀取失敗後可重新載入並恢復儲存', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   f.state.get = async () => {
     throw new Error('暫時無法讀取');
   };
@@ -293,7 +284,7 @@ test('管理員讀取失敗後可重新載入並恢復儲存', async () => {
 });
 
 test('一般管理員帳號可修改並連同版本送出，唯讀模擬仍不能修改', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   assert.notEqual(f.form.elements.account.readOnly, true);
   f.form.elements.account.value = '新帳號';
@@ -302,7 +293,7 @@ test('一般管理員帳號可修改並連同版本送出，唯讀模擬仍不�
   assert.equal(f.state.saves[0].body.version, 1);
 });
 test('管理員取消重新載入保留輸入及未儲存狀態', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   f.form.elements.displayName.value = '未儲存';
   f.form.emit('input');
@@ -313,7 +304,7 @@ test('管理員取消重新載入保留輸入及未儲存狀態', async () => {
   assert.equal(f.dirty(), true);
 });
 test('管理員確認重新載入才清除未儲存輸入', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   f.form.elements.displayName.value = '未儲存';
   f.form.emit('input');
@@ -323,7 +314,7 @@ test('管理員確認重新載入才清除未儲存輸入', async () => {
 });
 
 test('管理員保存欄位錯誤後重新載入，清除過期的提示與無效標記', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   f.form.elements.email.value = 'duplicate@example.test';
   f.form.emit('input');
@@ -341,7 +332,7 @@ test('管理員保存欄位錯誤後重新載入，清除過期的提示與無�
   assert.equal(f.form.elements.email.attrs['aria-describedby'], undefined);
 });
 test('管理員舊回應不能覆蓋較新重新載入結果', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   const old = deferred();
   const recent = deferred();
@@ -357,7 +348,7 @@ test('管理員舊回應不能覆蓋較新重新載入結果', async () => {
   assert.equal(f.save.disabled, false);
 });
 test('管理員唯讀模擬重新載入後仍禁止修改和送出', async () => {
-  const f = fixture('admins', { preview: { active: true } });
+  const f = await fixture('admins', { preview: { active: true } });
   await f.initialize();
   await f.reload.emit('click');
   assert.equal(f.save.disabled, true);
@@ -367,7 +358,7 @@ test('管理員唯讀模擬重新載入後仍禁止修改和送出', async () =>
   assert.equal(f.state.saves.length, 0);
 });
 test('管理員儲存遇到401使用後台登入導向', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   f.state.write = async () => {
     throw Object.assign(new Error('請先登入'), { status: 401 });
@@ -378,7 +369,7 @@ test('管理員儲存遇到401使用後台登入導向', async () => {
 });
 
 test('已登入管理員逾時會保留編輯內容，恢復後不自動重送', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   f.state.recoverable = true;
   f.form.elements.displayName.value = '尚未儲存的名稱';
@@ -393,7 +384,7 @@ test('已登入管理員逾時會保留編輯內容，恢復後不自動重送',
   assert.equal(f.state.saves.length, 1);
 });
 test('管理員儲存期間重新載入不能開啟第二次送出', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   await f.initialize();
   const pending = deferred();
   f.state.write = () => pending.promise;
@@ -410,13 +401,13 @@ test('管理員儲存期間重新載入不能開啟第二次送出', async () =>
   assert.equal(requests, 1);
 });
 test('權限對象顯示帳號以區分同名管理員', async () => {
-  const f = fixture('permissions');
+  const f = await fixture('permissions');
   await f.initialize();
   assert.match(f.target.children[0].textContent, /同名（editor）/);
   assert.match(f.target.children[1].textContent, /同名（admin）/);
 });
 test('權限儲存期間切到root，完成後仍唯讀且不覆蓋新對象', async () => {
-  const f = fixture('permissions');
+  const f = await fixture('permissions');
   await f.initialize();
   const save = deferred();
   f.state.write = () => save.promise;
@@ -434,7 +425,7 @@ test('權限儲存期間切到root，完成後仍唯讀且不覆蓋新對象', a
   assert.equal(f.node('#permission-summary').textContent, '系統管理員｜完整權限');
 });
 test('權限儲存後讀取失敗保留提示並要求重新載入', async () => {
-  const f = fixture('permissions');
+  const f = await fixture('permissions');
   await f.initialize();
   f.state.read = async () => {
     throw new Error('讀取失敗');
@@ -449,7 +440,7 @@ test('權限儲存後讀取失敗保留提示並要求重新載入', async () =>
   assert.equal(f.save.disabled, false);
 });
 test('取消權限對象切換保留修改和原對象', async () => {
-  const f = fixture('permissions');
+  const f = await fixture('permissions');
   await f.initialize();
   const checkbox = f.boxes()[0];
   checkbox.checked = false;
@@ -466,7 +457,7 @@ test('權限唯讀模擬與只有查看權限的帳號不能送出', async () =>
     { preview: { active: true } },
     { permissions: [{ module: 'permissions', action: 'view', allowed: true }] },
   ]) {
-    const f = fixture('permissions', identity);
+    const f = await fixture('permissions', identity);
     await f.initialize();
     assert.equal(f.save.disabled, true);
     assert.ok(f.boxes().every(input => input.disabled));
@@ -476,7 +467,7 @@ test('權限唯讀模擬與只有查看權限的帳號不能送出', async () =>
   }
 });
 test('權限儲存遇到401使用後台登入導向', async () => {
-  const f = fixture('permissions');
+  const f = await fixture('permissions');
   await f.initialize();
   f.state.write = async () => {
     throw Object.assign(new Error('請先登入'), { status: 401 });
@@ -487,7 +478,7 @@ test('權限儲存遇到401使用後台登入導向', async () => {
 });
 
 test('直接開固定管理員編輯頁時，替換表單後不再查找已移除的按鈕', async () => {
-  const f = fixture('admins');
+  const f = await fixture('admins');
   f.form.append(f.reload, f.save, f.message);
   const lookup = f.sandbox.document.querySelector;
   f.sandbox.document.querySelector = selector =>
@@ -499,7 +490,11 @@ test('直接開固定管理員編輯頁時，替換表單後不再查找已移�
 });
 
 test('只有新增管理員權限時成功留頁且不能重複送出', async () => {
-  const f = fixture('admins', { permissions: [{ module: 'admins', action: 'create', allowed: true }] }, true);
+  const f = await fixture(
+    'admins',
+    { permissions: [{ module: 'admins', action: 'create', allowed: true }] },
+    true
+  );
   await f.initialize();
   await f.form.emit('submit');
   await settle();

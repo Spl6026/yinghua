@@ -20,6 +20,7 @@ use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\ConsentRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\SessionRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 class Authentication
 {
@@ -40,11 +41,11 @@ class Authentication
         $session = $this->sessions->find($kind, $token);
         $account = $session === null ? null : $this->accounts->find($kind, $session->ownerId);
         if ($session === null || $account === null || !$account->isActive()) {
-            throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
+            throw new ApplicationError(ErrorCode::Unauthenticated, '請先登入。');
         }
 
         if ($session->previewAdminId !== null && ($kind !== IdentityKind::Admin || !$account->isRoot)) {
-            throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
+            throw new ApplicationError(ErrorCode::Unauthenticated, '請先登入。');
         }
         $preview = $session->previewAdminId === null ? null : $this->accounts->find(IdentityKind::Admin, $session->previewAdminId);
 
@@ -54,8 +55,11 @@ class Authentication
     public function login(IdentityKind $kind, LoginInput $input, ClientContext $client, string $previousToken = ''): AuthGrant
     {
         try {
+            // 同一來源對同一帳號 15 分鐘只能試 5 次；若只以帳號計數，任何人知道帳號名稱就能從別處持續把本人鎖在門外。
+            // 帳號另設較寬的總上限，擋下分散來源的大量猜測。
             $this->limiter->check($kind->value . '-login-ip', $client->ipHash, 40, 900);
-            $this->limiter->check($kind->value . '-login-account', $input->identifier, 5, 900);
+            $this->limiter->check($kind->value . '-login-account-ip', $input->identifier . '|' . $client->ipHash, 5, 900);
+            $this->limiter->check($kind->value . '-login-account', $input->identifier, 50, 900);
         } catch (ApplicationError $error) {
             $this->events->auth('login', false, 'RATE_LIMITED', $kind, null, $input->identifier, $client);
             throw $error;
@@ -64,12 +68,12 @@ class Authentication
         $verified = $this->passwords->verify($input->password, $account?->passwordHash);
         if ($account === null || !$account->isActive() || !$verified) {
             $this->events->auth('login', false, 'INVALID_CREDENTIALS', $kind, $account, $input->identifier, $client);
-            throw new ApplicationError('INVALID_CREDENTIALS', '帳號或密碼不正確。');
+            throw new ApplicationError(ErrorCode::InvalidCredentials, '帳號或密碼不正確。');
         }
         $grant = $this->transactions->run(function () use ($kind, $account, $input, $client, $previousToken): AuthGrant {
             $fresh = $this->accounts->find($kind, $account->id, true);
             if ($fresh === null || !$fresh->isActive() || !hash_equals($fresh->passwordHash, $account->passwordHash)) {
-                throw new ApplicationError('INVALID_CREDENTIALS', '帳號或密碼不正確。');
+                throw new ApplicationError(ErrorCode::InvalidCredentials, '帳號或密碼不正確。');
             }
             if ($this->passwords->needsRehash($fresh->passwordHash)) {
                 $this->accounts->rehashPassword($kind, $fresh->id, $this->passwords->hash($input->password));
@@ -82,7 +86,7 @@ class Authentication
 
             return new AuthGrant($fresh, $token);
         });
-        $this->limiter->clear($kind->value . '-login-account', $input->identifier);
+        $this->limiter->clear($kind->value . '-login-account-ip', $input->identifier . '|' . $client->ipHash);
 
         return $grant;
     }
@@ -121,7 +125,7 @@ class Authentication
             });
         } catch (AccountConflict $error) {
             if ($this->accounts->byEmail(IdentityKind::Member, $input->email) !== null) {
-                throw new ApplicationError('CONFLICT', '此電子郵件已註冊。', ['email' => '此電子郵件已註冊。']);
+                throw new ApplicationError(ErrorCode::Conflict, '此電子郵件已註冊。', ['email' => '此電子郵件已註冊。']);
             }
             throw $error;
         }

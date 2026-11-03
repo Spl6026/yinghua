@@ -1,7 +1,10 @@
 import { escapeHtml } from '../assets/js/core/content-view.js';
 
+// 環境變數與後台都沒有指定條款版本時使用的版本日期。
+export const DEFAULT_POLICY_VERSION = '2026-11-02';
+
 // 純文字政策內容絕不當作 HTML 執行；後台未填寫時保留頁面預設、面向大眾的條款文案。
-export function renderPolicyVersion(html, version = '2026-11-02', general) {
+export function renderPolicyVersion(html, version = DEFAULT_POLICY_VERSION, general) {
   html = html.replaceAll('{{TERMS_VERSION}}', () => escapeHtml(version));
   const kind = html.includes('data-policy-kind="terms"')
     ? 'terms'

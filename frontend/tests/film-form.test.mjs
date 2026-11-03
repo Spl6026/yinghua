@@ -1,15 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
+import * as taipeiTime from '../assets/js/core/taipei-time.js';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 
-const source = (
-  await Promise.all(
-    ['core/ui.js', 'core/session.js', 'core/film-view.js', 'pages/film-form.js'].map(path =>
-      readFile(new URL('../assets/js/' + path, import.meta.url), 'utf8')
-    )
-  )
-).map(text => text.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));
 const html = await readFile(new URL('../pages/admin/film-add.html', import.meta.url), 'utf8');
 const names = [...html.matchAll(/\bname="([^"]+)"/g)]
   .map(m => m[1])
@@ -71,7 +65,7 @@ class Node {
     this.parent.children = this.parent.children.filter(c => c !== this);
   }
 }
-function fixture({ creating = false, preview = false, edit = true, view = true } = {}) {
+async function fixture({ creating = false, preview = false, edit = true, view = true } = {}) {
   const nodes = new Map(),
     node = (id, tag = 'div') => {
       if (!nodes.has(id)) nodes.set(id, new Node(tag));
@@ -116,6 +110,7 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
   };
   const state = { saves: [], uploads: [], assignments: [], gets: 0, confirm: true };
   const sandbox = {
+    ...taipeiTime,
     URLSearchParams,
     HTMLElement: Node,
     passwordError: () => '',
@@ -154,8 +149,7 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
       retry: async () => ({ message: '已同步' }),
     },
   };
-  vm.createContext(sandbox);
-  source.forEach(s => vm.runInContext(s, sandbox));
+  Object.assign(sandbox, await loadWithSandbox('pages/film-form.js', sandbox));
   const identity = {
     preview: { active: preview },
     permissions: ['create', ...(view ? ['view'] : []), ...(edit ? ['edit'] : [])].map(action => ({
@@ -175,7 +169,7 @@ function fixture({ creating = false, preview = false, edit = true, view = true }
   };
 }
 test('保留原型海報網址、替代文字與編輯版本；成功後不能重複提交', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.posterAlt.value = '新說明';
   f.form.emit('submit');
@@ -188,7 +182,7 @@ test('保留原型海報網址、替代文字與編輯版本；成功後不能�
   assert.equal(f.state.saves.length, 1);
 });
 test('讀取失敗不能寫入；409 保留輸入供重載', async () => {
-  const f = fixture();
+  const f = await fixture();
   f.state.get = async () => {
     throw new Error('載入失敗');
   };
@@ -209,7 +203,7 @@ test('讀取失敗不能寫入；409 保留輸入供重載', async () => {
   assert.equal(f.save.disabled, false);
 });
 test('唯讀模擬阻擋修改、上傳與保存', async () => {
-  const f = fixture({ preview: true });
+  const f = await fixture({ preview: true });
   await f.initialize();
   assert.equal(f.form.elements.title.disabled, true);
   f.form.emit('submit');
@@ -219,7 +213,7 @@ test('唯讀模擬阻擋修改、上傳與保存', async () => {
   assert.equal(f.state.uploads.length, 0);
 });
 test('上傳明確使用 films 模組、清除網址；未上傳的選檔阻擋保存', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.posterMode.value = 'upload';
   f.form.elements.posterMode.emit('change');
@@ -233,7 +227,7 @@ test('上傳明確使用 films 模組、清除網址；未上傳的選檔阻擋�
   assert.equal(f.form.elements.posterMediaId.value, 'poster-new');
 });
 test('新增已保存但公開失敗：只具新增權限不能重複新增', async () => {
-  const f = fixture({ creating: true, edit: false });
+  const f = await fixture({ creating: true, edit: false });
   await f.initialize();
   f.form.elements.title.value = '新片';
   f.state.write = async () => ({
@@ -249,7 +243,7 @@ test('新增已保存但公開失敗：只具新增權限不能重複新增', as
   assert.match(f.message.textContent, /請勿重複新增/);
 });
 test('202 後有編輯權限，下一次使用既有 id/version 而非重複新增', async () => {
-  const f = fixture({ creating: true });
+  const f = await fixture({ creating: true });
   await f.initialize();
   f.state.write = async () => ({
     film: { ...f.item, version: 3 },
@@ -264,7 +258,7 @@ test('202 後有編輯權限，下一次使用既有 id/version 而非重複新�
 });
 
 test('僅新增權限保存成功後顯示結果，可再新增，不導向沒有權限的列表', async () => {
-  const f = fixture({ creating: true, edit: false, view: false });
+  const f = await fixture({ creating: true, edit: false, view: false });
   await f.initialize();
   f.form.elements.title.value = '新增權限電影';
   f.form.emit('submit');

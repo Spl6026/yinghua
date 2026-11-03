@@ -11,6 +11,7 @@ use Yinghua\Models\Account;
 use Yinghua\Policies\RecommendedRouteSelection;
 use Yinghua\Repositories\{ItineraryRepository, RecommendedRouteRepository};
 use Yinghua\Support\Secrets;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 會員本人的多份行程：每次儲存都在交易內鎖定會員、比對版本，並整份覆寫行程內容。 */
 class MemberItineraries
@@ -66,7 +67,7 @@ class MemberItineraries
                 return new TripCreated($this->view($member->id, $trip), true);
             });
         } catch (ContentConflict) {
-            throw new ApplicationError('CONFLICT', '此行程識別無法使用，請重新載入。');
+            throw new ApplicationError(ErrorCode::Conflict, '此行程識別無法使用，請重新載入。');
         }
     }
 
@@ -119,11 +120,11 @@ class MemberItineraries
             }
             $route = $this->routes->find($routeId, true);
             if ($published === null || $route === null || $route->status !== 'published' || $route->deletedAt !== null) {
-                throw new ApplicationError('NOT_FOUND', '此推薦路線目前無法套用。');
+                throw new ApplicationError(ErrorCode::NotFound, '此推薦路線目前無法套用。');
             }
             $current = RecommendedRouteSelection::project([$route], PublicCollection::items($snapshot, 'items'))[0] ?? null;
             if ($current !== $published) {
-                throw new ApplicationError('CONFLICT', '推薦路線已變更，請重新載入後確認。');
+                throw new ApplicationError(ErrorCode::Conflict, '推薦路線已變更，請重新載入後確認。');
             }
             $ids = [];
             foreach ($route->stops as $stop) {
@@ -146,7 +147,7 @@ class MemberItineraries
                 }
             }
             if ($items === []) {
-                throw new ApplicationError('NOT_FOUND', '此路線沒有可用站點。');
+                throw new ApplicationError(ErrorCode::NotFound, '此路線沒有可用站點。');
             }
             return $this->view($member->id, $this->records->saveOwned($member->id, $id, $route->title, $before->tripDate, $items));
         });
@@ -181,13 +182,13 @@ class MemberItineraries
     private function target(string $memberId, string $id, bool $lock = false): MemberItinerary
     {
         ContentFields::uuid($id, 'id');
-        return $this->records->findOwned($memberId, $id, $lock) ?? throw new ApplicationError('NOT_FOUND', '找不到此行程。');
+        return $this->records->findOwned($memberId, $id, $lock) ?? throw new ApplicationError(ErrorCode::NotFound, '找不到此行程。');
     }
 
     private function version(MemberItinerary $trip, int $version): void
     {
         if ($trip->version !== $version) {
-            throw new ApplicationError('CONFLICT', '行程已被其他分頁修改，請重新載入；目前輸入尚未保存。');
+            throw new ApplicationError(ErrorCode::Conflict, '行程已被其他分頁修改，請重新載入；目前輸入尚未保存。');
         }
     }
 

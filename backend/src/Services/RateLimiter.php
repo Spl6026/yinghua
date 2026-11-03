@@ -8,6 +8,7 @@ use Yinghua\Support\Secrets;
 use Yinghua\Contracts\Clock;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Repositories\RateLimitRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 class RateLimiter
 {
@@ -22,7 +23,7 @@ class RateLimiter
         $now = $this->clock->now();
         $start = intdiv($now, $seconds) * $seconds;
         if ($this->repository->hit($scope, $this->secrets->keyed('rate', $identifier), $start, $start + $seconds) > $maximum) {
-            throw new ApplicationError('RATE_LIMITED', '操作過於頻繁，請稍後再試。', [], $start + $seconds - $now);
+            throw new ApplicationError(ErrorCode::RateLimited, '操作過於頻繁，請稍後再試。', [], $start + $seconds - $now);
         }
     }
 

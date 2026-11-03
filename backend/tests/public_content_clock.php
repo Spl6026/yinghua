@@ -30,6 +30,7 @@ use Yinghua\Repositories\SearchRepository;
 use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\SeoSettingsRepository;
 use Yinghua\Services\ContentPublication;
+use Yinghua\Services\PublicationSnapshotBuilder;
 use Yinghua\Services\SeoPublication;
 use Yinghua\Services\PublicOffers;
 use Yinghua\Support\Secrets;
@@ -69,16 +70,8 @@ try {
     $news = new NewsRepository($db);
     $news->save($newsId, NewsInput::fromArray(['title' => '跨日排程消息','type' => 'city','slug' => 'clock-' . $newsId,'status' => 'published','publishAt' => '2026-10-23T00:00:00+08:00'], true, time()), true, $actor->id);
     $publication = new ContentPublication(
-        new AttractionRepository($db),
         new PublicationRepository($db),
         new NodeContentRenderer($config),
-        $config,
-        new FilmRepository($db, new FilmScreeningRepository($db)),
-        $clock,
-        $news,
-        $offers,
-        new SeoPublication(new SeoSettingsRepository($db), new SeoOverrideRepository($db)),
-        new RecommendedRouteRepository($db),
         // 外層測試交易最後會回滾，搜尋索引寫入直接沿用該交易，不另開巢狀交易。
         new SearchRepository($db, new class implements Transactions {
             public function run(callable $operation): mixed
@@ -86,7 +79,17 @@ try {
                 return $operation();
             }
         }),
-        new GeneralSettingsRepository($db),
+        new PublicationSnapshotBuilder(
+            $config,
+            $clock,
+            new AttractionRepository($db),
+            new FilmRepository($db, new FilmScreeningRepository($db)),
+            $news,
+            $offers,
+            new RecommendedRouteRepository($db),
+            new SeoPublication(new SeoSettingsRepository($db), new SeoOverrideRepository($db)),
+            new GeneralSettingsRepository($db),
+        ),
     );
     $public = new PublicOffers($publication);
     $clock->value = (int) strtotime('2026-10-22T23:59:59+08:00');
@@ -100,7 +103,7 @@ try {
         $publication->read();
         $check(false);
     } catch (ApplicationError $error) {
-        $check($error->errorCode === 'PUBLICATION_PENDING');
+        $check($error->errorCode === Yinghua\Exceptions\ErrorCode::PublicationPending);
     }
     $check($publication->tick());
     $check($publication->read()['generation'] !== $oldGeneration);

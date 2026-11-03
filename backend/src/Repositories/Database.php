@@ -10,6 +10,9 @@ use PDOException;
 use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ContentConflict;
+use Yinghua\Support\ErrorLog;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 所有 Repository 共用同一個 PDO，寫入才能參與同一筆交易。 */
 class Database
@@ -41,11 +44,119 @@ class Database
             $pdo->exec("SET time_zone = '+00:00'");
         } catch (PDOException $error) {
             // 資料庫暫停或斷線時，不讓請求卡在預設的 30 秒逾時，也不把連線細節洩漏給使用者。
-            error_log('database_connect_exception=' . $error::class);
-            throw new ApplicationError('SERVICE_UNAVAILABLE', '服務暫時無法使用。');
+            ErrorLog::exception('database_connect', $error);
+            throw new ApplicationError(ErrorCode::ServiceUnavailable, '服務暫時無法使用。');
         }
 
         return new self($pdo);
+    }
+
+    /**
+     * 網頁請求用的連線：等鎖與單一查詢都設上限。
+     * Nginx 15 秒就放棄等待 PHP，但 PHP-FPM 的 worker 仍會卡在 InnoDB 預設 50 秒的等鎖上；
+     * worker 數量有限，幾個卡住的請求就會讓整個網站排隊。命令列工具（發布、migration）不套用。
+     */
+    public static function forRequest(Config $config): self
+    {
+        $database = self::connect($config);
+        try {
+            $database->pdo->exec('SET SESSION innodb_lock_wait_timeout = 5, max_statement_time = 10');
+        } catch (PDOException $error) {
+            ErrorLog::exception('database_session_limits', $error);
+            throw new ApplicationError(ErrorCode::ServiceUnavailable, '服務暫時無法使用。');
+        }
+
+        return $database;
+    }
+
+    /**
+     * 新增一筆以 UUID 為主鍵的資料。欄位名稱一律來自 DTO 的欄位白名單，不會是使用者輸入。
+     *
+     * @param array<string, bool|int|string|null> $values
+     */
+    public function insert(string $table, string $id, array $values): void
+    {
+        $columns = array_keys($values);
+        $this->execute(
+            'INSERT INTO ' . $table . ' (id,' . implode(',', $columns) . ') VALUES (:id,'
+            . implode(',', array_map(static fn(string $column): string => ':' . $column, $columns)) . ')',
+            ['id' => $id, ...$values],
+        );
+    }
+
+    /**
+     * 更新資料並把版本號加一，供樂觀鎖判斷其他人是否已修改過。
+     * $expressions 可為個別欄位指定 SQL 運算式取代單純的 :欄位（參數名稱仍是欄位名稱）。
+     *
+     * @param array<string, bool|int|string|null> $values
+     * @param array<string, string> $expressions
+     */
+    public function updateVersioned(string $table, string $id, array $values, array $expressions = []): void
+    {
+        $assignments = array_map(
+            static fn(string $column): string => $column . '=' . ($expressions[$column] ?? ':' . $column),
+            array_keys($values),
+        );
+        $this->execute(
+            'UPDATE ' . $table . ' SET ' . implode(',', $assignments) . ',version=version+1,updated_at=UTC_TIMESTAMP() WHERE id=:id',
+            ['id' => $id, ...$values],
+        );
+    }
+
+    /** 下架並軟刪除：保留資料與舊網址對照，只是不再出現在任何清單或公開頁。 */
+    public function softDelete(string $table, string $id): void
+    {
+        $this->execute(
+            "UPDATE " . $table . " SET status='archived',deleted_at=UTC_TIMESTAMP(),updated_at=UTC_TIMESTAMP(),version=version+1 WHERE id=:id",
+            ['id' => $id],
+        );
+    }
+
+    /**
+     * 保留舊網址：同一網址只能屬於一筆內容，改名後舊網址仍導向原內容。
+     * 已屬於其他內容時丟出衝突，避免把別人的舊網址搶走。
+     */
+    public function reserveAlias(string $aliasTable, string $ownerColumn, string $path, string $id): void
+    {
+        $owner = $this->row('SELECT ' . $ownerColumn . ' AS owner FROM ' . $aliasTable . ' WHERE path=:path', ['path' => $path]);
+        if ($owner !== null && (new Row($owner))->string('owner') !== $id) {
+            throw new ContentConflict('Historical URL already reserved.');
+        }
+        $this->execute(
+            'INSERT IGNORE INTO ' . $aliasTable . ' (path,' . $ownerColumn . ') VALUES (:path,:id)',
+            ['path' => $path, 'id' => $id],
+        );
+    }
+
+    /**
+     * 「包含」搜尋的 LIKE 參數：使用者輸入的 % 與 _ 當一般字元比對。
+     * SQL 端一律寫成 `LIKE :參數 ESCAPE '!'`。
+     */
+    public static function contains(string $text): string
+    {
+        return '%' . strtr($text, ['!' => '!!', '%' => '!%', '_' => '!_']) . '%';
+    }
+
+    /**
+     * 產生 IN (...) 的具名參數，避免把值直接拼進 SQL。
+     *
+     * @param list<string> $values
+     * @return array{0:string,1:array<string,string>} 例如 [':id0,:id1', ['id0' => ..., 'id1' => ...]]
+     */
+    public static function inList(string $prefix, array $values): array
+    {
+        $parameters = [];
+        foreach (array_values($values) as $index => $value) {
+            $parameters[$prefix . $index] = $value;
+        }
+
+        return [implode(',', array_map(static fn(string $name): string => ':' . $name, array_keys($parameters))), $parameters];
+    }
+
+    /** 唯一鍵重複（網址代稱、電子郵件等已被使用），呼叫端會轉成較具體的衝突錯誤。 */
+    public static function isDuplicateKey(PDOException $error): bool
+    {
+        return $error->getCode() === '23000' && ($error->errorInfo[1] ?? null) === 1062;
     }
 
     /** @param array<string, bool|int|string|null> $parameters */

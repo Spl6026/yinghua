@@ -1,8 +1,3 @@
-import { initializeOperations } from './pages/operations-overview.js';
-import { initializeGeneralSettings } from './pages/general-settings.js';
-import { initializeMemberDirectory } from './pages/member-directory.js';
-import { initializeFilmList } from './pages/film-list.js';
-import { initializeFilmForm } from './pages/film-form.js';
 import { authApi } from './api/auth-api.js';
 import {
   requireSession,
@@ -11,18 +6,75 @@ import {
   adminNavigation,
   adminDestination,
 } from './core/session.js';
-import { initializeMenus, status, element, toast, consumeFlash } from './core/ui.js';
-import { initializeAdmins } from './pages/admin-list.js';
-import { initializeAdminForm } from './pages/admin-form.js';
-import { initializePermissions } from './pages/permissions.js';
+import { initializeMenus, status, element, toast, consumeFlash, clearFieldErrors } from './core/ui.js';
 import { initializeAdminPreview } from './components/admin-preview.js';
-import { initializeAttractionList } from './pages/attraction-list.js';
-import { initializeAttractionForm } from './pages/attraction-form.js';
-import { initializeSeoSettings } from './pages/seo-settings.js';
-import { initializeContentList } from './pages/content-list.js';
-import { initializeContentForm } from './pages/content-form.js';
-import { initializeRouteList } from './pages/route-list.js';
-import { initializeRouteForm } from './pages/route-form.js';
+
+// 每個後台頁只載入自己的模組；原本在入口一次 import 全部頁面，任何一頁都要下載十幾個用不到的檔案。
+// load 與確認登入同時開始下載，run 在確認權限後才執行頁面初始化。
+const forms = name => [`${name}-add`, `${name}-edit`];
+const formPages = (names, load, run) => Object.fromEntries(names.map(page => [page, { load, run }]));
+const pageModules = {
+  index: {
+    load: () => import('./pages/operations-overview.js'),
+    run: (m, identity) => m.initializeOperations(identity),
+  },
+  members: { load: () => import('./pages/member-directory.js'), run: m => m.initializeMemberDirectory() },
+  admins: { load: () => import('./pages/admin-list.js'), run: (m, identity) => m.initializeAdmins(identity) },
+  ...formPages(
+    forms('admin'),
+    () => import('./pages/admin-form.js'),
+    (m, identity, _module, page) => m.initializeAdminForm(identity, page)
+  ),
+  permissions: {
+    load: () => import('./pages/permissions.js'),
+    run: (m, identity) => m.initializePermissions(identity),
+  },
+  films: { load: () => import('./pages/film-list.js'), run: (m, identity) => m.initializeFilmList(identity) },
+  ...formPages(
+    forms('film'),
+    () => import('./pages/film-form.js'),
+    (m, identity, _module, page) => m.initializeFilmForm(identity, page)
+  ),
+  places: {
+    load: () => import('./pages/attraction-list.js'),
+    run: (m, identity) => m.initializeAttractionList(identity),
+  },
+  ...formPages(
+    forms('place'),
+    () => import('./pages/attraction-form.js'),
+    (m, identity, _module, page) => m.initializeAttractionForm(identity, page)
+  ),
+  settings: {
+    load: () => Promise.all([import('./pages/general-settings.js'), import('./pages/seo-settings.js')]),
+    run: async ([general, seo], identity) => {
+      await general.initializeGeneralSettings(identity);
+      await seo.initializeSeoSettings(identity);
+    },
+  },
+  ...formPages(
+    ['news', 'offers'],
+    () => import('./pages/content-list.js'),
+    (m, identity, module) => m.initializeContentList(identity, module)
+  ),
+  ...formPages(
+    [...forms('news'), ...forms('offer')],
+    () => import('./pages/content-form.js'),
+    (m, identity, module, page) => m.initializeContentForm(identity, module, page)
+  ),
+  routes: {
+    load: () => import('./pages/route-list.js'),
+    run: (m, identity) => m.initializeRouteList(identity),
+  },
+  ...formPages(
+    forms('route'),
+    () => import('./pages/route-form.js'),
+    (m, identity, _module, page) => m.initializeRouteForm(identity, page)
+  ),
+};
+const currentPage = pageModules[document.body.dataset.page];
+// 先開始下載；失敗留到真正執行時再丟出，交給下方統一的錯誤處理。
+const pageModule = currentPage?.load();
+pageModule?.catch(() => {});
 
 initializeMenus();
 // 瀏覽器原生驗證攔下下一次送出時，先清掉上一輪的伺服器錯誤，避免畫面同時出現過時的錯誤。
@@ -33,11 +85,7 @@ document.addEventListener(
     if (!form || form.dataset.clearingErrors) return;
     form.dataset.clearingErrors = 'true';
     queueMicrotask(() => delete form.dataset.clearingErrors);
-    form.querySelectorAll('.field-error').forEach(node => node.remove());
-    form.querySelectorAll('[aria-invalid="true"]').forEach(node => {
-      node.removeAttribute('aria-invalid');
-      node.removeAttribute('aria-describedby');
-    });
+    clearFieldErrors(form);
     form.querySelectorAll('.form-status[data-error="true"]').forEach(node => {
       node.textContent = '';
       node.dataset.error = 'false';
@@ -84,23 +132,7 @@ try {
         element('h1', {}, '無法存取'),
         element('p', {}, '你尚未取得此功能的權限，請聯絡管理員。')
       );
-    } else if (page === 'index') await initializeOperations(identity);
-    else if (page === 'members') await initializeMemberDirectory();
-    else if (page === 'admins') await initializeAdmins(identity);
-    else if (page === 'admin-add' || page === 'admin-edit') await initializeAdminForm(identity, page);
-    else if (page === 'permissions') await initializePermissions(identity);
-    else if (page === 'films') await initializeFilmList(identity);
-    else if (page === 'film-add' || page === 'film-edit') await initializeFilmForm(identity, page);
-    else if (page === 'places') await initializeAttractionList(identity);
-    else if (page === 'place-add' || page === 'place-edit') await initializeAttractionForm(identity, page);
-    else if (page === 'settings') {
-      await initializeGeneralSettings(identity);
-      await initializeSeoSettings(identity);
-    } else if (page === 'news' || page === 'offers') await initializeContentList(identity, module);
-    else if (['news-add', 'news-edit', 'offer-add', 'offer-edit'].includes(page))
-      await initializeContentForm(identity, module, page);
-    else if (page === 'routes') await initializeRouteList(identity);
-    else if (page === 'route-add' || page === 'route-edit') await initializeRouteForm(identity, page);
+    } else if (currentPage) await currentPage.run(await pageModule, identity, module, page);
     const saved = consumeFlash();
     if (saved) {
       status(message, saved);

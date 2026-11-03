@@ -9,6 +9,7 @@ use Yinghua\DTO\AuthenticatedIdentity;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
+use Yinghua\Exceptions\ErrorCode;
 
 readonly class ApiContext
 {
@@ -26,12 +27,12 @@ readonly class ApiContext
 
     public function actor(): Account
     {
-        return $this->account ?? throw new ApplicationError('UNAUTHENTICATED', '請先登入。');
+        return $this->account ?? throw new ApplicationError(ErrorCode::Unauthenticated, '請先登入。');
     }
 
     public function id(): string
     {
-        return $this->parameters['id'] ?? throw new ApplicationError('NOT_FOUND', '找不到此資料。');
+        return $this->parameters['id'] ?? throw new ApplicationError(ErrorCode::NotFound, '找不到此資料。');
     }
 
     public function owner(): Account

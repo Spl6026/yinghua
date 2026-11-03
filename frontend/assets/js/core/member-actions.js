@@ -1,14 +1,14 @@
 import { authApi } from '../api/auth-api.js';
 import { memberResourcesApi } from '../api/member-resources-api.js';
-import { api } from './api-client.js';
-import { element, status, toast } from './ui.js';
+import { element, onPageReturn, status, toast, unsavedChanges } from './ui.js';
 import { MemberResourceState } from './member-resource-state.js';
 import { recoverSession } from './session-expiry.js';
 import { PendingWrites } from './pending-writes.js';
+import { publicApi } from '../api/public-api.js';
+import { FAVORITE_CHANGED, emitPageEvent } from './page-events.js';
 
 // 只處理受管景點的 UUID；原型陣列的索引不能當成正式資料的識別碼。
-export const isAttractionId = id =>
-  /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
+const isAttractionId = id => /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/.test(id || '');
 export const readMember = async () => {
   try {
     return (await authApi().me()).member;
@@ -71,7 +71,7 @@ function paint() {
   }
 }
 
-export function loginForMemberAction(kind, id) {
+function loginForMemberAction(kind, id) {
   if (recoverSession('member')) return;
   const target = new URL(location.href);
   if (kind !== 'favorite') {
@@ -86,7 +86,7 @@ export function loginForMemberAction(kind, id) {
 export async function resolvePublicAttraction(id) {
   if (!isAttractionId(id)) return null;
   for (let page = 1; ; page++) {
-    const data = await api('/api/v1/attractions?' + new URLSearchParams({ page, pageSize: 100 }));
+    const data = await publicApi.attractions({ page, pageSize: 100 });
     const item = data.items.find(item => item.id === id);
     if (item) return item;
     if (page * 100 >= data.total) return null;
@@ -191,7 +191,7 @@ async function toggleFavorite(button) {
           clearMemberIntent('pendingFavorite');
           document.querySelector('#member-favorite-intent')?.remove();
         }
-        document.dispatchEvent(new CustomEvent('member-favorite-change', { detail: { attractionId: id } }));
+        emitPageEvent(FAVORITE_CHANGED, { attractionId: id });
       }
       return result.changed === true;
     } catch (error) {
@@ -248,12 +248,7 @@ export async function mountMemberActions() {
         }
       }
     });
-    window.addEventListener('beforeunload', event => {
-      if (favoriteWrites.active) {
-        event.preventDefault();
-        event.returnValue = '';
-      }
-    });
+    unsavedChanges(() => favoriteWrites.active);
     const resume = () => {
       ++state.generation;
       state.member = undefined;
@@ -261,13 +256,7 @@ export async function mountMemberActions() {
       paint();
       void refreshFavorites();
     };
-    window.addEventListener('pageshow', event => {
-      if (event.persisted) resume();
-    });
-    window.addEventListener('focus', resume);
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) resume();
-    });
+    onPageReturn(resume);
   }
   await refreshFavorites();
   await showFavoriteIntent();

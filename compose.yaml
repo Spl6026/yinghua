@@ -1,8 +1,8 @@
 name: yinghua
 
-# [E-12] 共用 image、環境與掛載；不在此宣告 FPM 專用健康檢查。
+# 共用 image、環境與掛載；FPM 專用的健康檢查不在這裡宣告。
 x-php-common: &php-common
-  # [E-29] PDO 連線逾時不涵蓋 glibc DNS；一併限制 Docker 服務名稱查詢。
+  # PDO 的連線逾時管不到 glibc 的 DNS 查詢，服務名稱查詢的逾時也一併限制。
   dns_opt: ["timeout:1", "attempts:1", "ndots:0"]
   image: yinghua-app
   working_dir: /var/www/app
@@ -84,7 +84,7 @@ services:
     image: node:24-bookworm-slim@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20
     working_dir: /frontend
     environment:
-      # [E-28] 安全固定頁使用既有運行 origin，不將正式 HTML 寫死 localhost。
+      # 固定頁使用目前運行的網址，不把 localhost 寫死在正式 HTML 裡。
       APP_URL: ${APP_URL:-http://localhost:8080}
       TERMS_VERSION: ${TERMS_VERSION:-2026-11-02}
     command: ["node", "scripts/build.mjs"]
@@ -124,7 +124,7 @@ services:
 
   db:
     image: mariadb:12.3@sha256:2bdff1534a7e569fecaf4b10b66ad0d410806e382d9db29ba305448addda97c4
-    # [U-17／E] 本機 DBeaver 連線；只綁定 loopback，容器內仍用 db:3306。
+    # 讓本機 DBeaver 等工具連線；只綁定 loopback，容器內仍用 db:3306。
     ports:
       - "127.0.0.1:${DB_FORWARD_PORT:-3306}:3306"
     environment:

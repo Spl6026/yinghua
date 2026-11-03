@@ -9,6 +9,7 @@ use Yinghua\DTO\MemberAttractionSnapshot;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Repositories\AttractionRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 會員收藏與行程顯示的景點資訊只取自已成功發布的公開版本，不會從草稿補上名稱、介紹或圖片。 */
 class MemberAttractions
@@ -24,7 +25,7 @@ class MemberAttractions
         try {
             $snapshot = $this->publication->read();
         } catch (ApplicationError $error) {
-            if ($error->errorCode !== 'PUBLICATION_PENDING') {
+            if ($error->errorCode !== ErrorCode::PublicationPending) {
                 throw $error;
             }
 
@@ -58,7 +59,7 @@ class MemberAttractions
         }
         $snapshot = $this->snapshot();
         if (!$snapshot->ready) {
-            throw new ApplicationError('PUBLICATION_PENDING', '公開資訊正在更新，請稍後再加入。', retryAfter: 5);
+            throw new ApplicationError(ErrorCode::PublicationPending, '公開資訊正在更新，請稍後再加入。', retryAfter: 5);
         }
         $names = [];
         sort($ids);
@@ -68,10 +69,10 @@ class MemberAttractions
             $stamp = $current?->values['publishAt'] ?? null;
             if ($public === null || $current === null || $current->deletedAt !== null || $current->status !== 'published'
                 || !is_string($stamp) || strtotime($stamp) > $this->clock->now()) {
-                throw new ApplicationError('NOT_FOUND', '此地點目前無法加入，請重新選擇。');
+                throw new ApplicationError(ErrorCode::NotFound, '此地點目前無法加入，請重新選擇。');
             }
             if (($public['version'] ?? null) !== $current->version) {
-                throw new ApplicationError('PUBLICATION_PENDING', '公開資訊正在更新，請稍後再加入。', retryAfter: 5);
+                throw new ApplicationError(ErrorCode::PublicationPending, '公開資訊正在更新，請稍後再加入。', retryAfter: 5);
             }
             $name = $public['name'] ?? null;
             if (!is_string($name)) {

@@ -8,6 +8,7 @@ use Closure;
 use RuntimeException;
 use Yinghua\Config;
 use Yinghua\Contracts\ContentRenderer;
+use Yinghua\Support\Json;
 
 /** PHP 只負責把資料交給前端的 Node 發布工具，畫面模板仍留在 frontend。 */
 class NodeContentRenderer implements ContentRenderer
@@ -19,9 +20,23 @@ class NodeContentRenderer implements ContentRenderer
         $this->directory = $config->string('PUBLICATION_PATH', '/var/www/publication');
     }
 
+    /** 正式映像建置時預先算好的版本；映像內的原始檔不會再變，不必每次請求重新雜湊。 */
+    public const PRECOMPUTED_VERSION_FILE = '.renderer-version';
+
     public function version(): string
     {
-        $source = $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source');
+        $source = $this->config->frontendSourcePath();
+        $precomputed = @file_get_contents($source . '/' . self::PRECOMPUTED_VERSION_FILE);
+        if (is_string($precomputed) && preg_match('/^[a-f0-9]{64}$/', trim($precomputed)) === 1) {
+            return trim($precomputed);
+        }
+
+        return $this->computeVersion($source);
+    }
+
+    /** 依發布相關檔案的內容計算版本；開發環境每次重新計算，改檔後立即生效。 */
+    public function computeVersion(string $source): string
+    {
         // 發布結果由這些目錄的檔案決定：發布腳本、頁面與共用模板、SEO 目錄，以及前端資產。
         // 發布頁引用的 CSS／JS 網址帶有依 assets/ 內容算出的版本號，所以任何資產改動都要重新發布；
         // 字型檔名本身就是版本，不納入。逐一掃描整個目錄，新增檔案時不必再回來維護清單。
@@ -44,6 +59,19 @@ class NodeContentRenderer implements ContentRenderer
         }
 
         return hash_final($hash);
+    }
+
+    /**
+     * 只記錄 Node 錯誤的類型；錯誤訊息可能夾帶頁面內容，一律不記，
+     * 唯一例外是發布腳本自己丟出的「模板缺少標記」，訊息只有標記本身，最需要讓開發者看到。
+     */
+    private static function renderError(string $stderr): string
+    {
+        if (preg_match('/^(\w*Error): (Publication template is missing the expected markup: .{0,100})$/mu', $stderr, $match) === 1) {
+            return 'error=' . $match[1] . ' detail="' . addcslashes($match[2], "\"\\") . '"';
+        }
+
+        return preg_match('/^(\w*Error)\b/mu', $stderr, $match) === 1 ? 'error=' . $match[1] : 'error=unknown';
     }
 
     /** @return list<string> 依路徑排序，確保雜湊結果與檔案系統的列舉順序無關。 */
@@ -73,7 +101,7 @@ class NodeContentRenderer implements ContentRenderer
         $process = proc_open(
             [
                 '/usr/local/bin/node',
-                $this->config->string('FRONTEND_SOURCE_PATH', '/var/www/frontend-source') . '/scripts/publish.mjs',
+                $this->config->frontendSourcePath() . '/scripts/publish.mjs',
                 $this->directory,
             ],
             [0 => ['pipe','r'],1 => ['pipe','w'],2 => ['pipe','w']],
@@ -82,15 +110,16 @@ class NodeContentRenderer implements ContentRenderer
         if (!is_resource($process)) {
             throw new RuntimeException('Renderer unavailable.');
         }
-        fwrite($pipes[0], json_encode($snapshot, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE));
+        fwrite($pipes[0], Json::encode($snapshot));
         fclose($pipes[0]);
         stream_set_blocking($pipes[1], false);
         stream_set_blocking($pipes[2], false);
         $deadline = microtime(true) + 10;
+        $errors = '';
         do {
             // 讀完子程序的輸出管道以免卡住，但不把內容或秘密寫進日誌。
             stream_get_contents($pipes[1]);
-            stream_get_contents($pipes[2]);
+            $errors = substr($errors . (string) stream_get_contents($pipes[2]), 0, 65536);
             $state = proc_get_status($process);
             if (!$state['running']) {
                 break;
@@ -104,6 +133,7 @@ class NodeContentRenderer implements ContentRenderer
         fclose($pipes[2]);
         $exit = proc_close($process);
         if ($state['running'] || ($state['exitcode'] !== 0 && $exit !== 0)) {
+            error_log('publication_render ' . ($state['running'] ? 'timeout' : self::renderError($errors)));
             throw new RuntimeException('Publication rendering failed.');
         }
     }

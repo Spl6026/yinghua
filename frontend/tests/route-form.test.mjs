@@ -1,10 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
-const code = (await readFile(new URL('../assets/js/pages/route-form.js', import.meta.url), 'utf8'))
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace(/\bexport /g, '');
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 const settle = async () => {
   for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve));
 };
@@ -44,7 +40,7 @@ class Node {
     this.focused = true;
   }
 }
-function fixture({ creating = false, preview = false, view = true } = {}) {
+async function fixture({ creating = false, preview = false, view = true } = {}) {
   const nodes = new Map(),
     get = (key, tag = 'div') => {
       if (!nodes.has(key)) nodes.set(key, new Node(tag));
@@ -125,7 +121,8 @@ function fixture({ creating = false, preview = false, view = true } = {}) {
     },
     hasPermission: (_, module, action) => action !== 'view' || view,
     adminDestination: () => '/admin/route-add.html',
-    handleAdminError: (_, node) => {
+    handleAdminError: (error, node) => {
+      state.handled = error;
       node.focus();
     },
     element: (tag, attrs = {}, text) => {
@@ -143,16 +140,16 @@ function fixture({ creating = false, preview = false, view = true } = {}) {
     formErrors() {},
     unsavedChanges() {},
     confirmAction: async () => state.confirm,
-    submitForm: async (_, action) => {
+    submitForm: async (_, action, options = {}) => {
       try {
         await action();
       } catch (error) {
+        options.onError?.(error);
         get('#route-form-status').textContent = error.message;
       }
     },
   };
-  vm.createContext(sandbox);
-  vm.runInContext(code, sandbox);
+  Object.assign(sandbox, await loadWithSandbox('pages/route-form.js', sandbox));
   return {
     state,
     form,
@@ -163,7 +160,7 @@ function fixture({ creating = false, preview = false, view = true } = {}) {
   };
 }
 test('站點上移保留時間備註，邊界禁用且送出新次序', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   const stops = f.get('#route-stops');
   assert.equal(stops.children[0].querySelectorAll('button')[0].disabled, true);
@@ -177,7 +174,7 @@ test('站點上移保留時間備註，邊界禁用且送出新次序', async ()
   assert.equal(f.state.saves[0].body.stops[0].note, '休息');
 });
 test('共同控制項刷新後景點首末頁仍禁用，重複景點不能再加', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   assert.equal(f.get('#route-place-previous').disabled, true);
   assert.equal(f.get('#route-place-next').disabled, true);
@@ -189,7 +186,7 @@ test('共同控制項刷新後景點首末頁仍禁用，重複景點不能再�
   assert.equal(f.state.saves[0].body.stops.length, 3);
 });
 test('202 保存後不能再次新增，只有新增權限返回可用頁', async () => {
-  const f = fixture({ creating: true, view: false });
+  const f = await fixture({ creating: true, view: false });
   f.state.pending = true;
   await f.initialize();
   await f.get('#route-candidates').children[0].emit('click');
@@ -200,7 +197,7 @@ test('202 保存後不能再次新增，只有新增權限返回可用頁', asyn
   assert.equal(f.get('#route-cancel').href, '/index.html');
 });
 test('新增已保存但發布失敗後重載同一筆，再送出必須更新而不重複新增', async () => {
-  const f = fixture({ creating: true });
+  const f = await fixture({ creating: true });
   f.state.pending = true;
   await f.initialize();
   await f.get('#route-candidates').children[0].emit('click');
@@ -213,7 +210,7 @@ test('新增已保存但發布失敗後重載同一筆，再送出必須更新�
   assert.equal(f.state.saves[1].body.version, 1);
 });
 test('409 保留輸入，取消重載不遺失；同意後讀取伺服器版本', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.initialize();
   f.form.elements.title.value = '保留修改';
   await f.form.emit('input');
@@ -229,16 +226,26 @@ test('409 保留輸入，取消重載不遺失；同意後讀取伺服器版本'
   assert.equal(f.form.elements.title.value, '已存路線');
 });
 test('唯讀模擬不允許修改，讀取失敗鎖定後可重試', async () => {
-  const ro = fixture({ preview: true });
+  const ro = await fixture({ preview: true });
   await ro.initialize();
   await ro.form.emit('submit');
   assert.equal(ro.state.saves.length, 0);
   assert.equal(ro.save.disabled, true);
-  const f = fixture();
+  const f = await fixture();
   f.state.getError = true;
   await f.initialize();
   assert.equal(f.save.disabled, true);
   f.state.getError = false;
   await f.get('#route-reload').emit('click');
   assert.equal(f.save.disabled, false);
+});
+
+test('儲存遇到錯誤時交給後台共用處理（登入逾時會導回登入頁），與其他表單一致', async () => {
+  const f = await fixture();
+  await f.initialize();
+  f.form.elements.title.value = '修改';
+  await f.form.emit('input');
+  f.state.error = true;
+  await f.form.emit('submit');
+  assert.equal(f.state.handled?.message, '版本衝突');
 });

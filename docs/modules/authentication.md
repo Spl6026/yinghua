@@ -32,7 +32,7 @@
 
 Cookie 是 HttpOnly、SameSite=Lax、Path=/；本機 HTTP 不啟用 Secure，正式 HTTPS 必須設 `SESSION_SECURE=true` 與 HTTPS `APP_URL`。前端不讀 Cookie，也不把身分／權限存 localStorage。每次登入 API 讀取 DB 的 session／帳號狀態，權限 API 讀取最新個人矩陣。
 
-密碼以 Argon2id 雜湊；8–128 Unicode 字元（U-13；確認密碼依 U-15 必填且逐字一致），允許空白，不修剪、不強迫字符組合。未知帳號也做同成本的 dummy 驗證。登入錯誤文字一致，限速用 DB 原子計數與 HMAC 識別，429 回 Retry-After；這是限速窗口，不永久停用帳號。
+密碼以 Argon2id 雜湊；8–128 Unicode 字元（U-13；確認密碼依 U-15 必填且逐字一致），允許空白，不修剪、不強迫字符組合。未知帳號也做同成本的 dummy 驗證。登入錯誤文字一致，限速用 DB 原子計數與 HMAC 識別，429 回 Retry-After；這是限速窗口，不永久停用帳號。同一帳號的失敗次數以「帳號＋來源」計算（5 次／15 分鐘），另有帳號總上限 50 次，避免他人從別處持續鎖住本人；電子郵件驗證碼另限單一來源 10 封／小時、全站 300 封／小時。過期的 session、驗證碼、重設 token 與限速紀錄由 `security:prune`（`content:watch` 每小時執行）清除。
 
 預設 session 最長 12 小時、閒置 30 分鐘；CSRF 一小時；挑戰五分鐘／最多三次錯誤；重設連結 30 分鐘／一次使用。期限在 `.env` 設定。圖片 JSON 只有 PNG、challengeToken 與期限；Email 模式另外綁定註冊 Email，答案只有郵件與圖像，不在 JSON／DOM。
 

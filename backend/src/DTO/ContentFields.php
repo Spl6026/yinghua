@@ -8,13 +8,15 @@ use DateTimeImmutable;
 use DateTimeZone;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\ContentStatus;
+use Yinghua\Support\UtcDateTime;
+use Yinghua\Support\Uuid;
 
 /** 消息與優惠共用的欄位格式驗證；只檢查格式，不決定哪些欄位必填。 */
 final class ContentFields
 {
     public static function uuid(string $value, string $field): string
     {
-        if (!preg_match('/^[a-f0-9]{8}-(?:[a-f0-9]{4}-){3}[a-f0-9]{12}$/D', $value)) {
+        if (!Uuid::isValid($value)) {
             throw ApplicationError::invalid($field, '請提供有效 UUID。');
         }
         return $value;
@@ -67,7 +69,7 @@ final class ContentFields
             $fields['status'] = $status->value;
         }
         if ($creating || array_key_exists('publishAt', $values)) {
-            $fields['publish_at'] = self::date($input->optionalText('publishAt', 30), 'publishAt', true) ?? gmdate('Y-m-d H:i:s', $now);
+            $fields['publish_at'] = self::date($input->optionalText('publishAt', 30), 'publishAt', true) ?? UtcDateTime::sql($now);
         }
         return $fields;
     }

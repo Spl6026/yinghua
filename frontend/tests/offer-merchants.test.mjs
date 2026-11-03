@@ -1,14 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
-const source = (
-  await Promise.all(
-    ['core/ui.js', 'components/offer-merchants.js'].map(p =>
-      readFile(new URL('../assets/js/' + p, import.meta.url), 'utf8')
-    )
-  )
-).map(s => s.replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '').replace(/\bexport /g, ''));
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 const settle = async () => {
   for (let i = 0; i < 8; i++) await new Promise(resolve => setImmediate(resolve));
 };
@@ -67,7 +59,7 @@ class Node {
   }
 }
 
-function fixture(total = 21) {
+async function fixture(total = 21) {
   const nodes = new Map(),
     node = id => {
       if (!nodes.has(id)) nodes.set(id, new Node());
@@ -86,8 +78,7 @@ function fixture(total = 21) {
       },
     },
   };
-  vm.createContext(sandbox);
-  source.forEach(s => vm.runInContext(s, sandbox));
+  Object.assign(sandbox, await loadWithSandbox('components/offer-merchants.js', sandbox));
   const component = sandbox.offerMerchants(
     {},
     { elements: { merchantId: select } },
@@ -98,7 +89,7 @@ function fixture(total = 21) {
   return { component, state, node };
 }
 test('店家分頁第一頁／最後一頁不能越界，重套表單狀態仍維持邊界', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.component.load();
   assert.equal(f.node('#merchant-previous').disabled, true);
   assert.equal(f.node('#merchant-next').disabled, false);
@@ -119,14 +110,14 @@ test('店家分頁第一頁／最後一頁不能越界，重套表單狀態仍�
 });
 test('店家只有一頁或零筆時兩端都停用', async () => {
   for (const total of [0, 5, 20]) {
-    const f = fixture(total);
+    const f = await fixture(total);
     await f.component.load();
     assert.equal(f.node('#merchant-previous').disabled, true);
     assert.equal(f.node('#merchant-next').disabled, true);
   }
 });
 test('表單保存或唯讀期間不能由分頁恢復操作', async () => {
-  const f = fixture();
+  const f = await fixture();
   await f.component.load();
   f.state.available = false;
   f.component.refresh();

@@ -16,6 +16,7 @@ use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\RegisterInput;
 use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Repositories\ChallengeRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 class Captcha
 {
@@ -34,7 +35,11 @@ class Captcha
         $this->limiter->check('captcha-ip', $client->ipHash, 30, 60);
         $this->limiter->check('captcha-session', $client->anonymousId, 15, 60);
         if ($email !== null) {
+            // 驗證碼信會寄到使用者填的任何地址；除了單一信箱的次數，也限制單一來源與全站每小時的寄送量，
+            // 避免被用來大量寄信、拖累寄件網域的信譽。
             $this->limiter->check('captcha-email', $email, 3, 900);
+            $this->limiter->check('captcha-email-ip', $client->ipHash, 10, 3600);
+            $this->limiter->check('captcha-email-all', 'all', 300, 3600);
         }
         $token = Secrets::token();
         $id = Secrets::uuid();
@@ -57,7 +62,7 @@ class Captcha
             $this->mailer->send($email, '映畫竹塹註冊驗證碼', "您的註冊驗證碼：{$answer}\n有效期限五分鐘。若不是您申請，請忽略此信。");
         } catch (Throwable) {
             $this->repository->revoke($id);
-            throw new ApplicationError('MAIL_UNAVAILABLE', '驗證信暫時無法寄送，請稍後再試或使用圖片驗證。');
+            throw new ApplicationError(ErrorCode::MailUnavailable, '驗證信暫時無法寄送，請稍後再試或使用圖片驗證。');
         }
 
         return new CaptchaResponse($token, gmdate('c', $expires), message: '驗證碼已寄送，請查看信箱。');

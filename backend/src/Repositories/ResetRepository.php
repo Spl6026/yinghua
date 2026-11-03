@@ -7,6 +7,7 @@ namespace Yinghua\Repositories;
 use Yinghua\Models\Account;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Models\ResetToken;
+use Yinghua\Support\UtcDateTime;
 
 class ResetRepository
 {
@@ -23,7 +24,7 @@ class ResetRepository
                 'admin' => $account->kind === IdentityKind::Admin ? $account->id : null,
                 'token' => hash('sha256', $token),
                 'purpose' => $account->kind->value . '-reset',
-                'expires' => gmdate('Y-m-d H:i:s', $expires),
+                'expires' => UtcDateTime::sql($expires),
             ],
         );
     }

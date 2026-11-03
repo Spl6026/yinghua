@@ -14,6 +14,9 @@ use Yinghua\Services\Authorization;
 use Yinghua\Support\Secrets;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Models\IdentityKind;
+use Yinghua\Support\ErrorLog;
+use PDOException;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 所有 API 請求共用的處理流程：錯誤處理 → 路由 → CSRF → 身分 → 權限 → Controller。 */
 class Kernel
@@ -50,10 +53,10 @@ class Kernel
             // 模擬檢視時一律唯讀，在這裡統一擋下；退出模擬與登出不受被模擬者的權限影響。
             if ($identity?->isPreview() && !$route->allowPreviewControl) {
                 if (!in_array($request->method, ['GET', 'HEAD'], true)) {
-                    throw new ApplicationError('PREVIEW_READ_ONLY', '目前為唯讀模擬，請先退出模擬再修改資料。');
+                    throw new ApplicationError(ErrorCode::PreviewReadOnly, '目前為唯讀模擬，請先退出模擬再修改資料。');
                 }
                 if (!$identity->previewAvailable()) {
-                    throw new ApplicationError('FORBIDDEN', '模擬對象已停用或刪除，請退出模擬。');
+                    throw new ApplicationError(ErrorCode::Forbidden, '模擬對象已停用或刪除，請退出模擬。');
                 }
             }
             if ($actor !== null && $route->module !== null && $route->action !== null) {
@@ -67,11 +70,11 @@ class Kernel
             if ($error instanceof PublicationPending) {
                 error_log('request=' . $request->requestId . ' ' . $error->diagnostic());
             }
-            if ($context !== null && in_array($error->errorCode, ['FORBIDDEN', 'CSRF_INVALID', 'PREVIEW_READ_ONLY'], true)) {
+            if ($context !== null && in_array($error->errorCode, [ErrorCode::Forbidden, ErrorCode::CsrfInvalid, ErrorCode::PreviewReadOnly], true)) {
                 $this->events->auth(
                     'access-denied',
                     false,
-                    $error->errorCode,
+                    $error->errorCode->value,
                     $context->kind,
                     $context->identity?->owner,
                     '',
@@ -81,9 +84,13 @@ class Kernel
 
             return $this->withSessionTiming(self::error($error), $context);
         } catch (Throwable $error) {
-            error_log('request=' . $request->requestId . ' exception=' . $error::class);
+            ErrorLog::exception('request=' . $request->requestId, $error);
+            // 等鎖逾時（1205）或查詢超過時間上限（1969）是暫時的忙碌，回 503 並請瀏覽器稍後再試，而不是當成程式錯誤。
+            if ($error instanceof PDOException && in_array($error->errorInfo[1] ?? null, [1205, 1969], true)) {
+                return self::error(new ApplicationError(ErrorCode::ServiceUnavailable, '系統忙碌中，請稍後再試。', retryAfter: 5));
+            }
 
-            return self::error(new ApplicationError('INTERNAL_ERROR', '系統暫時無法完成操作，請稍後再試。'));
+            return self::error(new ApplicationError(ErrorCode::InternalError, '系統暫時無法完成操作，請稍後再試。'));
         }
     }
 
@@ -106,20 +113,7 @@ class Kernel
 
     public static function error(ApplicationError $error): Response
     {
-        $status = match ($error->errorCode) {
-            'BAD_REQUEST' => 400,
-            'UNAUTHENTICATED', 'INVALID_CREDENTIALS' => 401,
-            'FORBIDDEN', 'CSRF_INVALID', 'PREVIEW_READ_ONLY' => 403,
-            'NOT_FOUND' => 404,
-            'METHOD_NOT_ALLOWED' => 405,
-            'CONFLICT' => 409,
-            'PAYLOAD_TOO_LARGE' => 413,
-            'UNSUPPORTED_MEDIA_TYPE' => 415,
-            'VALIDATION_FAILED' => 422,
-            'RATE_LIMITED' => 429,
-            'SERVICE_UNAVAILABLE', 'MAIL_UNAVAILABLE', 'PUBLICATION_PENDING', 'MAP_UNAVAILABLE' => 503,
-            default => 500,
-        };
+        $status = $error->errorCode->status();
         $headers = [];
         if ($error->retryAfter !== null) {
             $headers['Retry-After'] = (string) $error->retryAfter;
@@ -128,7 +122,7 @@ class Kernel
             $headers['Allow'] = $error->getMessage();
         }
 
-        return new Response($status, ['code' => $error->errorCode,
+        return new Response($status, ['code' => $error->errorCode->value,
             'message' => $status === 405 ? '不支援的 HTTP 方法。' : $error->getMessage(),
             'fieldErrors' => (object) $error->fieldErrors], [], $headers);
     }
@@ -147,7 +141,7 @@ class Kernel
 
             return $identity->isPreview() ? $identity : null;
         } catch (ApplicationError $error) {
-            if ($error->errorCode !== 'UNAUTHENTICATED') {
+            if ($error->errorCode !== ErrorCode::Unauthenticated) {
                 throw $error;
             }
 

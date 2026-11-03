@@ -1,8 +1,8 @@
-import { api } from '../core/api-client.js';
 import { element } from '../core/ui.js';
 import { memberNavigation } from '../core/session.js';
 import { searchTypes, searchState, searchUrl, latestSearch } from '../core/search-state.js';
 import { searchCard } from '../components/search-card.js';
+import { publicApi } from '../api/public-api.js';
 
 void memberNavigation();
 const form = document.querySelector('#standalone-search'),
@@ -16,7 +16,7 @@ const submit = form.querySelector('button[type=submit]');
 let state = searchState(location.search);
 const run = latestSearch(async value => {
   if (!value.q) return { items: [], total: 0, page: 1, pageSize: 20 };
-  return api('/api/v1/search?' + new URLSearchParams({ ...value, pageSize: '20' }));
+  return publicApi.search({ ...value, pageSize: '20' });
 });
 
 function groupResults(items) {

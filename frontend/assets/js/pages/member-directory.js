@@ -1,7 +1,7 @@
-import { api } from '../core/api-client.js';
 import { element, status } from '../core/ui.js';
 import { handleAdminError } from '../core/session.js';
 import { formatUtcDateTime } from '../core/utc-display.js';
+import { operationsApi } from '../api/operations-api.js';
 
 // 唯讀查詢；API 回應已遮罩個資，DOM 也不保存完整的個人資料。
 export async function initializeMemberDirectory() {
@@ -35,10 +35,7 @@ export async function initializeMemberDirectory() {
     status(message, '載入中…');
     rows.setAttribute('aria-busy', 'true');
     try {
-      const result = await api(
-        '/api/v1/admin/members?' + new URLSearchParams({ q: query.value, page: String(page) }),
-        { kind: 'admin' }
-      );
+      const result = await operationsApi.members({ q: query.value, page: String(page) });
       if (request !== generation) return;
       total = result.total;
       rows.replaceChildren();

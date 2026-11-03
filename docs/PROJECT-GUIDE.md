@@ -1,5 +1,37 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 SOLID 與設計模式整理（使用者要求程式碼盡量符合 SOLID、套用合適的設計模式以提高可讀性；行為不變，模式對照見 [後端分層指南](modules/backend-layering.md#設計模式對照) 與 [前端指南](modules/frontend.md)）：
+- 後端組裝：`Composition::kernel()` 拆為 `Composition/SharedServices.php`（同一請求共用的連線、權限、稽核、發布物件）與帳號、景點與電影、消息優惠、會員、全站設定五個工廠方法；消息／優惠後台改以介面型別組裝。
+- 後端發布：快照組裝移到 `Services/PublicationSnapshotBuilder.php`（Builder），`ContentPublication` 只管發布流程；`SECTIONS` 補回發布延遲診斷漏掉的三個區段，並以單元測試確認與實際快照一致。四種公開內容的網址、標題欄位、上下篇分組與搜尋分類集中在 `Models/PublicContentType.php`（原 `DetailUrlType`，Strategy）。政策檢查只依賴新的 `Contracts/PublishedSnapshot`（介面隔離）。`bin/console.php` 改為指令表（Command），說明文字自動產生。`SeoTargetRepository` 改由 `Clock` 取得時間。
+- 前端：四個後台表單共用 `core/admin-form.js` 的 `createFormState()`（載入、處理中、完成、未儲存提醒）；公開內容類型對照集中於 `core/content-kinds.js`，結構化資料改為依類型的建構函式表；`scripts/publish.mjs` 拆為 `publish-page.mjs`、`public-attractions.mjs`、`public-films.mjs`、`public-routes.mjs`、`public-static.mjs`、`home-page.mjs`，整站 33 個發布檔案在排除版本雜湊後與拆分前逐位元組相同；SEO 覆寫列移到 `components/seo-override-row.js`；頁內事件名稱集中於 `core/page-events.js`。
+- 驗證：PHPStan、PHP-CS-Fixer、PHPUnit 142、前端 314、整合 14 組、API 整合 108 項通過；Browser 檢查公開／會員／後台頁零錯誤，四個後台編輯表單實際載入、未儲存確認與儲存，SEO 設定頁預覽／清除／加入單筆／儲存。`tests/publication_alias_order.php`、`tests/public_content_clock.php` 與 `policy_pages_integration.py` 在本輪修改前即失敗（不在自動化套件內），未處理。沒有新增 API、資料表、migration 或環境變數。
+
+2026-11-03 重複邏輯整併（使用者要求統一、重用、精簡並優化效能；依前端與後端兩份重複程式盤點逐項處理）：
+- 後端：錯誤代碼改為 `ErrorCode` enum；Repository 的新增／版本更新／舊網址保留／軟刪除／LIKE／IN 清單／重複鍵判斷改用 `Database` 共用方法（推薦路線與景點的軟刪除原本漏更新 `updated_at`）；UTC 時間、UUID、JSON、常用設定與公開快照查找改用共用工具；消息與優惠後台合併為 `AdminContentManagement`／`AdminContentController`，CLI 與後台共用同一組編輯服務；控制器的分頁參數、只帶版本號的請求與 200／201／202 回應改用共用方法；JSON 請求本文只解析一次。清單見 [PHP 分層指南](modules/backend-layering.md#共用的基礎工具2026-11-03-整併)。
+- 後端效能：推薦路線的站點一次查完（原本每條路線查一次）；同一請求內的權限檢查重用已讀取的帳號與權限（交易內加鎖的檢查仍重新讀取）；發布驗證在同一請求內重用，正式映像建置時預先算好發布版本雜湊。
+- 前端：後台景點／電影／消息／優惠／推薦行程列表改用 `core/admin-table.js`（統一刪除最後一筆後退回有效頁、讀取中不清空表格、唯讀模擬一律顯示編輯連結並停用刪除、狀態用語「草稿／排程發布／已發布／已下架」）；後台表單共同規則與圖片上傳流程改用 `core/admin-form.js`（只有新增權限時，景點／電影表單的「取消」不再連回同一張新增頁或固定回首頁，與消息、路線一致；推薦行程表單補上登入逾時處理並忽略過時的重新載入）；台北時間改用 `core/taipei-time.js`（消息／優惠後台列表的發布時間改為與其他列表相同的 `YYYY-MM-DD HH:mm:ss`）；後台 API 模組改用 `api/admin-resource.js`（管理員 API 的 create／update／remove 改為 save／delete）；移除 8 個沒人使用的匯出；style.css 移除 23 個一定被後載樣式表覆蓋的宣告（36 頁×兩種寬度逐元素比對計算樣式無差異）。清單見 [前端指南](modules/frontend.md#共用模組2026-11-03-整併)。
+- 測試：後台列表測試改為以 `tests/support` 的假 DOM 與模組替身載入真正模組；`npm test` 加上 `--experimental-test-module-mocks`。建置與發布的頁面在台北時間整併前後逐字比對相同（版本號除外）。
+- 後台內容寫入流程：電影、景點、推薦路線的儲存與刪除改用共用的 `Services/ContentWriter.php`。同時統一四項差異：只有「編輯」權限的管理員可開啟電影與景點的編輯頁（使用者依功能規格 D20「具 create／edit 權限者」確認，原本必須另有「檢視」）；網址識別衝突一律標在欄位旁（消息、優惠原本只有一般訊息）；格式錯誤的編號一律回「找不到」；稽核紀錄新增時「修改前版本」記空白（路線原本記 0）、狀態記實際儲存結果（景點原本記送出的值）。
+- 尚未處理（後續）：發布驗證改用輕量指紋、部分頁面直接呼叫 `api()` 未經 API 模組、公開頁三套分頁讀取（景點、電影、搜尋）與 `public-list-controller` 合併、其餘約 25 個仍複製原始碼的前端測試、數百行的表單初始化函式拆分。
+
+2026-11-03 上線穩定性（使用者要求對照一般網站慣例、整理成可上線狀態；依前端／後端／維運三份盤點逐項處理）：
+- 錯誤紀錄：新增 [Support/ErrorLog.php](../backend/src/Support/ErrorLog.php)，未預期例外改記類別、錯誤代碼（PDO 含 SQLSTATE／資料庫編號）、發生位置與前 6 層呼叫位置；刻意不記例外訊息與參數（重複鍵訊息含電子郵件等值）。`php.ini` 加 `zend.exception_ignore_args`。原本只記類別名稱，正式環境出錯時無從追查。
+- 資料庫逾時：網頁請求改用 `Database::forRequest()`，每個連線設 `innodb_lock_wait_timeout=5`、`max_statement_time=10`；等鎖逾時（1205）與查詢超時（1969）回 503「系統忙碌中」並帶 `Retry-After`。命令列（發布、migration）不套用。
+- PHP-FPM（`docker/php/www.conf`）：`pm.max_children=16`、`pm.max_requests=500`、`request_terminate_timeout=30s`；原本是預設 5 個 worker、請求不限時，幾個卡住的請求就會讓公開頁排隊。變更需重建 app 映像。
+- API 錯誤格式一致：Nginx 自己產生的 413（超過 10 MB）與 PHP 無回應的 502／503／504，在 `/api/` 下改回與 PHP 相同的 JSON（`code`／`message`／`fieldErrors`／`requestId`）；`public/index.php` 以 shutdown handler 讓記憶體不足等致命錯誤也回 JSON 500。公開頁發布未就緒時的 503 改為帶 `text/html` 的簡短說明頁（原本沒有類型，可能被瀏覽器當檔案下載）。
+- Nginx（`docker/nginx/default.conf`）：`absolute_redirect off`（`/admin` 補斜線轉址原本掉了埠號）；CSP 補 `default-src`／`style-src`／`img-src`（允許 https 外部封面）／`font-src`／`connect-src`，另加 `Permissions-Policy`；`/api/` 清空用戶端自帶的 `X-Original-URI`，並隱藏 PHP 重複送出的 `Cache-Control`／`nosniff`；存取紀錄加 `time`、`upstream`、`upstream_time`。在 location 內加 `add_header` 會讓伺服器層級的安全標頭失效，錯誤位置因此刻意不加。
+- 登入限速：同一帳號的 5 次／15 分鐘改以「帳號＋來源」計算，另設帳號總上限 50 次／15 分鐘（`Services/Authentication.php`）；原本只以帳號計數，知道帳號名稱的人可以從任何地方持續讓本人無法登入。註冊用電子郵件驗證碼另加單一來源 10 封／小時、全站 300 封／小時（`Services/Captcha.php`），避免被拿來大量寄信。數值屬工程設定，非規格硬性要求。
+- 過期紀錄清理：新增 [SecurityRecordRepository](../backend/src/Repositories/SecurityRecordRepository.php) 與 `php bin/console.php security:prune`，分批刪除過期超過一天的 session、驗證碼、密碼重設 token 與限速紀錄；常駐的 `content:watch` 每小時自動執行一次。登入事件（auth_events）屬稽核紀錄，保存期限待決定，不清除。
+- 前端 API 錯誤（[core/api-client.js](../frontend/assets/js/core/api-client.js)）：回應不是 JSON 時（閘道錯誤頁等）依狀態碼顯示「上傳內容過大」「服務暫時無法使用」等訊息並保留狀態碼，成功但不是 JSON 也視為錯誤；逾時與斷線分開說明。原本一律顯示「請檢查連線」。上傳（FormData）預設逾時改為 120 秒，其他維持 15 秒，可由 `api(path, { timeout })` 指定。新增 `tests/api-client.test.mjs` 直接載入模組測試。
+- 發布腳本防呆：新增 [scripts/html-edit.mjs](../frontend/scripts/html-edit.mjs) 的 `mustReplace()`，`publish.mjs`／`public-news.mjs`／`public-offers.mjs` 把資料寫進原型頁面時，找不到預期標記就中止發布，不再靜靜產生缺內容的頁面（唯一允許找不到的是美食頁沒有的分類筆數）。`<body>` 屬性改為保留原有屬性再加上，推薦行程頁原本因 `<body data-managed-routes>` 對不上而少了屬性。`NodeContentRenderer` 發布失敗時記錄 Node 錯誤類型，「缺少標記」另附標記內容（不含頁面資料）。
+- 開發提醒：改了 `frontend/` 原始檔後要先 `node scripts/build.mjs` 再發布；發布頁與建置輸出的資產版本號都由原始檔算出，只做其中一邊會讓同一模組以兩個版本號各載入一次。正式環境兩者來自同一映像，不會不一致。
+- 前端小修正：`toast()` 每次重設計時器（連續提示不再提早消失）；新增 `ui.js` 的 `onPageReturn()`，收藏與行程頁切回分頁時 focus／visibilitychange／pageshow 一秒內只重新確認一次（原本會重複送出請求）；`planner.js` 初始化失敗改顯示提示；本週映演換頁後保留 `<bdi lang="en">THIS WEEK</bdi>`；`public-list-controller` 缺少分頁區塊時不再出錯。
+- 城市散策／美食篩選寫進網址（`pages/attractions.js`）：分類、區域、關鍵字與頁碼以 `?category=&district=&q=&page=` 保存，重新整理、分享連結與上一頁都回到同一結果；換分類、區域、頁碼新增瀏覽紀錄，打字搜尋只更新目前紀錄。美食頁只記錄與預設「美食」不同的分類。
+- 公開頁快取：Nginx 對公開 HTML（含消息／優惠內部分頁檔）改回 `no-cache`（每次以 ETag 確認），讓瀏覽器可使用「上一頁快取」；會員頁、登入相關頁與後台維持 `no-store`。`memberNavigation()` 在頁面由快取還原時重新確認帳號。Playwright 的測試瀏覽器強制關閉上一頁快取，實際還原需在一般瀏覽器確認。
+- 後台入口（`assets/js/admin.js`）：改為依 `body[data-page]` 對照表只動態載入當頁模組，並與登入確認同時開始下載；原本靜態 import 全部 15 個頁面模組，每頁都會預載整棵後台程式。圖片載入失敗的替代圖改共用 `content-view.js` 的 `fallbackContentImages()`（已檢查的節點不再重複下載）。
+- 頁面產生流程共用：新增 [scripts/page-pipeline.mjs](../frontend/scripts/page-pipeline.mjs)（`loadTemplates`、`markActiveNavigation`、`finalizePage`），`build.mjs` 與 `publish.mjs` 不再各寫一套模板載入、主選單選中判斷（原本一邊用對照表、一邊用 if 串）與字型／登入監看／模組預載／版本號步驟；條款預設版本集中為 `policy-pages.mjs` 的 `DEFAULT_POLICY_VERSION`。重構前後 49 個建置頁與 20 個發布頁逐字比對相同（版本號除外）。
+- 正式環境：新增 `docker/php/production.ini`（`opcache.validate_timestamps=0`），release 映像改用 `composer dump-autoload --classmap-authoritative`；`compose.production.yaml` 各服務加 `mem_limit`、MariaDB `innodb-buffer-pool-size`（皆可用環境變數調整）、publisher 心跳健康檢查；`operations.py` 新增 `upgrade`（關入口 → 換 app → migration → 重新發布 → open），並以 `tests/test_upgrade_order.py` 驗證順序。compose 註解中的內部代碼改為一般說明。
+
 2026-11-03 換頁速度（使用者回報「頁面切換有點慢」）：
 - 原因：HTML 本身約 20 ms 就回來，但每換一頁瀏覽器都要把約 31 個 CSS／JS 逐一向伺服器確認是否變更（no-cache → 304），模擬 100 ms 延遲時頁面約 750–870 ms 才就緒；另外每頁會同時送出兩次 `/api/v1/auth/me`。
 - 資產版本號：新增 [frontend/scripts/asset-version.mjs](../frontend/scripts/asset-version.mjs)，依 `assets/`（字型除外）、`scripts/` 內容與頁面清單算出 12 碼版本號；build 與 publish 各自計算得到同一值，HTML 引用的 CSS／JS／圖示（含 modulepreload）加上 `?v=版本號`，build 輸出的模組 import（含動態 import）也一併改寫，同一模組不會因網址不同載入兩份。Nginx 對帶版本號的 `/assets/` 網址回 `public, max-age=31536000, immutable`，不帶版本號的維持 no-cache，404 維持 no-store。
@@ -19,12 +51,12 @@
 2026-11-03 移除「legacy」命名（使用者指定；網站從未上線，沒有舊系統）：
 - 資料：attractions／films／news_posts／offers 的 `legacy_id` 改名為 `prototype_id`（客戶原型詳情頁 `?id=N` 使用的項目編號），自動命名的唯一索引一併改為 `prototype_id`；新增 [021_prototype_ids.sql](../backend/database/migrations/021_prototype_ids.sql)，以 `RENAME COLUMN IF EXISTS`／`RENAME INDEX IF EXISTS` 寫成可重跑，既有編號原樣保留。migration 合計 21 份。
 - API／快照／示範 JSON：`legacyId` → `prototypeId`，示範店家與優惠的 `attractionLegacyId` → `attractionPrototypeId`；`MerchantRepository::forAttractionPrototypeId()`。
-- 轉向：`LegacyUrlResolver`／`LegacyUrlType` 改名為 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)／[DetailUrlType](../backend/src/Models/DetailUrlType.php)（`idDetailPage()`、`prototypeId()`），單元測試改為 `DetailUrlResolverTest`；Nginx 佔位檔名改為 `__resolve_{place,film,news,offer}_detail__`。轉向結果不變。
+- 轉向：`LegacyUrlResolver`／`LegacyUrlType` 改名為 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)／[PublicContentType](../backend/src/Models/PublicContentType.php)（`idDetailPage()`、`prototypeId()`），單元測試改為 `DetailUrlResolverTest`；Nginx 佔位檔名改為 `__resolve_{place,film,news,offer}_detail__`。轉向結果不變。
 - 前端：`openingHoursLines(value, hoursText)` 與營業時間編輯器 `load(value, hoursText)` 的第二參數是缺少結構化營業時間時的文字說明。
 
 2026-11-03 後端路由與舊網址轉向整理（使用者指定）：
 - 路由：全部 111 條 API 路由（健康檢查仍由 `public/index.php` 提前處理）集中在 [config/routes.php](../backend/config/routes.php)，依原註冊順序排列；刪除 `favorite-routes.php`、`itinerary-routes.php`、`news-admin-routes.php`、`offer-admin-routes.php`、`recommended-routes.php`、`seo-routes.php`，以及原本寫在 Composition 裡的十二條路由。Composition 只組裝物件，透過 [ApiControllers](../backend/src/Controllers/ApiControllers.php) 一次交給路由表。
-- 舊網址：景點、電影、消息、優惠四處重複的舊網址轉向（alias、`*-detail.html?id=`、原型編號（現名 prototypeId）、目標網址檢查）合併為 LegacyUrlResolver（現名 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)），各類型差異（快照鍵、舊頁路徑、優惠 0–2→101–103、`/news/coffee-walk.html` 轉優惠）寫在 LegacyUrlType（現名 [DetailUrlType](../backend/src/Models/DetailUrlType.php)）；景點的轉向邏輯從 Controller 移到 Service 層。狀態碼、Location 與錯誤內容不變。
+- 舊網址：景點、電影、消息、優惠四處重複的舊網址轉向（alias、`*-detail.html?id=`、原型編號（現名 prototypeId）、目標網址檢查）合併為 LegacyUrlResolver（現名 [DetailUrlResolver](../backend/src/Services/DetailUrlResolver.php)），各類型差異（快照鍵、舊頁路徑、優惠 0–2→101–103、`/news/coffee-walk.html` 轉優惠）寫在 LegacyUrlType（現名 [PublicContentType](../backend/src/Models/PublicContentType.php)）；景點的轉向邏輯從 Controller 移到 Service 層。狀態碼、Location 與錯誤內容不變。
 - 消息與優惠管理維持各自的 Controller／Service。API 仍為 115 個操作。
 
 2026-11-03 分階段開發遺留整理（使用者指定）：
@@ -1101,7 +1133,7 @@ python backend/tests/film_schema_upgrade.py
 | [src/Controllers/MapController.php](../backend/src/Controllers/MapController.php) | 地圖網址／action 輸入與候選輸出。 |
 | [src/Controllers/MediaController.php](../backend/src/Controllers/MediaController.php) | multipart 上傳、分頁與 Nginx 媒體存取檢查。 |
 | [src/Controllers/PublicAttractionController.php](../backend/src/Controllers/PublicAttractionController.php) | 公開列表／詳情／博物館、版本存取檢查；詳情頁網址轉向交給 DetailUrlResolver。 |
-| [src/Services/DetailUrlResolver.php](../backend/src/Services/DetailUrlResolver.php)／[src/Models/DetailUrlType.php](../backend/src/Models/DetailUrlType.php) | 景點、電影、消息、優惠共用的詳情頁網址轉向（先前的網址代稱與以編號開啟的詳情頁）：只讀成功發布快照，查 alias 與舊 `*-detail.html?id=`，目標須是該類型的公開網址；各類型差異集中在 LegacyUrlType。 |
+| [src/Services/DetailUrlResolver.php](../backend/src/Services/DetailUrlResolver.php)／[src/Models/PublicContentType.php](../backend/src/Models/PublicContentType.php) | 景點、電影、消息、優惠共用的詳情頁網址轉向（先前的網址代稱與以編號開啟的詳情頁）：只讀成功發布快照，查 alias 與舊 `*-detail.html?id=`，目標須是該類型的公開網址；各類型差異集中在 LegacyUrlType。 |
 | [src/DTO/Attraction.php](../backend/src/DTO/Attraction.php) | Repository 的內容快照，區分管理與公開欄位。 |
 | [src/DTO/AttractionInput.php](../backend/src/DTO/AttractionInput.php) | 欄位白名單、slug、座標、網址、發布時間與版本校驗。 |
 | [src/DTO/AttractionPage.php](../backend/src/DTO/AttractionPage.php) | 管理列表的 typed 分頁結果。 |
@@ -1136,7 +1168,13 @@ python backend/tests/film_schema_upgrade.py
 
 | 檔案（frontend/ 下） | 功能 |
 | --- | --- |
-| [scripts/publish.mjs](../frontend/scripts/publish.mjs) | 公開投影 → 原型模板、正文及 SEO；不可變 generation 與原子啟用。 |
+| [scripts/publish.mjs](../frontend/scripts/publish.mjs) | 發布流程：讀入公開快照、依序呼叫各類內容的發布器、寫出 sitemap／robots，最後以不可變 generation 原子啟用。發布順序決定 sitemap 項目順序。 |
+| [scripts/publish-page.mjs](../frontend/scripts/publish-page.mjs) | `createPagePublisher()`：每頁共同步驟（上一篇／下一篇、SEO 標頭、共用模板、品牌／聯絡資訊、受管理腳本、資產版本）與 sitemap 項目收集。 |
+| [scripts/public-attractions.mjs](../frontend/scripts/public-attractions.mjs) | 城市散策／美食列表、景點詳情與博物館更新中頁。 |
+| [scripts/public-films.mjs](../frontend/scripts/public-films.mjs) | 本週映演頁與電影詳情頁。 |
+| [scripts/public-routes.mjs](../frontend/scripts/public-routes.mjs) | 推薦行程列表頁。 |
+| [scripts/public-static.mjs](../frontend/scripts/public-static.mjs) | 網站導覽與其他固定公開頁。 |
+| [scripts/home-page.mjs](../frontend/scripts/home-page.mjs) | 組出首頁各區塊（博物館介紹、精選景點、本週電影、最新消息）。 |
 | [assets/js/api/attractions-api.js](../frontend/assets/js/api/attractions-api.js) | 景點、媒體、地圖與重試共用 API 呼叫。 |
 | [assets/js/pages/attraction-list.js](../frontend/assets/js/pages/attraction-list.js) | 後台列表、搜尋、狀態、分頁、刪除、重試及權限控制。 |
 | [assets/js/pages/attraction-form.js](../frontend/assets/js/pages/attraction-form.js) | 新增／編輯共用、載入／保存、圖片、候選確認與未存提醒。 |

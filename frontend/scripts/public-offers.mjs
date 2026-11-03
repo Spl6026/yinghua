@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { mustReplace } from './html-edit.mjs';
 import { offerCards, offerDetail } from '../assets/js/core/offer-view.js';
 import { contentPager, pageHref, jsonForHtml } from '../assets/js/core/content-view.js';
 
@@ -16,16 +17,19 @@ export async function publishOffers(source, snapshot, page) {
       type: '',
       generation: snapshot.generation,
     };
-    let html = template.replace(
+    let html = mustReplace(
+      template,
       /(<div class="place-grid" id="offers-list"[^>]*>)[\s\S]*?<\/div>/,
       (_, open) => open + offerCards(data.items) + '</div>'
     );
-    html = html.replace(
+    html = mustReplace(
+      html,
       '</main>',
       () =>
         `<div class="section-pad public-content-controls">${contentPager(data.total, current, '/offers.html')}<p class="public-content-status" role="status" tabindex="-1"></p></div></main>`
     );
-    html = html.replace(
+    html = mustReplace(
+      html,
       '</body>',
       () =>
         `<script type="application/json" id="public-offers-state">${jsonForHtml(data)}</script><script type="module" src="/assets/js/pages/offers.js"></script></body>`
@@ -42,7 +46,8 @@ export async function publishOffers(source, snapshot, page) {
   const detailTemplate = await readFile(join(source, 'templates/offer-detail.html'), 'utf8');
   for (const item of snapshot.offers) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid offer slug');
-    const html = detailTemplate.replace(
+    const html = mustReplace(
+      detailTemplate,
       /<article class="detail-layout" id="offer-detail-content">[\s\S]*?<\/article>/,
       () => offerDetail(item)
     );

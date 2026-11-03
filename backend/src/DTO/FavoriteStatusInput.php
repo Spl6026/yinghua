@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\DTO;
 
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Support\Uuid;
 
 readonly class FavoriteStatusInput
 {
@@ -32,7 +33,7 @@ readonly class FavoriteStatusInput
 
     public static function id(string $id): string
     {
-        if (!preg_match('/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/D', $id)) {
+        if (!Uuid::isValid($id)) {
             throw ApplicationError::invalid('attractionId', '無效的景點識別。');
         }
 

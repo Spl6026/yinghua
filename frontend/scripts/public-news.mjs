@@ -1,6 +1,7 @@
 // 每個分類的所有頁面都從成功的快照產生，重新整理帶 query 的網址時不會退回第一頁。
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { mustReplace } from './html-edit.mjs';
 import {
   newsCards,
   newsFeatured,
@@ -30,27 +31,32 @@ export async function publishNews(source, snapshot, page) {
         };
         const path = '/' + kind + '.html';
         const href = pageHref(path, type, current);
-        let html = template.replace(
+        let html = mustReplace(
+          template,
           /(<div class="news-list[^\"]*" id="news-list"[^>]*>)[\s\S]*?<\/div>/,
           (_, open) => open + newsCards(data.items) + '</div>'
         );
-        html = html.replace(
+        html = mustReplace(
+          html,
           '</main>',
           () =>
             `<div class="section-pad public-content-controls">${contentPager(total, current, path, type)}<p class="public-content-status" role="status" tabindex="-1"></p></div></main>`
         );
         if (kind === 'events') {
-          html = html.replace(
+          html = mustReplace(
+            html,
             /<div class="news-featured-lead">[\s\S]*?(?=<div class="news-list-heading">)/,
             () => `<div class="news-featured-lead">${newsFeatured(items[0])}</div>\n`
           );
-          html = html.replace(
+          html = mustReplace(
+            html,
             /<select id="news-filter">[\s\S]*?<\/select>/,
             () =>
               `<form class="public-content-filter" action="/events.html" method="get"><select id="news-filter" name="type"><option value=""${!type ? ' selected' : ''}>全部消息</option><option value="event"${type === 'event' ? ' selected' : ''}>活動</option><option value="city"${type === 'city' ? ' selected' : ''}>城市消息</option></select><noscript><button class="button button-outline" type="submit">篩選</button></noscript></form>`
           );
         }
-        html = html.replace(
+        html = mustReplace(
+          html,
           '</body>',
           () =>
             `<script type="application/json" id="public-news-state">${jsonForHtml(data)}</script><script type="module" src="/assets/js/pages/news.js"></script></body>`
@@ -64,8 +70,10 @@ export async function publishNews(source, snapshot, page) {
   const detailTemplate = await readFile(join(source, 'templates/news-detail.html'), 'utf8');
   for (const item of snapshot.news) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(item.slug)) throw new Error('Invalid news slug');
-    const html = detailTemplate.replace(/<section class="section-pad detail-page">[\s\S]*?<\/section>/, () =>
-      newsDetail(item)
+    const html = mustReplace(
+      detailTemplate,
+      /<section class="section-pad detail-page">[\s\S]*?<\/section>/,
+      () => newsDetail(item)
     );
     await page(
       item.url,

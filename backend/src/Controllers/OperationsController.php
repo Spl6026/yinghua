@@ -20,6 +20,6 @@ class OperationsController
 
     public function audits(ApiContext $context): Response
     {
-        return new Response(200, $this->service->audits($context->actor(), $context->request->queryInteger('page', 1, 100000)));
+        return new Response(200, $this->service->audits($context->actor(), $context->request->page()));
     }
 }

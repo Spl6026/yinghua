@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Services;
 
 use Yinghua\Contracts\Clock;
-use Yinghua\Contracts\ContentImportService;
+use Yinghua\Contracts\ContentEditor;
 use Yinghua\Contracts\RichTextSanitizer;
 use Yinghua\DTO\ClientContext;
 use Yinghua\DTO\ImportItem;
@@ -21,9 +21,10 @@ use Yinghua\Policies\ImportVersion;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\MediaRepository;
 use Yinghua\Repositories\NewsRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 /** 消息的寫入流程，CLI 匯入與後台 HTTP 共用。 */
-class NewsManagement implements ContentImportService
+class NewsManagement implements ContentEditor
 {
     public function __construct(
         private readonly NewsRepository $news,
@@ -46,14 +47,14 @@ class NewsManagement implements ContentImportService
     {
         $before = $this->news->find($id, $lock);
         if ($creating === false && ($before === null || ($before->fields['deleted_at'] ?? null) !== null)) {
-            throw new ApplicationError('NOT_FOUND', '找不到此內容。');
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此內容。');
         }
         if ($creating === true && $before !== null) {
-            throw new ApplicationError('CONFLICT', '此識別已存在。');
+            throw new ApplicationError(ErrorCode::Conflict, '此識別已存在。');
         }
         $this->authorization->require($actor, 'news', $before === null ? 'create' : 'edit', $lock);
         if (($before?->fields['deleted_at'] ?? null) !== null) {
-            throw new ApplicationError('CONFLICT', '此識別已刪除，不能以匯入重新使用。');
+            throw new ApplicationError(ErrorCode::Conflict, '此識別已刪除，不能以匯入重新使用。');
         }
         $input = NewsInput::fromArray($values, $before === null, $this->clock->now());
         $fields = $input->fields;

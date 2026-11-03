@@ -21,6 +21,9 @@ use Yinghua\Services\NewsManagement;
 use Yinghua\Services\OfferManagement;
 use Yinghua\Services\MerchantManagement;
 use Yinghua\Support\Secrets;
+use Yinghua\Support\ErrorLog;
+use Yinghua\Exceptions\ErrorCode;
+use Yinghua\Support\Json;
 
 /** 只在 Docker 內由維運人員執行的內容管理 CLI；刻意不提供可從外部呼叫的 HTTP 匯入入口。 */
 class PublicContentCommands
@@ -54,7 +57,7 @@ class PublicContentCommands
                     throw ApplicationError::invalid('options', '受控示範命令不接受額外參數。');
                 }
                 $result = $this->seeder->seed($actor, $client);
-                fwrite(STDOUT, json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
+                fwrite(STDOUT, Json::encode($result) . "\n");
                 return ($result['status'] ?? '') === 'saved_publication_pending' ? 4 : 0;
             }
             $options = $this->options(array_slice($arguments, 2), $command === 'media:import'
@@ -97,24 +100,24 @@ class PublicContentCommands
                 };
                 $result = $this->importer->run($actor, ImportEnvelope::fromJson($text), $service, isset($options['apply']), $client);
             }
-            fwrite(STDOUT, json_encode($result, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
+            fwrite(STDOUT, Json::encode($result) . "\n");
             return ($result['status'] ?? '') === 'saved_publication_pending' ? 4 : 0;
         } catch (ApplicationError|ContentConflict $error) {
-            $conflict = $error instanceof ContentConflict || $error->errorCode === 'CONFLICT';
-            fwrite(STDOUT, json_encode([
+            $conflict = $error instanceof ContentConflict || $error->errorCode === ErrorCode::Conflict;
+            fwrite(STDOUT, Json::encode([
                 'status' => $conflict ? 'conflict' : 'validation_failed',
                 'message' => $error instanceof ApplicationError ? $error->getMessage() : '內容識別或網址衝突。',
                 'fieldErrors' => $error instanceof ApplicationError ? $error->fieldErrors : [],
                 'requestId' => $requestId,
-            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
+            ]) . "\n");
             return $conflict ? 3 : 2;
         } catch (Throwable $error) {
-            error_log('content-cli request=' . $requestId . ' exception=' . $error::class);
-            fwrite(STDOUT, json_encode([
+            ErrorLog::exception('content-cli request=' . $requestId, $error);
+            fwrite(STDOUT, Json::encode([
                 'status' => 'error',
                 'message' => '操作失敗，請以 requestId 查閱系統紀錄。',
                 'requestId' => $requestId,
-            ], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE) . "\n");
+            ]) . "\n");
             return 1;
         }
     }

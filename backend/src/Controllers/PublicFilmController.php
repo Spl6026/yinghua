@@ -8,7 +8,7 @@ use Yinghua\Contracts\Clock;
 use Yinghua\DTO\FilmQuery;
 use Yinghua\Http\ApiContext;
 use Yinghua\Http\Response;
-use Yinghua\Models\DetailUrlType;
+use Yinghua\Models\PublicContentType;
 use Yinghua\Services\DetailUrlResolver;
 use Yinghua\Services\PublicFilms;
 
@@ -27,8 +27,8 @@ class PublicFilmController
             $r->queryText('week'),
             $r->queryText('from'),
             $r->queryText('to'),
-            $r->queryInteger('page', 1, 100000),
-            $r->queryInteger('pageSize', 20, 100),
+            $r->page(),
+            $r->pageSize(),
             $this->clock->now(),
         );
 
@@ -42,6 +42,6 @@ class PublicFilmController
 
     public function resolve(ApiContext $context): Response
     {
-        return new Response(301, [], [], ['Location' => $this->detailUrls->resolve(DetailUrlType::Film, $context->request->headers['x-original-uri'] ?? '')]);
+        return new Response(301, [], [], ['Location' => $this->detailUrls->resolve(PublicContentType::Film, $context->request->headers['x-original-uri'] ?? '')]);
     }
 }

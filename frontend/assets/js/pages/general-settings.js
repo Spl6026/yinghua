@@ -1,8 +1,9 @@
 import { confirmAction } from '../components/dialog.js';
-import { api } from '../core/api-client.js';
 import { hasPermission, handleAdminError } from '../core/session.js';
 import { element, status, formErrors, unsavedChanges } from '../core/ui.js';
 import { seoField, seoPanel } from '../components/seo-fields.js';
+import { operationsApi } from '../api/operations-api.js';
+import { SETTINGS_SECTION_SAVED, emitPageEvent, onPageEvent } from '../core/page-events.js';
 
 // 網站名稱與摘要和 SEO 設定共用，但兩份文件各自有獨立的衝突保護。
 export async function initializeGeneralSettings(identity) {
@@ -21,7 +22,7 @@ export async function initializeGeneralSettings(identity) {
     reload.disabled = true;
     status(message, '讀取一般設定中…');
     try {
-      data = await api('/api/v1/admin/settings', { kind: 'admin' });
+      data = await operationsApi.settings();
       form.replaceChildren();
       fields.clear();
       const { panel, grid } = seoPanel('基本網站資訊與政策', '共用於全站頁尾、預設 SEO 與會員同意紀錄');
@@ -83,16 +84,12 @@ export async function initializeGeneralSettings(identity) {
         .map(([key, input]) => [key, input.value])
     );
     try {
-      data = await api('/api/v1/admin/settings', {
-        kind: 'admin',
-        method: 'PUT',
-        body: {
-          version: data.version,
-          seoVersion: data.seoVersion,
-          siteName: fields.get('siteName').value,
-          description: fields.get('description').value,
-          values,
-        },
+      data = await operationsApi.saveSettings({
+        version: data.version,
+        seoVersion: data.seoVersion,
+        siteName: fields.get('siteName').value,
+        description: fields.get('description').value,
+        values,
       });
       dirty = false;
       status(
@@ -101,7 +98,7 @@ export async function initializeGeneralSettings(identity) {
         !data.publicationReady
       );
       message.focus();
-      document.dispatchEvent(new CustomEvent('settings-section-saved', { detail: { section: 'general' } }));
+      emitPageEvent(SETTINGS_SECTION_SAVED, { section: 'general' });
     } catch (error) {
       for (const input of fields.values()) input.disabled = !writable;
       const mapped = {
@@ -123,7 +120,7 @@ export async function initializeGeneralSettings(identity) {
     }
   });
   // 兩區共用網站名稱、摘要與版本號；SEO 區儲存後，若一般區沒有未存的修改就自動重讀，避免下次儲存被誤判為他人更新。
-  document.addEventListener('settings-section-saved', event => {
+  onPageEvent(SETTINGS_SECTION_SAVED, event => {
     if (event.detail?.section !== 'general' && !dirty && !busy) void load();
   });
   reload.addEventListener('click', async () => {

@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace Yinghua\Models;
 
 /**
- * 四種公開內容在詳情頁網址轉向時各自不同的設定。
- * 轉向流程本身只有一份（DetailUrlResolver），差異集中寫在這裡，新增內容類型時不必再複製整段比對邏輯。
+ * 四種公開內容（景點、電影、消息、優惠）各自不同的規則：快照鍵、網址、標題欄位、分組與搜尋分類。
+ * 網址轉向、上一篇／下一篇與搜尋索引的流程都只有一份，差異集中寫在這裡（Strategy），
+ * 新增內容類型時補上這裡的 case，各流程以 cases() 逐一處理，不必再複製字串清單。
  */
-enum DetailUrlType: string
+enum PublicContentType: string
 {
     case Attraction = 'attraction';
     case Film = 'film';
@@ -89,5 +90,76 @@ enum DetailUrlType: string
     public function movedTo(string $path): ?self
     {
         return $this === self::News && $path === '/news/coffee-walk.html' ? self::Offer : null;
+    }
+
+    /** API 路徑與公開詳情頁使用的目錄名稱。 */
+    public function pathSegment(): string
+    {
+        return match ($this) {
+            self::Attraction => 'places',
+            self::Film => 'films',
+            self::News => 'news',
+            self::Offer => 'offers',
+        };
+    }
+
+    /**
+     * 依代稱算出的正式公開網址；博物館是唯一的固定頁面。
+     *
+     * @param array<string,mixed> $item
+     */
+    public function canonicalUrl(array $item): string
+    {
+        if ($this === self::Attraction && ($item['isMuseum'] ?? false) === true) {
+            return '/museum.html';
+        }
+        $slug = is_string($item['slug'] ?? null) ? $item['slug'] : '';
+
+        return '/' . $this->pathSegment() . '/' . $slug . '.html';
+    }
+
+    /**
+     * 快照中項目的公開網址。景點依代稱計算；其他內容使用發布時寫入的網址，缺少時回傳 null。
+     *
+     * @param array<string,mixed> $item
+     */
+    public function publishedUrl(array $item): ?string
+    {
+        if ($this === self::Attraction) {
+            return $this->canonicalUrl($item);
+        }
+
+        return is_string($item['url'] ?? null) ? $item['url'] : null;
+    }
+
+    /** 標題欄位：景點用名稱，其他內容用標題。 */
+    public function titleKey(): string
+    {
+        return $this === self::Attraction ? 'name' : 'title';
+    }
+
+    /** 上一篇／下一篇只在同一組內切換：景點依分類、消息依類型，電影與優惠不分組。 */
+    public function neighborGroupKey(): ?string
+    {
+        return match ($this) {
+            self::Attraction => 'category',
+            self::News => 'type',
+            self::Film, self::Offer => null,
+        };
+    }
+
+    /**
+     * 搜尋結果的分組；美食是從景點中依分類另外分出的一組。
+     *
+     * @param array<string,mixed> $item
+     */
+    public function searchType(array $item): SearchType
+    {
+        return match ($this) {
+            self::Attraction => ($item['category'] ?? '') === '美食' ? SearchType::Food : SearchType::Place,
+            self::Film => SearchType::Film,
+            self::News => SearchType::News,
+            self::Offer => SearchType::Offer,
+        };
     }
 }

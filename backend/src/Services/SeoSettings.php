@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Yinghua\Services;
 
+use Yinghua\Models\PublicContentType;
 use Yinghua\Adapters\SeoCatalog;
 use Yinghua\Config;
 use Yinghua\Contracts\Transactions;
@@ -19,6 +20,7 @@ use Yinghua\Repositories\SeoOverrideRepository;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\SeoTargetRepository;
 use Yinghua\Repositories\SeoSettingsRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 /** SEO 設定管理：預設值、個別覆寫與稽核紀錄在同一交易寫入，提交後才重新產生 HTML。 */
 class SeoSettings
@@ -68,7 +70,7 @@ class SeoSettings
                 $fresh = $this->authorization->require($actor, 'settings', 'edit', true);
                 $before = $this->document(true);
                 if ($before->version !== $input->version) {
-                    throw new ApplicationError('CONFLICT', 'SEO 設定已由其他人更新，請重新讀取後再編輯。');
+                    throw new ApplicationError(ErrorCode::Conflict, 'SEO 設定已由其他人更新，請重新讀取後再編輯。');
                 }
                 $visibility = $this->visibility($fresh, [...$before->overrides, ...$input->overrides]);
                 foreach ($input->overrides as $index => $item) {
@@ -159,8 +161,8 @@ class SeoSettings
             }
             $snapshot = $this->publication->read();
             $found = false;
-            foreach (['items','films','news','offers'] as $key) {
-                $items = $snapshot[$key] ?? [];
+            foreach (PublicContentType::cases() as $type) {
+                $items = $snapshot[$type->collectionKey()] ?? [];
                 foreach (is_array($items) ? $items : [] as $item) {
                     if (is_array($item)
                         && (($item['image'] ?? null) === $path

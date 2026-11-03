@@ -7,6 +7,7 @@ namespace Yinghua\Services;
 use Yinghua\DTO\OfferQuery;
 use Yinghua\DTO\PublicCollection;
 use Yinghua\Exceptions\ApplicationError;
+use Yinghua\Exceptions\ErrorCode;
 
 class PublicOffers
 {
@@ -33,11 +34,11 @@ class PublicOffers
     public function get(string $slug): array
     {
         $snapshot = $this->publication->read();
-        foreach (PublicCollection::items($snapshot, 'offers') as $item) {
-            if (($item['slug'] ?? null) === $slug) {
-                return ['offer' => $item,'generation' => $snapshot['generation']];
-            }
+        $found = PublicCollection::find($snapshot, 'offers', 'slug', $slug);
+        if ($found === null) {
+            throw new ApplicationError(ErrorCode::NotFound, '找不到此公開優惠。');
         }
-        throw new ApplicationError('NOT_FOUND', '找不到此公開優惠。');
+
+        return ['offer' => $found,'generation' => $snapshot['generation']];
     }
 }

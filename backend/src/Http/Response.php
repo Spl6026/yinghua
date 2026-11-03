@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Http;
 
 use Closure;
+use Yinghua\Support\Json;
 
 readonly class Response
 {
@@ -20,6 +21,17 @@ readonly class Response
         public array $headers = [],
         public array $afterSend = [],
     ) {}
+
+    /**
+     * 寫入類 API 的回應：資料已保存但公開頁尚未同步時回 202，讓前端提示稍後重試發布；
+     * 否則新增回 201、修改與刪除回 200。
+     *
+     * @param array<string,mixed> $payload
+     */
+    public static function written(bool $synchronized, array $payload, bool $created = false): self
+    {
+        return new self($synchronized ? ($created ? 201 : 200) : 202, $payload);
+    }
 
     public function withCookie(Cookie $cookie): self
     {
@@ -46,7 +58,7 @@ readonly class Response
             $cookie->emit();
         }
         if (!$head && $this->status !== 204) {
-            echo json_encode([...$this->payload, 'requestId' => $requestId], JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE);
+            echo Json::encode([...$this->payload, 'requestId' => $requestId]);
         }
         if ($this->afterSend !== []) {
             if (function_exists('fastcgi_finish_request')) {

@@ -11,7 +11,7 @@
 | Repository | AccountRepository、PermissionRepository 等 | SQL、資料映射與已知儲存衝突轉譯；不自行提交交易 |
 | Domain Model／Policy | Account、IdentityKind、PermissionPolicy | 帳號資料與純業務規則；含內部雜湊的 Account 不直接序列化 |
 | Request／Response DTO | DTO/ 下的具名類別 | 輸入與輸出分開；安全摘要不持有密碼雜湊或完整 Account |
-| 建構子 DI／設定 | Composition | 集中建立並傳入依賴；同請求共用連線，業務不查全域容器 |
+| 建構子 DI／設定 | Composition＋Composition\SharedServices | 組裝根（Composition Root）：`SharedServices` 建立同一請求共用的連線、權限、稽核與發布物件；帳號、景點與電影、消息優惠、會員、全站設定各有一個工廠方法回傳該區 Controller。業務不查全域容器 |
 | Filter／統一錯誤處理 | Http/Kernel | 身分、CSRF、唯讀模擬、module/action 與 HTTP 錯誤碼 |
 
 建構子注入參考 [Spring Boot 官方 DI 建議](https://docs.spring.io/spring-boot/reference/using/spring-beans-and-dependency-injection.html)；儲存例外轉譯參考 [Spring Framework DAO](https://docs.spring.io/spring-framework/reference/data-access/dao.html)。PHP 採明確組裝與 PDO，沒有 Spring 的註解掃描、JPA 或 AOP；角色職責相近，執行機制不同。
@@ -80,3 +80,41 @@ PHPat 五條規則：Controller 不依賴 Repository／PDO；Repository 不依�
 實際結果見 [階段二驗收](../PHASE-2-ACCEPTANCE.md)。本次整理沒有修改 frontend/、website/、schema 或後續階段的業務功能。
 
 E-01／E-13：Request.json() 不得丟棄 PHP 將 JSON 數字屬性名轉成的整數鍵；這類頂層鍵直接回 422，普通字串鍵繼續由 DTO 白名單驗證，巢狀 JSON 陣列不受影響。requestId 的契約固定為 32 位十六進位，JSON 與 X-Request-Id 一致。
+
+## 共用的基礎工具（2026-11-03 整併）
+
+同一件事只在一個地方實作，新程式請直接使用：
+
+| 需要做的事 | 使用 | 說明 |
+| --- | --- | --- |
+| 回傳 API 錯誤 | `Exceptions\ErrorCode` enum + `ApplicationError` | 錯誤代碼與 HTTP 狀態集中在 enum，拼錯會在 PHPStan 被抓到 |
+| 新增／修改資料列 | `Database::insert()`、`updateVersioned()` | 欄位名稱來自 DTO 白名單；修改時版本號自動加一 |
+| 保留舊網址 | `Database::reserveAlias()` | 已屬於其他內容的網址丟出 `ContentConflict` |
+| 下架軟刪除 | `Database::softDelete()` | 一併更新 `updated_at` 與版本號 |
+| 「包含」搜尋、IN 清單 | `Database::contains()`、`inList()` | SQL 端寫 `LIKE :參數 ESCAPE '!'` |
+| 判斷唯一鍵重複 | `Database::isDuplicateKey()` | MariaDB 錯誤 1062 |
+| UTC 時間寫入 DATETIME | `Support\UtcDateTime::sql()` | |
+| UUID 格式、JSON 編碼 | `Support\Uuid::isValid()`、`Support\Json::encode()` | |
+| 未預期例外寫紀錄 | `Support\ErrorLog::exception()` | 只記類別、代碼、位置，不記訊息與參數 |
+| 分頁參數、只帶版本號的請求、寫入回應 | `Request::page()`／`pageSize()`／`versionOnly()`、`Response::written()` | |
+| 從公開快照找單筆 | `DTO\PublicCollection::find()` | |
+| 常用設定 | `Config::csrfSeconds()`、`sessionSeconds()`、`idleSeconds()`、`mediaPath()`、`frontendSourcePath()` | |
+
+電影、景點與推薦路線的後台儲存與刪除共用 `Services\ContentWriter`（發布鎖 → 交易 → 加鎖驗權 → 版本比對 → 寫入 → 稽核 → 重新發布），各服務只提供模組特有的檢查與寫入；網址識別衝突一律標在 `slug` 欄位，格式錯誤的編號一律回 404，稽核紀錄新增時「修改前版本」為空、狀態記實際儲存結果，資源名稱沿用既有紀錄的寫法。讀取單筆供編輯時，電影與景點改為「檢視或編輯」權限即可（使用者 2026-11-03 依功能規格 D20 確認），與消息、優惠、推薦路線一致。
+
+消息與優惠的後台管理共用 `AdminContentManagement`／`AdminContentController`，在 `Composition` 依模組設定；兩者的資料存取與編輯分別實作 `Contracts\AdminContentRecords` 與 `Contracts\ContentEditor`。消息、優惠與店家的編輯服務由 `Composition::contentEditors()` 建立，後台 API 與 CLI 匯入共用。
+
+
+## 設計模式對照
+
+下列模式是為了讓職責單一、擴充時只改一處；名稱只是閱讀時的對照，不代表引入框架。
+
+| 模式 | 位置 | 用途 |
+| --- | --- | --- |
+| 組裝根（Composition Root）＋工廠方法 | `Composition`、`Composition\SharedServices` | 唯一建立物件的地方；共用物件建一次，各區塊工廠方法只組自己的 Controller |
+| 建構器（Builder） | `Services\PublicationSnapshotBuilder` | 從各資料表組出公開快照並算出 generation；`ContentPublication` 只負責發布流程、鎖定與記錄結果。`SECTIONS` 列出所有區段，發布延遲診斷依此比對，單元測試確認與實際快照一致 |
+| 策略（Strategy，以 enum 實作） | `Models\PublicContentType` | 景點、電影、消息、優惠的快照鍵、正式網址（含博物館固定頁）、標題欄位、上一篇／下一篇分組與搜尋分類；網址轉向、上下篇、搜尋索引與 SEO 圖片檢查都以 `cases()` 逐一處理，不再各自維護字串清單 |
+| 範本方法（Template Method） | `Services\ContentWriter`、`AdminContentManagement` | 共用的儲存／刪除順序（發布鎖、交易、權限、版本、稽核、重新發布），各模組只提供檢查與寫入 |
+| 轉接器（Adapter） | `Adapters\*` 實作 `Contracts\*` | 外部服務（Node 產生器、SMTP、Google、檔案儲存、HTML 淨化）都藏在介面後，業務類別只依賴介面 |
+| 介面隔離（ISP） | `Contracts\PublishedSnapshot`、`Contracts\ContentRenderer` | 只需讀已發布快照的服務（例如 `PublishedPolicies`）依賴 `PublishedSnapshot`；發布流程才需要完整的 `ContentRenderer`（產生頁面、版本與發布鎖） |
+| 命令（Command） | `bin/console.php` | 每個 CLI 指令對應一個處理函式，放在同一份指令表；說明文字由指令表產生，新增指令只加一筆，不再串接 elseif |

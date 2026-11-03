@@ -1,12 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import vm from 'node:vm';
-const source = (
-  await readFile(new URL('../assets/js/components/attraction-picker.js', import.meta.url), 'utf8')
-)
-  .replace(/^import\b[\s\S]*?;[ \t]*\r?\n/gm, '')
-  .replace('export function', 'function');
+import { apiModules } from './support/api-modules.mjs';
+import { loadWithSandbox } from './support/sandbox-module.mjs';
 class Node {
   constructor() {
     this.children = [];
@@ -56,8 +51,11 @@ async function fixture() {
       node.textContent = text;
     },
   };
-  vm.createContext(sandbox);
-  vm.runInContext(source, sandbox);
+  Object.assign(
+    sandbox,
+    apiModules((...args) => sandbox.api(...args))
+  );
+  Object.assign(sandbox, await loadWithSandbox('components/attraction-picker.js', sandbox));
   const picker = sandbox.attractionPicker(host, {
     isSelected: id => selected.has(id),
     isDisabled: () => state.disabled,

@@ -93,7 +93,7 @@ try {
         $access->require($actor, true);
         throw new RuntimeException('Disabled member accepted.');
     } catch (ApplicationError $error) {
-        $check($error->errorCode === 'UNAUTHENTICATED');
+        $check($error->errorCode === Yinghua\Exceptions\ErrorCode::Unauthenticated);
     }
 } finally {
     $db->pdo->rollBack();

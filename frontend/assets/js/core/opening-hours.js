@@ -8,7 +8,7 @@ export function emptyOpeningHours(note = '') {
     days: Array.from({ length: 7 }, (_, day) => ({ day, status: 'unknown', periods: [] })),
   };
 }
-export function openingDayText(day) {
+function openingDayText(day) {
   if (day.status === 'closed') return '公休';
   if (day.status === 'all_day') return '全天開放';
   if (day.status !== 'periods') return '依店家公告';

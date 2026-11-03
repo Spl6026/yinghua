@@ -13,6 +13,7 @@ use Yinghua\Models\Account;
 use Yinghua\Repositories\EventRepository;
 use Yinghua\Repositories\GeneralSettingsRepository;
 use Yinghua\Repositories\SeoSettingsRepository;
+use Yinghua\Exceptions\ErrorCode;
 
 class GeneralSiteSettings
 {
@@ -51,7 +52,7 @@ class GeneralSiteSettings
                 $before = $this->settings->read(true);
                 $seo = $this->seo->read(true);
                 if ($before->version !== $input->version || $seo->version !== $input->seoVersion) {
-                    throw new ApplicationError('CONFLICT', '設定已更新，請重新讀取後再編輯。');
+                    throw new ApplicationError(ErrorCode::Conflict, '設定已更新，請重新讀取後再編輯。');
                 }
                 $defaults = SeoDefaults::fromArray([...$seo->defaults->toArray(),
                     'siteName' => $input->siteName,
