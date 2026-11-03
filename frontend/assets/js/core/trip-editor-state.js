@@ -94,6 +94,14 @@ export class TripEditorState {
       this.uncertain = false;
     }
   }
+  /** 開啟指定行程來編輯；不是目前行程時順便設為目前行程，卡片上的「加入行程」才會加到同一份。 */
+  async edit(id) {
+    const data = await this.list();
+    if (data.currentId === id) {
+      const result = await this.perform(() => this.api.get(id));
+      this.adopt(result.itinerary);
+    } else await this.open(id);
+  }
   async afterWrite(trip) {
     this.adopt(trip);
     try {

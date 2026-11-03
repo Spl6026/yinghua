@@ -56,7 +56,7 @@ class Node {
     this.focused = true;
   }
 }
-async function fixture(page, search = '') {
+async function fixture(page, search = '', preset = {}) {
   const nodes = new Map(),
     node = id => {
       if (!nodes.has(id)) nodes.set(id, new Node());
@@ -68,7 +68,9 @@ async function fixture(page, search = '') {
     writes: [],
     trip: null,
     replacements: [],
+    assigned: [],
     reads: 0,
+    ...preset,
   };
   const docEvents = new Map(),
     windowEvents = new Map();
@@ -131,7 +133,7 @@ async function fixture(page, search = '') {
     memberResourcesApi: api,
     readMember: async () => data.member,
     requireSession: async () => data.member,
-    location: { search, replace: url => data.replacements.push(url) },
+    location: { search, replace: url => data.replacements.push(url), assign: url => data.assigned.push(url) },
     loginLocation: () => '/login.html',
     handleSessionExpiry: () => data.replacements.push('/login.html'),
     window: { addEventListener: (name, fn) => windowEvents.set(name, fn) },
@@ -199,24 +201,47 @@ test('收藏頁切回分頁先清除舊帳號資料，較慢舊回應不能蓋�
   assert.equal(f.node('#favorites-list').children[0].item.name, '乙收藏');
 });
 
-test('行程待辦網址只顯示確認，沒有 GET 自動寫入', async () => {
-  const f = await fixture('planner', '?place=place-a');
+const tripA = (items = []) => ({
+  ...{ id: 'trip-a', version: 1, title: '甲行程', tripDate: null, isCurrent: true, items: [] },
+  items,
+});
+
+test('行程待辦網址先到總覽選擇行程，沒有 GET 自動寫入', async () => {
+  const f = await fixture('planner', '?place=place-a', { trip: tripA() });
   assert.equal(f.data.writes.length, 0);
+  assert.equal(f.data.creates, 0);
   assert.equal(f.data.reads, 1);
+  assert.equal(f.node('#trip-overview').hidden, false);
+  assert.match(f.node('#trip-overview-intent-text').textContent, /公開地點/);
+  const card = f.node('#trip-overview-list').children[0];
+  const action = card.children.at(-1).children[0];
+  assert.equal(action.href, '/planner.html?edit=trip-a&place=place-a');
+});
+
+test('行程總覽列出本人行程，新增行程後帶著待辦進入編輯畫面', async () => {
+  const f = await fixture('planner', '?route=route-a', { trip: tripA([{ attractionId: 'x' }]) });
+  f.trips.route = async () => ({ route: { title: '老城散步' } });
+  assert.equal(f.node('#trip-overview-list').children.length, 1);
+  await f.node('#overview-new-trip').emit('click');
+  await settle();
+  assert.equal(f.data.creates, 1);
+  assert.deepEqual(f.data.assigned, ['/planner.html?edit=new-trip&route=route-a']);
+});
+
+test('行程內容只讀取不寫入，編輯按鈕連到同一份行程的編輯畫面', async () => {
+  const f = await fixture('planner', '?trip=trip-a', {
+    trip: tripA([{ attractionId: 'x', snapshotName: '甲地點', startTime: '10:00', note: '午餐' }]),
+  });
+  assert.equal(f.data.writes.length, 0);
+  assert.equal(f.node('#trip-detail').hidden, false);
+  assert.equal(f.node('#trip-detail-title').textContent, '甲行程');
+  assert.equal(f.node('#trip-detail-stops').children.length, 1);
+  assert.equal(f.node('#trip-detail-edit').href, '/planner.html?edit=trip-a');
+  assert.equal(f.node('#trip-detail-edit').hidden, false);
 });
 
 test('行程保存成功後讀取失敗，仍提示已保存而非重送', async () => {
-  const f = await fixture('planner');
-  f.data.trip = {
-    id: 'trip-a',
-    version: 1,
-    title: '甲行程',
-    tripDate: null,
-    isCurrent: true,
-    items: [{ attractionId: 'x' }],
-  };
-  f.windowEvents.get('focus')();
-  await settle();
+  const f = await fixture('planner', '?edit=trip-a', { trip: tripA([{ attractionId: 'x' }]) });
   f.trips.list = async () => {
     throw new Error('讀取失敗');
   };
@@ -229,10 +254,7 @@ test('行程保存成功後讀取失敗，仍提示已保存而非重送', async
 });
 
 test('行程換帳號會清除原私人站點，不以另一帳號覆蓋草稿', async () => {
-  const f = await fixture('planner');
-  f.data.trip = { id: 'trip-a', version: 1, items: [{ attractionId: 'x' }] };
-  f.windowEvents.get('focus')();
-  await settle();
+  const f = await fixture('planner', '?edit=trip-a', { trip: tripA([{ attractionId: 'x' }]) });
   assert.equal(f.node('#itinerary-list').children.length, 1);
   f.data.member = { id: 'b' };
   f.docEvents.get('visibilitychange')();
@@ -241,14 +263,12 @@ test('行程換帳號會清除原私人站點，不以另一帳號覆蓋草稿',
   assert.match(f.node('#trip-status').textContent, /登入身分已變更/);
 });
 
-test('新增地點留在原頁，直接開始編排時才建立行程，最後由儲存送出站點', async () => {
-  const f = await fixture('planner');
+test('編輯畫面新增地點只放進草稿，按儲存才送出，且不另外建立行程', async () => {
+  const f = await fixture('planner', '?edit=trip-a', { trip: tripA() });
   await f.node('#add-stop').emit('click');
   assert.equal(f.data.pickerOpen, true);
-  assert.equal(f.data.creates, 0);
-  assert.equal(f.data.replacements.length, 0);
   await f.data.picker.onChoose({ id: 'place-a', name: '公開景點' });
-  assert.equal(f.data.creates, 1);
+  assert.equal(f.data.creates, 0);
   assert.equal(f.data.writes.length, 0);
   assert.equal(f.data.picker.isSelected('place-a'), true);
   f.node('#trip-form').emit('submit');
@@ -258,8 +278,19 @@ test('新增地點留在原頁，直接開始編排時才建立行程，最後�
   assert.equal(f.data.replacements.length, 0);
 });
 
+test('儲存成功與重新載入都不把焦點移到狀態訊息，畫面不會自己捲動', async () => {
+  const f = await fixture('planner', '?edit=trip-a', { trip: tripA([{ attractionId: 'x' }]) });
+  f.node('#trip-form').emit('submit');
+  await settle();
+  assert.match(f.node('#trip-status').textContent, /已儲存/);
+  assert.notEqual(f.node('#trip-status').focused, true);
+  await f.node('#reload-trip').emit('click');
+  await settle();
+  assert.notEqual(f.node('#trip-status').focused, true);
+});
+
 test('初次載入、重新聚焦與背景讀取失敗不把焦點送到頁尾', async () => {
-  const f = await fixture('planner');
+  const f = await fixture('planner', '?edit=trip-a', { trip: tripA([{ attractionId: 'x' }]) });
   assert.notEqual(f.node('#trip-status').focused, true);
   f.windowEvents.get('focus')();
   await settle();

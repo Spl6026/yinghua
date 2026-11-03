@@ -1,5 +1,7 @@
 # 全站架構與檔案功能導讀
 
+2026-11-03 行程頁拆為總覽／內容／編輯（使用者指定，U-26）：`/planner.html` 依網址參數顯示行程總覽、唯讀行程內容或編輯畫面，入口 `pages/planner.js` 分派到 `trip-overview.js`、`trip-detail.js`、`trip-editor.js`；新增 `core/planner-links.js`、`components/trip-card.js`、`components/trip-stop-view.js`。行程清單 API 摘要增加 `stopCount`（OpenAPI 已同步）。修正編輯時每次儲存、重新載入或確認都捲到頁尾的問題（舊版實測 scrollY 500→1581，新版維持 500）。沒有新增固定頁、路由、資料表、migration 或環境變數。驗證：PHPStan、PHPUnit 142、前端 317、整合 14 組、API 108 項、行程整合 100 項／契約 55、Phase 11 81 項，以及瀏覽器 1440／390 實際操作總覽→新增→編輯→內容→刪除與 `?place=` 待辦。詳見 [會員行程指南](modules/member-itineraries.md)。
+
 2026-11-03 SOLID 與設計模式整理（使用者要求程式碼盡量符合 SOLID、套用合適的設計模式以提高可讀性；行為不變，模式對照見 [後端分層指南](modules/backend-layering.md#設計模式對照) 與 [前端指南](modules/frontend.md)）：
 - 後端組裝：`Composition::kernel()` 拆為 `Composition/SharedServices.php`（同一請求共用的連線、權限、稽核、發布物件）與帳號、景點與電影、消息優惠、會員、全站設定五個工廠方法；消息／優惠後台改以介面型別組裝。
 - 後端發布：快照組裝移到 `Services/PublicationSnapshotBuilder.php`（Builder），`ContentPublication` 只管發布流程；`SECTIONS` 補回發布延遲診斷漏掉的三個區段，並以單元測試確認與實際快照一致。四種公開內容的網址、標題欄位、上下篇分組與搜尋分類集中在 `Models/PublicContentType.php`（原 `DetailUrlType`，Strategy）。政策檢查只依賴新的 `Contracts/PublishedSnapshot`（介面隔離）。`bin/console.php` 改為指令表（Command），說明文字自動產生。`SeoTargetRepository` 改由 `Clock` 取得時間。

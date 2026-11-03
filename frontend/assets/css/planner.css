@@ -305,3 +305,126 @@
   font-size: 14px;
   line-height: 1.7;
 }
+
+/* 行程總覽與行程內容：與編輯畫面共用 /planner.html，依網址只顯示其中一個區塊。 */
+.trip-view[hidden],
+.planner-layout[hidden] {
+  display: none;
+}
+.trip-view-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  flex-wrap: wrap;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 20px;
+  margin-bottom: 24px;
+}
+.trip-view-head h2 {
+  font-size: 31px;
+  overflow-wrap: anywhere;
+}
+.trip-view-owner {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+.trip-view-head .button,
+.trip-detail-actions .button,
+.trip-card-actions .button {
+  font-size: 15px;
+  line-height: 1.5;
+  white-space: normal;
+}
+.trip-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 20px;
+}
+.trip-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  background: #fbf9f3;
+  border: 1px solid var(--line);
+}
+.trip-card h3 {
+  font: 500 22px var(--serif);
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.trip-card h3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.trip-card h3 a:hover,
+.trip-card h3 a:focus-visible {
+  text-decoration: underline;
+}
+.trip-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  color: var(--muted);
+}
+.trip-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 18px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.trip-card-actions .button {
+  margin: 0;
+}
+.trip-view-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 28px;
+}
+.trip-view .trip-list-pager {
+  margin-top: 24px;
+}
+.trip-back {
+  display: inline-block;
+  margin-bottom: 18px;
+}
+.trip-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.trip-detail-actions .button {
+  margin: 0;
+}
+.trip-detail-stops {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.trip-stop-view {
+  grid-template-columns: 47px 1fr auto;
+}
+.trip-stop-time {
+  font: 16px var(--serif);
+  color: var(--green);
+  white-space: nowrap;
+}
+.trip-stop-note {
+  white-space: pre-line;
+}
+@media (max-width: 600px) {
+  .trip-view-head h2 {
+    font-size: 25px;
+  }
+  .trip-stop-view {
+    grid-template-columns: 32px minmax(0, 1fr);
+  }
+  .trip-stop-view .trip-stop-time {
+    grid-column: 2;
+  }
+}
