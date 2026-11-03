@@ -31,3 +31,15 @@ python backend/tests/phase14_cleanup.py
 - `attractions_integration.py`：假設隔離庫已有示範景點（博物館、原型編號）；改為開始時執行不覆寫的 `content:seed-demo`。
 
 另：在殼層設有 `TERMS_VERSION` 時以 `docker compose run frontend` 建置，會把該值寫進固定頁；執行前請用 `env -u TERMS_VERSION`，與其他 compose 指令相同。
+
+## 自動化 CI（2026-11-03）
+
+`.github/workflows/checks.yml` 在每個 PR 與推送到 main 時執行不需要資料庫的檢查：
+
+| 工作 | 內容 |
+| --- | --- |
+| PHP | 以 `docker/php/Dockerfile` 的 development 階段建置映像（與本機相同的 PHP 版本、擴充與工具），執行 PHPStan、PHPUnit、PHP-CS-Fixer（只檢查不修改）。 |
+| 前端 | Node 24：`npm ci`、`npm run format:check`、建置後 `npm test`。 |
+| 維運腳本 | Python 3.13 執行 `scripts/operations/tests` 單元測試。 |
+
+需要 MariaDB、Mailpit、Node 發布程序與瀏覽器的 19 組整合套件仍以 `delivery.py integration` 在 Docker 開發環境執行；CI 綠燈不代表整合套件已通過。單元測試原本依賴開發環境的 `APP_KEY`，`backend/phpunit.xml` 改為提供測試專用的固定金鑰（已有環境值時沿用），讓乾淨環境也能執行。

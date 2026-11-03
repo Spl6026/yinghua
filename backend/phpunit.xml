@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php" colors="true" cacheDirectory=".build/phpunit">
+  <!-- 單元測試不連資料庫，也不應依賴開發環境的 .env；提供測試專用的固定金鑰（不是正式密鑰），已有環境值時沿用。 -->
+  <php><env name="APP_KEY" value="unit-test-only-key-not-a-secret-0123456789abcdef" force="false"/></php>
   <testsuites><testsuite name="Domain rules"><directory>tests/Unit</directory></testsuite></testsuites>
 </phpunit>

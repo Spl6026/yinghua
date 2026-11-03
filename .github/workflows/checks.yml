@@ -1,0 +1,73 @@
+# 每次開 PR 或推送到 main 時自動執行不需要資料庫的檢查；需要 MariaDB、Mailpit 與瀏覽器的整合套件
+# 仍由 scripts/validation/delivery.py 在 Docker 開發環境執行（見 docs/modules/delivery-validation.md）。
+name: checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  php:
+    name: PHP（PHPStan、PHPUnit、PHP-CS-Fixer）
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      # 使用與本機相同的 development 映像，PHP 版本、擴充套件與品質工具都和開發環境一致。
+      - name: Build development image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/php/Dockerfile
+          target: development
+          tags: yinghua-dev:ci
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: PHPStan
+        run: docker run --rm yinghua-dev:ci /var/www/tools/vendor/bin/phpstan analyse --no-progress --memory-limit=1G
+      - name: PHPUnit
+        run: docker run --rm yinghua-dev:ci /var/www/tools/vendor/bin/phpunit -c phpunit.xml
+      # PHP-CS-Fixer 尚未正式支援 PHP 8.5，需明確允許；只檢查不修改。
+      - name: PHP-CS-Fixer
+        run: docker run --rm -e PHP_CS_FIXER_IGNORE_ENV=1 yinghua-dev:ci /var/www/tools/vendor/bin/php-cs-fixer fix --dry-run --diff
+
+  frontend:
+    name: 前端（Prettier、建置、測試）
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      # 部分測試讀取建置後的 dist，所以先建置。
+      - run: node scripts/build.mjs
+      - run: npm test
+
+  operations:
+    name: 維運腳本單元測試
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m unittest discover -s scripts/operations/tests
