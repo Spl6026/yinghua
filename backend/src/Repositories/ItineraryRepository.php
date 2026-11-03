@@ -109,16 +109,22 @@ class ItineraryRepository
         return $row->integer('version') + 1;
     }
 
-    /** @return array{items:list<MemberItinerary>,total:int} */
+    /** @return array{items:list<MemberItinerary>,total:int,stopCounts:array<string,int>} */
     public function collection(string $memberId, int $page, int $size): array
     {
         $where = "member_id=:member AND status='active' AND deleted_at IS NULL";
         $count = new Row($this->database->row('SELECT COUNT(*) AS total FROM itineraries WHERE ' . $where, ['member' => $memberId]) ?? []);
+        // 總覽要顯示每份行程的地點數；以子查詢一次算完，不必逐份再讀站點。
         $rows = $this->database->rows(
-            'SELECT id,member_id,title,trip_date,version FROM itineraries WHERE ' . $where . ' ORDER BY updated_at DESC,id DESC LIMIT :size OFFSET :offset',
+            'SELECT id,member_id,title,trip_date,version,(SELECT COUNT(*) FROM itinerary_items i WHERE i.itinerary_id=itineraries.id) AS stop_count FROM itineraries WHERE ' . $where . ' ORDER BY updated_at DESC,id DESC LIMIT :size OFFSET :offset',
             ['member' => $memberId,'size' => $size,'offset' => ($page - 1) * $size],
         );
-        return ['items' => array_map($this->map(...), $rows),'total' => $count->integer('total')];
+        $stops = [];
+        foreach ($rows as $values) {
+            $row = new Row($values);
+            $stops[$row->string('id')] = $row->integer('stop_count');
+        }
+        return ['items' => array_map($this->map(...), $rows),'total' => $count->integer('total'),'stopCounts' => $stops];
     }
 
     /** @return list<ItineraryStop> */
