@@ -47,7 +47,7 @@ def inventory():
             'fontFiles': len(fonts['files']), 'envIgnored': ignored}
 
 
-def suites(dependency_path, vocabulary):
+def suites(dependency_path, vocabulary, browser=False):
     py = [sys.executable, '-X', 'utf8']
     def test(name, *args):
         return py + ['backend/tests/' + name + '.py', *args]
@@ -74,7 +74,10 @@ def suites(dependency_path, vocabulary):
         ('seo-index', test('phase12_integration', '--schema-vocabulary', vocabulary)),
         ('http-assets', test('phase14_assets')),
         ('html-integrity', test('frontend_integrity', '--base-url', 'http://localhost:8081')),
-    ]
+    ] + ([
+        # 需要 Node、Playwright 與 Chromium；以 --browser 開啟，結果寫入 artifacts/browser-smoke。
+        ('browser-smoke', test('browser_smoke')),
+    ] if browser else [])
 
 
 def main():
@@ -82,6 +85,7 @@ def main():
     parser.add_argument('mode', choices=['inventory', 'integration'])
     parser.add_argument('--dependency-path')
     parser.add_argument('--schema-vocabulary')
+    parser.add_argument('--browser', action='store_true', help='另外執行瀏覽器冒煙測試')
     options = parser.parse_args()
     # 每次使用新的目錄，避免把失敗的執行結果和之前通過的紀錄搞混。
     target = ROOT / 'artifacts/phase15' / (time.strftime('%Y%m%d-%H%M%S') + '-' + str(os.getpid()))
@@ -100,7 +104,7 @@ def main():
             # 各套件把結果與暫存的 fixture 寫進 artifacts 底下的子資料夾；artifacts 是可清理的本機目錄，先確保資料夾存在。
             for folder in ('phase10', 'phase11', 'phase12', 'phase13', 'phase14', 'phase15'):
                 (ROOT / 'artifacts' / folder).mkdir(parents=True, exist_ok=True)
-            for name, command in suites(options.dependency_path, options.schema_vocabulary):
+            for name, command in suites(options.dependency_path, options.schema_vocabulary, options.browser):
                 started = time.monotonic()
                 with (target / (name + '.log')).open('w', encoding='utf8') as log:
                     result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
@@ -112,6 +116,8 @@ def main():
                 print(json.dumps(row), flush=True)
                 if result.returncode:
                     raise RuntimeError('Failed suite: ' + name + '; inspect log, do not auto-retry')
+        # 冒煙測試只代表頁面可正常開啟與基本操作，不等於完整的人工 Browser 驗收，所以另立欄位。
+        report['browserSmoke'] = options.mode == 'integration' and options.browser
         report['passed'] = True
     finally:
         (target / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf8')

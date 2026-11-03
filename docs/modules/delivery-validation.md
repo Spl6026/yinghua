@@ -43,3 +43,11 @@ python backend/tests/phase14_cleanup.py
 | 維運腳本 | Python 3.13 執行 `scripts/operations/tests` 單元測試。 |
 
 需要 MariaDB、Mailpit、Node 發布程序與瀏覽器的 19 組整合套件仍以 `delivery.py integration` 在 Docker 開發環境執行；CI 綠燈不代表整合套件已通過。單元測試原本依賴開發環境的 `APP_KEY`，`backend/phpunit.xml` 改為提供測試專用的固定金鑰（已有環境值時沿用），讓乾淨環境也能執行。
+
+## 瀏覽器冒煙測試（2026-11-03）
+
+`backend/tests/browser_smoke.py` 在隔離的 localhost:8081／yinghua_test 建立本次專用的管理員與會員（帳號前綴 `smoke`），執行 `frontend/tests/browser/smoke.mjs`，結束後一律停用帳號、撤銷 session 並刪除其行程。也可用 `delivery.py integration … --browser` 併入套件執行，報告以 `browserSmoke` 標示；它不等於完整的人工 Browser 驗收，`browserVerified` 仍為 false。
+
+檢查內容（目前 70 項）：14 個公開頁桌面無主控台錯誤、無重複載入的模組、手機 390px 無橫向捲動；所有後台頁無錯誤；景點、電影、消息編輯表單載入後可編輯、有修改時重新載入要先確認；會員頁無錯誤，以及行程總覽→新增→加入兩個地點→儲存（畫面不捲動、焦點不移到狀態訊息）→行程內容→手機寬度→刪除。結果逐項寫入 `artifacts/browser-smoke/results.json`。
+
+需要 Node、`frontend` 的 devDependencies（含與瀏覽器版本一致的 `playwright` 1.63.0）及 Playwright 的 Chromium。無頭瀏覽器對程式聚焦不一定捲動畫面，所以「不捲動」另以焦點位置直接檢查；已實際把舊行為放回確認此檢查會失敗。
