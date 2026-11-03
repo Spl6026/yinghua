@@ -40,7 +40,48 @@
 </h1>
 <p>先收藏想去的地方，再把它們排進旅行計畫。<br>每段旅程，都從一個喜歡的念頭開始。</p>
 </div>
-<form class="section-pad planner-layout" id="trip-form" autocomplete="off">
+<section class="section-pad trip-view" id="trip-overview" hidden aria-labelledby="trip-overview-title">
+<div class="trip-view-head">
+<div>
+<p class="eyebrow">MY TRIPS</p>
+<h2 id="trip-overview-title">我的行程</h2>
+<p class="trip-view-owner" id="trip-overview-owner"></p>
+</div>
+<button type="button" class="button button-dark" id="overview-new-trip" disabled>＋ 新增行程</button>
+</div>
+<div class="member-intent" id="trip-overview-intent" hidden>
+<p id="trip-overview-intent-text"></p>
+<button type="button" class="button button-outline" id="trip-overview-intent-cancel">取消</button>
+</div>
+<p class="form-status" id="trip-overview-status" role="status" tabindex="-1">正在載入你的行程…</p>
+<div class="trip-overview-grid" id="trip-overview-list"></div>
+<div class="itinerary-empty" id="trip-overview-empty" hidden>
+<span>✳</span>
+<p>還沒有任何行程</p>
+<a class="text-link" href="/routes.html">先看看推薦行程 <span>→</span></a>
+</div>
+<div class="trip-list-pager" id="trip-overview-pager" hidden><button type="button" class="button button-outline" id="trip-overview-previous">上一頁行程</button><span id="trip-overview-page"></span><button type="button" class="button button-outline" id="trip-overview-next">下一頁行程</button></div>
+<p class="trip-view-links"><a class="text-link" href="/routes.html">瀏覽推薦行程 <span>↗</span></a><a class="text-link" href="/favorites.html">查看我的收藏 <span>↗</span></a></p>
+</section>
+<section class="section-pad trip-view" id="trip-detail" hidden aria-labelledby="trip-detail-title">
+<a class="text-link trip-back" href="/planner.html">← 返回我的行程</a>
+<div class="trip-view-head">
+<div>
+<p class="eyebrow">YOUR TRIP</p>
+<h2 id="trip-detail-title">載入行程中…</h2>
+<p class="trip-view-owner" id="trip-detail-meta"></p>
+</div>
+<div class="trip-detail-actions"><a class="button button-dark" id="trip-detail-edit" href="/planner.html" hidden>編輯行程 <span>↗</span></a><button type="button" class="button button-outline" id="trip-detail-current" hidden>設為目前行程</button><button type="button" class="button button-outline" id="trip-detail-delete" hidden>刪除行程</button></div>
+</div>
+<p class="form-status" id="trip-detail-status" role="status" tabindex="-1"></p>
+<ol class="trip-detail-stops" id="trip-detail-stops" aria-labelledby="trip-detail-title"></ol>
+<div class="itinerary-empty" id="trip-detail-empty" hidden>
+<span>✳</span>
+<p>這份行程還沒有地點</p>
+<a class="text-link" id="trip-detail-empty-edit" href="/planner.html">編輯行程加入地點 <span>→</span></a>
+</div>
+</section>
+<form class="section-pad planner-layout" id="trip-form" autocomplete="off" hidden>
 <aside class="planner-aside">
 <div class="planner-user">
 <div class="avatar">映</div>
@@ -52,18 +93,16 @@
 </a>
 </div>
 <div class="planner-card">
-<p class="eyebrow">YOUR NEXT TRIP</p>
+<a class="text-link trip-back" id="trip-editor-back" href="/planner.html">← 返回行程內容</a>
+<p class="eyebrow">EDITING TRIP</p>
 <h3 id="current-trip-name">載入行程中…</h3>
-<label for="trip-select">我的行程</label><select id="trip-select" disabled name="itineraryId"><option value="">正在載入行程…</option></select>
-<div class="trip-list-pager" hidden><button type="button" class="button button-outline" id="trip-list-previous">上一頁行程</button><span id="trip-list-page"></span><button type="button" class="button button-outline" id="trip-list-next">下一頁行程</button></div>
-<div class="trip-management"><button type="button" class="button button-outline" id="new-trip" disabled>新增行程</button><button type="button" class="button button-outline" id="delete-trip" disabled>刪除此行程</button></div>
 <div class="form-field">
 <label for="trip-date">旅行日期</label>
 <input id="trip-date" disabled name="tripDate" type="date" min="1000-01-01" max="9999-12-31" aria-describedby="trip-scope">
 </div><div class="form-field">
 <label for="trip-title">行程名稱</label>
 <input id="trip-title" disabled name="title" type="text" maxlength="200" placeholder="我的旅行計畫" aria-describedby="trip-scope">
-</div><p id="trip-scope">名稱與日期選填。先選擇行程，也可直接新增地點開始編排。</p>
+</div><p id="trip-scope">名稱與日期選填。新增地點後安排順序、時間與備註，再按「儲存行程」。</p>
 
 
 <button type="button" class="button button-outline full-button" id="reload-trip" disabled>重新載入行程</button>
@@ -88,6 +127,7 @@
 <button type="button" class="button button-outline" id="add-stop" disabled aria-controls="trip-place-picker" aria-expanded="false">＋ 新增地點</button>
 </div>
 <p class="trip-workflow-hint">新增地點 → 安排順序、時間與備註 → 儲存行程。調整時間不會自動更動站點順序。</p><div id="trip-picker-host"></div><div class="trip-save-bar"><p id="trip-dirty" role="status"></p><button type="submit" class="button button-dark" id="save-trip" disabled>儲存行程 <span>↗</span></button></div>
+<p class="form-status" id="trip-status" role="status" tabindex="-1">正在確認登入狀態…</p>
 <div class="form-field"><div class="itinerary-list" id="itinerary-list" data-field-name="items" tabindex="-1" aria-labelledby="trip-items-label">
 </div>
 </div>
@@ -97,7 +137,6 @@
 <a class="text-link" href="/explore.html">去探索城市散策 <span>→</span>
 </a>
 </div>
-<p class="form-status" id="trip-status" role="status" tabindex="-1">正在確認登入狀態…</p>
 <p class="demo-note">地點、順序、時間與備註請按「儲存行程」保存至帳號；未安排時間可留白。</p>
 </div>
 </form>

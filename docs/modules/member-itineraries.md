@@ -2,6 +2,18 @@
 
 更新：2026-10-31。階段十一；規劃及來源見[計畫](../PHASE-11-PLAN.md)，實際測試見[驗收](../PHASE-11-ACCEPTANCE.md)。原型 `website/planner.html` 保留；實作只放 `frontend/`、`backend/`。
 
+## 2026-11-03 畫面拆分（使用者指定，見 DESIGN-TRACEABILITY U-26）
+
+行程頁 `/planner.html` 依網址顯示三個畫面之一，入口 `pages/planner.js` 以對照表選擇：
+
+| 網址 | 畫面 | 模組 |
+| --- | --- | --- |
+| `/planner.html` | 行程總覽：本人所有行程卡片（名稱、日期、地點數、目前行程），新增行程後直接進入編輯 | `pages/trip-overview.js`、`components/trip-card.js` |
+| `/planner.html?trip=<id>` | 行程內容：唯讀的地點順序、時間與備註；可設為目前行程、刪除，或按「編輯行程」 | `pages/trip-detail.js`、`components/trip-stop-view.js` |
+| `/planner.html?edit=<id>` | 編輯畫面：原本的草稿編排（新增地點、排序、時間、備註、套用推薦路線），只編輯這一份 | `pages/trip-editor.js`、`core/trip-editor-state.js` 的 `edit()` |
+
+`?place=`／`?route=` 待辦沒有指定行程時先到總覽選擇，網址組合集中在 `core/planner-links.js`。清單 API 的每筆摘要多了 `stopCount`。編輯畫面的狀態訊息放在儲存列下方，成功時不移動焦點，畫面不會再捲到頁尾。以下為階段十一原始說明，其中「本人選單、頁碼」已移到總覽。
+
 ## 先理解資料流
 
 瀏覽器 planner → `itineraries-api.js` → API Controller → `MemberItineraries` Service → `ItineraryRepository` → MariaDB。Controller只處理HTTP及DTO；Service組織所有權、交易、版本與可用性；Repository只執行綁參數SQL。`Composition.php`建構子注入依賴。沿用[架構文件](../ARCHITECTURE.md)既有Service Layer／Repository／DTO慣例，沒有PHP HTML View或另一套會員身分系統。

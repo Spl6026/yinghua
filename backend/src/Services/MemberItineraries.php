@@ -33,7 +33,8 @@ class MemberItineraries
             $data = $this->records->collection($member->id, $page, $size);
             $current = $this->records->current($member->id)?->id;
             return ['items' => array_map(static fn(MemberItinerary $trip): array => [...$trip->toArray(),
-                'isCurrent' => $trip->id === $current], $data['items']),
+                'isCurrent' => $trip->id === $current,
+                'stopCount' => $data['stopCounts'][$trip->id] ?? 0], $data['items']),
                 'total' => $data['total'],
                 'page' => $page,
                 'pageSize' => $size,
