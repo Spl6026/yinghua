@@ -26172,6 +26172,14 @@
           "stopCount": {
             "type": "integer",
             "minimum": 0
+          },
+          "stopPreview": {
+            "type": "array",
+            "maxItems": 3,
+            "items": {
+              "type": "string"
+            },
+            "description": "依順序的前三站名稱，供總覽卡片預覽。"
           }
         },
         "required": [
@@ -26180,7 +26188,8 @@
           "tripDate",
           "version",
           "isCurrent",
-          "stopCount"
+          "stopCount",
+          "stopPreview"
         ],
         "additionalProperties": false
       },

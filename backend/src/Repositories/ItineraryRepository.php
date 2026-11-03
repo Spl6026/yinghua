@@ -116,6 +116,34 @@ class ItineraryRepository
         return ['items' => array_map($this->map(...), $rows),'total' => $count->integer('total'),'stopCounts' => $stops];
     }
 
+    /**
+     * 每份行程依順序取前幾站，供總覽卡片預覽；一次查完整頁行程，不逐份讀取。
+     *
+     * @param list<string> $ids
+     * @return array<string,list<array{attractionId:string,snapshotName:string}>>
+     */
+    public function previewStops(string $memberId, array $ids, int $limit): array
+    {
+        if ($ids === []) {
+            return [];
+        }
+        [$placeholders, $parameters] = Database::inList('trip', $ids);
+        $rows = $this->database->rows(
+            'SELECT itinerary_id,attraction_id,snapshot_name FROM (SELECT i.itinerary_id,i.attraction_id,i.snapshot_name,i.sort_order,'
+            . 'ROW_NUMBER() OVER (PARTITION BY i.itinerary_id ORDER BY i.sort_order) AS position FROM itinerary_items i '
+            . 'JOIN itineraries t ON t.id=i.itinerary_id WHERE t.member_id=:member AND t.deleted_at IS NULL AND i.itinerary_id IN (' . $placeholders . ')'
+            . ') ranked WHERE position<=:limit ORDER BY itinerary_id,position',
+            ['member' => $memberId, 'limit' => $limit, ...$parameters],
+        );
+        $result = [];
+        foreach ($rows as $values) {
+            $row = new Row($values);
+            $result[$row->string('itinerary_id')][] = ['attractionId' => $row->string('attraction_id'), 'snapshotName' => $row->string('snapshot_name')];
+        }
+
+        return $result;
+    }
+
     /** @return list<ItineraryStop> */
     public function allItems(string $memberId, string $id): array
     {

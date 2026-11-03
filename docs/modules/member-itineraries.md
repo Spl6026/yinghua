@@ -12,7 +12,7 @@
 | `/planner.html?trip=<id>` | 行程內容：唯讀的地點順序、時間與備註；可設為目前行程、刪除，或按「編輯行程」 | `pages/trip-detail.js`、`components/trip-stop-view.js` |
 | `/planner.html?edit=<id>` | 編輯畫面：原本的草稿編排（新增地點、排序、時間、備註、套用推薦路線），只編輯這一份 | `pages/trip-editor.js`、`core/trip-editor-state.js` 的 `edit()` |
 
-`?place=`／`?route=` 待辦沒有指定行程時先到總覽選擇，網址組合集中在 `core/planner-links.js`。清單 API 的每筆摘要多了 `stopCount`。編輯畫面的狀態訊息放在儲存列下方，成功時不移動焦點，畫面不會再捲到頁尾。以下為階段十一原始說明，其中「本人選單、頁碼」已移到總覽。
+`?place=`／`?route=` 待辦沒有指定行程時先到總覽選擇，網址組合集中在 `core/planner-links.js`。清單 API 的每筆摘要多了 `stopCount` 與 `stopPreview`（依順序的前三站名稱，有公開資料時用目前名稱，否則用加入時保存的名稱；`ItineraryRepository::previewStops()` 以一次查詢取整頁行程），總覽卡片據此顯示「甲 → 乙 → 丙 → …」。編輯畫面的狀態訊息放在儲存列下方，成功時不移動焦點，畫面不會再捲到頁尾。以下為階段十一原始說明，其中「本人選單、頁碼」已移到總覽。
 
 ## 2026-11-03 版本號改為每份行程各自計算（U-28）
 

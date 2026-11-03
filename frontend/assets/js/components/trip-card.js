@@ -16,6 +16,16 @@ export function tripCard(trip, intent = {}) {
     element('span', {}, trip.stopCount ? `${trip.stopCount} 個地點` : '尚未加入地點')
   );
   card.append(element('p', { className: 'eyebrow' }, trip.isCurrent ? '目前行程' : 'MY TRIP'), heading, meta);
+  // 預覽前幾站，讓使用者不必點進去就認得是哪一份；超過的以「…」表示還有更多。
+  const preview = trip.stopPreview || [];
+  if (preview.length)
+    card.append(
+      element(
+        'p',
+        { className: 'trip-card-stops' },
+        preview.join(' → ') + (trip.stopCount > preview.length ? ' → …' : '')
+      )
+    );
   const actions = element('div', { className: 'trip-card-actions' });
   if (intent.place || intent.route)
     actions.append(

@@ -90,6 +90,10 @@ def main():
         call('POST',base+'/'+t['id']+'/routes',{'version':t['version'],'routeId':route_id},expected=404)
         reauth=Client();check('relogin',reauth.login(m['prefix']+'@example.test',m['password'])[0]==200)
         check('cross-session full roundtrip',call('GET',base+'/'+t['id'],client=reauth)['itinerary']==t)
+        full=call('GET',base)['items']
+        check('overview previews first stops in order',all(len(x['stopPreview'])==min(3,x['stopCount']) and all(isinstance(n,str) and n for n in x['stopPreview']) for x in full))
+        first=next(x for x in full if x['stopCount']>0);detail=call('GET',base+'/'+first['id'])['itinerary']
+        check('preview names match trip stops',first['stopPreview']==[(i['attraction'] or {}).get('name') or i['snapshotName'] for i in detail['items'][:3]])
         listing=call('GET',base+'?pageSize=1');check('owned pagination',listing['total']==2 and len(listing['items'])==1 and all(s['id']!=foreign['id'] for s in listing['items']))
         t=call('PUT',base+'/'+t['id']+'/current',{'version':t['version']})['itinerary']
         call('DELETE',base+'/'+t['id'],{'version':t['version']},expected=204)
