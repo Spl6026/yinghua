@@ -108,7 +108,7 @@ async function fixture({ creating = false, preview = false, edit = true, view = 
     version: 1,
     screenings: [],
   };
-  const state = { saves: [], uploads: [], assignments: [], gets: 0, confirm: true };
+  const state = { saves: [], uploads: [], assignments: [], urls: [], gets: 0, confirm: true };
   const sandbox = {
     ...taipeiTime,
     URLSearchParams,
@@ -125,7 +125,7 @@ async function fixture({ creating = false, preview = false, edit = true, view = 
     }),
     document: { querySelector: id => node(id), createElement: tag => new Node(tag) },
     location: { search: '?id=a', protocol: 'http:', assign: url => state.assignments.push(url) },
-    history: { replaceState() {} },
+    history: { replaceState: (_state, _title, url) => state.urls.push(url) },
     window: { addEventListener() {}, setTimeout() {} },
     FormData: class extends Map {},
     confirmAction: async () => state.confirm,
@@ -270,4 +270,16 @@ test('僅新增權限保存成功後顯示結果，可再新增，不導向沒�
   assert.equal(f.node('#film-cancel').href, '/index.html');
   assert.equal(f.node('.admin-preview').href, '/index.html');
   assert.equal(f.node('.admin-preview').textContent, '返回網站');
+});
+
+test('202 後只有編輯權限（沒有檢視）也把網址換成編輯頁，重新整理不會回到新增表單', async () => {
+  const f = await fixture({ creating: true, view: false });
+  await f.initialize();
+  f.state.write = async () => ({
+    film: { ...f.item, version: 1 },
+    publication: { status: 'failed', message: '已保存，同步失敗' },
+  });
+  f.form.emit('submit');
+  await settle();
+  assert.deepEqual(f.state.urls, ['/admin/film-edit.html?id=a']);
 });
