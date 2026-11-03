@@ -23867,6 +23867,11 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 4294967295
+          },
+          "itineraryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
+            "description": "version 大於 0 時必填，必須等於目前行程，避免目前行程已切換時改到另一份。"
           }
         },
         "required": [

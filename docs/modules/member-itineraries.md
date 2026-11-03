@@ -14,6 +14,12 @@
 
 `?place=`／`?route=` 待辦沒有指定行程時先到總覽選擇，網址組合集中在 `core/planner-links.js`。清單 API 的每筆摘要多了 `stopCount`。編輯畫面的狀態訊息放在儲存列下方，成功時不移動焦點，畫面不會再捲到頁尾。以下為階段十一原始說明，其中「本人選單、頁碼」已移到總覽。
 
+## 2026-11-03 版本號改為每份行程各自計算（U-28）
+
+原本同一位會員的所有行程共用一個遞增的版本號，連續操作不同行程時會互相造成衝突（例如用同一次清單讀到的版本連續刪除兩份行程，第二份會被判為已變更）。現在版本號以每份行程為單位：只有該行程的名稱、日期、站點改變或刪除時才加一，切換目前行程不改版本。
+
+舊的「目前行程」站點 API（`PUT／DELETE /api/v1/me/itineraries/current/items/{id}`）原本只靠版本號判斷；改為已有行程時（version 大於 0）必須同時送 `itineraryId`，且要等於目前行程，否則回 409。現有介面不使用這組 API（景點卡片的「加入行程」會帶到行程頁選擇）。
+
 ## 先理解資料流
 
 瀏覽器 planner → `itineraries-api.js` → API Controller → `MemberItineraries` Service → `ItineraryRepository` → MariaDB。Controller只處理HTTP及DTO；Service組織所有權、交易、版本與可用性；Repository只執行綁參數SQL。`Composition.php`建構子注入依賴。沿用[架構文件](../ARCHITECTURE.md)既有Service Layer／Repository／DTO慣例，沒有PHP HTML View或另一套會員身分系統。
