@@ -428,3 +428,9 @@
     grid-column: 2;
   }
 }
+.trip-card-stops {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Yinghua\Services;
 
 use Yinghua\Contracts\Transactions;
-use Yinghua\DTO\{ContentFields, ItineraryStop, MemberItinerary, TripCreated, TripInput, TripView, PublicCollection};
+use Yinghua\DTO\{ContentFields, ItineraryStop, MemberAttractionSnapshot, MemberItinerary, TripCreated, TripInput, TripView, PublicCollection};
 use Yinghua\Exceptions\{ApplicationError, ContentConflict};
 use Yinghua\Models\Account;
 use Yinghua\Policies\RecommendedRouteSelection;
@@ -32,9 +32,12 @@ class MemberItineraries
             $member = $this->access->require($actor);
             $data = $this->records->collection($member->id, $page, $size);
             $current = $this->records->current($member->id)?->id;
-            return ['items' => array_map(static fn(MemberItinerary $trip): array => [...$trip->toArray(),
+            $previews = $this->records->previewStops($member->id, array_map(static fn(MemberItinerary $trip): string => $trip->id, $data['items']), 3);
+            $snapshot = $this->attractions->snapshot();
+            return ['items' => array_map(fn(MemberItinerary $trip): array => [...$trip->toArray(),
                 'isCurrent' => $trip->id === $current,
-                'stopCount' => $data['stopCounts'][$trip->id] ?? 0], $data['items']),
+                'stopCount' => $data['stopCounts'][$trip->id] ?? 0,
+                'stopPreview' => $this->stopNames($snapshot, $previews[$trip->id] ?? [])], $data['items']),
                 'total' => $data['total'],
                 'page' => $page,
                 'pageSize' => $size,
@@ -206,5 +209,21 @@ class MemberItineraries
                 ...$snapshot->view($item->attractionId)];
         }
         return new TripView($trip, $this->records->current($memberId)?->id === $trip->id, $items);
+    }
+
+    /**
+     * 總覽卡片顯示前幾站名稱：有公開資料時用目前的公開名稱，否則用加入時保存的名稱（與行程內容頁一致）。
+     *
+     * @param list<array{attractionId:string,snapshotName:string}> $stops
+     * @return list<string>
+     */
+    private function stopNames(MemberAttractionSnapshot $snapshot, array $stops): array
+    {
+        return array_map(static function (array $stop) use ($snapshot): string {
+            $attraction = $snapshot->view($stop['attractionId'])['attraction'];
+            $name = is_array($attraction) ? ($attraction['name'] ?? null) : null;
+
+            return is_string($name) && $name !== '' ? $name : $stop['snapshotName'];
+        }, $stops);
     }
 }
