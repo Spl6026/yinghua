@@ -20496,13 +20496,19 @@
           },
           "requestId": {
             "$ref": "#/components/schemas/RequestId"
+          },
+          "termsLabel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
           }
         },
         "required": [
           "token",
           "expiresIn",
           "termsVersion",
-          "requestId"
+          "requestId",
+          "termsLabel"
         ]
       },
       "MemberIdentity": {

@@ -6,7 +6,8 @@
 - CI：新增 `.github/workflows/checks.yml`，PR 與 main 自動執行 PHPStan、PHPUnit、PHP-CS-Fixer、Prettier、前端建置與測試、維運腳本測試。`backend/phpunit.xml` 改為提供測試專用 APP_KEY，單元測試不再依賴開發環境的 .env。
 - 瀏覽器冒煙測試：`backend/tests/browser_smoke.py`＋`frontend/tests/browser/smoke.mjs`（70 項，只連隔離的 8081，自建並清理帳號），`delivery.py integration --browser` 可併入執行；`frontend` 新增 devDependency `playwright` 1.63.0。
 - 提案：[公開快照新鮮度檢查的效能改善](PUBLICATION-FAST-CHECK-PROPOSAL.md)，待決定，尚未實作。
-沒有新增 API、資料表、migration 或環境變數。
+- 修正：後台自訂條款版本名稱時，註冊頁原本顯示內部同意代碼（policy-雜湊）。`GET /api/v1/auth/csrf` 增加 `termsLabel`（OpenAPI 已同步），註冊頁顯示該名稱，送出同意仍用 `termsVersion`。
+沒有新增 API 路由、資料表、migration 或環境變數。
 
 2026-11-03 行程頁拆為總覽／內容／編輯（使用者指定，U-26）：`/planner.html` 依網址參數顯示行程總覽、唯讀行程內容或編輯畫面，入口 `pages/planner.js` 分派到 `trip-overview.js`、`trip-detail.js`、`trip-editor.js`；新增 `core/planner-links.js`、`components/trip-card.js`、`components/trip-stop-view.js`。行程清單 API 摘要增加 `stopCount`（OpenAPI 已同步）。修正編輯時每次儲存、重新載入或確認都捲到頁尾的問題（舊版實測 scrollY 500→1581，新版維持 500）。沒有新增固定頁、路由、資料表、migration 或環境變數。驗證：PHPStan、PHPUnit 142、前端 317、整合 14 組、API 108 項、行程整合 100 項／契約 55、Phase 11 81 項，以及瀏覽器 1440／390 實際操作總覽→新增→編輯→內容→刪除與 `?place=` 待辦。詳見 [會員行程指南](modules/member-itineraries.md)。
 
