@@ -89,7 +89,9 @@ def main():
         scheduled=create('scheduled',[{'startsAt':stamp(23)}],publishAt='2099-01-01T00:00:00+08:00')
         check('scheduled film not early',guest.call('GET','/api/v1/films/'+scheduled['slug'])[0]==404)
         fixture(f"UPDATE films SET publish_at='2026-01-01 00:00:00' WHERE id='{scheduled['id']}'")
-        check('schedule change gates stale public projection',guest.call('GET','/api/v1/films')[0]==503)
+        # 排程時間到、發布程序還沒重新產生前，照常提供上一版，新電影尚未出現。
+        check('schedule change keeps serving last version',guest.call('GET','/api/v1/films')[0]==200)
+        check('scheduled film waits for next tick',guest.call('GET','/api/v1/films/'+scheduled['slug'])[0]==404)
         cli('content:tick')
         check('schedule tick publishes film',raw(guest,scheduled['url'])[0]==200)
         check('attractions preserved through screening changes',guest.call('GET','/api/v1/attractions')[0]==200)

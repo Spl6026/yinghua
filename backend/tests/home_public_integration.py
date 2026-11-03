@@ -52,8 +52,9 @@ def main():
         for item in [*data['news'],*data['films']]:check('home detail link '+item['slug'],get(item['url'])[0]==200)
         result=cli([{**rows[0],'title':prefix+' changed','version':1}],True,4,True)
         check('failed render reports saved state',result['status']=='saved_publication_pending')
-        check('API blocks mixed old home generation',home()[0]==503)
-        check('HTML blocks mixed old home generation',get('/')[0]==503)
+        # 發布失敗時首頁 API 與 HTML 都繼續提供同一個上一版，不會混用新舊資料。
+        code,stale=home();check('API keeps last home version',code==200 and stale['generation']==data['generation'])
+        check('HTML keeps last home version',get('/')[0]==200)
         run(['docker','compose','exec','-T','--user','www-data','app-test','php','bin/console.php','content:publish'])
         _,updated=home();check('retry publishes saved home update',any(x['title']==prefix+' changed' for x in updated['news']) and updated['generation']!=data['generation'])
         cli([{**rows[0],'title':prefix+' changed','version':2,'status':'archived'}],True)

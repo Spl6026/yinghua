@@ -103,8 +103,10 @@ def main():
             cli('','renderer-fail')
             code,data,_=root.call('PUT',path,dict(title=film['title'],version=film['version'],synopsis='發布故障 '+prefix))
             check('saved but render fails returns 202 '+str(code),code==202 and data['publication']['status']=='failed')
-            check('pending blocks stale film API',guest.call('GET','/api/v1/films/'+film['slug'])[0]==503)
-            check('pending blocks stale HTML',raw(guest,film['url'])[0]==503)
+            # 發布失敗時繼續提供上一版，未發布的修改不會出現在公開頁。
+            code,public,_=guest.call('GET','/api/v1/films/'+film['slug'])
+            check('pending keeps last published film API',code==200 and '發布故障' not in json.dumps(public,ensure_ascii=False))
+            check('pending keeps last published HTML',raw(guest,film['url'])[0]==200)
         finally:cli('','renderer-restore')
         check('film authorized publication retry',root.call('POST','/api/v1/admin/films/publish-retry',{})[0]==200)
         film=root.call('GET',path)[1]['film'];film=update(film,status='archived')

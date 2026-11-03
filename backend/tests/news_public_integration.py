@@ -123,7 +123,8 @@ def main():
         pending={**items[5],'title':prefix+' pending','version':1}
         check('saved but failed HTML returns distinct exit 4',cli([pending],True,4,True)['status']=='saved_publication_pending')
         check('committed content survives renderer failure',db('SELECT title,version FROM news_posts WHERE id=:id',{'id':pending['id']})[0]=={'title':pending['title'],'version':2})
-        check('pending publication cannot serve stale list',get('/api/v1/news')[0]==503)
+        # 發布失敗時列表繼續提供上一版，尚未發布的標題不會出現。
+        code,listing=get('/api/v1/news')[:2];check('pending publication keeps last list',code==200 and pending['title'] not in json.dumps(json.loads(listing),ensure_ascii=False))
         run(['docker','compose','exec','-T','--user','www-data','app-test','php','bin/console.php','content:publish'])
         check('retry publishes without another update',json.loads(get('/api/v1/news/'+pending['slug'])[1])['article']['title']==pending['title'])
         cli([{**changed,'version':2,'status':'archived'}],True)

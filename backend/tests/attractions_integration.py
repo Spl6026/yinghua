@@ -150,7 +150,9 @@ def main():
     scheduled,_=write(root,body(media_id,slug=prefix+'-scheduled',status='published',publishAt='2099-01-01T00:00:00+08:00'),expect=201)
     check('scheduled content not early',guest.call('GET','/api/v1/attractions/'+prefix+'-scheduled')[0]==404)
     fixture("UPDATE attractions SET publish_at='2026-10-10 00:00:00' WHERE id='"+scheduled['id']+"'")
-    check('schedule boundary blocks stale projection',guest.call('GET','/api/v1/attractions')[0]==503)
+    # 排程時間到但發布程序還沒重新產生前，網站照常提供上一版，新項目尚未出現。
+    check('schedule boundary keeps serving last version',guest.call('GET','/api/v1/attractions')[0]==200)
+    check('scheduled item waits for next tick',raw(guest,'/places/'+prefix+'-scheduled.html')[0]==404)
     cli('content:tick')
     check('schedule tick activates HTML',raw(guest,'/places/'+prefix+'-scheduled.html')[0]==200)
     route_id=str(uuid.uuid4())
@@ -165,8 +167,9 @@ def main():
         update.update(version=item['version'],status='archived')
         item,result=write(root,update,identifier,expect=202)
         check('render failure recorded separately',result['publication']['status']=='failed')
-        check('failed unpublish does not expose old API',guest.call('GET','/api/v1/attractions')[0]==503)
-        check('failed unpublish does not expose old HTML',raw(guest,'/places/'+prefix+'-renamed.html')[0]==503)
+        # 發布失敗時繼續提供上一版（後台已提示失敗並可重試），重試成功後才下架。
+        check('failed unpublish keeps last API version',guest.call('GET','/api/v1/attractions')[0]==200)
+        check('failed unpublish keeps last HTML until retry',raw(guest,'/places/'+prefix+'-renamed.html')[0]==200)
     finally:
         cli('', 'renderer-restore')
     check('authorized retry succeeds',root.call('POST','/api/v1/admin/attractions/publish-retry',{})[0]==200)

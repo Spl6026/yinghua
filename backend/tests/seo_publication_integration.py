@@ -74,7 +74,7 @@ def main():
         for path,title in [('/food.html','獨立美食標題'),('/places/'+prefix+'-place-0.html','景點 SEO 覆寫'),('/films/'+prefix+'-film.html','電影 SEO 覆寫'),('/news/'+prefix+'-news-0.html','消息 SEO 覆寫'),('/offers/'+prefix+'-offer.html','優惠 SEO 覆寫')]:
             code,text,headers=html(path);head=Head(text);check('200 unique head '+path,code==200 and head.titles==[title] and all(len(value)==1 for value in head.metas.values()))
             check('self canonical '+path,head.links==['https://example.test'+path] and head.metas['og:url']==head.links)
-            check('verification and cache '+path,head.metas['google-site-verification']==['google_public_test'] and head.metas['msvalidate.01']==['BING_PUBLIC_TEST'] and 'no-store' in headers.get('Cache-Control',''))
+            check('verification and cache '+path,head.metas['google-site-verification']==['google_public_test'] and head.metas['msvalidate.01']==['BING_PUBLIC_TEST'] and 'no-cache' in headers.get('Cache-Control',''))
             check('no executable head data '+path,'不應公開的草稿 SEO' not in text)
         check('food body preserved','沿著香氣' in html('/food.html')[1])
         index=Head(html('/index.html')[1]);check('home suffix updated once',index.titles[0].endswith('｜隔離 SEO') and index.titles[0].count('｜隔離 SEO')==1)
@@ -90,8 +90,9 @@ def main():
         try:
             pending=payload(call(root,'GET',base)[1]);pending['defaults']['titleSuffix']='｜待發布'
             code,result,_=call(root,'PUT',base,pending);check('saved but publication pending explicit',code==200 and not result['publicationReady'])
-            check('public settings refuses mixed version',call(guest,'GET',public)[0]==503)
-            check('public HTML refuses stale head',html('/food.html')[0]==503)
+            # 發布失敗時公開設定與頁面標頭都維持上一版，新後綴要等重新發布成功才出現。
+            code,old,_=call(guest,'GET',public);check('public settings keeps last version',code==200 and old['version']!=result['version'])
+            check('public HTML keeps last head',html('/food.html')[0]==200 and '｜待發布' not in html('/food.html')[1])
             check('admin recovery still works',call(root,'GET',base)[0]==200 and html('/admin/login.html')[0]==200 and html('/login.html')[0]==200)
         finally:fixture('DROP TRIGGER IF EXISTS '+trigger)
         publish();check('publication retry restores same saved version',call(guest,'GET',public)[1]['version']==result['version'] and call(root,'GET',base)[1]['publicationReady'])

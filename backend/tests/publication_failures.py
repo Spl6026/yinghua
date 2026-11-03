@@ -34,8 +34,9 @@ def main():
                 identifier = item['id']
                 path += '/' + identifier
                 if operation == 'INSERT':
+                    # 發布失敗時網站照常提供上一版，新建立的內容不會提早公開。
                     check(module + ' unpublished generation stays private',
-                          Client().call('GET', '/api/v1/' + module + '/' + item['slug'])[0] == 503)
+                          Client().call('GET', '/api/v1/' + module + '/' + item['slug'])[0] == 404)
                 body['version'] = item['version']
                 code, updated, _ = root.call('PUT', path, body)
                 check(module + ' retry updates same resource after ' + operation,

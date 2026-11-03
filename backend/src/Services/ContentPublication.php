@@ -14,12 +14,17 @@ use Yinghua\Repositories\PublicationRepository;
 use Yinghua\Repositories\SearchRepository;
 use Yinghua\Support\ErrorLog;
 
-/** 資料庫是編輯用的來源；公開頁面與 API 一律讀取最近一次成功產生、不再變動的快照。 */
+/**
+ * 資料庫是編輯用的來源；公開頁面與 API 一律讀取最近一次成功產生、不再變動的快照。
+ *
+ * 新鮮度採一般網站的做法：後台儲存時立即重新發布；排程時間到、跨日、換週，以及直接改資料庫等
+ * 沒有經過儲存流程的變化，由發布程序每 10 秒 tick() 比對後重新產生。讀取時不再逐次比對，
+ * 所以這類變化最多延遲約 10 秒；發布失敗時繼續提供上一版，後台會提示並可重試（使用者 2026-11-03 決定）。
+ */
 class ContentPublication
 {
     /**
-     * 同一個請求中已驗證過的快照。驗證要查遍所有公開內容並計算雜湊，
-     * 同一請求裡多個服務各自讀取時不必重做；重新發布後清除。
+     * 同一個請求中已讀取的快照，多個服務各自讀取時不必重讀檔案；重新發布後清除。
      *
      * @var array<string,mixed>|null
      */
@@ -77,7 +82,7 @@ class ContentPublication
         return $this->exclusive($this->synchronize(...));
     }
 
-    /** 由 CLI 排程定期呼叫；內容沒有變更時不重新產生。 */
+    /** 由發布程序每 10 秒呼叫；與資料庫重新比對，內容沒有變更時不重新產生。 */
     public function tick(): bool
     {
         return $this->exclusive(function (): bool {
@@ -96,14 +101,10 @@ class ContentPublication
         if ($this->verified !== null) {
             return $this->verified;
         }
-        // 產生失敗、內容下架或排程切換期間，不能繼續對外提供過期的舊版本。
+        // 只有從未成功發布過（例如全新安裝）時才沒有可提供的版本。
         $current = $this->renderer->current();
         if ($current === null) {
-            throw new PublicationPending(null, []);
-        }
-        $expected = $this->projection();
-        if (($current['generation'] ?? null) !== $this->generation($expected)) {
-            throw new PublicationPending($current, $expected);
+            throw new PublicationPending();
         }
 
         return $this->verified = $current;

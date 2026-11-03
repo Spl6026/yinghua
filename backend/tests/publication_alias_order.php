@@ -12,7 +12,6 @@ use Yinghua\Contracts\Transactions;
 use Yinghua\DTO\MerchantInput;
 use Yinghua\DTO\NewsInput;
 use Yinghua\DTO\OfferInput;
-use Yinghua\Exceptions\PublicationPending;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\AttractionRepository;
@@ -123,12 +122,9 @@ try {
     $check($publication->ready());
     $database->execute("UPDATE offers SET status='archived' WHERE id=:id", ['id' => $offerIds[0]]);
     $publication = $newRequest();
-    try {
-        $publication->read();
-        throw new RuntimeException('Changed content must not be served stale.');
-    } catch (PublicationPending $error) {
-        $check(str_contains($error->diagnostic(), 'projection_changed') && str_contains($error->diagnostic(), 'offers'));
-    }
+    // 內容改變後，下一次發布前仍提供上一版；發布程序的比對會發現需要重新產生。
+    $check($publication->read()['generation'] === $generation);
+    $check(!$publication->ready());
     $check($publication->synchronize());
     $check($publication->read()['generation'] !== $generation);
 } finally {

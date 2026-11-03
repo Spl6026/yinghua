@@ -66,10 +66,11 @@ try:
     code,_,_=admin.call('PUT','/api/v1/admin/news/'+ids[0],body);check('rename saved',code==200);check('search real renamed URL',search(prefix+' %_')['items'][0]['url']=='/news/'+newslug+'.html')
     fixture('UPDATE news_posts SET slug='+literal('bad/slug')+' WHERE id='+literal(ids[0]))
     try:
-        search(expected=503)
-        # 遇到格式錯誤的網址時，發布流程必須安全失敗，不能讓錯誤網址上線。
+        # 直接改資料庫不經發布時，網站繼續提供上一版；發布遇到格式錯誤的網址必須失敗，錯誤網址不能上線。
+        check('direct database change keeps last published version',all('bad/slug' not in r['url'] for r in search(pageSize=100)['items']))
         from phase8_browser_fixture import php
-        result=php('require "vendor/autoload.php";$p=(new Yinghua\\Composition(new Yinghua\\Config()))->publication();echo $p->retry()?"ready":"failed";').decode();check('failed publisher closed',result=='failed');search(expected=503)
+        result=php('require "vendor/autoload.php";$p=(new Yinghua\\Composition(new Yinghua\\Config()))->publication();echo $p->retry()?"ready":"failed";').decode();check('failed publish rejected',result=='failed')
+        check('failed publish keeps last good version',all('bad/slug' not in r['url'] for r in search(pageSize=100)['items']))
     finally:fixture('UPDATE news_posts SET slug='+literal(newslug)+' WHERE id='+literal(ids[0]));publish()
     search();check('old index generations pruned',int(fixture('SELECT COUNT(DISTINCT generation) AS n FROM search_documents')[0]['n'])==1)
     search()

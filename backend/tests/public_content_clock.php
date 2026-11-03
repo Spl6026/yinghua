@@ -13,7 +13,6 @@ use Yinghua\DTO\MerchantInput;
 use Yinghua\DTO\NewsInput;
 use Yinghua\DTO\OfferInput;
 use Yinghua\DTO\OfferQuery;
-use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\AttractionRepository;
@@ -103,13 +102,9 @@ try {
     $clock->value++;
     $publication = $newRequest();
     $public = new PublicOffers($publication);
+    // 跨日後在發布程序重新產生之前，仍提供上一版；tick() 會發現並重新發布。
     $check(!$publication->ready());
-    try {
-        $publication->read();
-        $check(false);
-    } catch (ApplicationError $error) {
-        $check($error->errorCode === Yinghua\Exceptions\ErrorCode::PublicationPending);
-    }
+    $check($publication->read()['generation'] === $oldGeneration);
     $check($publication->tick());
     $check($publication->read()['generation'] !== $oldGeneration);
     $check($public->get('clock-' . $offerId)['offer']['validity'] === 'expired');
