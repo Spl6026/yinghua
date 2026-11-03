@@ -14,4 +14,4 @@
 | backend/src/Composition.php | CLI與HTTP共用發布組裝。 |
 | backend/tests/Unit/SearchTest.php | 白名單、可見文字、優惠狀態、館舍路徑、短中文與邊界。 |
 
-索引不是編輯主表。部署先db:migrate，再content:publish；還原沿業務DB、媒體、release，再以同一命令重建。無新env／依賴／容器。13A先依[計畫](../PHASE-13-PLAN.md)驗投影，完整搜尋指南由13B一起交付。
+索引不是編輯主表。部署先db:migrate，再content:publish；還原沿業務DB、媒體、release，再以同一命令重建。無新env／依賴／容器。13A先依[計畫](../archive/PHASE-13-PLAN.md)驗投影，完整搜尋指南由13B一起交付。

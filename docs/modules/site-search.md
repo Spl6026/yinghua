@@ -1,6 +1,6 @@
 # 全站搜尋閱讀指南
 
-更新：2026-11-01。規格來源為Excel「功能規格」E18:G18/L18，原型為website/search.html；具體容量、查詢與發布方式標E-35，見[計畫](../PHASE-13-PLAN.md)。PHP只提供API，HTML View與互動仍在frontend。
+更新：2026-11-01。規格來源為Excel「功能規格」E18:G18/L18，原型為website/search.html；具體容量、查詢與發布方式標E-35，見[計畫](../archive/PHASE-13-PLAN.md)。PHP只提供API，HTML View與互動仍在frontend。
 
 ## 一次發布與搜尋如何運作
 

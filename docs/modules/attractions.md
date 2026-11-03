@@ -54,7 +54,7 @@ docker compose exec -u www-data -T app php bin/console.php content:publish
 
 ## 參考與驗證
 
-原子版本切換為 E-18 工程選擇；Nginx 授權子請求依 [官方 auth_request 文件](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html)。預先產生 HTML 的依據見 [架構文件](../ARCHITECTURE.md)。真實失敗／重試、越權、排程、引用保護、轉向與 XSS 證據見 [階段三驗收](../PHASE-3-ACCEPTANCE.md)。
+原子版本切換為 E-18 工程選擇；Nginx 授權子請求依 [官方 auth_request 文件](https://nginx.org/en/docs/http/ngx_http_auth_request_module.html)。預先產生 HTML 的依據見 [架構文件](../ARCHITECTURE.md)。真實失敗／重試、越權、排程、引用保護、轉向與 XSS 證據見 [階段三驗收](../archive/PHASE-3-ACCEPTANCE.md)。
 
 ## 圖片說明及原型資料的修正
 

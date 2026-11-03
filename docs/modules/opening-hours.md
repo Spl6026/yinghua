@@ -50,4 +50,4 @@ API 的一日最多四段及格式限制是工程補充，Google 回應超過限
 
 HTTP 測試會初始化同一個隔離管理員密碼，**依序執行，不能並行**；不清空正式帳號或所有測試資料。`--keep-for-browser` 僅保留本次自有測試筆供畫面驗收，驗收後透過既有軟刪除清理。密碼只在忽略的 artifacts，不能列印或提交。
 
-其他匯入欄位的已確認問題見 [OPENING-HOURS-PLAN.md](../OPENING-HOURS-PLAN.md)，本次沒有擴增成地址、分類或 Google 關聯管理功能。實際測試與 UI 結果見階段三驗收。
+其他匯入欄位的已確認問題見 [OPENING-HOURS-PLAN.md](../archive/OPENING-HOURS-PLAN.md)，本次沒有擴增成地址、分類或 Google 關聯管理功能。實際測試與 UI 結果見階段三驗收。

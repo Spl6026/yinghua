@@ -28,4 +28,4 @@ GET/PUT /api/v1/admin/settings分別要求settings.view/edit。DTO只接受versi
 
 條款／隱私標籤或文字變更後，既有termsVersion API欄位使用71字元policy-SHA256摘要，並由member_consents分別記錄terms及privacy；不改舊同意、不要求既有會員重新登入。沒有管理政策時沿用TERMS_VERSION。僅聯絡信箱變更不使政策同意失效。註冊於交易前與行內重驗發布版本，避免設定變更與註冊競爭。登入與取得CSRF不因發布pending被阻斷。
 
-資料表沿用site_settings與member_consents、audit_logs；無DDL、依賴或env新增。安全審查與實際結果見[驗收](../PHASE-14-ACCEPTANCE.md)。
+資料表沿用site_settings與member_consents、audit_logs；無DDL、依賴或env新增。安全審查與實際結果見[驗收](../archive/PHASE-14-ACCEPTANCE.md)。

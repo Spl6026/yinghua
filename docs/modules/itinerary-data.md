@@ -15,4 +15,4 @@ docker compose exec -T app-test /var/www/tools/vendor/bin/phpunit -c phpunit.xml
 docker compose exec -T app-test /var/www/tools/vendor/bin/phpstan analyse -c phpstan.neon --no-progress
 ```
 
-11A只交付共用資料及型別能力，不把尚未接入的HTTP／畫面標為完成；完整交付後見[會員行程指南](member-itineraries.md)與[階段十一驗收](../PHASE-11-ACCEPTANCE.md)。
+11A只交付共用資料及型別能力，不把尚未接入的HTTP／畫面標為完成；完整交付後見[會員行程指南](member-itineraries.md)與[階段十一驗收](../archive/PHASE-11-ACCEPTANCE.md)。

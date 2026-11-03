@@ -1,6 +1,6 @@
 # 完整會員行程閱讀指南
 
-更新：2026-10-31。階段十一；規劃及來源見[計畫](../PHASE-11-PLAN.md)，實際測試見[驗收](../PHASE-11-ACCEPTANCE.md)。原型 `website/planner.html` 保留；實作只放 `frontend/`、`backend/`。
+更新：2026-10-31。階段十一；規劃及來源見[計畫](../archive/PHASE-11-PLAN.md)，實際測試見[驗收](../archive/PHASE-11-ACCEPTANCE.md)。原型 `website/planner.html` 保留；實作只放 `frontend/`、`backend/`。
 
 ## 2026-11-03 畫面拆分（使用者指定，見 DESIGN-TRACEABILITY U-26）
 
@@ -55,7 +55,7 @@
 
 ## API與資料庫
 
-新增8個操作列於[計畫API表](../PHASE-11-PLAN.md)。集合每頁預設20、最多100；選擇行程會更新本人current。DELETE帶JSON version，成功204沒有JSON；刪目前行程會選下一份，最後一份刪除則回空狀態。所有會員API強制member session；admin Cookie不能代替，memberId不接受客戶端指定。
+新增8個操作列於[計畫API表](../archive/PHASE-11-PLAN.md)。集合每頁預設20、最多100；選擇行程會更新本人current。DELETE帶JSON version，成功204沒有JSON；刪目前行程會選下一份，最後一份刪除則回空狀態。所有會員API強制member session；admin Cookie不能代替，memberId不接受客戶端指定。
 
 沿用migration `016_member_itineraries.sql`的`itineraries`／`itinerary_items`，本階段無新表、欄位或migration。`tripDate→trip_date`、`startTime→planned_time`、`note→note`；`sort_order`依陣列順序重排；原有不可用站保留`id`及`snapshot_name`，新增不可用站拒絕。父子同交易，錯誤不留半份。保留軟刪父列及版本，避免刪除後重用舊版本。舊P0目前行程API讀寫同一資料，沒有複製／遷移來源。
 

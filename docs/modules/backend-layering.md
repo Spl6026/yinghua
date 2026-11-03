@@ -77,7 +77,7 @@ python backend/tests/response_contract.py
 
 PHPat 五條規則：Controller 不依賴 Repository／PDO；Repository 不依賴 Service／Controller／HTTP；Service 不依賴 HTTP／Controller；Service 不依賴 PDO／PDOException／PDOStatement；Model／DTO／Policy 不依賴 Repository／HTTP／PDO。相依檢查不能代替業務與越權測試。
 
-實際結果見 [階段二驗收](../PHASE-2-ACCEPTANCE.md)。本次整理沒有修改 frontend/、website/、schema 或後續階段的業務功能。
+實際結果見 [階段二驗收](../archive/PHASE-2-ACCEPTANCE.md)。本次整理沒有修改 frontend/、website/、schema 或後續階段的業務功能。
 
 E-01／E-13：Request.json() 不得丟棄 PHP 將 JSON 數字屬性名轉成的整數鍵；這類頂層鍵直接回 422，普通字串鍵繼續由 DTO 白名單驗證，巢狀 JSON 陣列不受影響。requestId 的契約固定為 32 位十六進位，JSON 與 X-Request-Id 一致。
 

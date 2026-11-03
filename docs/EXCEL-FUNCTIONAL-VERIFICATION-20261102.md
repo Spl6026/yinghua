@@ -388,9 +388,9 @@ HTTPS canonical、OG URL及robots白名單失敗測試；全站設定及food單�
 
 ## 基線、正式條件與清理
 
-有效基線：[本日P0/P1/P2完整重驗](P0-P1-P2-REVERIFICATION-20261102.md)、[P1逐輪驗收](P1-ACCEPTANCE-20261031.md)、[AA完整50項](P0-AA-FINAL-20261029.md)。本輪焦點與錯誤畫面變更已加測，不以曾通過排除新回歸。未重新量所有真200%／400%／全部輔具；本輪沒有啟動作業系統讀屏。
+有效基線：[本日P0/P1/P2完整重驗](archive/P0-P1-P2-REVERIFICATION-20261102.md)、[P1逐輪驗收](archive/P1-ACCEPTANCE-20261031.md)、[AA完整50項](archive/P0-AA-FINAL-20261029.md)。本輪焦點與錯誤畫面變更已加測，不以曾通過排除新回歸。未重新量所有真200%／400%／全部輔具；本輪沒有啟動作業系統讀屏。
 
-正式未定的HTTPS origin、Secure Cookie、外部SMTP、FB／LINE／X、Search Console／Bing、正式Google配額／來源限制，以及原映像掃描差項仍見[server交接](PRODUCTION-HANDOFF.md)與[安全審查](PHASE-15-SECURITY-REVIEW.md)。這些是正式交付條件，不用Docker是否啟動來代替網站功能驗證，也不表示沒有安全風險。
+正式未定的HTTPS origin、Secure Cookie、外部SMTP、FB／LINE／X、Search Console／Bing、正式Google配額／來源限制，以及原映像掃描差項仍見[server交接](PRODUCTION-HANDOFF.md)與[安全審查](archive/PHASE-15-SECURITY-REVIEW.md)。這些是正式交付條件，不用Docker是否啟動來代替網站功能驗證，也不表示沒有安全風險。
 
 只清理自有前綴p8uid20b924f：六類內容剩餘均0、媒體刪除、暫時帳號停用／軟刪除及session撤銷；正常audit與同意紀錄保留。館舍指定、一般設定、SEO及原覆寫已按快照還原，故障開關為false。未更動主庫業務資料／原帳號密碼／其他測試人的資料。
 

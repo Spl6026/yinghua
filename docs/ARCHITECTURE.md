@@ -1,24 +1,6 @@
 # API 與前端分離的架構設計
 
-2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
-
-2026-10-31 最新：階段十二依授權完成JSON-LD、同版robots／sitemap／分片及P1本機整合。104個PHP JSON API保持，另3個Nginx爬蟲GET，共107個HTTP契約；68固定HTML／33表327欄／19 migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255項與181契約回應、索引369項、官方Validator七型別0錯誤／警告、Browser21筆及40個body保留通過。U-21指定網域未定先完成本機，正式Search Console／Bing／分享仍交接；P2階段十三未開始。詳見[計畫](PHASE-12-PLAN.md)、[驗收](PHASE-12-ACCEPTANCE.md)及[架構與檔案指南](modules/search-index.md)。下方帶日期段落保留歷史。
-
-2026-10-31 最新：階段十一已依使用者授權完成本機範圍，包含本人多份行程、整份編輯保存、時間／備註／排序、推薦路線確認套用及P0資料相容。104 API／68固定頁／33表327欄／19 migration，沒有新DDL／環境。81項真實整合、66筆契約回應零錯誤、107 PHP／208 JS、P0收藏69與目前行程100通過；兩頁各1440／390／320實測並與原型對照。詳見[階段十一驗收](PHASE-11-ACCEPTANCE.md)、[計畫](PHASE-11-PLAN.md)及[檔案閱讀指南](modules/member-itineraries.md)。下方帶日期段落保留歷史；階段十二未開始，P1整體尚未簽核。
-
-2026-10-30 最終：階段十已補完內建 Browser 本機驗收；四頁各1440／390／320共12筆實測，另12筆原型比對。公開導覽選中及刪除後焦點兩項已修、實測與回歸通過。PHP99／342、前端200、路線58／45契約回應零錯誤；96 API／68固定頁／33表327欄／19migration。全站導讀與檔案用途見[推薦路線指南](modules/recommended-routes.md)，實際範圍與共用AA基線界線見[階段十驗收](PHASE-10-ACCEPTANCE.md)。本機範圍通過，依備份／完整tree核對程序合併並保留階段分支；完整會員套用仍留階段十一。下方帶日期段落保留歷史。
-
-
-2026-10-30：階段十依使用者授權於 `phase/10-recommended-routes` 實作推薦路線管理與公開列表；96 API／68固定頁／33表327欄／19 migration。自動化結果見 [階段十驗收](PHASE-10-ACCEPTANCE.md)，程式閱讀見 [推薦路線指南](modules/recommended-routes.md)。內建 Browser 連線不可用，實際介面待驗，尚未合併 main；完整會員套用留階段十一。下方帶日期段落保留歷史。
-
-
-2026-10-30：階段九新增消息／優惠的Controller→HTTP應用Service→共用Editor→Repository資料流，傳輸無關PreparedContentChange讓CLI與HTTP復用驗證。news-admin-routes／offer-admin-routes分主題註冊；公開前後篇由同版snapshot投影，PHP仍只回API、前端產HTML。89操作／68固定頁，DB及環境不變；見[模組指南](modules/news-offers-admin.md)。
-
-2026-10-26：依使用者指示修正 AA-01／AA-02，新增登入到期預警／原頁重新驗證與網站導覽（分類及名稱尋找）。修正與實測範圍見 [AA 差項修正](P0-AA-REPAIRS-20261026.md)。72 API／68 固定頁／33 表 316 欄／18 migration；原型與 Excel 不動。新提示的 Windows NVDA 採證未完成：啟動主機讀屏造成干擾，已依使用者反映停止並確認程序結束，後續不再自行啟動主機讀屏；不冒稱完整 AA 已通過。
-
-2026-10-24 階段八新增兩個運維入口：HTTP精確health在一般kernel的eager DB之前組裝，HealthController → ApplicationHealth → DatabaseHealthProbe／PdoDatabaseHealthProbe → HealthReport；一般API授權分層保留。readiness.php／recovery.php是CLI composition，RecoveryRepository管SQL、RecoveryMediaInspector管檔案完整性，PdoTransactions管撤銷交易。Python工具僅部署編排，不新增PHP View或繞過公開發布閘門。檔案導讀見 [運維指南](modules/operations.md)、[部署操作](P0-OPERATIONS.md)。33表／18migration不變，正式app／web／worker封裝同manifest。
-
-2026-10-24 階段七（E-28）：SeoSettingsController → SeoSettings → 三個明確 Repository；DTO／enum／policy 限定文件、目標與 URL。Service 組織版本鎖、設定／覆寫／audit 交易；SeoPublication 將公開覆寫加入 ContentPublication，PublicSiteSettings 從成功快照取白名單。前端 resolver／head 共用 build／publish／預覽規則，Nginx gate 避免混版；管理／認證／私人 shell 固定 noindex 且可獨立修復，政策版本也納入 projection。沒有 PHP View、通用 key-value API、額外 ORM／快取服務；見 [SEO 指南](modules/seo-settings.md)／[本機驗收](PHASE-7-ACCEPTANCE.md)。
+逐輪變更見 [CHANGELOG](CHANGELOG.md)；本文件原本開頭的各階段紀錄保存在 [archive/ARCHITECTURE-20261103.md](archive/ARCHITECTURE-20261103.md)。
 
 設計日期：2026-10-13；階段二分層改善：2026-10-17；階段三發布實作：2026-10-18；階段四電影／場次：2026-10-20；階段五公開內容／首頁：2026-10-22。
 
@@ -202,7 +184,7 @@ Nginx 提供前端 HTML／CSS／JS／公開圖片，只有 /api/v1/* 轉給 PHP 
 
 電影沿用 Controller → Service → Repository 與 DTO／Policy：FilmController 處理 HTTP，FilmManagement 在共同發布鎖及單一交易內重查授權、驗證 version、檢查開始時間、保存電影／場次與稽核，再交 ContentPublication 同版發布。公開端 PublicFilms 讀成功快照；NodeContentRenderer 是 PHP 與前端 publish.mjs 間的 Adapter，HTML 仍屬 frontend。FilmPosterPolicy 與既有模組媒體服務重用圖片規則，不建立萬用 CRUD 基底或額外框架。
 
-電影與場次構成同一保存單位，子列沿用父電影版本；只依 U-16 比較日期及開始時間，沒有結束／場地模型。具體檔案、來源與實際測試見 [電影指南](modules/films.md)、[全站導讀](PROJECT-GUIDE.md#階段四新增檔案與電影資料流) 及 [階段四驗收](PHASE-4-ACCEPTANCE.md)。
+電影與場次構成同一保存單位，子列沿用父電影版本；只依 U-16 比較日期及開始時間，沒有結束／場地模型。具體檔案、來源與實際測試見 [電影指南](modules/films.md)、[全站導讀](archive/PROJECT-GUIDE-20261103.md#階段四新增檔案與電影資料流) 及 [階段四驗收](archive/PHASE-4-ACCEPTANCE.md)。
 
 ## 9. 階段五的公開內容分層
 

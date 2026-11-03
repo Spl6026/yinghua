@@ -1,6 +1,6 @@
 # 消息／優惠管理與詳情前後篇閱讀指南
 
-2026-10-30，階段九已完成本機交付範圍，結果及界線見 [驗收紀錄](../PHASE-9-ACCEPTANCE.md)。原始 website 與 Excel 不修改。
+2026-10-30，階段九已完成本機交付範圍，結果及界線見 [驗收紀錄](../archive/PHASE-9-ACCEPTANCE.md)。原始 website 與 Excel 不修改。
 
 ## 來源與範圍
 

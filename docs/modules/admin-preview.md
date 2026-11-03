@@ -40,4 +40,4 @@
 
 參考 [Symfony 官方身分模擬](https://symfony.com/doc/current/security/impersonating_user.html) 的受限切換、保留 original user、可辨識模擬狀態與退出機制；本案沿用 PHP API-only，不引入 Symfony。依 [OWASP Session Management](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html) 的權限變更 token 輪替與伺服器端控制原则，再加入使用者指定的唯讀範圍。
 
-`backend/tests/admin_preview.py` 只碰 yinghua_test，以真實 HTTP／MariaDB 驗越權、唯讀、即時權限、停用／刪除退出、session 輪替、並行切換及稽核失敗回滾。驗收結果見 [PHASE-2-ACCEPTANCE.md](../PHASE-2-ACCEPTANCE.md)。
+`backend/tests/admin_preview.py` 只碰 yinghua_test，以真實 HTTP／MariaDB 驗越權、唯讀、即時權限、停用／刪除退出、session 輪替、並行切換及稽核失敗回滾。驗收結果見 [PHASE-2-ACCEPTANCE.md](../archive/PHASE-2-ACCEPTANCE.md)。

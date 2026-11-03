@@ -1,6 +1,6 @@
 # 設計來源：規格、使用者指定與工程補充
 
-整理日期：2026-10-13。此文件標註設計來源，不代表功能已完成。總體架構見 [ARCHITECTURE.md](ARCHITECTURE.md)；完整 30 項功能見 [REQUIREMENTS-MAP.md](REQUIREMENTS-MAP.md)；階段二端點、欄位和頁面清單見 [PHASE-2-PLAN.md](PHASE-2-PLAN.md)。
+整理日期：2026-10-13。此文件標註設計來源，不代表功能已完成。總體架構見 [ARCHITECTURE.md](ARCHITECTURE.md)；完整 30 項功能見 [REQUIREMENTS-MAP.md](archive/REQUIREMENTS-MAP.md)；階段二端點、欄位和頁面清單見 [PHASE-2-PLAN.md](archive/PHASE-2-PLAN.md)。
 
 原始 Excel「串接總覽」A2 明示「建議」是設計提案；「資料表建議」A2 也說明是估工／建模草案。因此「要求某種功能」和「要求某個表名／端點／類別」分開標記。以下引用原始工作表儲存格，沒有修改規格。
 
@@ -47,11 +47,11 @@
 | U-09 | 人工建立與 Google 匯入使用相同的結構化每週營業時間表單 | 使用者 2026-10-18 同意週表設計，並指定非 Google 匯入的景點也依此填寫；非原始 Excel 指定格式 |
 | U-10 | 改善行政區、官網網址與Google地點關聯，並顯示Google簡介供參考，網站介紹由管理員撰寫 | 使用者 2026-10-18 要求「景點介紹那些的也可以帶入，你現在說的也都改善」，後續明確選擇只作參考，並要求縮小關聯介面、避免人工景點出現不合適區塊；不自動覆蓋或保存Google簡介 |
 
-U-11（規劃及選填要求，2026-10-18）：使用者要求規劃列表摘要／景點介紹留空時自動帶入 Google 資訊等內容。E-22 中兩欄選填已依後續指示實作；自填優先、自家摘要摘錄、Google 即時原文備援及靜態發布邊界仍為工程提案，尚未實作；見 [景點內容補位計畫](ATTRACTION-CONTENT-FALLBACK-PLAN.md)。U-10 記錄先前已交付的行為，Google 後台參考行為仍維持，選填已取代原本非空驗證。使用者後續明確指示自動補位延後、保留計畫，尚未指定實作階段，不列為本次階段三待修項。
+U-11（規劃及選填要求，2026-10-18）：使用者要求規劃列表摘要／景點介紹留空時自動帶入 Google 資訊等內容。E-22 中兩欄選填已依後續指示實作；自填優先、自家摘要摘錄、Google 即時原文備援及靜態發布邊界仍為工程提案，尚未實作；見 [景點內容補位計畫](archive/ATTRACTION-CONTENT-FALLBACK-PLAN.md)。U-10 記錄先前已交付的行為，Google 後台參考行為仍維持，選填已取代原本非空驗證。使用者後續明確指示自動補位延後、保留計畫，尚未指定實作階段，不列為本次階段三待修項。
 
-2026-10-18 U-12 回溯已完成來源與現況驗證，結果見 [規格限制回溯驗證](SPECIFICATION-BASELINE-REVIEW-20261018.md)。R-01–R-07 已校正，安全設定另取得 U-13 明確同意；交付與驗證見 [SPECIFICATION-ALIGNMENT.md](SPECIFICATION-ALIGNMENT.md)。兩欄選填仍已實作，自動補位仍延後。
+2026-10-18 U-12 回溯已完成來源與現況驗證，結果見 [規格限制回溯驗證](archive/SPECIFICATION-BASELINE-REVIEW-20261018.md)。R-01–R-07 已校正，安全設定另取得 U-13 明確同意；交付與驗證見 [SPECIFICATION-ALIGNMENT.md](archive/SPECIFICATION-ALIGNMENT.md)。兩欄選填仍已實作，自動補位仍延後。
 
-U-16（階段四，2026-10-19 指定；2026-10-20 更新）：使用者指定「只要日期和放映時間沒有重疊就好，不管結束時間，結束時間這個議題先預留著」。本階段依放映日期及開始時間檢查重複，不新增結束時間或場地管理；原型按影像博物館單一放映場地處理。功能規格 G21 仍是檢核來源，資料表建議 C13／D13 的 ends_at／venue 與結束大於開始條件保留草案性質，不據此增加必填。詳見 [階段四計畫](PHASE-4-PLAN.md) 與 [實際驗收](PHASE-4-ACCEPTANCE.md)，已完成本機實作與驗收。
+U-16（階段四，2026-10-19 指定；2026-10-20 更新）：使用者指定「只要日期和放映時間沒有重疊就好，不管結束時間，結束時間這個議題先預留著」。本階段依放映日期及開始時間檢查重複，不新增結束時間或場地管理；原型按影像博物館單一放映場地處理。功能規格 G21 仍是檢核來源，資料表建議 C13／D13 的 ends_at／venue 與結束大於開始條件保留草案性質，不據此增加必填。詳見 [階段四計畫](archive/PHASE-4-PLAN.md) 與 [實際驗收](archive/PHASE-4-ACCEPTANCE.md)，已完成本機實作與驗收。
 
 U-17（2026-10-20）：使用者要求開放 Docker 資料庫 port，使用自己的 DBeaver 查看。已提供 `DB_FORWARD_PORT`（預設 3306），沿用現有 `spl`／`yinghua` 與 `.env` 密碼；只綁定 `127.0.0.1` 是工程上的本機存取範圍設定，不是 Excel 業務要求，沒有新增資料表或改變資料庫權限。連線步驟見 [README](../README.md#dbeaver-查看資料庫)。
 
@@ -61,12 +61,12 @@ U-17（2026-10-20）：使用者要求開放 Docker 資料庫 port，使用自�
 
 | ID | 工程補充 | 理由／規格關係 | 計畫狀態 |
 | --- | --- | --- | --- |
-| E-29 | 階段八最小health／獨立正式Compose／發布版與DB媒體一致備份／隔離復原、既有偶發問題診斷與固定P0矩陣 | S：功能規格H34／G34／L34、串接總覽B9–B15；D：API草案C43–H43。精確200／503、APP_VERSION、類別、schema就緒、逾時、映像與部署拓樸／輪替／備份流程是工程設計，不另加業務必填或自訂RPO／RTO | 已依授權實作；見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)。72操作／33表／18migration；完整AA、正式環境及上游安全差項待驗 |
-| E-31 | 階段九消息／優惠管理與同版前後篇 | 依G22／G23／G29設計HTTP DTO、版本衝突、分頁搜尋、收合式共享店家必要編輯及發布快照投影；具體端點／UI補充為工程設計，不增加Excel未要求的業務必填 | 見 [階段九計畫](PHASE-9-PLAN.md) 與 [模組導讀](modules/news-offers-admin.md) |
+| E-29 | 階段八最小health／獨立正式Compose／發布版與DB媒體一致備份／隔離復原、既有偶發問題診斷與固定P0矩陣 | S：功能規格H34／G34／L34、串接總覽B9–B15；D：API草案C43–H43。精確200／503、APP_VERSION、類別、schema就緒、逾時、映像與部署拓樸／輪替／備份流程是工程設計，不另加業務必填或自訂RPO／RTO | 已依授權實作；見 [階段八紀錄](archive/PHASE-8-ACCEPTANCE.md)。72操作／33表／18migration；完整AA、正式環境及上游安全差項待驗 |
+| E-31 | 階段九消息／優惠管理與同版前後篇 | 依G22／G23／G29設計HTTP DTO、版本衝突、分頁搜尋、收合式共享店家必要編輯及發布快照投影；具體端點／UI補充為工程設計，不增加Excel未要求的業務必填 | 見 [階段九計畫](archive/PHASE-9-PLAN.md) 與 [模組導讀](modules/news-offers-admin.md) |
 | E-30 | 獨立 Docker 讀屏桌面與去除原始鍵盤事件的語音採證工具 | 回應 U-19，支援 G34／串接總覽 B15 驗證；Orca／Firefox、noVNC、loopback 連線、資源及安全配置均為工程選擇，不是正式部署要求 | 見 [隔離讀屏指南](modules/isolated-accessibility.md)；僅實測場景，不等同完整 AA 或 Windows NVDA 通過 |
-| E-28 | 階段七 SEO 文件版本、兩表／三操作、路徑白名單、既有內容欄位繼承、共用 head、固定／動態同版發布、失敗復原與開發 origin fallback | S：功能規格 30／32、SEO規格 5–9／15–17；D：API 38／39、資料表 24／25。具體類別、JSON、DDL、技術上限、初值、無上傳的 URL 圖片入口及開發 fallback 都是工程提案，不把建議字數改成必填／硬上限 | 已依授權完成本機範圍；三操作／兩表與原型表單／公開 head／開發政策頁，見 [驗收](PHASE-7-ACCEPTANCE.md)。正式差項另列，完整 JSON-LD／索引與一般設定保留 P1／P2 |
+| E-28 | 階段七 SEO 文件版本、兩表／三操作、路徑白名單、既有內容欄位繼承、共用 head、固定／動態同版發布、失敗復原與開發 origin fallback | S：功能規格 30／32、SEO規格 5–9／15–17；D：API 38／39、資料表 24／25。具體類別、JSON、DDL、技術上限、初值、無上傳的 URL 圖片入口及開發 fallback 都是工程提案，不把建議字數改成必填／硬上限 | 已依授權完成本機範圍；三操作／兩表與原型表單／公開 head／開發政策頁，見 [驗收](archive/PHASE-7-ACCEPTANCE.md)。正式差項另列，完整 JSON-LD／索引與一般設定保留 P1／P2 |
 | E-27 | 階段六目前行程槽、會員所有權服務、七個本人 API、收藏頁、分頁／版本／重送、快照／公開投影、登入待辦確認與共用前端控制 | S：功能規格 E13／G15／L15／34；D：資料表 19–21／API 21–24；U-08 提前 P0 必要保存。具體端點、欄位／初值、索引／資源界線、新收藏頁及失敗行為為工程設計，不把名稱／日期升格必填 | 已依授權建立，68 個 API／31 表／17 份 migration；2026-10-24 完成本機與實際畫面驗收，範圍見 [會員指南](modules/member-resources.md)。完整旅程留階段十一 |
-| E-26 | 階段五消息／優惠 DTO、店家 profile 相容、受控匯入與重跑、日期空值／到期邊界、公開聚合／排序、媒體與安全正文、舊網址及技術上限 | S 功能規格 5／9／11 的公開功能；沿用 G23 的條款必填／店家存在作共用寫入規則。D 資料表 14–16／API 5／10–13 是建議；具體 schema、日期算法、CLI、相容與上限非 Excel 硬性設定 | 階段五已實作並完成本機驗收；見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md) |
+| E-26 | 階段五消息／優惠 DTO、店家 profile 相容、受控匯入與重跑、日期空值／到期邊界、公開聚合／排序、媒體與安全正文、舊網址及技術上限 | S 功能規格 5／9／11 的公開功能；沿用 G23 的條款必填／店家存在作共用寫入規則。D 資料表 14–16／API 5／10–13 是建議；具體 schema、日期算法、CLI、相容與上限非 Excel 硬性設定 | 階段五已實作並完成本機驗收；見 [PHASE-5-PLAN.md](archive/PHASE-5-PLAN.md) |
 | E-25 | 階段四電影／場次 DTO 與 aggregate、同開始時間交易／並行檢查、模組媒體、共同發布、舊網址及本週／技術上限策略 | 功能依 S7／21／5／30／34、D 資料表 12／13／API 8／9／30；開始時間政策依 U-16。週一界線、分鐘精度、草稿保留／下架釋放、票務預設及 SQL／API 具體形式是工程設計 | 已實作並完成本機驗收；見 PHASE-4-PLAN.md／PHASE-4-ACCEPTANCE.md |
 | E-01 | Controller／Service／Repository、輸入／回應 DTO、建構子 DI、Adapter／Middleware、儲存例外轉譯及帳號／權限服務拆分 | 落實 U-02；Excel 沒有指定這些 pattern | 階段二已實作，見 ARCHITECTURE／modules/backend-layering.md |
 | E-02 | 會員／後台獨立 auth namespace、Cookie 與 CSRF API | 實現 S-SEC-09／14 的身分邊界，確切端點是提案 | 基礎方案 |
@@ -85,11 +85,11 @@ U-17（2026-10-20）：使用者要求開放 Docker 資料庫 port，使用自�
 | E-24 | 原始DB範例試填白名單／確認／create授權及電話格式、80字上限、phoneUrl、安全HTML與009升級 | 功能依 S E20／G6；端點、型別、上限與允許的電話寫法是工程設定，電話與範例不必填 | 已實作，見 PHASE-2-3-OWNER-ALIGNMENT.md |
 | E-23 | 固定身分文字採逐位元組不可變保護，008 trigger 與真實 DB 回滾探測 | 落實 S-026 固定 root；MariaDB CI collation 不足以驗證字面未變，不限制一般帳號改名 | 已實作，見 FULL-RECHECK-20261019.md |
 | E-16 | 模擬採 owner／effective 雙身分、session target 欄位、token 輪替、交易稽核與 Kernel 唯讀限制 | 落實 U-06；參考 Symfony original user／退出機制與 OWASP session 管理，具體 API／欄位為工程設計 | 已實作，見 modules/admin-preview.md |
-| E-17 | P0 公開消息／優惠用真實資料及受控 CLI 匯入，先提供必要基本閱讀頁、共用關聯保護與部署驗收；完整管理／前後篇仍留 P1 | 解決公開列表 P0 與管理 P1 的相依；CLI 重用 Service／驗證／稽核／發布，不是 Excel 指定的工具或額外 CMS | 階段五已完成本機驗收，消息／優惠／首頁及受控維護已接入；細設見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md)，優先級界線見 IMPLEMENTATION-PLAN.md |
+| E-17 | P0 公開消息／優惠用真實資料及受控 CLI 匯入，先提供必要基本閱讀頁、共用關聯保護與部署驗收；完整管理／前後篇仍留 P1 | 解決公開列表 P0 與管理 P1 的相依；CLI 重用 Service／驗證／稽核／發布，不是 Excel 指定的工具或額外 CMS | 階段五已完成本機驗收，消息／優惠／首頁及受控維護已接入；細設見 [PHASE-5-PLAN.md](archive/PHASE-5-PLAN.md)，優先級界線見 IMPLEMENTATION-PLAN.md |
 
 ## 4. 階段二 API 的來源
 
-階段三新增 E-18：景點與媒體 schema、DTO／Repository、版本／軟刪除、歷史網址、內容發布紀錄、Node 前端 HTML 產生器、Nginx 版本／媒體存取檢查，以及僅供引用保護的 routes／route_attractions。功能依據為功能規格 5／6／13／19／20、SEO規格 17；具體表名、路徑、限制及發布方式為工程設計。2026-10-18 已實作，對照見 [階段三計畫](PHASE-3-PLAN.md) 與 [景點指南](modules/attractions.md)。
+階段三新增 E-18：景點與媒體 schema、DTO／Repository、版本／軟刪除、歷史網址、內容發布紀錄、Node 前端 HTML 產生器、Nginx 版本／媒體存取檢查，以及僅供引用保護的 routes／route_attractions。功能依據為功能規格 5／6／13／19／20、SEO規格 17；具體表名、路徑、限制及發布方式為工程設計。2026-10-18 已實作，對照見 [階段三計畫](archive/PHASE-3-PLAN.md) 與 [景點指南](modules/attractions.md)。
 
 階段三新增 E-19：Google Maps 網址允許清單、逐跳重導向、DNS／IP 固定、Places API New FieldMask、候選確認及每分鐘 10 次限制。短網址匯入是功能規格列 20，以上安全與 API 選型為工程設計；金鑰由使用者提供至忽略的 .env。實作及服務條件見 [地圖指南](modules/maps-import.md)。
 
@@ -188,30 +188,30 @@ R3-01／E-18：各景點圖片說明覆寫及 API 可寫欄位，回應規格圖
 
 ## U-21／E-34：階段十二SEO與P1界線（2026-10-31）
 
-U-21：使用者明確選擇「尚未決定，先完成本機」，正式網域、Search Console／Bing與分享平台留正式交接。S：功能規格E31:G33/L31/L33、SEO規格B13:F14及既有保護頁規則；D：API草案40–42。JSON-LD白名單factory、同成功generation的XML／robots、共用索引判斷、50,000筆／50MiB分片、可信lastmod與無時間省略、失敗503及獨立詞彙檢查是E-34。不得把未提供的作者、評分、價格、場地地址或SEO摘要當可見真實資料，也不增加業務必填。見[階段十二計畫](PHASE-12-PLAN.md)及[指南](modules/search-index.md)。
+U-21：使用者明確選擇「尚未決定，先完成本機」，正式網域、Search Console／Bing與分享平台留正式交接。S：功能規格E31:G33/L31/L33、SEO規格B13:F14及既有保護頁規則；D：API草案40–42。JSON-LD白名單factory、同成功generation的XML／robots、共用索引判斷、50,000筆／50MiB分片、可信lastmod與無時間省略、失敗503及獨立詞彙檢查是E-34。不得把未提供的作者、評分、價格、場地地址或SEO摘要當可見真實資料，也不增加業務必填。見[階段十二計畫](archive/PHASE-12-PLAN.md)及[指南](modules/search-index.md)。
 
 ## E-33：階段十一完整會員行程（2026-10-31）
 
-S：功能規格E15/F15/G15/L15及E14/G14/L14/E24/G24/L24；D：API草案C21:G24、資料表建議C19:D20；原型planner名稱日期未required。沿用itineraries／itinerary_items及P0 API，沒有新表欄或遷移。新增集合／單筆／選定／套用端點、同會員跨行程單調version、UUID新增去重、完整資源PUT、成功快照與即時路線比對、確認後寫入、401／409草稿保護屬工程設計。名稱200字、備註2000字、1000站點、HH:mm及既有64KiB JSON為技術容量／表示邊界，不是Excel新增業務必填或時間衝突限制。保留既有下架站點快照，只阻止新加入不可用景點。見[計畫](PHASE-11-PLAN.md)、[閱讀指南](modules/member-itineraries.md)及[實測界線](PHASE-11-ACCEPTANCE.md)。
+S：功能規格E15/F15/G15/L15及E14/G14/L14/E24/G24/L24；D：API草案C21:G24、資料表建議C19:D20；原型planner名稱日期未required。沿用itineraries／itinerary_items及P0 API，沒有新表欄或遷移。新增集合／單筆／選定／套用端點、同會員跨行程單調version、UUID新增去重、完整資源PUT、成功快照與即時路線比對、確認後寫入、401／409草稿保護屬工程設計。名稱200字、備註2000字、1000站點、HH:mm及既有64KiB JSON為技術容量／表示邊界，不是Excel新增業務必填或時間衝突限制。保留既有下架站點快照，只阻止新加入不可用景點。見[計畫](archive/PHASE-11-PLAN.md)、[閱讀指南](modules/member-itineraries.md)及[實測界線](archive/PHASE-11-ACCEPTANCE.md)。
 
 ## E-32：階段十推薦路線工程設計（2026-10-30）
 
 S：功能規格 E14:G14/L14/E24:G24、權限矩陣 A25:F28；D：資料表建議 C17:D18與API草案 E14:G14/E33:G33。名稱必填依原始website/admin/route-add.html；主題與說明選填。站點至少一個且有效、順序不重複是Excel明文。
 
-E：UUID內部slug、選填分鐘上限／文字容量／100站、陣列順序轉sort_order、路線排序同值依ID、交易鎖／version／409、候選分頁、軟刪路線解除站點引用、公開跳過下架站並隱藏零有效站路線、HTML同快照與202禁止重複新增、原型按鈕提供鍵盤排序。這些具體方式不冒稱業主指定技術。完整套用留階段十一，沒有把L24提前標完成。實際交付與待驗見[階段十](PHASE-10-ACCEPTANCE.md)。
+E：UUID內部slug、選填分鐘上限／文字容量／100站、陣列順序轉sort_order、路線排序同值依ID、交易鎖／version／409、候選分頁、軟刪路線解除站點引用、公開跳過下架站並隱藏零有效站路線、HTML同快照與202禁止重複新增、原型按鈕提供鍵盤排序。這些具體方式不冒稱業主指定技術。完整套用留階段十一，沒有把L24提前標完成。實際交付與待驗見[階段十](archive/PHASE-10-ACCEPTANCE.md)。
 
 同日Browser補驗後：公開routes保留原型旅行計畫active狀態；刪除結果聚焦仍存在的狀態訊息，防止被移除按鈕使焦點落BODY。兩項為原型／E-32可及性修正，非新增業務規則，與回歸歸回原完整路線功能提交。
 
 ## E-35：階段十三搜尋（2026-11-01）
 
-S：功能規格E18/F18/G18/H18/L18；UI依原型search.html。E：255字、20／100筆、穩定類型／同名／UUID排序、空查詢提示、字面包含、同版可重建search_documents、原子交易／發布鎖、generation與503、純卡片及請求競爭防護、URL狀態／錯誤焦點。數值與一張投影表不是Excel額外業務必填或指定實體；PHP API-only及原始website保持。詳見[計畫](PHASE-13-PLAN.md)及[指南](modules/site-search.md)。
+S：功能規格E18/F18/G18/H18/L18；UI依原型search.html。E：255字、20／100筆、穩定類型／同名／UUID排序、空查詢提示、字面包含、同版可重建search_documents、原子交易／發布鎖、generation與503、純卡片及請求競爭防護、URL狀態／錯誤焦點。數值與一張投影表不是Excel額外業務必填或指定實體；PHP API-only及原始website保持。詳見[計畫](archive/PHASE-13-PLAN.md)及[指南](modules/site-search.md)。
 
 
 ## E-36：階段十四營運模組（2026-11-01）
 
 S：功能規格E25:L25、E28:L28、註冊G16；D：資料表建議site_settings與audit_logs；版型依原始website/admin與app.js。會員只有查詢，匯出另行授權，不因權限矩陣列出CRUD便擴張。政策版本／文字的空白規則由未指定必填與原型示範補足，不新增發布業務必填。
 
-E：固定20筆與查詢80字／100000頁、名稱與email雙側遮罩、固定general key、純文字容量、general/seo技術版本、71字元政策摘要、防競爭鎖與發布pending；儀表板模組權限裁切、未刪除記錄總數及root最小稽核入口。這些具體技術不是Excel硬性指定。無新DDL，詳細見[計畫](PHASE-14-PLAN.md)。
+E：固定20筆與查詢80字／100000頁、名稱與email雙側遮罩、固定general key、純文字容量、general/seo技術版本、71字元政策摘要、防競爭鎖與發布pending；儀表板模組權限裁切、未刪除記錄總數及root最小稽核入口。這些具體技術不是Excel硬性指定。無新DDL，詳細見[計畫](archive/PHASE-14-PLAN.md)。
 
 ## U-22／E-37：使用者要求排版、載入及行程操作改善（2026-11-01）
 
@@ -220,7 +220,7 @@ U：字級／換行／CSS一致，載入前不先顯示假訪客／預設會員�
 
 ## E-38：階段十五全站驗收與交付（2026-11-01）
 
-使用者本輪明確授權規劃並實作階段十五。S：功能規格E5:L34共30列；U-18分開網站與既有server環境、U-21正式網域未定先完成本機、U-20不必NVDA。E：固定CLI套件／log雜湊、原始69檔與API／頁面／schema盤點、匿名66操作、擴充真政策／路線／多行程備份還原與可重建搜尋投影比較。沒有新業務限制、API、表或環境變數。正式服務及映像安全實際差項不寫成通過。見[工具指南](modules/delivery-validation.md)與[驗收](PHASE-15-ACCEPTANCE.md)。
+使用者本輪明確授權規劃並實作階段十五。S：功能規格E5:L34共30列；U-18分開網站與既有server環境、U-21正式網域未定先完成本機、U-20不必NVDA。E：固定CLI套件／log雜湊、原始69檔與API／頁面／schema盤點、匿名66操作、擴充真政策／路線／多行程備份還原與可重建搜尋投影比較。沒有新業務限制、API、表或環境變數。正式服務及映像安全實際差項不寫成通過。見[工具指南](modules/delivery-validation.md)與[驗收](archive/PHASE-15-ACCEPTANCE.md)。
 
 ## U-23／E-39／E-40：階段十五追加補位與字型修正（2026-11-01）
 
@@ -232,7 +232,7 @@ E-40：共用自家文字政策、自填優先、120 Unicode字摘錄（含末�
 
 ## E-41：三優先級重驗修正（2026-11-02）
 
-使用者要求P0／P1／P2全部重驗，依既有修正授權處理實際失敗。收藏寫入完成前站內導覽等待、失敗留頁及beforeunload提醒；後台DB UTC時間共用格式器轉Asia/Taipei並標示。均為既有功能工程一致性，不新增Excel必填、權限、API、DDL／env或離線重送。測試fixture補route.slug、Nginx爬蟲分開盤點、公開general白名單及完整stderr只是現行架構相容，不能反過來作規格來源。詳見[P0/P1/P2完整重驗](P0-P1-P2-REVERIFICATION-20261102.md)。
+使用者要求P0／P1／P2全部重驗，依既有修正授權處理實際失敗。收藏寫入完成前站內導覽等待、失敗留頁及beforeunload提醒；後台DB UTC時間共用格式器轉Asia/Taipei並標示。均為既有功能工程一致性，不新增Excel必填、權限、API、DDL／env或離線重送。測試fixture補route.slug、Nginx爬蟲分開盤點、公開general白名單及完整stderr只是現行架構相容，不能反過來作規格來源。詳見[P0/P1/P2完整重驗](archive/P0-P1-P2-REVERIFICATION-20261102.md)。
 
 ## E-42：Excel逐列功能核實與差項（2026-11-02）
 
@@ -248,7 +248,7 @@ E-43：工程補充，依U-24處理實測差項：
 - S：功能規格G26「admin保留字」「不可自我移除最後管理權」— 保留帳號回422欄位錯誤；服務端拒絕刪除目前登入中的本人帳號（介面原本已隱藏）。
 - S：功能規格G34 CSP — 全站腳本皆同源外部檔，CSP加入 `script-src 'self'`。
 - 其餘為既有功能的操作一致性：註冊驗證碼放大可讀、失敗後自動換新圖、手動換圖清除舊錯誤；手機會員連結移入漢堡選單；首頁標題與原型／SEO目錄一致；前後篇縮圖失效改替代圖；一般設定與SEO兩區儲存後互相重讀版本；保護頁SEO覆寫欄位鎖定；店家面板欄位錯誤逐欄顯示；新增／編輯成功導回列表顯示訊息；原生驗證攔截時清除過時錯誤；按鈕文字與順序對齊原型。
-- 無新增API、DDL、env或依賴；固定頁由68增為69（404頁）。逐列結果見[逐列重驗與介面檢查](EXCEL-UI-REVERIFICATION-20261102.md)。
+- 無新增API、DDL、env或依賴；固定頁由68增為69（404頁）。逐列結果見[逐列重驗與介面檢查](archive/EXCEL-UI-REVERIFICATION-20261102.md)。
 
 ## U-24 Google 簡介匯入語意（2026-11-02）
 
@@ -275,7 +275,7 @@ U-26：使用者要求「先給使用者一個檢查自己行程的頁面，然�
 
 ## U-27：公開內容改為信任發布流程（2026-11-03）
 
-U-27：使用者詢問一般小型網站的慣例後選擇「方案 D」。原本「每個公開請求都比對資料庫、內容改變即回 503」屬工程設計（非 Excel 規格），改為：直接提供最近一次成功發布的版本；後台儲存立即重新發布，排程／跨日／換週／直接改資料庫由 publisher 每 10 秒比對後更新（最多延遲約 10 秒）；發布失敗時繼續提供上一版並由後台提示重試。註冊需政策已發布、加入行程即時檢查景點狀態維持不變。見 [設計提案與決定](PUBLICATION-FAST-CHECK-PROPOSAL.md)。
+U-27：使用者詢問一般小型網站的慣例後選擇「方案 D」。原本「每個公開請求都比對資料庫、內容改變即回 503」屬工程設計（非 Excel 規格），改為：直接提供最近一次成功發布的版本；後台儲存立即重新發布，排程／跨日／換週／直接改資料庫由 publisher 每 10 秒比對後更新（最多延遲約 10 秒）；發布失敗時繼續提供上一版並由後台提示重試。註冊需政策已發布、加入行程即時檢查景點狀態維持不變。見 [設計提案與決定](archive/PUBLICATION-FAST-CHECK-PROPOSAL.md)。
 
 ## U-28：會員行程版本號改為每份行程各自計算（2026-11-03）
 

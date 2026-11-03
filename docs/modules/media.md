@@ -12,7 +12,7 @@ MediaManagement 在資料庫交易內再次確認管理員權限，透過 MediaR
 
 正式及隔離測試環境各有 media／publication volume，測試不改正式素材。重建容器不會刪除 volume；不要執行 down -v 作為一般更新。新空 volume 的目錄擁有者由 image 建置為 www-data；手動 CLI 發布同樣使用 www-data。
 
-驗證涵蓋真實 multipart、重編碼、SVG／偽 JPEG／無 alt／尺寸超限拒絕、草稿匿名拒絕、發布後匿名可讀、越權及 CSRF。瀏覽器也實際經原生圖片選擇器選檔、上傳、預覽、儲存、發布並閱讀。細節見 [驗收記錄](../PHASE-3-ACCEPTANCE.md)。
+驗證涵蓋真實 multipart、重編碼、SVG／偽 JPEG／無 alt／尺寸超限拒絕、草稿匿名拒絕、發布後匿名可讀、越權及 CSRF。瀏覽器也實際經原生圖片選擇器選檔、上傳、預覽、儲存、發布並閱讀。細節見 [驗收記錄](../archive/PHASE-3-ACCEPTANCE.md)。
 
 ## 圖片說明及原型資料的修正
 

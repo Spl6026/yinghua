@@ -28,7 +28,7 @@ font-head.mjs讓固定頁與公開產頁都在主樣式之前直接載入本機f
 | frontend/scripts/font-head.mjs／build.mjs／publish.mjs | 固定／公開頁共用早期字型樣式及雙字型預載，重複執行不重複插入 |
 | frontend/tests/attraction-picker.test.mjs／member-navigation.test.mjs／member-pages.test.mjs | 原頁加入、去重、重試、保存時機、身分過期與過時回應 |
 
-後端／資料表與現有API契約不因本項改變。實際Browser差項、靜態檢查及自動測試分別記錄於[階段十四驗收](../PHASE-14-ACCEPTANCE.md)，不能用測試替身取代最新畫面／載入跳動實測。
+後端／資料表與現有API契約不因本項改變。實際Browser差項、靜態檢查及自動測試分別記錄於[階段十四驗收](../archive/PHASE-14-ACCEPTANCE.md)，不能用測試替身取代最新畫面／載入跳動實測。
 
 
 ## 本輪版型與重新聚焦修正
@@ -41,7 +41,7 @@ font-head.mjs讓固定頁與公開產頁都在主樣式之前直接載入本機f
 使用者再回報字型收縮後，新增共用font-head.mjs，讓font-face CSS與兩套字型在主樣式之前被發現；NodeContentRenderer將此helper納入版本雜湊，避免修改後重用舊產頁。根元素另以scrollbar-gutter:stable保留捲軸寬度，text-size-adjust:100%避免手機自動文字膨脹；不限制使用者縮放。這些調整已驗產頁／資產／單元契約，實際字型收縮仍待Browser恢復後定位並量測。
 
 
-2026-11-01複驗差項：雖font-display:optional與雙預載已部署，真5秒延遲字型的隔離fixture仍出現字形／粗細晚變。font-size與DOM矩形無變化，不能因此認定視覺穩定；本項重新開啟，見[最新證據](../PHASE-15-ACCEPTANCE.md#不通過u-22字型視覺穩定)。本輪未改正式字型策略。
+2026-11-01複驗差項：雖font-display:optional與雙預載已部署，真5秒延遲字型的隔離fixture仍出現字形／粗細晚變。font-size與DOM矩形無變化，不能因此認定視覺穩定；本項重新開啟，見[最新證據](../archive/PHASE-15-ACCEPTANCE.md#不通過u-22字型視覺穩定)。本輪未改正式字型策略。
 
 ## 階段十五：首幀字型選擇（U-22／E-39）
 
@@ -55,4 +55,4 @@ fonts.css 的完整字型改為 Extended 獨立 family，不放在現行顯示 f
 
 實際重現收藏後立即導覽造成請求中斷。[pending-writes.js](../../frontend/assets/js/core/pending-writes.js)提供可重用的進行中寫入協調器；member-actions.js只在收藏真正寫入時追蹤，站內連結及安排進旅行等待確認成功才導覽，失敗留頁；關分頁／reload警示未完成寫入。不以keepalive跳過CSRF／session、不離線重送、不寫localStorage。新分頁／下載／修飾鍵及同頁hash維持原行為。相同快速離頁Browser複測已從0筆改為1筆，加入成功／失敗及等待回歸。
 
-[utc-display.js](../../frontend/assets/js/core/utc-display.js)共用UTC→Asia/Taipei格式，供儀表板／稽核與會員列表／摘要，表頭標示台北；不改API或DB。前端最終267項通過，完整本輪範圍見[三優先級重驗](../P0-P1-P2-REVERIFICATION-20261102.md)。
+[utc-display.js](../../frontend/assets/js/core/utc-display.js)共用UTC→Asia/Taipei格式，供儀表板／稽核與會員列表／摘要，表頭標示台北；不改API或DB。前端最終267項通過，完整本輪範圍見[三優先級重驗](../archive/P0-P1-P2-REVERIFICATION-20261102.md)。

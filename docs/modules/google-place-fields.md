@@ -44,4 +44,4 @@ googleLinkConfirmed不落DB、不是Google簽章或驗證。新增或替換googl
 
 core/ui.js的formErrors優先找data-field-name群組，避免錯誤焦點落在隱藏Place ID；其他表單依原namedItem處理。按帶入後聚焦未知行政區或名稱；確認後聚焦可見關聯區；解除後關聯區隱藏，焦點移到景點名稱。只讀模擬不能帶入、確認、解除或送出，伺服器另有拒絕。
 
-本次完整計畫及實際驗收見 [MAP-IMPORT-IMPROVEMENTS.md](../MAP-IMPORT-IMPROVEMENTS.md)。其他模組依原階段，不因Google有欄位就擴增電話、評分、照片或評論功能。
+本次完整計畫及實際驗收見 [MAP-IMPORT-IMPROVEMENTS.md](../archive/MAP-IMPORT-IMPROVEMENTS.md)。其他模組依原階段，不因Google有欄位就擴增電話、評分、照片或評論功能。

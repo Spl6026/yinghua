@@ -4,11 +4,11 @@ PHP API＋MariaDB＋原生 JavaScript／jQuery，使用 Docker 開發。階段�
 
 ## 先看這幾份文件
 
-- [專案資料夾與產物管理](docs/PROJECT-STRUCTURE.md)：各目錄用途、可清理項目、歷史證據位置。
-- [全站架構與檔案導讀](docs/PROJECT-GUIDE.md)：前後端分層、API、資料表與操作。
-- [Excel 30列逐項驗收](docs/EXCEL-FUNCTIONAL-VERIFICATION-20261102.md)：要求、實測結果及正式待驗。
+- [全站導讀](docs/PROJECT-GUIDE.md)：目前的架構、資料夾、API、資料表、Docker 與常用操作。
+- [變更紀錄](docs/CHANGELOG.md)：每一輪實際完成的內容與驗證結果。
 - [後台操作指南](docs/ADMIN-OPERATING-GUIDE.md)／[正式server交接](docs/PRODUCTION-HANDOFF.md)。
-- [開發流程](docs/DEVELOPMENT-WORKFLOW.md)／[Git規則](docs/GIT-WORKFLOW.md)／[實作計畫](docs/IMPLEMENTATION-PLAN.md)。
+- [開發流程](docs/DEVELOPMENT-WORKFLOW.md)／[Git規則](docs/GIT-WORKFLOW.md)／[設計追溯](docs/DESIGN-TRACEABILITY.md)。
+- [Excel 30列逐項驗收](docs/EXCEL-FUNCTIONAL-VERIFICATION-20261102.md)；各階段計畫與驗收紀錄在 [docs/archive/](docs/archive/)。
 
 ## 資料夾
 
@@ -17,7 +17,7 @@ PHP API＋MariaDB＋原生 JavaScript／jQuery，使用 Docker 開發。階段�
 | `backend/` | PHP API、Controller／Service／Repository、資料庫migration與測試 |
 | `frontend/` | HTML來源、JavaScript／CSS、共用模板、建置與測試 |
 | `website/` | 原始交付範本，保留原狀 |
-| `docs/` | 架構、階段計畫／驗收、模組指南與非敏感證據 |
+| `docs/` | 全站導讀、變更紀錄、流程、模組指南（`modules/`）與歷史紀錄（`archive/`） |
 | `docker/` | PHP與Nginx環境設定 |
 | `scripts/` | 環境初始化、維運與交付驗證入口 |
 | `tools/` | 開發品質／無障礙／驗證工具與依賴清單 |
@@ -37,7 +37,7 @@ docker compose --profile mail up -d --build
 
 - 網站：http://localhost:8080/；後台：http://localhost:8080/admin/login.html。
 - 本機郵件：http://localhost:8025/；隔離驗收站：http://localhost:8081/。
-- 技術帳號 `spl`、資料庫 `yinghua`；DBeaver連線見[全站導讀](docs/PROJECT-GUIDE.md)。
+- 技術帳號 `spl`、資料庫 `yinghua`；連線設定見[環境指南](docs/ENVIRONMENT-SETUP.md)。
 - `.env` 保留本機設定，禁止提交；`.env.example` 是欄位範本。
 
 ## 驗證與重建

@@ -3,7 +3,7 @@
 > **2026-11-03 更新（使用者決定）：** 公開讀取不再逐次比對資料庫，改為一般網站的做法：直接提供最近一次成功發布的版本。後台儲存會立即重新發布；排程時間到、跨日、換週與直接改資料庫，由 publisher 每 10 秒 `content:tick` 比對後重新產生，最多延遲約 10 秒。發布失敗時繼續提供上一版，後台顯示失敗並可重試；只有從未成功發布過時才回 503（`publication_reason=missing_snapshot`）。下方提到「內容改變即回 503、記錄 projection_changed 區段」的段落是舊行為的歷史紀錄。測試站沒有常駐 publisher，需手動執行 `content:tick` 或 `content:publish`。
 
 
-2026-10-31：階段十二已完成同成功generation的JSON-LD、robots與sitemap，沒有獨立索引資料表或備份。沿DB／媒體／release的content:publish可一起重建；原規則及正式平台交接維持。新檔案用途／命令見[索引指南](search-index.md)，實際結果見[階段十二驗收](../PHASE-12-ACCEPTANCE.md)。
+2026-10-31：階段十二已完成同成功generation的JSON-LD、robots與sitemap，沒有獨立索引資料表或備份。沿DB／媒體／release的content:publish可一起重建；原規則及正式平台交接維持。新檔案用途／命令見[索引指南](search-index.md)，實際結果見[階段十二驗收](../archive/PHASE-12-ACCEPTANCE.md)。
 
 2026-10-30 複驗：本機長駐publisher未載入階段九PHP，公開快照缺detailNeighbors而被版本閘門拒絕；新程序DB唯讀連線正常。依本文件重啟既有publisher後由watch自行同步，恢復公開入口；本輪未手動在主庫執行content:publish，未變更業務資料、服務定義或環境變數。
 
@@ -13,7 +13,7 @@
 
 本機 bind mount 更新 PHP 發布邏輯後，既有 `content:watch` 不會卸載已讀入的 class。請先 `docker compose restart publisher`，再 `docker compose exec -T -u www-data app php bin/console.php content:publish`；否則新 API／CLI 可能與舊 worker 交替產生不同版本。正式採不可變映像，更新需同版 app／publisher 一起重建服務，不以只換檔案代替發布。此次主站診斷確實捕捉到 alias 版本差異，重載後多個週期維持一致。
 
-新回歸 [publication_alias_order.php](../../backend/tests/publication_alias_order.php) 在真測試庫交易內強制兩種查詢順序，產物使用自有 `/tmp`、資料 rollback；[publication_diagnostics.py](../../backend/tests/publication_diagnostics.py) 驗 API／gate requestId、拒舊與清理。7／8 項通過；完整結果與歷史 503 尚不能追認的限制見 [本輪修正](../P0-IMPROVEMENTS-20261025.md)。沒有新資料表、HTTP 路由或監控服務。
+新回歸 [publication_alias_order.php](../../backend/tests/publication_alias_order.php) 在真測試庫交易內強制兩種查詢順序，產物使用自有 `/tmp`、資料 rollback；[publication_diagnostics.py](../../backend/tests/publication_diagnostics.py) 驗 API／gate requestId、拒舊與清理。7／8 項通過；完整結果與歷史 503 尚不能追認的限制見 [本輪修正](../archive/P0-IMPROVEMENTS-20261025.md)。沒有新資料表、HTTP 路由或監控服務。
 
 更新：2026-10-24。來源是階段八 E-29；具體診斷／時限不是業主新增的業務限制。實作進行中，正式上線與完整 P0 尚未驗收。
 
@@ -63,6 +63,6 @@ operations.py增加backup／verify-backup／restore／open／rollback。備份�
 
 最終r5小型備份3.500秒、還原4.172秒（1圖）；只量測本輪流程，不是正式SLA。標準unittest另驗壞metadata、tar traversal／symlink與安全CLI錯誤4項。rollback_rehearsal.py完成9項：r6→r5兩個release label切換、全業務資料不變、下架404、schema錯誤關站及修正恢復、正常／上游故障日誌不含秘密query。兩版是同個已提交程式來源，只證明工具與相容manifest流程，不冒稱任意歷史code可回退。
 
-最終部署r5先13項後因Docker DB健康標籤延遲中止；保留分類結果後明示resume14項，與冷啟動3項合計17個不同驗收，不改成全程一次無失敗。工具先等待DB容器healthy，不以API200替代Compose相依條件。當前完整結果及正式差項以 [階段八紀錄](../PHASE-8-ACCEPTANCE.md) 為準；健康契約由phase8_health_contract.py以jsonschema4.26.0驗6個真HTTP回應，沒有假造503。
+最終部署r5先13項後因Docker DB健康標籤延遲中止；保留分類結果後明示resume14項，與冷啟動3項合計17個不同驗收，不改成全程一次無失敗。工具先等待DB容器healthy，不以API200替代Compose相依條件。當前完整結果及正式差項以 [階段八紀錄](../archive/PHASE-8-ACCEPTANCE.md) 為準；健康契約由phase8_health_contract.py以jsonschema4.26.0驗6個真HTTP回應，沒有假造503。
 
-映像掃描命令：`python scripts/operations/scan-images.py --help`，固定Trivy版本且要求新的私有輸出目錄；exit1有漏洞必須保留。正式r5仍有上游HIGH／CRITICAL，詳見 [安全報告](../PHASE-8-SECURITY-REVIEW.md)，不因沒有vendor修補就算通過。
+映像掃描命令：`python scripts/operations/scan-images.py --help`，固定Trivy版本且要求新的私有輸出目錄；exit1有漏洞必須保留。正式r5仍有上游HIGH／CRITICAL，詳見 [安全報告](../archive/PHASE-8-SECURITY-REVIEW.md)，不因沒有vendor修補就算通過。
