@@ -30,7 +30,7 @@ def main():
     fixture('DELETE FROM auth_rate_limits')
     suffix = 'contract' + secrets.token_hex(5)
     member = Client()
-    shape('csrf fields', member.call('GET', member.auth + 'csrf'), 200, {'token', 'expiresIn', 'termsVersion'})
+    shape('csrf fields', member.call('GET', member.auth + 'csrf'), 200, {'token', 'expiresIn', 'termsVersion', 'termsLabel'})
     png = shape('image challenge fields', member.call('GET', member.auth + 'captcha'), 200,
                 {'challengeToken', 'expiresAt', 'imageDataUrl'})
     check('image challenge stays PNG', png['imageDataUrl'].startswith('data:image/png;base64,'))

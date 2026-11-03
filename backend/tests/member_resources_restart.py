@@ -9,7 +9,7 @@ def main():
         fixture(f"INSERT INTO attractions(id,slug,name,category,summary,description,address,status,publish_at) VALUES('{place}','{probe.prefix}-restart','重建保存地點','景點','','','','published',UTC_TIMESTAMP())")
         probe.publish();client,member_id,_=probe.member('restart')
         probe.check('favorite created',probe.call(client,'PUT','/api/v1/me/favorites/'+place)[0]==201)
-        probe.check('trip created',probe.call(client,'PUT',base+'/items/'+place,{'version':0})[0]==201)
+        code,created,_=probe.call(client,'PUT',base+'/items/'+place,{'version':0});probe.check('trip created',code==201)
         # 每次 HTTP 的 requestId 原本就不同，只比較真正保存的業務資料。
         def saved_data(path):
             code,payload,_=probe.call(client,'GET',path)
@@ -25,7 +25,7 @@ def main():
             time.sleep(.5)
         else:raise AssertionError('Member session did not become available after recreation.')
         for path,data in before.items():probe.check('same private data after recreation '+path,saved_data(path)==data)
-        probe.check('existing session can remove saved item',probe.call(client,'DELETE',base+'/items/'+place,{'version':1})[1]['version']==2)
+        probe.check('existing session can remove saved item',probe.call(client,'DELETE',base+'/items/'+place,{'version':1,'itineraryId':created['itineraryId']})[1]['version']==2)
         report={'checks':len(probe.checks),'contractResponses':probe.responses,'sessionRetained':True,'recreated':['app-test','web-test'],'databaseRestarted':False,'volumesRemoved':False,'fixturesRemoved':True}
     finally:
         if member_id:

@@ -1,6 +1,6 @@
 # SEO 設定與 HTML 發布閱讀指南
 
-2026-10-31：階段十二已完成同成功generation的JSON-LD、robots與sitemap，沒有獨立索引資料表或備份。沿DB／媒體／release的content:publish可一起重建；原規則及正式平台交接維持。新檔案用途／命令見[索引指南](search-index.md)，實際結果見[階段十二驗收](../PHASE-12-ACCEPTANCE.md)。
+2026-10-31：階段十二已完成同成功generation的JSON-LD、robots與sitemap，沒有獨立索引資料表或備份。沿DB／媒體／release的content:publish可一起重建；原規則及正式平台交接維持。新檔案用途／命令見[索引指南](search-index.md)，實際結果見[階段十二驗收](../archive/PHASE-12-ACCEPTANCE.md)。
 
 ## 2026-10-25 R03：列表切換沿用已發布 SEO
 
@@ -16,7 +16,7 @@
 
 本階段最後驗證命令：`python backend/tests/seo_settings_restart.py --dependency-path .cache/validation/python`、`python backend/tests/policy_pages_integration.py`、`python backend/tests/seo_head_inventory.py --dependency-path .cache/validation/python`。schema／管理／公開測試命令見各節；測試只用命名隔離環境。舊跨模組複驗用 phase6_regression.py，會員三組用 phase7_member_regression.py，後者不重試業務或網路錯誤。
 
-更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7E 已完成本機範圍，實際結果與正式差項見 [階段七驗收](../PHASE-7-ACCEPTANCE.md)**。下方帶日期／子步驟的結果保留當時範圍。
+更新：2026-10-24。來源：功能規格 E30–L32、SEO規格 5–9／15–17、資料表建議 C24–D25；具體設計為 E-28。使用者已授權階段七，**7A–7E 已完成本機範圍，實際結果與正式差項見 [階段七驗收](../archive/PHASE-7-ACCEPTANCE.md)**。下方帶日期／子步驟的結果保留當時範圍。
 
 ## 7A 設定文件與覆寫資料層
 
@@ -28,7 +28,7 @@
 
 [SeoCatalog](../../backend/src/Adapters/SeoCatalog.php) 讀取 [共用頁面 catalog](../../frontend/resources/seo-pages.json)，讓 PHP 輸入與 Node 後續產頁共享明確路徑與預設內容；不執行任意 regex 或檔案目錄掃描作為使用者篩選。
 
-[SiteSettingsRepository](../../backend/src/Repositories/SiteSettingsRepository.php) 集中設定列與 FOR UPDATE；[ContentSeoRepository](../../backend/src/Repositories/ContentSeoRepository.php) 批次讀寫整份覆寫。兩者都不自行 commit，由 Service 的同一交易協調，避免只更新一半。現有 attractions／films／news_posts／offers 的 SEO 欄位未搬移或刪除。
+[SeoSettingsRepository](../../backend/src/Repositories/SeoSettingsRepository.php) 集中設定列與 FOR UPDATE；[SeoOverrideRepository](../../backend/src/Repositories/SeoOverrideRepository.php) 批次讀寫整份覆寫。兩者都不自行 commit，由 Service 的同一交易協調，避免只更新一半。現有 attractions／films／news_posts／offers 的 SEO 欄位未搬移或刪除。
 
 測試庫已套用本 migration，為 33 表／18 份；主庫此時仍是 31 表／17 份。本階段沒有新增服務、port、套件、金鑰或環境變數。後續實作到發布流程前，不啟用新公開 API。
 
@@ -47,9 +47,9 @@ GET／PUT `/api/v1/admin/settings/seo` 已加入 [routes.php](../../backend/conf
 
 [SeoSettingsController](../../backend/src/Controllers/SeoSettingsController.php) 轉輸入／回應，[SeoSettings](../../backend/src/Services/SeoSettings.php) 取得既有發布鎖，在同一 transaction 重查權限、鎖文件版本、保存 defaults／overrides／audit。版本衝突回 409；audit 失敗整組回滾。稽核只存版本／狀態，不存 token 或正文。[SeoSettingsResult](../../backend/src/DTO/SeoSettingsResult.php) 明列文件及 publicationReady。此時公開產頁整合仍在 7C，因此保存不冒稱已完成網站 SEO 更新。
 
-[SeoContentRepository](../../backend/src/Repositories/SeoContentRepository.php) 以 enum 映射固定表／欄、prepared query 搜尋選項及批次目標解析，不逐筆 N+1。GET 的 q 最多 80 字，每種類型先回 50 筆及截斷提示，可縮小搜尋。未授權內容 view 的管理員只見已公開內容；讀不到的草稿覆寫不輸出，完整文件更新仍保留它們。軟刪／不存在的孤立覆寫不再公開，後續保存可清除無效引用，不占用有效目標空間。
+[SeoTargetRepository](../../backend/src/Repositories/SeoTargetRepository.php) 以 enum 映射固定表／欄、prepared query 搜尋選項及批次目標解析，不逐筆 N+1。GET 的 q 最多 80 字，每種類型先回 50 筆及截斷提示，可縮小搜尋。未授權內容 view 的管理員只見已公開內容；讀不到的草稿覆寫不輸出，完整文件更新仍保留它們。軟刪／不存在的孤立覆寫不再公開，後續保存可清除無效引用，不占用有效目標空間。
 
-[seo-settings.js](../../frontend/assets/js/pages/seo-settings.js) 管版本、互斥、未保存修改、409／欄位錯誤及發布提示；[seo-fields.js](../../frontend/assets/js/components/seo-fields.js) 共用標籤／hint／欄位，[seo-settings-api.js](../../frontend/assets/js/api/seo-settings-api.js) 只包 API。frontend settings.html 保留原型面板、grid、逐頁 details 與底部保存；[phase7.css](../../frontend/assets/css/phase7.css) 只補必要換行與手機／焦點樣式。空 title／description 回繼承；明確清空 keywords 使用獨立勾選，避免空值歧義。搜尋選項不重置未保存欄位，欄位錯誤會先展開 details。
+[seo-settings.js](../../frontend/assets/js/pages/seo-settings.js) 管版本、互斥、未保存修改、409／欄位錯誤及發布提示；[seo-fields.js](../../frontend/assets/js/components/seo-fields.js) 共用標籤／hint／欄位，[seo-settings-api.js](../../frontend/assets/js/api/seo-settings-api.js) 只包 API。frontend settings.html 保留原型面板、grid、逐頁 details 與底部保存；[seo-settings.css](../../frontend/assets/css/seo-settings.css) 只補必要換行與手機／焦點樣式。空 title／description 回繼承；明確清空 keywords 使用獨立勾選，避免空值歧義。搜尋選項不重置未保存欄位，欄位錯誤會先展開 details。
 
 主庫在本機忽略的 `artifacts/phase7-before-main-migration.sql` 備份後套用 migration，主／測試庫均 33 表／18 份，未清資料／volume。尚無公開 settings GET，固定頁仍為 65；本子步驟未新增 Docker 服務或環境變數。
 

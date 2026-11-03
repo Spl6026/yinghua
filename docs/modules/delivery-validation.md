@@ -22,3 +22,54 @@ python backend/tests/phase14_cleanup.py
 復原工具延用`backend/tests/recovery_rehearsal.py --extended-delivery`；只操作明確自有spl-p0-* project的新資料卷。除原有媒體／收藏／權限外，加入真一般政策、排序路線及第二份行程。搜尋generation預期重建，逐欄比較公開投影而非舊generation；其餘業務表仍逐列hash核對。命令與結果見階段十五驗收及[P0維運手冊](../P0-OPERATIONS.md)。
 
 2026-11-01補充：固定14套件新增content_fallback_validation.py，串接真DB並行／限速與HTTP契約；測試Google替身與真外部驗證分開。補位功能為U-23新增應用API，與本工具本身不新增API的責任分開。詳見[補位指南](attraction-content-fallback.md)。
+
+2026-11-03補充：固定套件由14組增為19組，納入原本只能手動執行、已長期失敗而沒被發現的五支測試：`policy-pages`（條款頁真實連結與版本）、`attractions`（景點與媒體整合）、`member-persistence`（會員收藏／行程的資料庫約束）、`publication-alias-order`（舊網址查詢順序不影響 generation）、`publication-clock`（換日／換週重新發布）。失敗原因與處理：
+
+- `publication_alias_order.php`、`public_content_clock.php`：`ContentPublication` 加入「同一請求內沿用已驗證快照」後，測試仍用同一個實例模擬多個請求，內容改變後讀到快取而失敗（反向排序的比對也因此變成必然成立）。改為每個請求建立新實例，與正式環境一致。
+- `member_resources_persistence.php`：階段十一起會員可有多份行程，仍斷言「第二份行程會被資料庫拒絕」；改為驗證資料庫保證同時只有一份目前行程。版本號改為「只增不減」的判斷。
+- `policy_pages_integration.py`：仍要求條款頁出現「待業主提供」等開發說明；U-25 已改為大眾文案，改為檢查不得出現開發／測試字樣。另外後台自訂條款版本名稱時，頁面顯示該名稱、同意紀錄存內部代碼（policy-雜湊），測試改從公開設定 API 取得應顯示的名稱。此套件須在 `restore-settings` 之後執行，因 `policy-consent` 會暫時改動條款版本。
+- `attractions_integration.py`：假設隔離庫已有示範景點（博物館、原型編號）；改為開始時執行不覆寫的 `content:seed-demo`。
+
+另：在殼層設有 `TERMS_VERSION` 時以 `docker compose run frontend` 建置，會把該值寫進固定頁；執行前請用 `env -u TERMS_VERSION`，與其他 compose 指令相同。
+
+## 自動化 CI（2026-11-03）
+
+`.github/workflows/checks.yml` 在每個 PR 與推送到 main 時執行不需要資料庫的檢查：
+
+| 工作 | 內容 |
+| --- | --- |
+| PHP | 以 `docker/php/Dockerfile` 的 development 階段建置映像（與本機相同的 PHP 版本、擴充與工具），執行 PHPStan、PHPUnit、PHP-CS-Fixer（只檢查不修改）。 |
+| 前端 | Node 24：`npm ci`、`npm run format:check`、建置後 `npm test`。 |
+| 維運腳本 | Python 3.13 執行 `scripts/operations/tests` 單元測試。 |
+
+需要 MariaDB、Mailpit、Node 發布程序與瀏覽器的 19 組整合套件仍以 `delivery.py integration` 在 Docker 開發環境執行；CI 綠燈不代表整合套件已通過。單元測試原本依賴開發環境的 `APP_KEY`，`backend/phpunit.xml` 改為提供測試專用的固定金鑰（已有環境值時沿用），讓乾淨環境也能執行。
+
+## 瀏覽器冒煙測試（2026-11-03）
+
+`backend/tests/browser_smoke.py` 在隔離的 localhost:8081／yinghua_test 建立本次專用的管理員與會員（帳號前綴 `smoke`），執行 `frontend/tests/browser/smoke.mjs`，結束後一律停用帳號、撤銷 session 並刪除其行程。也可用 `delivery.py integration … --browser` 併入套件執行，報告以 `browserSmoke` 標示；它不等於完整的人工 Browser 驗收，`browserVerified` 仍為 false。
+
+檢查內容（目前 70 項）：14 個公開頁桌面無主控台錯誤、無重複載入的模組、手機 390px 無橫向捲動；所有後台頁無錯誤；景點、電影、消息編輯表單載入後可編輯、有修改時重新載入要先確認；會員頁無錯誤，以及行程總覽→新增→加入兩個地點→儲存（畫面不捲動、焦點不移到狀態訊息）→行程內容→手機寬度→刪除。結果逐項寫入 `artifacts/browser-smoke/results.json`。
+
+需要 Node、`frontend` 的 devDependencies（含與瀏覽器版本一致的 `playwright` 1.63.0）及 Playwright 的 Chromium。無頭瀏覽器對程式聚焦不一定捲動畫面，所以「不捲動」另以焦點位置直接檢查；已實際把舊行為放回確認此檢查會失敗。
+
+## 完整回歸 `--full`（2026-11-03）
+
+原本 `backend/tests/` 有約 70 支測試腳本不在任何自動執行清單裡，只能手動執行，其中 16 支已悄悄失效。整理後每支腳本都有固定位置：
+
+- **固定套件（19 組）**：日常與合併前執行，約 5 分鐘。
+- **`--browser`**：瀏覽器冒煙測試。
+- **`--full`**：其餘全部，共 32 組。包含以 OpenAPI 驗證回應的契約測試（`phase6_regression` 內含 `openapi_contracts` 的 21 組與公開消息／優惠／首頁五組）、會員三組、各階段整合、容器重建後的資料保存、migration 升級、資料庫約束與查詢計畫等。其中數組會重建 app-test／web-test 或資料庫，耗時較長。
+- 不在清單內的只有：fixture／探針等輔助程式、需要正式環境或會停掉服務的演練（`production_rehearsal`、`rollback_rehearsal`、`recovery_rehearsal`、`stability_observation`、`public_database_outage`、`connection_boundary`），以及只在全部 fixture 清理後才有意義的 `phase13_verify_cleanup`。
+
+本輪修正的失效原因（都是測試過時，網站行為沒有退步）：
+
+| 測試 | 原因 | 處理 |
+| --- | --- | --- |
+| `specification_alignment`（也影響 `openapi_contracts`、`phase6_regression`） | 2026-11-02 起禁止刪除目前登入中的自己 | 改為驗證回 403 且登入不受影響 |
+| `films_public_integration` | 2026-11-02 起 Nginx 清空直接打 API 時的 `X-Original-URI`，避免偽造 | 改從實際舊網址 `/film-detail.html?id=` 驗證轉向，並驗證直接偽造無效 |
+| 三支 schema 升級測試 | 寫死階段七時的 33 張表 | 改由 migration 推算應有表數 |
+| `response_contract` | CSRF 回應新增 `termsLabel` | 補上欄位 |
+| `seo_head_inventory` | 新增的 `404.html` 只作內部錯誤頁；條款內文可能含後台填寫的 `{{` | 視為不可直接開啟的頁面；條款頁不檢查 `{{` |
+| 會員三支、`publication_diagnostics` | 方案 D 與每份行程各自計算版本 | 改為「上一版持續提供、私人草稿不外露」與帶 `itineraryId` |
+
+已刪除 `phase8_validation.py`（舊的小型執行器，內容已全部涵蓋）。OpenAPI 契約檔維持手寫：`content_contract` 檢查每條路由都恰有一個 OpenAPI 操作，`openapi_contracts` 以真實回應驗證格式，已足以防止契約與程式脫節，不另改為自動產生。

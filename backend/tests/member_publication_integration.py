@@ -13,7 +13,8 @@ def main():
         for version in range(1,6):
             fixture(f"UPDATE attractions SET name='公開版本 {version}',version=version+1 WHERE id='{place}'")
             pending=probe.call(client,'GET',favorite)[1]['items'][0]
-            probe.check('unpublished version remains unknown '+str(version),pending['availability']=='unknown' and pending['attraction'] is None)
+            # 尚未重新發布時，收藏顯示上一版公開資訊；新名稱要等發布後才出現。
+            probe.check('unpublished version not shown early '+str(version),pending['attraction'] is not None and pending['attraction']['name']!='公開版本 '+str(version))
             probe.publish()
             public=client.call('GET','/api/v1/attractions/'+probe.prefix+'-stability')
             probe.check('published API ready '+str(version),public[0]==200)

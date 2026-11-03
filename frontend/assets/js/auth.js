@@ -27,7 +27,7 @@ const returnLink = document.querySelector('[data-auth-return]');
 const logoutButton = document.querySelector('[data-auth-logout]');
 let credentialsChanged = false;
 let challengeToken;
-let termsVersion;
+let termsVersion, termsLabel;
 let refreshingCaptcha = false;
 let captchaByEmail = false;
 let submitting = false;
@@ -97,9 +97,10 @@ async function refreshCaptcha(email = false, { keepErrors = false } = {}) {
   });
   try {
     if (email && !form.elements.email.reportValidity()) return;
-    termsVersion ??= (await authConfiguration()).termsVersion;
-    const termsLabel = document.querySelector('[data-terms-version]');
-    if (termsLabel) termsLabel.textContent = termsVersion;
+    // 送出同意時用內部版本代碼；畫面上顯示後台設定的版本名稱，與條款頁一致。
+    if (!termsVersion) ({ termsVersion, termsLabel } = await authConfiguration());
+    const label = document.querySelector('[data-terms-version]');
+    if (label) label.textContent = termsLabel || termsVersion;
     const result = email ? await api.emailCaptcha(form.elements.email.value) : await api.captcha();
     challengeToken = result.challengeToken;
     captchaByEmail = email;

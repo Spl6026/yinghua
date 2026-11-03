@@ -152,6 +152,7 @@ async function fixture({ creating = false, preview = false, edit = true, view = 
     recommendationLabel: '城市記憶',
   };
   const state = {
+    urls: [],
     gets: 0,
     saves: [],
     uploads: [],
@@ -174,7 +175,7 @@ async function fixture({ creating = false, preview = false, edit = true, view = 
       assign: url => state.assignments.push(url),
       replace: url => state.replacements.push(url),
     },
-    history: { replaceState() {} },
+    history: { replaceState: (_state, _title, url) => state.urls.push(url) },
     window: { addEventListener: (name, handler) => state.windowEvents.set(name, handler), setTimeout() {} },
     FormData: class extends Map {},
     confirmAction: async () => state.confirm,
@@ -627,4 +628,16 @@ test('空解析網址聚焦欄位；查詢欄不混入景點 mapUrl 保存', asy
   await settle();
   assert.equal(invalid.form.elements.mapUrl.attrs['aria-invalid'], 'true');
   assert.equal(invalid.node('#google-short-url').attrs['aria-invalid'], undefined);
+});
+
+test('202 後只有編輯權限（沒有檢視）也把網址換成編輯頁，重新整理不會回到新增表單', async () => {
+  const f = await fixture({ creating: true, view: false });
+  await f.initialize();
+  f.state.write = async () => ({
+    attraction: { id: 'saved', version: 1 },
+    publication: { status: 'failed', message: '資料已保存，公開同步失敗' },
+  });
+  f.form.emit('submit');
+  await settle();
+  assert.deepEqual(f.state.urls, ['/admin/place-edit.html?id=saved']);
 });

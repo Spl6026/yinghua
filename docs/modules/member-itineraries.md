@@ -1,6 +1,6 @@
 # 完整會員行程閱讀指南
 
-更新：2026-10-31。階段十一；規劃及來源見[計畫](../PHASE-11-PLAN.md)，實際測試見[驗收](../PHASE-11-ACCEPTANCE.md)。原型 `website/planner.html` 保留；實作只放 `frontend/`、`backend/`。
+更新：2026-10-31。階段十一；規劃及來源見[計畫](../archive/PHASE-11-PLAN.md)，實際測試見[驗收](../archive/PHASE-11-ACCEPTANCE.md)。原型 `website/planner.html` 保留；實作只放 `frontend/`、`backend/`。
 
 ## 2026-11-03 畫面拆分（使用者指定，見 DESIGN-TRACEABILITY U-26）
 
@@ -13,6 +13,12 @@
 | `/planner.html?edit=<id>` | 編輯畫面：原本的草稿編排（新增地點、排序、時間、備註、套用推薦路線），只編輯這一份 | `pages/trip-editor.js`、`core/trip-editor-state.js` 的 `edit()` |
 
 `?place=`／`?route=` 待辦沒有指定行程時先到總覽選擇，網址組合集中在 `core/planner-links.js`。清單 API 的每筆摘要多了 `stopCount`。編輯畫面的狀態訊息放在儲存列下方，成功時不移動焦點，畫面不會再捲到頁尾。以下為階段十一原始說明，其中「本人選單、頁碼」已移到總覽。
+
+## 2026-11-03 版本號改為每份行程各自計算（U-28）
+
+原本同一位會員的所有行程共用一個遞增的版本號，連續操作不同行程時會互相造成衝突（例如用同一次清單讀到的版本連續刪除兩份行程，第二份會被判為已變更）。現在版本號以每份行程為單位：只有該行程的名稱、日期、站點改變或刪除時才加一，切換目前行程不改版本。
+
+舊的「目前行程」站點 API（`PUT／DELETE /api/v1/me/itineraries/current/items/{id}`）原本只靠版本號判斷；改為已有行程時（version 大於 0）必須同時送 `itineraryId`，且要等於目前行程，否則回 409。現有介面不使用這組 API（景點卡片的「加入行程」會帶到行程頁選擇）。
 
 ## 先理解資料流
 
@@ -49,7 +55,7 @@
 
 ## API與資料庫
 
-新增8個操作列於[計畫API表](../PHASE-11-PLAN.md)。集合每頁預設20、最多100；選擇行程會更新本人current。DELETE帶JSON version，成功204沒有JSON；刪目前行程會選下一份，最後一份刪除則回空狀態。所有會員API強制member session；admin Cookie不能代替，memberId不接受客戶端指定。
+新增8個操作列於[計畫API表](../archive/PHASE-11-PLAN.md)。集合每頁預設20、最多100；選擇行程會更新本人current。DELETE帶JSON version，成功204沒有JSON；刪目前行程會選下一份，最後一份刪除則回空狀態。所有會員API強制member session；admin Cookie不能代替，memberId不接受客戶端指定。
 
 沿用migration `016_member_itineraries.sql`的`itineraries`／`itinerary_items`，本階段無新表、欄位或migration。`tripDate→trip_date`、`startTime→planned_time`、`note→note`；`sort_order`依陣列順序重排；原有不可用站保留`id`及`snapshot_name`，新增不可用站拒絕。父子同交易，錯誤不留半份。保留軟刪父列及版本，避免刪除後重用舊版本。舊P0目前行程API讀寫同一資料，沒有複製／遷移來源。
 

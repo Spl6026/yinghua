@@ -91,17 +91,19 @@ async function fixture({
       }
     : null;
   const captchaNodes = new Map(
-    ['#refresh-captcha', '#email-captcha', '#captcha-image', '#captcha-status'].map(selector => [
-      selector,
-      {
-        disabled: false,
-        hidden: false,
-        dataset: {},
-        addEventListener(type, callback) {
-          this.listener = callback;
+    ['#refresh-captcha', '#email-captcha', '#captcha-image', '#captcha-status', '[data-terms-version]'].map(
+      selector => [
+        selector,
+        {
+          disabled: false,
+          hidden: false,
+          dataset: {},
+          addEventListener(type, callback) {
+            this.listener = callback;
+          },
         },
-      },
-    ])
+      ]
+    )
   );
   const sandbox = {
     URL,
@@ -158,7 +160,7 @@ async function fixture({
       target.textContent = value;
     },
     async authConfiguration() {
-      return { termsVersion: 'fixture-v1' };
+      return { termsVersion: 'fixture-v1', ...(state.termsLabel ? { termsLabel: state.termsLabel } : {}) };
     },
     element(tag, attrs, label) {
       return { tag, ...attrs, textContent: label, addEventListener() {} };
@@ -185,7 +187,8 @@ async function fixture({
           state.logouts++;
           await state.logout();
         },
-        async register() {
+        async register(body) {
+          state.registered = body;
           state.submits++;
           await state.write();
         },
@@ -489,4 +492,14 @@ test('過期會員導覽恢復登入按鈕，舊me回應不能恢復已登出名
   const shown = f.node.children;
   assert.equal(shown.length, 1);
   assert.equal(shown[0].href, '/login.html');
+});
+
+test('註冊頁顯示後台設定的條款版本名稱，送出同意時仍用內部版本代碼', async () => {
+  const f = await fixture({ mode: 'register' });
+  f.state.termsLabel = '2026 年版會員條款';
+  f.state.captcha = async () => ({ challengeToken: 'challenge', imageDataUrl: 'data:image/png;base64,test' });
+  await f.initialize();
+  assert.equal(f.captchaNodes.get('[data-terms-version]').textContent, '2026 年版會員條款');
+  await f.send();
+  assert.equal(f.state.registered?.termsVersion, 'fixture-v1');
 });

@@ -25,9 +25,9 @@
 | [ExternalRequestSlot.php](../../backend/src/Repositories/ExternalRequestSlot.php) | MariaDB GET_LOCK 實現每個資料庫最多一個並行外部簡介請求，finally 釋放 |
 | [Composition.php](../../backend/src/Composition.php)／[openapi.json](../../backend/resources/openapi.json) | 建構子依賴組裝、兩個 HTTP 路由及完整契約 |
 | [publish.mjs](../../frontend/scripts/publish.mjs) | 卡片／詳情／首頁博物館套用自家顯示內容；Google 只產生空狀態載入容器 |
-| [google-summary.js](../../frontend/assets/js/components/google-summary.js) | 已發布詳情即時載入、textContent 原文、Google Maps 與提供者標示；失敗保留空狀態、不搶焦點 |
-| [attraction-content-preview.js](../../frontend/assets/js/components/attraction-content-preview.js)／[attraction-form.js](../../frontend/assets/js/pages/attraction-form.js) | 小型收合預覽、呼叫後端相同規則及變更後提醒 |
-| [phase3.css](../../frontend/assets/css/phase3.css) | 原文區與自家文字區分、來源字級與換行、窄版預覽 |
+| `google-summary.js` | 已發布詳情即時載入、textContent 原文、Google Maps 與提供者標示；失敗保留空狀態、不搶焦點（2026-11-02 已移除：Google 資料只在匯入時補空白欄位，見 CHANGELOG）|
+| `attraction-content-preview.js`／[attraction-form.js](../../frontend/assets/js/pages/attraction-form.js) | 小型收合預覽、呼叫後端相同規則及變更後提醒（2026-11-02 已移除：Google 資料只在匯入時補空白欄位，見 CHANGELOG）|
+| `phase3.css` | 原文區與自家文字區分、來源字級與換行、窄版預覽（2026-11-02 已移除：Google 資料只在匯入時補空白欄位，見 CHANGELOG）|
 
 PHP 仍只提供 API，HTML 在前端；Controller → Service／Policy → Repository／Adapter，以 DTO 及建構子注入連接。參考原有專案分層及 Google [Place resource](https://developers.google.com/maps/documentation/places/web-service/reference/rest/v1/places)、[Places 政策](https://developers.google.com/maps/documentation/places/web-service/policies) 的原文呈現、保存與來源要求。
 
@@ -41,8 +41,8 @@ PHP 仍只提供 API，HTML 在前端；Controller → Service／Policy → Repo
 
 ## 驗證入口
 
-[AttractionContentTest.php](../../backend/tests/Unit/AttractionContentTest.php)、[GoogleSummaryProviderTest.php](../../backend/tests/Unit/GoogleSummaryProviderTest.php) 驗自填優先、Unicode、120字、來源安全、Google 無資料／429／錯誤／缺 key。前端 [google-summary.test.mjs](../../frontend/tests/google-summary.test.mjs) 驗原文及失敗安全降級。
+[AttractionContentTest.php](../../backend/tests/Unit/AttractionContentTest.php)、[GoogleSummaryProviderTest.php](../../backend/tests/Unit/GoogleSummaryProviderTest.php) 驗自填優先、Unicode、120字、來源安全、Google 無資料／429／錯誤／缺 key。前端 `google-summary.test.mjs`（已隨元件移除） 驗原文及失敗安全降級。
 
 [content_fallback_validation.py](../../backend/tests/content_fallback_validation.py) 串接具名 yinghua_test 的真 MariaDB 並行／限速／發布競爭 probe，以及 [content_fallback_integration.py](../../backend/tests/content_fallback_integration.py) 的真 HTTP／OpenAPI 驗證。這些 probe 明確使用供應商替身，不冒稱外部 Google；另已用既有 Place ID 實測真實 Google available，僅保存狀態、48字長度與未落庫證據，不把原文留在測試檔。
 
-操作前建立自有 fixture；測完依 phase14_cleanup 清理，不修改主庫。完整結果及正式服務界線見[階段十五驗收](../PHASE-15-ACCEPTANCE.md)。
+操作前建立自有 fixture；測完依 phase14_cleanup 清理，不修改主庫。完整結果及正式服務界線見[階段十五驗收](../archive/PHASE-15-ACCEPTANCE.md)。

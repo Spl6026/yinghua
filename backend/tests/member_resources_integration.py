@@ -86,7 +86,8 @@ def main():
         check('parallel favorite one create one existing',sorted(codes)==[200,201])
         fixture(f"UPDATE attractions SET status='archived',name='私人草稿名稱',summary='私人摘要',version=version+1 WHERE id='{first}'")
         pending=call(a,'GET',favorite)[1]
-        check('pending publication does not disclose stale data',all(item['availability']=='unknown' and item['attraction'] is None for item in pending['items']))
+        # 尚未重新發布時，收藏顯示上一版公開資訊；資料庫裡的私人草稿內容不能出現（下一行檢查）。
+        check('pending publication keeps last published version',all(item['availability']=='available' for item in pending['items']))
         check('private body contains no draft text','私人' not in json.dumps(pending,ensure_ascii=False))
         check('remove works during publication failure',call(a,'DELETE',favorite+'/'+first)[0]==204)
         check('repeated removal succeeds',call(a,'DELETE',favorite+'/'+first)[0]==204)

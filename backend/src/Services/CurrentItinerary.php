@@ -68,7 +68,7 @@ class CurrentItinerary
             if ($before !== null && $this->itineraries->item($member->id, $before->id, $attractionId) !== null) {
                 return new ItineraryWriteResult($before->id, $before->version, $attractionId, false);
             }
-            if (($before->version ?? 0) !== $input->version) {
+            if (($before->version ?? 0) !== $input->version || !self::sameTrip($before?->id, $input)) {
                 throw new ApplicationError(ErrorCode::Conflict, '行程已變更，請重新載入再加入。');
             }
             $name = $this->attractions->requireAvailable($attractionId);
@@ -88,7 +88,7 @@ class CurrentItinerary
             if ($before === null || $this->itineraries->item($member->id, $before->id, $attractionId) === null) {
                 return new ItineraryWriteResult($before?->id, $before->version ?? 0, $attractionId, false);
             }
-            if ($before->version !== $input->version) {
+            if ($before->version !== $input->version || !self::sameTrip($before->id, $input)) {
                 throw new ApplicationError(ErrorCode::Conflict, '行程已變更，請重新載入再移除。');
             }
             $this->itineraries->remove($member->id, $before->id, $attractionId);
@@ -96,5 +96,11 @@ class CurrentItinerary
 
             return new ItineraryWriteResult($after->id, $after->version, $attractionId, true);
         });
+    }
+
+    /** 必須仍是同一份目前行程（version=0 代表還沒有行程，不需編號）；版本號只在單一行程內遞增，不能單靠版本判斷。 */
+    private static function sameTrip(?string $currentId, ItineraryItemInput $input): bool
+    {
+        return $input->itineraryId === null || $input->itineraryId === $currentId;
     }
 }

@@ -1,6 +1,6 @@
 # JSON-LD單一擁有者
 
-2026-10-31，階段十二12A。S：功能規格E31:G31/L31、SEO規格B13:F13；策略E-34，細節見[計畫](../PHASE-12-PLAN.md)。
+2026-10-31，階段十二12A。S：功能規格E31:G31/L31、SEO規格B13:F13；策略E-34，細節見[計畫](../archive/PHASE-12-PLAN.md)。
 
 `frontend/assets/js/core/structured-data.js`是Browser／Node共用純factory；`frontend/scripts/structured-data.mjs`只重匯出作發布入口。從已發布context及SEO結果建立WebSite／Organization／WebPage及mainEntity：Museum、TouristAttraction、美食／在地店家LocalBusiness、Movie、Article、適用Event、Offer，不查DB、輸出HTTP或讀瀏覽器身分。
 

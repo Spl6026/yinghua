@@ -4,7 +4,7 @@
 
 [film-publication.test.mjs](../../frontend/tests/film-publication.test.mjs) 實際產頁測結構週表、第二版地址／舊式時間、下架空態與文字編碼；本輪 Node 150 項通過。Brave 桌機 1440×900／手機 390×844 已確認時間與 museum 相同、連結可達且無頁面橫向溢出。
 
-更新：2026-10-20。階段四 4A–4E 已完成本機實作與驗收：電影資料層、公開發布、電影資訊／海報管理及多場次編輯。最終 PHP 55 項／233 斷言、Node 88 項、20 套真實整合 619 項及 54 個 API 操作契約驗證通過；實際範圍與限制見 [階段四驗收](../PHASE-4-ACCEPTANCE.md)。下方 4A–4D 數字保留各功能當時的驗證紀錄。
+更新：2026-10-20。階段四 4A–4E 已完成本機實作與驗收：電影資料層、公開發布、電影資訊／海報管理及多場次編輯。最終 PHP 55 項／233 斷言、Node 88 項、20 套真實整合 619 項及 54 個 API 操作契約驗證通過；實際範圍與限制見 [階段四驗收](../archive/PHASE-4-ACCEPTANCE.md)。下方 4A–4D 數字保留各功能當時的驗證紀錄。
 
 2026-10-23 手機複驗補充（U-05／E-25）：`frontend/assets/css/phase4.css` 讓編輯頁標題旁 `#reload-film` 不縮成逐字直排。只補充實際新增的操作按鈕，不修改原型 style.css、欄位限制或 API；390 CSS px 的按鈕單行及頁面無水平溢出已實測。
 
@@ -24,7 +24,7 @@
 | `backend/tests/Unit/FilmInputTest.php` | 原型必填／選填、時區同時、非法日期、結束欄位拒絕及巢狀錯誤 |
 | `backend/tests/film_persistence.php` | 限 yinghua_test，真實保存、歸屬、防止挪用及下架釋放；全部回滾 |
 
-來源：Excel 功能規格 7／21、資料表建議 12／13；U-16 指定只比較日期與開始時間，結束時間延後。具體表名、DTO、索引及分鐘精度為 E-25，完整計畫見 [PHASE-4-PLAN.md](../PHASE-4-PLAN.md)。
+來源：Excel 功能規格 7／21、資料表建議 12／13；U-16 指定只比較日期與開始時間，結束時間延後。具體表名、DTO、索引及分鐘精度為 E-25，完整計畫見 [PHASE-4-PLAN.md](../archive/PHASE-4-PLAN.md)。
 
 `screenings` 省略代表保留，明確空陣列代表移除；父電影的 version 是整組更新的版本。同名電影可以存在，不能用名稱定位。場次保存由 `FilmManagement` 在共同發布寫入鎖及同一交易內協調，不把 Repository 的一次預查當成完整並行保護。
 
@@ -74,7 +74,7 @@
 
 海報沿用 `/api/v1/admin/media`，傳 `module=films` 依電影權限處理，沒有另建重複上傳服務。完整輸入／回應與錯誤依 [OpenAPI](../../backend/resources/openapi.json)。時間寫入格式為 `YYYY-MM-DDTHH:mm:ss±HH:mm`；開始時間秒須為 00，DB 存 UTC，前台轉台北。
 
-閱讀順序：`routes.php` → `FilmController` → `FilmManagement` → DTO／Policy → Repository；公開端看 `PublicFilmController` → `PublicFilms` → 成功 snapshot，HTML 看 `ContentPublication` → `NodeContentRenderer` → `publish.mjs`／`film-view.js`。Controller 處理 HTTP，Service 負責授權／交易／流程，Repository 封裝 SQL，前端負責 View；沿用 Service Layer、Repository、DTO 與 Adapter。全部新增檔案、資料表與環境命令見 [全站導讀](../PROJECT-GUIDE.md#階段四新增檔案與電影資料流)，設計依據見 [架構](../ARCHITECTURE.md)。
+閱讀順序：`routes.php` → `FilmController` → `FilmManagement` → DTO／Policy → Repository；公開端看 `PublicFilmController` → `PublicFilms` → 成功 snapshot，HTML 看 `ContentPublication` → `NodeContentRenderer` → `publish.mjs`／`film-view.js`。Controller 處理 HTTP，Service 負責授權／交易／流程，Repository 封裝 SQL，前端負責 View；沿用 Service Layer、Repository、DTO 與 Adapter。全部新增檔案、資料表與環境命令見 [全站導讀](../archive/PROJECT-GUIDE-20261103.md#階段四新增檔案與電影資料流)，設計依據見 [架構](../ARCHITECTURE.md)。
 
 2026-10-21 原型對齊（U-05）：場次介紹採 `window-sunday.html` 的電影頁殼，共用 `film-view.js` 呈現 IMAGE MUSEUM / SCREENING、海報、介紹、公告、類型／日期資訊列與「回到本週映演」。原型 `island-slow.html` 的 CITY STORY／返回城市散策不再套到全部電影。多場次沿用資訊列逐列顯示，日期含實際年份；原型示意日期不進資料庫。首頁／片單恢復各自海報遮色，單頁隱藏分頁，後台新增場次按鈕回到頁首。前後篇／繼續閱讀仍待階段九；安排進旅行仍只是連結，保存待階段六。
 

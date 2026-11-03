@@ -3,7 +3,7 @@
   "info": {
     "title": "映畫竹塹 API（階段二至十二）",
     "version": "13.0.0",
-    "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation，不一致回 503。\n\nE-29：成功驗證既有 session 的回應（含業務 403／409／422）可帶 X-Session-Kind、X-Session-Owner、X-Session-Server-Time、X-Session-Expires-At、X-Session-Idle-Expires-At。匿名／401 不提供；以 auth/me 的 200 回應及 components.headers 為定義。時間為 Unix 秒，期限資訊不是登入憑證；不改 JSON、閒置／絕對上限、CSRF 或權限規則。登入後先取得 auth/me；到期重新登入不自動重送原業務操作。\n\nE-33：會員完整行程沿用P0資料；版本為同會員單調遞增。POST的可選id供網路重試去重；PUT是全量站點保存，名稱／日期／時間／備註業務上選填，title與items出現在PUT required僅表示完整資源結構。64KiB JSON、200字名稱、2000字備註、1000站點為工程容量邊界。保留既有不可用站點快照，但拒絕新加入下架／已刪景點。路線預覽GET不修改會員；POST套用保留旅行日期。\n\nE-34：104個PHP JSON API保持；另三個根目錄爬蟲GET資源由Nginx供應同成功generation的文字／XML，合計107個OpenAPI操作。這三個資源不是PHP View，不沿用JSON回應／requestId契約。正式canonical網域未定時使用APP_URL本機替代，外部平台驗證另行交接。"
+    "description": "PHP API-only。先取得對應 namespace 的 CSRF；寫入使用 JSON、匿名簽章 Cookie 與 X-CSRF-Token，登入後再附 HttpOnly 登入 Cookie。CSRF 於登入、登出、改密碼後更新。所有時間 UTC，API 回應 no-store；所有 JSON 另有 requestId，204 無內容。U-13：已取消一般管理員首次登入強制改密碼。範本與 40 個權限来自原始 Excel；額外端點與政策來源見 docs/DESIGN-TRACEABILITY.md。 U-06：固定 admin 可使用唯讀模擬驗收；業務 API 使用被模擬者權限，所有管理寫入（含密碼流程）拒絕 PREVIEW_READ_ONLY，僅允許模擬控制與登出。切換輪替登入 Cookie／CSRF，真正操作者保留於 session 與稽核。 階段三：景點／店家、媒體、地圖解析與發布。媒體 POST 使用 multipart/form-data；其他寫入仍用 JSON。景點寫入成功但公開 HTML 產生失敗回 202，publication.status=failed；須重試，不等同發布成功。公開資料與 HTML 共用 generation；讀取時提供最近一次成功發布的版本，排程、跨日等變化由發布程序每 10 秒更新，從未發布過才回 503。\n\nE-29：成功驗證既有 session 的回應（含業務 403／409／422）可帶 X-Session-Kind、X-Session-Owner、X-Session-Server-Time、X-Session-Expires-At、X-Session-Idle-Expires-At。匿名／401 不提供；以 auth/me 的 200 回應及 components.headers 為定義。時間為 Unix 秒，期限資訊不是登入憑證；不改 JSON、閒置／絕對上限、CSRF 或權限規則。登入後先取得 auth/me；到期重新登入不自動重送原業務操作。\n\nE-33：會員完整行程沿用P0資料；版本號以每份行程各自遞增（2026-11-03 起），目前行程站點 API 在已有行程時須帶 itineraryId。POST的可選id供網路重試去重；PUT是全量站點保存，名稱／日期／時間／備註業務上選填，title與items出現在PUT required僅表示完整資源結構。64KiB JSON、200字名稱、2000字備註、1000站點為工程容量邊界。保留既有不可用站點快照，但拒絕新加入下架／已刪景點。路線預覽GET不修改會員；POST套用保留旅行日期。\n\nE-34：104個PHP JSON API保持；另三個根目錄爬蟲GET資源由Nginx供應同成功generation的文字／XML，合計107個OpenAPI操作。這三個資源不是PHP View，不沿用JSON回應／requestId契約。正式canonical網域未定時使用APP_URL本機替代，外部平台驗證另行交接。"
   },
   "servers": [
     {
@@ -20496,13 +20496,19 @@
           },
           "requestId": {
             "$ref": "#/components/schemas/RequestId"
+          },
+          "termsLabel": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
           }
         },
         "required": [
           "token",
           "expiresIn",
           "termsVersion",
-          "requestId"
+          "requestId",
+          "termsLabel"
         ]
       },
       "MemberIdentity": {
@@ -23861,6 +23867,11 @@
             "type": "integer",
             "minimum": 0,
             "maximum": 4294967295
+          },
+          "itineraryId": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$",
+            "description": "version 大於 0 時必填，必須等於目前行程，避免目前行程已切換時改到另一份。"
           }
         },
         "required": [

@@ -1,8 +1,8 @@
 # 隔離讀屏驗收環境
 
-2026-10-26 最新補驗：使用者已另外明確允許專用 Windows 瀏覽器視窗；真實 NVDA 2026.2 已補完整確認訊息、欄位錯誤、收藏狀態與英文切換，見 [50 項 AA 結果](../P0-AA-VERIFICATION-20261026.md)。這是另行允許的 Windows 流程，沒有改變下述容器工具不連接主機輸入／音效的隔離架構。自有 NVDA 已停止；Orca 前輪的自動讀取消與傳輸限制仍是該組合的歷史觀察，不與 Windows 結果混寫。網站整體仍有 AA-01／AA-02 不通過，不再籠統記為所有讀屏均未驗。
+2026-10-26 最新補驗：使用者已另外明確允許專用 Windows 瀏覽器視窗；真實 NVDA 2026.2 已補完整確認訊息、欄位錯誤、收藏狀態與英文切換，見 [50 項 AA 結果](../archive/P0-AA-VERIFICATION-20261026.md)。這是另行允許的 Windows 流程，沒有改變下述容器工具不連接主機輸入／音效的隔離架構。自有 NVDA 已停止；Orca 前輪的自動讀取消與傳輸限制仍是該組合的歷史觀察，不與 Windows 結果混寫。網站整體仍有 AA-01／AA-02 不通過，不再籠統記為所有讀屏均未驗。
 
-2026-10-26 登入後補驗的實際流程、輸入錯位、載入等待及保留差項見 [本輪結果](../P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-登入後與確認框補驗)。Orca 官方 [表單操作](https://help.gnome.org/orca/howto_forms.html) 及 [網頁偏好](https://help.gnome.org/orca/preferences_web.html) 區分 Browse／Focus；本環境可用 CUA `pressKey(null, 'Insert+a')` 明確切換，再核對實際欄位焦點後輸入。畫布逐字 `press()` 可傳文字，對畫布的 bulk fill 不是遠端欄位輸入；快速鍵、反向 Tab 與 DOM／讀屏焦點不能互相冒充。這是私有桌面的操作約定，不改網站欄位或授權規則。自動開框只先讀取消、收藏成功通知未有自動語音證據，仍如實保留。
+2026-10-26 登入後補驗的實際流程、輸入錯位、載入等待及保留差項見 [本輪結果](../archive/P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-登入後與確認框補驗)。Orca 官方 [表單操作](https://help.gnome.org/orca/howto_forms.html) 及 [網頁偏好](https://help.gnome.org/orca/preferences_web.html) 區分 Browse／Focus；本環境可用 CUA `pressKey(null, 'Insert+a')` 明確切換，再核對實際欄位焦點後輸入。畫布逐字 `press()` 可傳文字，對畫布的 bulk fill 不是遠端欄位輸入；快速鍵、反向 Tab 與 DOM／讀屏焦點不能互相冒充。這是私有桌面的操作約定，不改網站欄位或授權規則。自動開框只先讀取消、收藏成功通知未有自動語音證據，仍如實保留。
 
 2026-10-26。來源 U-19／E-30：使用者要求處理 Windows 讀屏與前景操作干擾遊戲的問題。這是驗收工具，不是新增網站功能或正式部署元件；Excel「功能規格」G34／串接總覽 B15 的無障礙驗證仍須依實際覆蓋判定。
 
@@ -40,7 +40,7 @@ python tools/accessibility/collect.py --directory artifacts/my-reader-check --la
 
 ## 本輪實測與界線
 
-證據放 `artifacts/isolated-a11y-20261026/`，不提交可能含測試輸入的原始採證。Orca 48.1、AT-SPI 2.56.2、Firefox 153.5.1esr；可取得網站載入、地標／標題、登入表單欄位與必填警示、註冊確認密碼必填的真實語音。詳細場景與剩餘範圍見 [本輪驗收](../P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-隔離讀屏補驗)。
+證據放 `artifacts/isolated-a11y-20261026/`，不提交可能含測試輸入的原始採證。Orca 48.1、AT-SPI 2.56.2、Firefox 153.5.1esr；可取得網站載入、地標／標題、登入表單欄位與必填警示、註冊確認密碼必填的真實語音。詳細場景與剩餘範圍見 [本輪驗收](../archive/P0-COMPLETE-VERIFICATION-20261025.md#2026-10-26-隔離讀屏補驗)。
 
 建立環境時曾有 Firefox 啟動退出及 `Resource temporarily unavailable`，實際存活程序／執行緒後續觀察超過原 256 配額，已調為有限的 512 並改善 zombie 健康檢查；沒有放寬 seccomp／瀏覽器 sandbox。Firefox 仍記錄 user namespace `EPERM`，不宣稱所有瀏覽器 sandbox 層均成功啟用。這些是驗收環境事項，不列為網站缺陷或完整 AA 結果。
 

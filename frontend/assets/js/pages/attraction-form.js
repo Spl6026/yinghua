@@ -272,10 +272,8 @@ export async function initializeAttractionForm(identity, page) {
               message.focus();
             }
           } else {
-            if (
-              hasPermission(identity, 'attractions', 'edit') &&
-              hasPermission(identity, 'attractions', 'view')
-            )
+            // 已儲存但公開頁未同步：有編輯權限就能開啟編輯頁，網址換成編輯頁，重新整理才不會回到新增表單。
+            if (hasPermission(identity, 'attractions', 'edit'))
               history.replaceState(null, '', '/admin/place-edit.html?id=' + encodeURIComponent(id));
             status(
               message,

@@ -32,9 +32,10 @@ def main():
         check('empty name date and items allowed',t['title']=='' and t['tripDate'] is None and t['items']==[])
         retry=call('POST',base,{'id':client_id,'title':'not overwritten'},expected=200)['itinerary']
         check('create retry does not duplicate or overwrite',retry['id']==t['id'] and retry['title']=='')
-        check('current switch version advances beyond old',t['version']>original['version'])
-        call('DELETE',base+'/current/items/'+m['placeId'],{'version':original['version']}) # 新的目前行程若沒有這一站，這個刪除不會造成影響
-        call('PUT',base+'/current/items/'+extra,{'version':original['version']},expected=409)
+        check('each trip starts its own version',t['version']==1)
+        stale={'version':original['version'],'itineraryId':original['id']}
+        call('DELETE',base+'/current/items/'+m['placeId'],stale) # 新的目前行程若沒有這一站，這個刪除不會造成影響
+        call('PUT',base+'/current/items/'+extra,stale,expected=409)
         check('old P0 request cannot edit new current',call('GET',base+'/'+t['id'])['itinerary']['items']==[])
         foreign=call('POST',base,{'title':'B private'},expected=201,client=b)['itinerary']
         for method,payload in [('GET',None),('PUT',body(t)),('DELETE',{'version':t['version']})]:call(method,base+'/'+foreign['id'],payload,expected=404)
@@ -61,8 +62,9 @@ def main():
         t=call('GET',base+'/'+t['id'])['itinerary']
         previous_version=t['version']
         original=call('PUT',base+'/'+original['id']+'/current',{'version':original['version']})['itinerary']
-        check('select uses member monotonic version',original['version']>previous_version)
-        call('PUT',base+'/current/items/'+extra,{'version':previous_version},expected=409)
+        # 切換目前行程不改版本；舊請求帶著另一份行程的編號，不能改到新的目前行程。
+        check('select keeps the trip version',original['isCurrent'])
+        call('PUT',base+'/current/items/'+extra,{'version':previous_version,'itineraryId':t['id']},expected=409)
         original=call('PUT',base+'/'+original['id'],body(original,title='P0仍保留',items=[{'attractionId':m['placeId'],'startTime':'09:00','note':'原P0站'}]))['itinerary']
         p0_view=call('GET',base+'/current')['itinerary'];check('full save visible to P0',p0_view['id']==original['id'] and p0_view['items'][0]['plannedTime'].startswith('09:00'))
         # 已下架但仍留在行程裡的站點保留原本的私人快照；不能再新加入下架的站點。
@@ -96,6 +98,10 @@ def main():
         original=call('GET',base+'/'+original['id'])['itinerary'];call('DELETE',base+'/'+original['id'],{'version':original['version']},expected=204)
         check('last delete current empty',call('GET',base+'/current')['itinerary'] is None)
         check('B untouched',call('GET',base+'/'+foreign['id'],client=b)['itinerary']['title']=='B private')
+        # 版本號以每份行程為單位：用同一次清單讀到的版本連續刪除兩份行程，不會互相造成衝突。
+        for _ in range(2):call('POST',base,{'id':str(uuid.uuid4()),'title':'連續刪除'},expected=201)
+        for trip in call('GET',base)['items']:call('DELETE',base+'/'+trip['id'],{'version':trip['version']},expected=204)
+        check('consecutive deletes from one listing succeed',call('GET',base)['total']==0)
     finally:
         fixture('DROP TRIGGER IF EXISTS '+trigger)
         for mid in [m['memberId'],x['memberB']]:

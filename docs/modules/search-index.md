@@ -1,6 +1,6 @@
 # 結構化資料與爬蟲索引閱讀指南
 
-更新：2026-10-31，階段十二。需求與取捨見[計畫](../PHASE-12-PLAN.md)，實際結果見[驗收](../PHASE-12-ACCEPTANCE.md)，JSON-LD可先讀[工廠導讀](structured-data.md)。原始website不變，PHP維持API-only。
+更新：2026-10-31，階段十二。需求與取捨見[計畫](../archive/PHASE-12-PLAN.md)，實際結果見[驗收](../archive/PHASE-12-ACCEPTANCE.md)，JSON-LD可先讀[工廠導讀](structured-data.md)。原始website不變，PHP維持API-only。
 
 ## 從一筆發布看架構
 

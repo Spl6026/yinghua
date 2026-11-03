@@ -47,10 +47,12 @@ def inventory():
             'fontFiles': len(fonts['files']), 'envIgnored': ignored}
 
 
-def suites(dependency_path, vocabulary):
+def suites(dependency_path, vocabulary, browser=False, full=False):
     py = [sys.executable, '-X', 'utf8']
     def test(name, *args):
         return py + ['backend/tests/' + name + '.py', *args]
+    def php_test(name):
+        return ['docker', 'compose', 'exec', '-T', 'app-test', 'php', 'tests/' + name + '.php']
     return [
         ('php-unit', ['docker', 'compose', 'exec', '-T', 'app-test', 'php', '/var/www/tools/vendor/bin/phpunit', '-c', 'phpunit.xml']),
         ('php-static-architecture', ['docker', 'compose', 'exec', '-T', 'app-test', 'php', '/var/www/tools/vendor/bin/phpstan', 'analyse', '--no-progress']),
@@ -63,9 +65,61 @@ def suites(dependency_path, vocabulary):
         ('operations-settings', test('phase14_integration', '--keep-browser')),
         ('policy-consent', test('phase14_policy_integration')),
         ('restore-settings', test('phase14_cleanup', '--settings-only')),
+        # 以下需要一般設定已還原（policy-consent 會暫時改動條款版本）。
+        ('policy-pages', test('policy_pages_integration')),
+        ('attractions', test('attractions_integration')),
+        ('member-persistence', php_test('member_resources_persistence')),
+        ('publication-alias-order', php_test('publication_alias_order')),
+        ('publication-clock', php_test('public_content_clock')),
         ('seo-index', test('phase12_integration', '--schema-vocabulary', vocabulary)),
         ('http-assets', test('phase14_assets')),
         ('html-integrity', test('frontend_integrity', '--base-url', 'http://localhost:8081')),
+    ] + ([
+        # 需要 Node、Playwright 與 Chromium；以 --browser 開啟，結果寫入 artifacts/browser-smoke。
+        ('browser-smoke', test('browser_smoke')),
+    ] if browser else []) + (full_regression(test, php_test, dependency_path, vocabulary) if full else [])
+
+
+# 以 --full 另外執行的完整回歸：上面固定套件沒涵蓋的所有測試腳本都在這裡，各有固定位置，不再散落在只能手動執行的小型執行器裡。
+# 其中幾支會重建 app-test／web-test 容器或資料庫（*_restart、*_persistence），耗時較長。
+def full_regression(test, php_test, dependency_path, vocabulary):
+    output = str(ROOT / 'artifacts/full-regression')
+    (ROOT / 'artifacts/full-regression').mkdir(parents=True, exist_ok=True)
+    return [
+        # 以 OpenAPI 驗證回應的契約測試（含 api_integration、景點、電影等 21 組）與公開消息／優惠／首頁。
+        ('contracts-and-content', test('phase6_regression', '--dependency-path', dependency_path)),
+        ('member-regression', test('phase7_member_regression', '--dependency-path', dependency_path)),
+        ('member-restart', test('member_resources_restart')),
+        ('phase9-content-admin', test('phase9_integration')),
+        ('phase10-routes', test('phase10_integration')),
+        ('phase11-itineraries', test('phase11_integration')),
+        ('publication-diagnostics', test('publication_diagnostics')),
+        ('public-content-seed', test('public_content_seed_fresh')),
+        ('public-content-restart', test('public_content_restart', '--dependency-path', dependency_path)),
+        ('content-persistence', test('content_persistence')),
+        ('seo-settings', test('seo_settings_integration', '--dependency-path', dependency_path)),
+        ('seo-publication', test('seo_publication_integration', '--dependency-path', dependency_path)),
+        ('seo-settings-restart', test('seo_settings_restart')),
+        ('seo-head-inventory', test('seo_head_inventory')),
+        ('published-inventory', test('phase12_published_inventory', '--schema-vocabulary', vocabulary,
+                                     '--output', output + '/published-inventory.json')),
+        ('session-deadlines', test('session_deadlines_integration', '--output', output + '/session-deadlines.json')),
+        ('health', test('health_integration')),
+        ('health-contract', test('phase8_health_contract', '--dependency-path', dependency_path)),
+        ('mail-failure', test('mail_failure')),
+        ('schema-film', test('film_schema_upgrade')),
+        ('schema-member', test('member_resources_schema')),
+        ('schema-public-content', test('public_content_schema_upgrade')),
+        ('schema-seo', test('seo_settings_schema')),
+        ('db-accounts', php_test('account_persistence')),
+        ('db-root-identity', php_test('root_identity_constraints')),
+        ('db-attractions', php_test('attraction_constraints')),
+        ('db-films', php_test('film_persistence')),
+        ('db-public-content', php_test('public_content_persistence')),
+        ('db-seo-settings', php_test('seo_settings_persistence')),
+        ('queries-member', php_test('member_resources_queries')),
+        ('queries-itineraries', php_test('phase11_queries')),
+        ('queries-public-content', php_test('public_content_queries')),
     ]
 
 
@@ -74,6 +128,8 @@ def main():
     parser.add_argument('mode', choices=['inventory', 'integration'])
     parser.add_argument('--dependency-path')
     parser.add_argument('--schema-vocabulary')
+    parser.add_argument('--browser', action='store_true', help='另外執行瀏覽器冒煙測試')
+    parser.add_argument('--full', action='store_true', help='另外執行完整回歸（所有其餘測試腳本，耗時較長）')
     options = parser.parse_args()
     # 每次使用新的目錄，避免把失敗的執行結果和之前通過的紀錄搞混。
     target = ROOT / 'artifacts/phase15' / (time.strftime('%Y%m%d-%H%M%S') + '-' + str(os.getpid()))
@@ -92,7 +148,7 @@ def main():
             # 各套件把結果與暫存的 fixture 寫進 artifacts 底下的子資料夾；artifacts 是可清理的本機目錄，先確保資料夾存在。
             for folder in ('phase10', 'phase11', 'phase12', 'phase13', 'phase14', 'phase15'):
                 (ROOT / 'artifacts' / folder).mkdir(parents=True, exist_ok=True)
-            for name, command in suites(options.dependency_path, options.schema_vocabulary):
+            for name, command in suites(options.dependency_path, options.schema_vocabulary, options.browser, options.full):
                 started = time.monotonic()
                 with (target / (name + '.log')).open('w', encoding='utf8') as log:
                     result = subprocess.run(command, cwd=ROOT, stdout=log, stderr=subprocess.STDOUT)
@@ -104,6 +160,9 @@ def main():
                 print(json.dumps(row), flush=True)
                 if result.returncode:
                     raise RuntimeError('Failed suite: ' + name + '; inspect log, do not auto-retry')
+        # 冒煙測試只代表頁面可正常開啟與基本操作，不等於完整的人工 Browser 驗收，所以另立欄位。
+        report['browserSmoke'] = options.mode == 'integration' and options.browser
+        report['fullRegression'] = options.mode == 'integration' and options.full
         report['passed'] = True
     finally:
         (target / 'report.json').write_text(json.dumps(report, indent=2), encoding='utf8')

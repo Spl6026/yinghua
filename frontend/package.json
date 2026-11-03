@@ -9,6 +9,7 @@
     "format:check": "prettier --check \"assets/**/*.{js,css}\" \"scripts/**/*.mjs\" \"tests/**/*.mjs\""
   },
   "devDependencies": {
+    "playwright": "1.63.0",
     "prettier": "3.9.10"
   }
 }

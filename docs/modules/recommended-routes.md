@@ -2,7 +2,7 @@
 
 2026-10-31：階段十一已完成完整多份行程及確認後套用推薦路線，沿用同一itineraries／itinerary_items資料；新8操作、版本與草稿、逐檔用途見[完整會員行程指南](member-itineraries.md)。本文件較早「留階段十一」段落為階段六／十當時的交付界線。
 
-2026-10-30。階段十已完成本機功能與實際 Browser 範圍驗收，依Git流程交付；見 [計畫](../PHASE-10-PLAN.md)／[結果](../PHASE-10-ACCEPTANCE.md)。來源 S 為功能規格 E14:G14/L14/E24:G24；資料表草案 D C17:D18；具體工程決策 E-32。
+2026-10-30。階段十已完成本機功能與實際 Browser 範圍驗收，依Git流程交付；見 [計畫](../archive/PHASE-10-PLAN.md)／[結果](../archive/PHASE-10-ACCEPTANCE.md)。來源 S 為功能規格 E14:G14/L14/E24:G24；資料表草案 D C17:D18；具體工程決策 E-32。
 
 先看 `RecommendedRouteInput::from()`：JSON 白名單、名稱、選填資料、發布狀態與至少一站；`RouteStopInput` 驗證每站 UUID、HH:mm及備註。HTTP 不接受 sortOrder 站點欄位；陣列順序就是站點次序。
 

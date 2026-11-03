@@ -126,12 +126,13 @@ def main(schema_vocabulary,keep_browser=False):
         inspect(new_path,'Article','https://index-validation.example.test')
         check('robots canonical setting used','Sitemap: https://index-validation.example.test/sitemap.xml' in get('/robots.txt')[1])
         save_settings(seo_original['defaults'],seo_original['overrides']);seo_original=None
-        # 只讓測試自有的紀錄渲染失敗；發布檢查必須擋下過期的檔案。
+        # 只讓測試自有的紀錄渲染失敗；發布失敗時索引與頁面維持上一版，不會產生錯誤網址。
         fixture('UPDATE news_posts SET slug='+literal(prefix+'_invalid')+' WHERE id='+literal(fault_id))
         import subprocess
         failed=subprocess.run(['docker','compose','exec','-T','-u','www-data','app-test','php','bin/console.php','content:publish'],cwd=ROOT,capture_output=True)
         check('owned invalid content fails publication',failed.returncode!=0)
-        for path in ['/sitemap.xml','/robots.txt',new_path]:check('stale generation blocked '+path,get(path)[0]==503)
+        for path in ['/sitemap.xml','/robots.txt',new_path]:check('last good generation kept '+path,get(path)[0]==200)
+        check('invalid slug not in sitemap',prefix+'_invalid' not in get('/sitemap.xml')[1])
         fixture('UPDATE news_posts SET slug='+literal(n['slug'])+' WHERE id='+literal(fault_id));publish()
         check('index recovery 200',get('/sitemap.xml')[0]==200)
         n=call('PUT','/api/v1/admin/news/'+n['id'],{**news,'slug':n['slug'],'version':n['version'],'status':'archived'})['record']

@@ -10,6 +10,8 @@ use Yinghua\DTO\MemberItinerary;
 /** 會員行程的存取。即使呼叫端已知行程 ID，SQL 仍一律加上會員本人與有效行程的條件。 */
 class ItineraryRepository
 {
+    // 版本號以「每份行程」為單位：只有該行程的內容（名稱、日期、站點）改變或刪除時才加一。
+    // 切換目前行程不改版本，所以同一位會員連續操作不同行程時不會互相造成衝突。
     public function __construct(private readonly Database $database) {}
 
     public function current(string $memberId, bool $lock = false): ?MemberItinerary
@@ -87,27 +89,14 @@ class ItineraryRepository
     public function advance(string $memberId, string $id): MemberItinerary
     {
         $this->database->execute(
-            'UPDATE itineraries SET version=:version,updated_at=UTC_TIMESTAMP() WHERE member_id=:member AND id=:id AND deleted_at IS NULL',
-            ['version' => $this->nextVersion($memberId),'member' => $memberId, 'id' => $id],
+            'UPDATE itineraries SET version=version+1,updated_at=UTC_TIMESTAMP() WHERE member_id=:member AND id=:id AND deleted_at IS NULL',
+            ['member' => $memberId, 'id' => $id],
         );
 
         return $this->findOwned($memberId, $id) ?? throw new \RuntimeException('Updated itinerary missing.');
     }
 
     private const string ITEM_SELECT = 'SELECT i.id,i.attraction_id,i.sort_order,i.planned_time,i.note,i.snapshot_name FROM itinerary_items i JOIN itineraries t ON t.id=i.itinerary_id';
-
-    /**
-     * 呼叫端寫入前已先鎖定會員。同一會員的版本號只會遞增，
-     * 讓只靠 version 判斷衝突的舊版請求也能正確偵測到變更。
-     */
-    private function nextVersion(string $memberId): int
-    {
-        $row = new Row($this->database->row(
-            'SELECT COALESCE(MAX(version),0) AS version FROM itineraries WHERE member_id=:member',
-            ['member' => $memberId],
-        ) ?? []);
-        return $row->integer('version') + 1;
-    }
 
     /** @return array{items:list<MemberItinerary>,total:int,stopCounts:array<string,int>} */
     public function collection(string $memberId, int $page, int $size): array
@@ -138,15 +127,14 @@ class ItineraryRepository
 
     public function createOwned(string $memberId, string $id, string $title, ?string $date): MemberItinerary
     {
-        $version = $this->nextVersion($memberId);
         $this->database->execute(
             'UPDATE itineraries SET current_slot=NULL WHERE member_id=:member AND current_slot=1',
             ['member' => $memberId],
         );
         try {
             $this->database->execute(
-                'INSERT INTO itineraries (id,member_id,title,trip_date,current_slot,version) VALUES (:id,:member,:title,:date,1,:version)',
-                ['id' => $id,'member' => $memberId,'title' => $title,'date' => $date,'version' => $version],
+                'INSERT INTO itineraries (id,member_id,title,trip_date,current_slot,version) VALUES (:id,:member,:title,:date,1,1)',
+                ['id' => $id,'member' => $memberId,'title' => $title,'date' => $date],
             );
         } catch (\PDOException $error) {
             if (Database::isDuplicateKey($error)) {
@@ -167,8 +155,8 @@ class ItineraryRepository
             ['member' => $memberId],
         );
         $this->database->execute(
-            'UPDATE itineraries SET current_slot=1,version=:version,updated_at=UTC_TIMESTAMP() WHERE member_id=:member AND id=:id AND deleted_at IS NULL AND status=\'active\'',
-            ['version' => $this->nextVersion($memberId),'member' => $memberId,'id' => $id],
+            'UPDATE itineraries SET current_slot=1,updated_at=UTC_TIMESTAMP() WHERE member_id=:member AND id=:id AND deleted_at IS NULL AND status=\'active\'',
+            ['member' => $memberId,'id' => $id],
         );
         return $this->findOwned($memberId, $id) ?? throw new \RuntimeException('Selected itinerary missing.');
     }
@@ -206,8 +194,8 @@ class ItineraryRepository
     {
         $wasCurrent = $this->current($memberId)?->id === $id;
         $this->database->execute(
-            "UPDATE itineraries SET deleted_at=UTC_TIMESTAMP(),current_slot=NULL,status='deleted',version=:version WHERE member_id=:member AND id=:id AND deleted_at IS NULL",
-            ['version' => $this->nextVersion($memberId),'member' => $memberId,'id' => $id],
+            "UPDATE itineraries SET deleted_at=UTC_TIMESTAMP(),current_slot=NULL,status='deleted',version=version+1 WHERE member_id=:member AND id=:id AND deleted_at IS NULL",
+            ['member' => $memberId,'id' => $id],
         );
         if ($wasCurrent) {
             $next = $this->collection($memberId, 1, 1)['items'][0] ?? null;

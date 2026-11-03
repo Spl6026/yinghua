@@ -30,16 +30,6 @@ use Yinghua\Support\Json;
  */
 class PublicationSnapshotBuilder
 {
-    /**
-     * 快照的所有區段（不含 generation），依組裝順序列出。
-     * 發布延遲的診斷訊息逐一比對這些區段；新增區段時兩邊要一起更新，測試會檢查一致。
-     */
-    public const array SECTIONS = [
-        'origin', 'rendererVersion', 'policyVersion', 'indexModifiedAt', 'items', 'aliases',
-        'films', 'filmAliases', 'filmPeriod', 'news', 'newsAliases', 'offerDate', 'offers', 'offerAliases',
-        'recommendedRoutes', 'detailNeighbors', 'home', 'seo', 'general',
-    ];
-
     public function __construct(
         private readonly Config $config,
         private readonly Clock $clock,

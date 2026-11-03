@@ -1,32 +1,8 @@
 # 資料表與原始 Excel 對照
 
-2026-11-01 最新：階段十三依使用者授權完成全站搜尋，一個公開GET、同版MariaDB搜尋投影、五類分組／篩選／分頁、原型搜尋頁、錯誤／重試／返回。105 PHP API＋3爬蟲GET＝108 HTTP契約，68固定頁／34表338欄／20 migration；無新env／依賴／服務。230 JS／112 PHP（370斷言）、113真整合／28契約、P1 255／181契約與15筆Browser量測通過，測試資料已清理。詳見[計畫](PHASE-13-PLAN.md)、[驗收](PHASE-13-ACCEPTANCE.md)、[逐檔架構指南](modules/site-search.md)。正式差項沿U-21交接，階段十四／十五未開始；下方日期段落保留歷史。
-
-階段十二的indexModifiedAt是成功快照內部中繼資料，PublishedRecord.updatedAt是DTO屬性，均非新DB欄位。復用既有updated_at與SEO文件時間；沒有新資料表、索引或migration。
-
-2026-10-31 最新：階段十二依授權完成JSON-LD、同版robots／sitemap／分片及P1本機整合。104個PHP JSON API保持，另3個Nginx爬蟲GET，共107個HTTP契約；68固定HTML／33表327欄／19 migration，無新DDL／依賴／env。224 JS／107 PHP、P1 255項與181契約回應、索引369項、官方Validator七型別0錯誤／警告、Browser21筆及40個body保留通過。U-21指定網域未定先完成本機，正式Search Console／Bing／分享仍交接；P2階段十三未開始。詳見[計畫](PHASE-12-PLAN.md)、[驗收](PHASE-12-ACCEPTANCE.md)及[架構與檔案指南](modules/search-index.md)。下方帶日期段落保留歷史。
-
-2026-10-31 最新：階段十一已依使用者授權完成本機範圍，包含本人多份行程、整份編輯保存、時間／備註／排序、推薦路線確認套用及P0資料相容。104 API／68固定頁／33表327欄／19 migration，沒有新DDL／環境。81項真實整合、66筆契約回應零錯誤、107 PHP／208 JS、P0收藏69與目前行程100通過；兩頁各1440／390／320實測並與原型對照。詳見[階段十一驗收](PHASE-11-ACCEPTANCE.md)、[計畫](PHASE-11-PLAN.md)及[檔案閱讀指南](modules/member-itineraries.md)。下方帶日期段落保留歷史；階段十二未開始，P1整體尚未簽核。
-
-2026-10-30 最終：階段十已補完內建 Browser 本機驗收；四頁各1440／390／320共12筆實測，另12筆原型比對。公開導覽選中及刪除後焦點兩項已修、實測與回歸通過。PHP99／342、前端200、路線58／45契約回應零錯誤；96 API／68固定頁／33表327欄／19migration。全站導讀與檔案用途見[推薦路線指南](modules/recommended-routes.md)，實際範圍與共用AA基線界線見[階段十驗收](PHASE-10-ACCEPTANCE.md)。本機範圍通過，依備份／完整tree核對程序合併並保留階段分支；完整會員套用仍留階段十一。下方帶日期段落保留歷史。
-
-
-2026-10-30：階段十依使用者授權於 `phase/10-recommended-routes` 實作推薦路線管理與公開列表；96 API／68固定頁／33表327欄／19 migration。自動化結果見 [階段十驗收](PHASE-10-ACCEPTANCE.md)，程式閱讀見 [推薦路線指南](modules/recommended-routes.md)。內建 Browser 連線不可用，實際介面待驗，尚未合併 main；完整會員套用留階段十一。下方帶日期段落保留歷史。
-
-
-2026-10-30：階段九未新增或修改DDL，真MariaDB12.3.3盤點33表316欄／18 migration。沿用資料表建議14–16列的news_posts／merchants／offers及alias／媒體，新增管理SQL／軟刪除，不把草案欄位自動當必填。EXPLAIN沿既有news_public／offer_public／merchant主鍵；少量店家掃描不盲加索引。具體邊界與驗收見[階段九](PHASE-9-ACCEPTANCE.md)。
-
-2026-10-25 15:21 完整驗證：重讀「資料表建議」A2／C5:D26 及 16 列 P0，從主／測試 MariaDB 查核均 **33 表／316 欄／18 migration**。本輪無 DDL 或 migration 變更；schema 空庫／升級／rollback、公開狀態、唯一／外鍵、本人授權與還原保留資料重跑通過。草案與 U-16／U-09／U-11 的差異維持，不新增推定必填；見 [本輪報告](P0-COMPLETE-VERIFICATION-20261025.md#資料表與架構)。具名內容／媒體／收藏行程清理，SEO 兩表與隔離 root 原摘要復原，正常 audit 保留。
-
-2026-10-24 階段八核對：33張表／316欄／18份migration維持，舊migration未改、沒有新增運維業務表。health只讀schema_migrations並驗名稱／checksum／applied_at；system_logs仍以既有安全應用日誌處理，未從建議表名推定必須新建同名表。recovery只撤銷既有sessions／password_reset_tokens／captcha_challenges，帳號、權限、內容、收藏、行程、正常audit保留；隔離還原逐列hash證據見 [階段八紀錄](PHASE-8-ACCEPTANCE.md)。
-
-階段七現況：**32 張業務表＋migration 工具表，共33表／316欄／18 migration**，主／測試庫均已套017。C24–D25 的 site_settings、content_seo 已建立並接三個 SEO API；草案沒有升格為所有欄位必填。site_settings 採 key PK、JSON 預設、published／version／updated_by FK／updated_at；content_seo 採 UUID、資源 enum、resource_id 或 path_pattern 擇一、可空標題／摘要／關鍵字／canonical／robots／分享圖、操作者時間及兩個目標唯一鍵。具體 DDL、160／500 等技術上限、路徑 XOR／enum／FK 為 E-28；og_image_media_id 預留 typed storage，本階段 HTTP 使用 URL 並驗證本站媒體原已公開，不新增上傳權限。原內容 SEO 欄位、member_consents 歷史及舊 migration 保留。見 [017](../backend/database/migrations/017_site_seo.sql)、[指南](modules/seo-settings.md)／[驗收](PHASE-7-ACCEPTANCE.md)。
+現況：33 張業務資料表，另有 1 張 migration 紀錄表，共 21 支 migration，清單見 [全站導讀](PROJECT-GUIDE.md#六資料庫)。各階段當時的表數與欄數紀錄保存在 [archive/DATABASE-SPECIFICATION-MAP-20261103.md](archive/DATABASE-SPECIFICATION-MAP-20261103.md)。
 
 更新日期：2026-10-24。基準：[原始規格](../映畫竹塹_後台工程串接功能規格.xlsx)「資料表建議」A2、C5–D25，以及功能規格／串接總覽的安全與驗收要求。A2 明示這是建模草案；以下區分對應、工程補充與後續功能，不因表名存在就宣告業務已完成。
-
-階段六當時狀態：**30 張業務表＋1 張 migration 工具表，共 31 表、297 欄、17 份 migration**。015／016 建立 favorites、itineraries、itinerary_items，主／測試庫均已升級；七個本人 API 已接入，完整階段驗收仍進行中。三表依 C19–D21 建議設計，本人唯一約束、current_slot、版本及具體型別為 E-27；不將名稱／日期／時間／備註當成本階段使用者必填欄位。下方較早日期的數量保留當時結果。
-
-階段五當時 **27 張業務表＋1 張 migration 工具表，共 28 表、276 欄、15 份 migration**。2026-10-22 階段五 5A 新增 012–014：擴充 merchants、新增 news_posts／offers 及兩張 alias 表；公開 API／CLI／畫面已接入並完成本機驗收。主庫／測試庫已套用，原 migration checksum 不改，空庫與保留會員／景點／店家的升級已重跑驗證；細節見[公開內容指南](modules/public-content.md)。階段四當時為 24 表／211 欄／12 份 migration，結果見 [驗收](PHASE-4-ACCEPTANCE.md)。
 
 ## 原始建議已有對應的資料表
 
@@ -87,9 +63,9 @@
 
 階段六 6A–6C 實作更新：favorites／itineraries／itinerary_items 已依 015／016 建立，主／測試均 31 表／17 份 migration；收藏／目前行程均已接入。確切欄位／約束及型別用途見 [會員閱讀指南](modules/member-resources.md)，規格來源為功能規格 G15／資料表建議 C19–D21、工程設計 E-27。以下帶日期的規劃紀錄不代表現在仍未建表；site_settings／content_seo 已於階段七建立，最新狀態見本頁開頭。
 
-2026-10-23 已依 C19–D21 完成 [階段六三表細設](PHASE-6-PLAN.md#4-預計資料表與-migration)：favorites、itineraries、itinerary_items 均仍未建立；current_slot、確切索引／FK、版本／重送及名稱快照為 E-27。預計新增 015／016 兩份 migration，不修改既有檔；實際執行數仍是 15，並未升級資料庫。
+2026-10-23 已依 C19–D21 完成 [階段六三表細設](archive/PHASE-6-PLAN.md#4-預計資料表與-migration)：favorites、itineraries、itinerary_items 均仍未建立；current_slot、確切索引／FK、版本／重送及名稱快照為 E-27。預計新增 015／016 兩份 migration，不修改既有檔；實際執行數仍是 15，並未升級資料庫。
 
-news_posts（14）、offers（16）已於階段五建立並接入，欄位來源見 [PHASE-5-PLAN.md](PHASE-5-PLAN.md#4-預計資料表及升級)。itineraries／itinerary_items（19／20）、favorites（21）已於階段六建立並接入基本保存；完整旅程留階段十一。site_settings／content_seo（24／25）已於階段七建立，僅接 SEO，一般設定依階段十四處理。
+news_posts（14）、offers（16）已於階段五建立並接入，欄位來源見 [PHASE-5-PLAN.md](archive/PHASE-5-PLAN.md#4-預計資料表及升級)。itineraries／itinerary_items（19／20）、favorites（21）已於階段六建立並接入基本保存；完整旅程留階段十一。site_settings／content_seo（24／25）已於階段七建立，僅接 SEO，一般設定依階段十四處理。
 
 ## Migration 與操作
 
@@ -112,7 +88,7 @@ DDL 參照 [MariaDB ALTER TABLE 官方語法](https://mariadb.com/docs/server/re
 
 [008_root_identity_bytes.sql](../backend/database/migrations/008_root_identity_bytes.sql) 以 BINARY 比較固定身分的文字欄位（E-23），防止 CI collation 忽略大小寫或尾端空白。依 [MariaDB 官方語意](https://mariadb.com/docs/server/reference/sql-functions/string-functions/binary-operator) 實作。001–007 保留原內容；普通管理員仍可改名，密碼及正常登入時間可更新。
 
-16 項隔離 DB 探測全部回滾並通過；主庫先備份再套用，20 張業務表筆數未變；臨時空庫九份 migration／重跑／seed／初始化亦通過。沒有新增表、欄位或索引。實際結果與限制見 [再次檢查報告](FULL-RECHECK-20261019.md)。
+16 項隔離 DB 探測全部回滾並通過；主庫先備份再套用，20 張業務表筆數未變；臨時空庫九份 migration／重跑／seed／初始化亦通過。沒有新增表、欄位或索引。實際結果與限制見 [再次檢查報告](archive/FULL-RECHECK-20261019.md)。
 
 ## 2026-10-19 G6 電話與 E20 範例
 
@@ -122,7 +98,7 @@ DDL 參照 [MariaDB ALTER TABLE 官方語法](https://mariadb.com/docs/server/re
 
 ## 2026-10-19 階段四：電影與場次（U-16／E-25）
 
-010 建立 films（22 欄）與 film_screenings（6 欄），011 建立 film_aliases（2 欄）；合計新增 30 欄。原始 Excel 仍是建模草案，欄位省略／空值與 API 規則見 [電影計畫](PHASE-4-PLAN.md) 的逐欄來源。
+010 建立 films（22 欄）與 film_screenings（6 欄），011 建立 film_aliases（2 欄）；合計新增 30 欄。原始 Excel 仍是建模草案，欄位省略／空值與 API 規則見 [電影計畫](archive/PHASE-4-PLAN.md) 的逐欄來源。
 
 - films：title 必須非空由 DTO 驗證；synopsis／genre／poster_url／ticket_url／SEO 可為空字串，媒體 FK 與用途覆寫以 NULL 表示未選／繼承。NOT NULL 不自動等於業務必填。poster_media_id 與非空 poster_url 不能並用；媒體存在由 FK，所屬 films 模組與有效 alt 由服務政策驗證。
 - film_screenings：film_id FK，UNIQUE(film_id,starts_at) 防同片重複。跨電影比較依 U-16 在共享寫入鎖及交易內執行；草稿占用、下架釋放，故不把 starts_at 單獨做全域唯一鍵。這個狀態策略及分鐘精度是 E-25，不冒稱 Excel 明文。

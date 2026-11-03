@@ -50,7 +50,12 @@ def main():
             def redirect_request(self,*args): return None
         opener=urllib.request.build_opener(urllib.request.ProxyHandler({}),NoRedirect())
         probe=Client();probe.http=opener
-        check('direct film resolver is a safe redirect',probe.call('GET','/api/v1/films/resolve-url',extra={'X-Original-URI':'/film-detail.html?id='+film_id})[0]==301)
+        # X-Original-URI 只由 Nginx 內部轉址設定（直接打 API 時會被清空），所以從實際的舊詳情頁網址驗證轉向。
+        request=urllib.request.Request('http://127.0.0.1:8081/film-detail.html?id='+film_id,headers={'Host':'localhost:8081'})
+        try:response=opener.open(request,timeout=15)
+        except urllib.error.HTTPError as error:response=error
+        check('film detail id redirects to canonical page',response.status==301 and response.headers.get('Location','').endswith('/films/'+slug+'.html'))
+        check('direct API call cannot forge original URI',probe.call('GET','/api/v1/films/resolve-url',extra={'X-Original-URI':'/film-detail.html?id='+film_id})[0]==404)
         check('publication gate succeeds only for current snapshot',guest.call('GET','/api/v1/publication/access')[0]==204)
         check('media gate rejects malformed path',guest.call('GET','/api/v1/admin/media/access',extra={'X-Original-URI':'/media/not-an-image.txt'})[0]==403)
         check('attraction resolver remains restricted',probe.call('GET','/api/v1/attractions/resolve-url',extra={'X-Original-URI':'/places/unknown-'+suffix+'.html'})[0]==404)

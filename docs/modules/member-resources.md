@@ -2,7 +2,7 @@
 
 2026-10-31：階段十一已完成完整多份行程及確認後套用推薦路線，沿用同一itineraries／itinerary_items資料；新8操作、版本與草稿、逐檔用途見[完整會員行程指南](member-itineraries.md)。本文件較早「留階段十一」段落為階段六／十當時的交付界線。
 
-更新：2026-10-24。來源：功能規格 E13／G15／L15、資料表建議 C19–D21、U-08、E-27。階段六 6A–6C 已建立，七個本人 API 與前端已接入；6D 自動化及 Brave 桌面／手機實測完成，範圍與未驗環境分列。以下依資料層、收藏及目前行程說明，最新狀態見 [驗證紀錄](../PHASE-6-ACCEPTANCE.md)。
+更新：2026-10-24。來源：功能規格 E13／G15／L15、資料表建議 C19–D21、U-08、E-27。階段六 6A–6C 已建立，七個本人 API 與前端已接入；6D 自動化及 Brave 桌面／手機實測完成，範圍與未驗環境分列。以下依資料層、收藏及目前行程說明，最新狀態見 [驗證紀錄](../archive/PHASE-6-ACCEPTANCE.md)。
 
 ## 6A 資料層與本人身分
 
@@ -73,4 +73,4 @@ docker compose exec -T -u www-data app php bin/console.php content:publish
 
 新增 [member-card-accessibility.test.mjs](../../frontend/tests/member-card-accessibility.test.mjs) 執行卡片元件，確認愛心不在 img 語意之下與空時間可讀；[attraction-food-list.test.mjs](../../frontend/tests/attraction-food-list.test.mjs) 執行列表模組並使用實際美食模板分類，覆蓋無數字 span 與店家值；[auth-navigation.test.mjs](../../frontend/tests/auth-navigation.test.mjs) 執行認證／session 模組確認互切待辦及不安全目的地拒絕。這些保護真實重現情境，不宣稱替身能驗 CSS。實際手機長名稱則以瀏覽器量測並截圖。
 
-結果、命令、環境中斷、間歇事件與 6-T01–15 的未驗部分集中記在 [階段六紀錄](../PHASE-6-ACCEPTANCE.md)。2026-10-24 補完 Brave 桌面 1440×900／手機 390×844 與鍵盤驗收，並記錄工具逾時及應用程式結果的區別；未宣稱其他瀏覽器或正式部署通過。原始 69 檔、CSS、忽略的 .env 與所有本機文件連結另有檢查；沒有為本階段新增容器服務、PHP／JS 套件、port 或環境變數。
+結果、命令、環境中斷、間歇事件與 6-T01–15 的未驗部分集中記在 [階段六紀錄](../archive/PHASE-6-ACCEPTANCE.md)。2026-10-24 補完 Brave 桌面 1440×900／手機 390×844 與鍵盤驗收，並記錄工具逾時及應用程式結果的區別；未宣稱其他瀏覽器或正式部署通過。原始 69 檔、CSS、忽略的 .env 與所有本機文件連結另有檢查；沒有為本階段新增容器服務、PHP／JS 套件、port 或環境變數。

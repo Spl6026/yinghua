@@ -82,8 +82,6 @@ final class PublicationOrderTest extends TestCase
         );
         self::assertTrue($publication->synchronize());
         $generation = $publication->read()['generation'];
-        // 發布延遲的診斷依 SECTIONS 比對區段，快照新增區段時清單也要跟著更新。
-        self::assertSame([...PublicationSnapshotBuilder::SECTIONS, 'generation'], array_keys($publication->read()));
         $reverse = true;
         self::assertSame($generation, $publication->read()['generation']);
         self::assertTrue($publication->ready());

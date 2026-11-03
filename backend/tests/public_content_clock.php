@@ -13,7 +13,6 @@ use Yinghua\DTO\MerchantInput;
 use Yinghua\DTO\NewsInput;
 use Yinghua\DTO\OfferInput;
 use Yinghua\DTO\OfferQuery;
-use Yinghua\Exceptions\ApplicationError;
 use Yinghua\Models\IdentityKind;
 use Yinghua\Repositories\AccountRepository;
 use Yinghua\Repositories\AttractionRepository;
@@ -69,7 +68,9 @@ try {
         'status' => 'published','publishAt' => '2026-10-01T00:00:00+08:00','validFrom' => '2026-10-22','validTo' => '2026-10-22'], true, time()), true, $actor->id);
     $news = new NewsRepository($db);
     $news->save($newsId, NewsInput::fromArray(['title' => '跨日排程消息','type' => 'city','slug' => 'clock-' . $newsId,'status' => 'published','publishAt' => '2026-10-23T00:00:00+08:00'], true, time()), true, $actor->id);
-    $publication = new ContentPublication(
+    // 正式環境每個請求各自建立 ContentPublication，同一請求內才沿用已驗證的快照；
+    // 測試要檢查「內容或時間改變後不能再提供舊快照」時，以新的實例代表下一個請求。
+    $newRequest = static fn(): ContentPublication => new ContentPublication(
         new PublicationRepository($db),
         new NodeContentRenderer($config),
         // 外層測試交易最後會回滾，搜尋索引寫入直接沿用該交易，不另開巢狀交易。
@@ -91,6 +92,7 @@ try {
             new GeneralSettingsRepository($db),
         ),
     );
+    $publication = $newRequest();
     $public = new PublicOffers($publication);
     $clock->value = (int) strtotime('2026-10-22T23:59:59+08:00');
     $check($publication->synchronize());
@@ -98,13 +100,11 @@ try {
     $check(!array_any($publication->read()['news'], static fn(array $item): bool => $item['id'] === $newsId));
     $oldGeneration = $publication->read()['generation'];
     $clock->value++;
+    $publication = $newRequest();
+    $public = new PublicOffers($publication);
+    // 跨日後在發布程序重新產生之前，仍提供上一版；tick() 會發現並重新發布。
     $check(!$publication->ready());
-    try {
-        $publication->read();
-        $check(false);
-    } catch (ApplicationError $error) {
-        $check($error->errorCode === Yinghua\Exceptions\ErrorCode::PublicationPending);
-    }
+    $check($publication->read()['generation'] === $oldGeneration);
     $check($publication->tick());
     $check($publication->read()['generation'] !== $oldGeneration);
     $check($public->get('clock-' . $offerId)['offer']['validity'] === 'expired');

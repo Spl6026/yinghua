@@ -43,7 +43,8 @@ class AuthController
     {
         return new Response(200, ['token' => $this->csrf->token($context->csrf, $context->kind),
             'expiresIn' => $this->config->csrfSeconds(),
-            'termsVersion' => $this->policies->configurationVersion()]);
+            'termsVersion' => $this->policies->configurationVersion(),
+            'termsLabel' => $this->policies->configurationLabel()]);
     }
 
     public function captcha(ApiContext $context): Response

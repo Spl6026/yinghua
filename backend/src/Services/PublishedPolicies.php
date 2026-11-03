@@ -26,6 +26,19 @@ class PublishedPolicies
         return is_string($version) ? $version : $this->config->termsVersion();
     }
 
+    /**
+     * 註冊頁顯示給會員看的條款版本名稱：後台有填就用該名稱，與條款頁一致；
+     * 沒填時與同意紀錄的版本相同。同意紀錄仍保存 configurationVersion() 的內部代碼。
+     */
+    public function configurationLabel(): string
+    {
+        $general = $this->published->current()['general'] ?? null;
+        $values = is_array($general) ? ($general['values'] ?? null) : null;
+        $label = is_array($values) ? ($values['termsVersion'] ?? '') : '';
+
+        return is_string($label) && $label !== '' ? $label : $this->configurationVersion();
+    }
+
     public function current(bool $lock = false): string
     {
         $document = $this->settings->read($lock);

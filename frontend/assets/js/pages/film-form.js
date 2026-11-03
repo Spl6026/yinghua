@@ -189,7 +189,8 @@ export async function initializeFilmForm(identity, page) {
               message.focus();
             }
           } else {
-            if (hasPermission(identity, 'films', 'edit') && hasPermission(identity, 'films', 'view'))
+            // 已儲存但公開頁未同步：有編輯權限就能開啟編輯頁，網址換成編輯頁，重新整理才不會回到新增表單。
+            if (hasPermission(identity, 'films', 'edit'))
               history.replaceState(null, '', '/admin/film-edit.html?id=' + encodeURIComponent(id));
             status(
               message,
